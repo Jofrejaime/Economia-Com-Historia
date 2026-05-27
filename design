@@ -1,0 +1,82 @@
+# Design System: Economia com História — Angola
+## Arquitetura de Design Acadêmico Moderno
+
+Este documento define a linguagem visual e técnica da plataforma "Economia com História", focada em credibilidade, rigor acadêmico e alta legibilidade para conteúdos educacionais complexos.
+
+---
+
+### 1. Colors (#colors.md)
+Sistema de cores focado em autoridade e sobriedade, evitando distrações visuais.
+
+| Nome | Hex | Uso Primário |
+| :--- | :--- | :--- |
+| **Bordeaux (Principal)** | `#8B1E2D` | CTAs, Destaques, Identidade Institucional |
+| **Pure White** | `#FFFFFF` | Fundo principal (Background) |
+| **Subtle Grey** | `#F5F5F5` | Cards, seções secundárias, fundos de formulários |
+| **Medium Grey** | `#9CA3AF` | Labels, bordas finas, metadados |
+| **Dark Grey (Texto)** | `#1F2937` | Texto corrido, títulos (Contraste máximo) |
+| **Success Green** | `#22C55E` | Progresso, respostas corretas |
+| **Warning Gold** | `#FBBF24` | Badges de nível, pontos, status pendentes |
+
+---
+
+### 2. Typography (#typography.md)
+Prioridade absoluta para leitura de longa duração (Deep Reading).
+
+- **Headings (Títulos):** `IBM Plex Sans`
+  - Estilo: Bold (700)
+  - Tracking: -0.02em (tighter)
+  - Tom: Autoritário, profissional.
+- **Body Text (Corpo):** `Source Sans 3`
+  - Estilo: Regular (400) / Medium (500)
+  - Line-height: 1.7 (Essencial para textos acadêmicos)
+  - Escala: 16px (Mobile) / 18px (Desktop) para legibilidade.
+
+---
+
+### 3. Spacing (#spacing.md)
+Sistema baseado em múltiplos de 8 (8pt Grid).
+
+- **Content Padding:** 20px - 24px (Mobile) / 48px+ (Desktop).
+- **Component Gap:** 16px (padrão) / 32px (seções).
+- **Negative Space:** Generoso para evitar fadiga cognitiva.
+
+---
+
+### 4. Buttons (#buttons.md)
+Ações claras e hierarquizadas.
+
+- **Primário:** Fundo Bordeaux (`#8B1E2D`), Texto Branco, Roundness 4px.
+- **Secundário:** Borda Bordeaux, Fundo Transparente, Texto Bordeaux.
+- **Ghost/Tertiary:** Sem borda, Texto Dark Grey, efeito hover sutil.
+
+---
+
+### 5. Cards (#cards.md)
+Containers de informação estruturada.
+
+- **Estilo:** Fundo `#FFFFFF` ou `#F5F5F5`, borda fina `#E5E7EB`.
+- **Elevação:** `shadow-sm` (muito leve) ou flat (apenas borda) para manter o tom sério.
+- **Raio:** 8px a 12px (Roundness discreto).
+
+---
+
+### 6. Forms (#forms.md)
+Entrada de dados técnica e limpa.
+
+- **Inputs:** Fundo Branco, borda cinza clara, texto 16px (evita zoom no iOS).
+- **Estados:** Foco em Bordeaux, Erro em Vermelho vivo (`#EF4444`).
+
+---
+
+### 7. Responsive Rules (#responsive-rules.md)
+- **Mobile-First:** Layouts de coluna única, menus hambúrguer, CTAs fixos na base quando necessário.
+- **Desktop:** Grids de 12 colunas, barras laterais fixas para navegação administrativa, leitura em largura controlada (max-width: 800px para texto).
+
+---
+
+### 8. Accessibility (#accessibility.md)
+- **Contraste:** Ratio mínimo de 4.5:1 para texto de corpo.
+- **Target Size:** Botões com mínimo de 44px de altura.
+- **Imagery:** Uso exclusivo de fotografias reais. Alt-text obrigatório para imagens históricas.
+- **Semantic HTML:** Uso rigoroso de `<article>`, `<section>`, `<h1>-<h6>`.
