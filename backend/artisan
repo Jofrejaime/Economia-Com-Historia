@@ -1,0 +1,5 @@
+#!/usr/bin/env php
+<?php
+
+// Placeholder: este ficheiro sera substituido apos criacao do projeto Laravel real.
+echo "Bootstrap Laravel ainda nao inicializado." . PHP_EOL;

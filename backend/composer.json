@@ -1,0 +1,8 @@
+{
+  "name": "economia-com-historia/backend",
+  "description": "Base inicial para API Laravel",
+  "type": "project",
+  "require": {
+    "php": ">=8.2"
+  }
+}

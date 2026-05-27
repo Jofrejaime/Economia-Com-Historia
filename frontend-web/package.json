@@ -1,0 +1,9 @@
+{
+  "name": "economia-com-historia-frontend-web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "start": "echo Inicializar Angular CLI neste modulo",
+    "build": "echo Build ainda nao configurado"
+  }
+}
