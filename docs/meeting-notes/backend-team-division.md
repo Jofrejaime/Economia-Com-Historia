@@ -2,7 +2,7 @@
 
 Este documento separa o trabalho do backend em duas frentes para evitar conflito de areas e permitir desenvolvimento paralelo.
 
-## Pessoa 1 - Core e Autenticacao
+## Pessoa 1 ( Jofre Jaime )- Core e Autenticacao
 
 Responsabilidades principais:
 
@@ -27,7 +27,7 @@ Entregas esperadas:
 - Verificacao de email e reset de password implementados.
 - Regras de acesso consistentes para rotas protegidas.
 
-## Pessoa 2 - Conteudo e Funcionalidades do Sistema
+## Pessoa 2 ( Abel Canas ) - Conteudo e Funcionalidades do Sistema
 
 Responsabilidades principais:
 

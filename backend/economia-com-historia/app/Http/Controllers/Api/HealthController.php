@@ -10,7 +10,7 @@ class HealthController extends Controller
     {
         return response()->json([
             'status' => 'ok',
-            'service' => 'economia-com-historia-api',
+            'service' => "economia-com-historia-api | Feito por Cristina Mazebo, Jofre Jaime, Abel Canas, Lucio Vitorino",
         ]);
     }
 }
