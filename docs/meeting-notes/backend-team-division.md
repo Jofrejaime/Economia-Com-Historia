@@ -67,7 +67,3 @@ Entregas esperadas:
 1. Sprint 1: autenticacao, usuarios e base de seguranca.
 2. Sprint 2: documentos, quizzes e comunidade.
 3. Sprint 3: leaderboard, notificacoes, reportes e testes finais.
-
-## Nota Final
-
-Esta divisao assume que a Pessoa 1 fica mais perto da base tecnica e a Pessoa 2 mais perto das funcionalidades de negocio. Se quiser, isto pode ser ajustado para refletir a experiencia de cada pessoa.
