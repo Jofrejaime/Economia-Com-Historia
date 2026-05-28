@@ -14,6 +14,20 @@ use Illuminate\Notifications\Notifiable;
 #[Hidden(['password_hash'])]
 class User extends Authenticatable
 {
+    /**
+     * The primary key type.
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -34,6 +48,6 @@ class User extends Authenticatable
 
     public function getAuthPassword(): string
     {
-        return $this->password_hash;
+        return $this->password_ha sh;
     }
 }
