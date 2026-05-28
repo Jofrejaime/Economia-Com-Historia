@@ -1,17 +1,11 @@
-# Frontend Mobile (Flutter)
 
-Modulo responsavel pela aplicacao mobile.
+  # Review Development Guidelines (cópia)
 
-## Estrutura base
+  This is a code bundle for Review Development Guidelines (cópia). The original project is available at https://www.figma.com/design/Qj6a0F0v9tD2iSuApY7FY9/Review-Development-Guidelines--c%C3%B3pia-.
 
-- lib/pages
-- lib/services
-- lib/models
-- lib/widgets
-- assets
+  ## Running the code
 
-## Proximos passos
+  Run `npm i` to install the dependencies.
 
-1. Inicializar app Flutter neste diretorio.
-2. Definir navegacao e estado base em lib/main.dart.
-3. Integrar servicos com API versionada em /api/v1.
+  Run `npm run dev` to start the development server.
+  
