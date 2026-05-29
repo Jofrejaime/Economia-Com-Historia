@@ -1,0 +1,60 @@
+/* Reset e estilos base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Mix blend mode for overlay */
+.mix-blend-saturation {
+  mix-blend-mode: saturation;
+}
+
+/* Focus styles */
+input:focus {
+  outline: none;
+}
+
+/* Button hover */
+button:hover {
+  opacity: 0.9;
+}
+
+/* Transitions */
+* {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .max-w-\[420px\] {
+    max-width: 90%;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #debfbf;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8b1e2d;
+}

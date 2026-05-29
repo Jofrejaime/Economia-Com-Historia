@@ -1,0 +1,76 @@
+<!-- Header Modernizado - Versão com Logout -->
+<div style="background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); position: sticky; top: 0; width: 100%; z-index: 100; border-bottom: 1px solid rgba(107,1,25,0.1);">
+  <div style="max-width: 1536px; margin: 0 auto; padding: 20px 48px;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      
+      <!-- Logo -->
+      <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" routerLink="/home">
+        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 8px;"></div>
+        <div style="font-weight: 700; background: linear-gradient(135deg, #6b0119, #8b1e2d); background-clip: text; -webkit-background-clip: text; color: transparent; font-size: 22px; letter-spacing: -0.5px;">
+          Economia com História
+        </div>
+      </div>
+      
+      <!-- Navigation Links -->
+      <nav style="display: flex; gap: 32px; align-items: center;">
+        <a routerLink="/home" routerLinkActive="active" style="text-decoration: none; font-size: 14px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Início</a>
+        <a routerLink="/contents" routerLinkActive="active" style="text-decoration: none; font-size: 14px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Conteúdos</a>
+        <a routerLink="/forum/community" routerLinkActive="active" style="text-decoration: none; font-size: 14px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Comunidade</a>
+        <a routerLink="/quiz" routerLinkActive="active" style="text-decoration: none; font-size: 14px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Quiz</a>
+      </nav>
+      
+      <!-- Right Icons: Perfil + Logout -->
+      <div style="display: flex; gap: 12px; align-items: center;">
+        
+        <!-- Ícone do Perfil -->
+        <div routerLink="/auth/perfil" style="width: 36px; height: 36px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.3s;" 
+             onmouseover="this.style.transform='scale(1.05)'" 
+             onmouseout="this.style.transform='scale(1)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        
+        <!-- Ícone de Sair (Logout) -->
+        <div (click)="logout()" style="width: 36px; height: 36px; background: transparent; border: 1px solid #800020; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" 
+             onmouseover="this.style.backgroundColor='#800020'; this.style.borderColor='#800020'"
+             onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='#800020'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2" 
+               onmouseover="this.style.stroke='white'"
+               onmouseout="this.style.stroke='#800020'">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  a.active {
+    color: #800020 !important;
+    font-weight: 600 !important;
+    position: relative;
+  }
+  a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(135deg, #6b0119, #8b1e2d);
+    border-radius: 2px;
+  }
+  a {
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+  a:hover {
+    color: #800020;
+  }
+</style>

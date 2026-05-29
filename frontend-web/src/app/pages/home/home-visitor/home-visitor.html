@@ -1,0 +1,257 @@
+<div style="background-color: #f8f9ff; min-height: 100vh;">
+  
+  <!-- Header Modernizado -->
+  <header style="background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); width: 100%; border-bottom: 1px solid rgba(107,1,25,0.1); position: sticky; top: 0; z-index: 100;">
+    <div style="max-width: 1536px; margin: 0 auto; padding: 20px 48px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 8px;"></div>
+        <div style="font-weight: 700; background: linear-gradient(135deg, #6b0119, #8b1e2d); background-clip: text; -webkit-background-clip: text; color: transparent; font-size: 22px; letter-spacing: -0.5px;">
+          Economia com História
+        </div>
+      </div>
+
+      <button (click)="navigateTo('/auth/login')" style="background: linear-gradient(135deg, #6b0119, #8b1e2d); border: none; color: white; font-size: 14px; font-weight: 600; padding: 10px 28px; border-radius: 30px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(107,1,25,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(107,1,25,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(107,1,25,0.2)'">
+        Entrar
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Section Modernizada -->
+  <section style="position: relative; overflow: hidden;">
+    <!-- Background decoration -->
+    <div style="position: absolute; top: -50%; right: -30%; width: 80%; height: 80%; background: radial-gradient(circle, rgba(139,30,45,0.08), transparent); border-radius: 50%; pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -30%; left: -20%; width: 60%; height: 60%; background: radial-gradient(circle, rgba(107,1,25,0.06), transparent); border-radius: 50%; pointer-events: none;"></div>
+    
+    <div style="max-width: 1536px; margin: 0 auto; padding: 80px 48px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+        
+        <!-- Left Content -->
+        <div style="display: flex; flex-direction: column; gap: 28px;">
+          <div style="display: inline-block; align-self: flex-start;">
+            <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #8b1e2d; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 30px; letter-spacing: 0.5px;">ARQUIVO DIGITAL</span>
+          </div>
+
+          <div>
+            <h1 style="color: #121c2a; font-size: 56px; font-weight: 800; line-height: 1.2; margin-bottom: 24px; letter-spacing: -1px;">
+              Arquivo Digital do<br>
+              <span style="background: linear-gradient(135deg, #6b0119, #8b1e2d); background-clip: text; -webkit-background-clip: text; color: transparent;">Pensamento Económico</span> de Angola
+            </h1>
+            <p style="color: #64748b; font-size: 18px; line-height: 1.5;">Preservando décadas de história económica. Explore, pesquise e contribua. O conhecimento agora tem morada.</p>
+          </div>
+
+          <!-- CTA Buttons -->
+          <div style="display: flex; gap: 16px; padding-top: 16px;">
+            <button (click)="navigateTo('/auth/login')" style="background: linear-gradient(135deg, #8b1e2d, #6b0119); padding: 16px 36px; border-radius: 40px; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(107,1,25,0.2); display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(107,1,25,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(107,1,25,0.2)'">
+              <span style="font-weight: 600; color: white; font-size: 16px;">Aceder ao Arquivo</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+
+            <button (click)="navigateTo('/auth/register')" style="background: transparent; border: 1px solid #debfbf; padding: 16px 36px; border-radius: 40px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#6b0119'; this.style.backgroundColor='rgba(107,1,25,0.05)'" onmouseout="this.style.borderColor='#debfbf'; this.style.backgroundColor='transparent'">
+              <span style="font-weight: 500; color: #6b0119; font-size: 16px;">Saiba Mais</span>
+            </button>
+          </div>
+
+          <!-- Trust Badges -->
+          <div style="display: flex; gap: 24px; padding-top: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#22c55e"><path d="M20 6L9 17L4 12"/></svg>
+              <span style="color: #475569; font-size: 14px;">12M+ Documentos</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#22c55e"><path d="M20 6L9 17L4 12"/></svg>
+              <span style="color: #475569; font-size: 14px;">50k+ Investigadores</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Image - Modernizada -->
+        <div style="position: relative;">
+          <!-- Decorative elements -->
+          <div style="position: absolute; top: -20px; right: -20px; width: 150px; height: 150px; background: linear-gradient(135deg, #8b1e2d20, #6b011920); border-radius: 30px; z-index: 0;"></div>
+          <div style="position: absolute; bottom: -20px; left: -20px; width: 120px; height: 120px; background: linear-gradient(135deg, #6b011915, #8b1e2d15); border-radius: 30px; z-index: 0;"></div>
+          
+          <div style="position: relative; z-index: 1;">
+            <div style="background: linear-gradient(135deg, #dee9fc, #f8f9ff); border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15); border: 1px solid rgba(222,191,191,0.2);">
+              <img alt="Arquivo Digital" src="https://mercado.co.ao/wp-content/uploads/2025/02/Kwanza-moedas-850x560.jpg" style="width: 100%; height: auto; display: block;" />
+            </div>
+
+            <!-- Stats Card Overlay - Modernizado -->
+            <div style="position: absolute; bottom: 20px; left: -20px; background: white; padding: 20px 28px; border-radius: 16px; box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1); border-left: 4px solid #6b0119; backdrop-filter: blur(10px); background: rgba(255,255,255,0.95);">
+              <div style="font-weight: 800; background: linear-gradient(135deg, #6b0119, #8b1e2d); background-clip: text; -webkit-background-clip: text; color: transparent; font-size: 32px;">12M+</div>
+              <div style="font-weight: 500; color: #64748b; font-size: 12px; letter-spacing: 1px;">DOCUMENTOS DIGITALIZADOS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section Modernizada -->
+  <section style="background-color: white; width: 100%; padding: 80px 0;">
+    <div style="max-width: 1536px; margin: 0 auto; padding: 0 48px;">
+      <div style="display: flex; flex-direction: column; gap: 48px; align-items: center;">
+        
+        <div style="text-align: center; max-width: 800px;">
+          <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #8b1e2d; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 30px; display: inline-block; margin-bottom: 16px;">PORQUE JUNTAR-SE</span>
+          <h2 style="color: #121c2a; font-size: 40px; font-weight: 700; margin-bottom: 16px;">Uma plataforma completa para<br>investigadores e académicos</h2>
+          <p style="color: #64748b; font-size: 18px; line-height: 1.5;">Explore a história económica de Angola com ferramentas poderosas e uma comunidade ativa.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; width: 100%;">
+          
+          <!-- Feature 1 -->
+          <div style="background: #f8f9ff; border-radius: 20px; padding: 32px; transition: all 0.3s; border: 1px solid rgba(222,191,191,0.1);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.05)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #8b1e2d15, #6b011915); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+              <svg width="28" height="28" viewBox="0 0 30 22" fill="#6b0119">
+                <path d="M4 8L15 1L26 8L15 15L4 8Z"/>
+                <path d="M4 8V16L15 23L26 16V8" fill="none" stroke="#6b0119" stroke-width="2"/>
+              </svg>
+            </div>
+            <h3 style="font-weight: 700; color: #121c2a; font-size: 20px; margin-bottom: 12px;">Acesso Académico Completo</h3>
+            <p style="color: #64748b; font-size: 15px; line-height: 1.5;">Milhões de documentos digitalizados, organizados e pesquisáveis para a sua investigação.</p>
+          </div>
+
+          <!-- Feature 2 -->
+          <div style="background: #f8f9ff; border-radius: 20px; padding: 32px; transition: all 0.3s; border: 1px solid rgba(222,191,191,0.1);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.05)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #8b1e2d15, #6b011915); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+              <svg width="28" height="28" viewBox="0 0 30 28.75" fill="none" stroke="#6b0119" stroke-width="2">
+                <circle cx="15" cy="8" r="7"/>
+                <path d="M1 28C1 22 7 17 15 17C23 17 29 22 29 28"/>
+              </svg>
+            </div>
+            <h3 style="font-weight: 700; color: #121c2a; font-size: 20px; margin-bottom: 12px;">Comunidade Académica</h3>
+            <p style="color: #64748b; font-size: 15px; line-height: 1.5;">Conecte-se com outros investigadores, partilhe descobertas e colabore em projectos.</p>
+          </div>
+
+          <!-- Feature 3 -->
+          <div style="background: #f8f9ff; border-radius: 20px; padding: 32px; transition: all 0.3s; border: 1px solid rgba(222,191,191,0.1);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.05)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #8b1e2d15, #6b011915); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+              <svg width="28" height="28" viewBox="0 0 20 25" fill="none" stroke="#6b0119" stroke-width="2">
+                <path d="M1 1H19V23L10 19L1 23V1Z"/>
+              </svg>
+            </div>
+            <h3 style="font-weight: 700; color: #121c2a; font-size: 20px; margin-bottom: 12px;">Preservação Histórica</h3>
+            <p style="color: #64748b; font-size: 15px; line-height: 1.5;">Contribua para a preservação e disseminação do conhecimento económico angolano.</p>
+          </div>
+        </div>
+
+        <button (click)="navigateTo('/auth/register')" style="background: transparent; border: 2px solid #8b1e2d; padding: 16px 48px; border-radius: 40px; cursor: pointer; transition: all 0.3s; font-weight: 600; color: #8b1e2d; font-size: 16px;" onmouseover="this.style.background='linear-gradient(135deg, #8b1e2d, #6b0119)'; this.style.color='white'; this.style.borderColor='transparent'" onmouseout="this.style.background='transparent'; this.style.color='#8b1e2d'; this.style.borderColor='#8b1e2d'">
+          Criar Conta de Investigador
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Access Info Section Modernizada -->
+  <section style="background: linear-gradient(135deg, #6b0119, #8b1e2d); width: 100%; padding: 80px 0; position: relative; overflow: hidden;">
+    <div style="position: absolute; top: 0; right: 0; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.1), transparent); border-radius: 50%;"></div>
+    <div style="position: absolute; bottom: 0; left: 0; width: 250px; height: 250px; background: radial-gradient(circle, rgba(255,255,255,0.08), transparent); border-radius: 50%;"></div>
+    
+    <div style="max-width: 1536px; margin: 0 auto; padding: 0 48px; position: relative; z-index: 1;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+        
+        <!-- Left Content -->
+        <div style="display: flex; flex-direction: column; gap: 28px;">
+          <div>
+            <span style="display: inline-block; padding: 6px 14px; background: rgba(255,255,255,0.15); border-radius: 30px; color: white; font-size: 12px; font-weight: 600; letter-spacing: 1px;">ACESSO ABERTO</span>
+          </div>
+          
+          <div>
+            <h2 style="color: white; font-size: 40px; font-weight: 700; margin-bottom: 16px;">Explore sem Restrições</h2>
+            <p style="color: rgba(255,255,255,0.85); font-size: 18px; line-height: 1.5;">Não precisa de criar conta para começar a explorar. Todo o conteúdo do arquivo está disponível para leitura pública.</p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: flex; gap: 14px; align-items: flex-start;">
+              <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="white"><path d="M10 0L20 10L10 20L0 10L10 0Z"/></svg>
+              </div>
+              <div>
+                <h3 style="font-weight: 600; color: white; font-size: 16px; margin-bottom: 4px;">Navegue por Documentos Históricos</h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 14px;">Acesse milhões de documentos, relatórios e publicações económicas sem necessidade de login.</p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 14px; align-items: flex-start;">
+              <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="white"><path d="M10 0L20 10L10 20L0 10L10 0Z"/></svg>
+              </div>
+              <div>
+                <h3 style="font-weight: 600; color: white; font-size: 16px; margin-bottom: 4px;">Leia Discussões da Comunidade</h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 14px;">Acompanhe conversas académicas e debates sobre economia angolana.</p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 14px; align-items: flex-start;">
+              <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="white"><path d="M10 0L20 10L10 20L0 10L10 0Z"/></svg>
+              </div>
+              <div>
+                <h3 style="font-weight: 600; color: white; font-size: 16px; margin-bottom: 4px;">Utilize Ferramentas de Pesquisa</h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 14px;">Pesquise, filtre e descubra conteúdos relevantes para a sua investigação.</p>
+              </div>
+            </div>
+          </div>
+
+          <button (click)="navigateTo('/home')" style="background: white; padding: 14px 32px; border-radius: 40px; border: none; cursor: pointer; width: fit-content; font-weight: 600; color: #6b0119; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
+            Começar a Explorar
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b0119" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <!-- Right Content - Card Modernizado -->
+        <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 24px; padding: 36px; border: 1px solid rgba(255,255,255,0.2);">
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2L15 8.5L22 9.5L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9.5L9 8.5L12 2Z"/></svg>
+                <h3 style="color: white; font-size: 24px; font-weight: 700;">Com uma conta pode também:</h3>
+              </div>
+              <p style="color: rgba(255,255,255,0.7); font-size: 14px;">Participe activamente da preservação histórica</p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path d="M8 1L9 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L7 5L8 1Z"/></svg>
+                <span style="color: white; font-size: 14px;">Comentar em discussões e contribuir com insights</span>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path d="M8 1L9 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L7 5L8 1Z"/></svg>
+                <span style="color: white; font-size: 14px;">Criar novos tópicos e iniciar debates académicos</span>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path d="M8 1L9 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L7 5L8 1Z"/></svg>
+                <span style="color: white; font-size: 14px;">Contribuir com novos documentos ao arquivo</span>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path d="M8 1L9 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L7 5L8 1Z"/></svg>
+                <span style="color: white; font-size: 14px;">Guardar pesquisas e criar colecções personalizadas</span>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path d="M8 1L9 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L7 5L8 1Z"/></svg>
+                <span style="color: white; font-size: 14px;">Receber notificações sobre novos conteúdos</span>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
+              <button (click)="navigateTo('/auth/register')" style="width: 100%; background: white; padding: 14px; border-radius: 40px; border: none; cursor: pointer; font-weight: 700; color: #6b0119; font-size: 15px; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                Criar Conta Gratuita
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Modernizado -->
+  <footer style="background: linear-gradient(135deg, #f1f5f9, #e9eef5); width: 100%; padding: 48px 0;">
+    <div style="max-width: 1536px; margin: 0 auto; padding: 0 48px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 32px; align-items: center;">
+          <div style="font-weight: 600; background: linear-gradient(135deg, #6b0119, #8b1e2d); background-clip: text; -webkit-background-clip: text; color: transparent;">Economia com História</div>
+          <p style="color: #64748b; font-size: 14px;">© 2026 Todos os direitos reservados.</p>
+        </div>
+        <p style="color: #94a3b8; font-size: 13px;">Arquivo restrito a investigadores e académicos</p>
+      </div>
+    </div>
+  </footer>
+</div>
