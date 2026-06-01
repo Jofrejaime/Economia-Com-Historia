@@ -52,7 +52,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Registered successfully.',
             'token' => $token,
-            'user' => $user->loadMissing(),
+            'user' => $user,
         ], 201);
     }
 
@@ -160,4 +160,4 @@ class AuthController extends Controller
 
         return $token;
     }
-}
+} 

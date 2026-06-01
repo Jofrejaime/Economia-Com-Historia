@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 #[Fillable(['email', 'password_hash', 'email_verified', 'is_active', 'role', 'last_login_at'])]
 #[Hidden(['password_hash'])]
@@ -27,6 +28,15 @@ class User extends Authenticatable
      * @var bool
      */
     public $incrementing = false;
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $user): void {
+            if (empty($user->getKey())) {
+                $user->setAttribute($user->getKeyName(), (string) Str::uuid());
+            }
+        });
+    }
 
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -48,6 +58,6 @@ class User extends Authenticatable
 
     public function getAuthPassword(): string
     {
-        return $this->password_ha sh;
+        return $this->password_hash;
     }
 }
