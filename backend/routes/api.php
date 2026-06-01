@@ -92,6 +92,8 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::get('/stats/provinces', [LeaderboardController::class, 'provinceStats']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/send', [NotificationController::class, 'send']);
+    Route::post('/notifications/invite', [NotificationController::class, 'sendInvite']);
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead']);
     Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
