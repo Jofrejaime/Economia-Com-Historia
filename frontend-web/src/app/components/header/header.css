@@ -1,0 +1,66 @@
+/* Classes específicas do header para evitar conflitos */
+.app-header {
+  backdrop-filter: blur(32px);
+  background-color: rgba(255,255,255,0.85);
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 50;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.app-header-container {
+  max-width: 1536px;
+  margin: 0 auto;
+  padding: 16px 48px;
+}
+
+.app-header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-header-logo {
+  font-weight: 700;
+  color: #7f1d1d;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.app-header-links {
+  display: flex;
+  gap: 32px;
+}
+
+.app-header-links a {
+  text-decoration: none;
+  font-size: 14px !important;
+  color: #475569;
+  transition: color 0.2s;
+}
+
+.app-header-links a:hover {
+  color: #8b1e2d;
+}
+
+.app-header-links a.active {
+  color: #8b1e2d !important;
+  font-weight: 600 !important;
+}
+
+.app-header-avatar {
+  background-color: #8b1e2d;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s;
+}
+
+.app-header-avatar:hover {
+  transform: scale(1.05);
+}

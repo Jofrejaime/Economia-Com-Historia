@@ -1,0 +1,238 @@
+<div style="background-color: #f8f9ff; min-height: 100vh;">
+  
+  <!-- Header Modernizado -->
+  <app-header></app-header>
+
+  <main style="flex: 1; width: 100%;">
+    
+    <!-- Breadcrumbs Modernizados -->
+    <div style="background-color: #f8fafc; border-bottom: 1px solid #e8e8e8;">
+      <div style="max-width: 1536px; margin: 0 auto; padding: 16px 48px;">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button (click)="navigateTo('/home')" style="background: none; border: none; cursor: pointer; color: #8a8a8a; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; transition: color 0.2s;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#8a8a8a'">INÍCIO</button>
+          <svg width="3" height="5" viewBox="0 0 3 5" fill="none"><path d="M0.5 0.5L2.5 2.5L0.5 4.5" stroke="#8a8a8a" stroke-linecap="round"/></svg>
+          <button (click)="navigateTo('/contents')" style="background: none; border: none; cursor: pointer; color: #8a8a8a; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; transition: color 0.2s;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#8a8a8a'">CONTEÚDO</button>
+          <svg width="3" height="5" viewBox="0 0 3 5" fill="none"><path d="M0.5 0.5L2.5 2.5L0.5 4.5" stroke="#8a8a8a" stroke-linecap="round"/></svg>
+          <span style="font-weight: 600; color: #800020; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase;">CAMINHO DE FERRO DE BENGUELA</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Section Modernizada -->
+    <div style="position: relative; width: 100%; height: 500px; display: flex; align-items: flex-end; overflow: hidden;">
+      <div style="position: absolute; inset: 0;">
+        <img alt="O Caminho de Ferro de Benguela" src="https://images.unsplash.com/photo-1557318041-1ce374d55ebf?w=1920&q=80" style="width: 100%; height: 100%; object-fit: cover;" />
+        <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2));"></div>
+      </div>
+      <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(107,1,25,0.85), rgba(107,1,25,0.3) 50%, transparent);"></div>
+      <div style="position: relative; max-width: 1536px; margin: 0 auto; width: 100%; padding: 0 48px 64px 48px;">
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div style="backdrop-filter: blur(8px); background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 30px;">
+              <span style="font-weight: 600; color: white; font-size: 11px; letter-spacing: 1.1px; text-transform: uppercase;">FONTE PRIMÁRIA • 1912</span>
+            </div>
+            <div style="backdrop-filter: blur(8px); background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 30px;">
+              <span style="font-weight: 600; color: white; font-size: 11px; letter-spacing: 1.1px; text-transform: uppercase;">IMPACTO SOCIOECONÓMICO</span>
+            </div>
+          </div>
+          <h1 style="color: white; font-size: 56px; font-weight: 800; line-height: 1.2; max-width: 896px; letter-spacing: -1px;">O Caminho de Ferro de Benguela: Análise de Impacto Fiscal</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two-Column Layout Modernizado -->
+    <div style="max-width: 1536px; margin: 0 auto; padding: 80px 48px;">
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 60px;">
+        
+        <!-- Left Column - Main Content -->
+        <div style="display: flex; flex-direction: column; gap: 48px;">
+          
+          <!-- Resumo Executivo -->
+          <section>
+            <div style="margin-bottom: 16px;">
+              <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #800020; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">RESUMO</span>
+            </div>
+            <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin-bottom: 20px;">Resumo Executivo</h2>
+            <p style="color: #4a4a4a; font-size: 17px; line-height: 1.6;">
+              Este documento constitui um marco fundamental na historiografia económica de Angola, detalhando a estruturação financeira e as projeções de retorno sobre o investimento do Caminho de Ferro de Benguela (CFB) durante o seu primeiro decénio de operação. A análise foca-se especificamente no equilíbrio entre as concessões estatais e o capital privado britânico.
+            </p>
+          </section>
+
+          <!-- Quote Modernizada -->
+          <div style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-left: 4px solid #800020; border-radius: 12px; padding: 40px; position: relative;">
+            <svg style="position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; opacity: 0.1;" viewBox="0 0 24 24" fill="#800020">
+              <path d="M10 11h-4v-4h4v4zm8 0h-4v-4h4v4zm0 8h-4v-4h4v4zm-8 0h-4v-4h4v4z"/>
+            </svg>
+            <p style="font-style: italic; color: #1a1a1a; font-size: 22px; line-height: 1.4; position: relative; z-index: 1;">
+              "A ferrovia não foi apenas um meio de transporte, mas a artéria vital da economia colonial, redefinindo as rotas comerciais de toda a África Austral e vinculando o destino do Planalto Central aos mercados globais de commodities."
+            </p>
+          </div>
+
+          <!-- Contexto Histórico -->
+          <section>
+            <div style="margin-bottom: 16px;">
+              <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #800020; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px;">CONTEXTO</span>
+            </div>
+            <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin-bottom: 20px;">Contexto Histórico</h2>
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+              <p style="color: #4a4a4a; font-size: 17px; line-height: 1.6;">
+                A construção do CFB iniciou-se em 1903, sob a égide de Sir Robert Williams, visionário que procurava conectar o Porto de Lobito às ricas jazidas de cobre do Catanga. Este relatório de 1912 examina o período crítico de transição entre a fase de construção intensiva e o início da exploração comercial regular.
+              </p>
+              <p style="color: #4a4a4a; font-size: 17px; line-height: 1.6;">
+                A análise demonstra como o traçado foi influenciado não apenas pela topografia, mas por necessidades políticas de afirmação da soberania portuguesa no interior, contrastando com os interesses estritamente extrativistas das companhias concessionárias.
+              </p>
+            </div>
+          </section>
+
+          <!-- Análise de Fluxos de Capital -->
+          <section>
+            <div style="margin-bottom: 16px;">
+              <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #800020; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px;">ANÁLISE</span>
+            </div>
+            <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin-bottom: 20px;">Análise de Fluxos de Capital</h2>
+            <p style="color: #4a4a4a; font-size: 17px; line-height: 1.6; margin-bottom: 24px;">
+              Os registos fiscais de 1912 revelam uma dependência significativa das taxas de trânsito de mercadorias agrícolas e minerais. O capital investido, predominantemente proveniente de sindicatos bancários de Londres e Lisboa, exigia garantias de juros que pressionavam as contas públicas da colónia.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+              <div style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid #e8e8e8;">
+                <span style="color: #8a8a8a; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase;">[DIAGRAMA DE FLUXO FINANCEIRO 1912]</span>
+              </div>
+              <div style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid #e8e8e8;">
+                <span style="color: #8a8a8a; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase;">[TABELA DE EXPORTAÇÕES POR PORTO]</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right Column - Sidebar Modernizada -->
+        <div style="display: flex; flex-direction: column; gap: 28px;">
+          
+          <!-- Digital Document Card Modernizado -->
+          <div style="background: white; border-radius: 20px; border-top: 4px solid #800020; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+            <h3 style="color: #800020; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 20px;">DOCUMENTO DIGITALIZADO</h3>
+            <div style="background: #f8fafc; border-radius: 16px; overflow: hidden; margin-bottom: 20px; position: relative; cursor: pointer; border: 1px solid #e8e8e8;">
+              <img alt="Documento digitalizado" src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&q=80" style="width: 100%; height: auto; display: block;" />
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <button (click)="navigateTo('/download')" style="background: linear-gradient(135deg, #800020, #6b0119); padding: 14px; border-radius: 40px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path d="M8 1V11M8 11L11 8M8 11L5 8M13 13H3" stroke="white" stroke-width="1.5"/></svg>
+                <span style="font-weight: 600; color: white; font-size: 14px;">Descarregar PDF (4.2 MB)</span>
+              </button>
+              <button style="background: transparent; border: 1px solid #e2e8f0; padding: 12px; border-radius: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;" onmouseover="this.style.borderColor='#800020'; this.style.backgroundColor='rgba(128,0,32,0.04)'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.backgroundColor='transparent'">
+                <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M1 6H16M16 6L11 1M16 6L11 11" stroke="#800020" stroke-width="1.5"/></svg>
+                <span style="font-weight: 500; color: #800020; font-size: 14px;">Citar Documento</span>
+              </button>
+              <button style="background: transparent; border: 1px solid #e2e8f0; padding: 12px; border-radius: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;" onmouseover="this.style.borderColor='#800020'; this.style.backgroundColor='rgba(128,0,32,0.04)'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.backgroundColor='transparent'">
+                <svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M1 1H10L13 4V17H1V1Z" stroke="#64748b" stroke-width="1.5"/><path d="M4 8H10M4 11H8" stroke="#64748b" stroke-width="1.5"/></svg>
+                <span style="font-weight: 500; color: #64748b; font-size: 14px;">Adicionar aos Favoritos</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Metadata List Modernizado -->
+          <div style="background: #f8fafc; border-radius: 20px; padding: 28px; border: 1px solid #e8e8e8;">
+            <h3 style="color: #800020; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 24px;">METADADOS DO ARQUIVO</h3>
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+              <div>
+                <div style="color: #8a8a8a; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">AUTOR</div>
+                <div style="font-weight: 600; color: #1a1a1a; font-size: 15px;">Conselho Ultramarino</div>
+              </div>
+              <div>
+                <div style="color: #8a8a8a; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">DATA DE EMISSÃO</div>
+                <div style="font-weight: 600; color: #1a1a1a; font-size: 15px;">14 de Agosto de 1912</div>
+              </div>
+              <div>
+                <div style="color: #8a8a8a; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">TIPO DE REGISTO</div>
+                <div style="font-weight: 600; color: #1a1a1a; font-size: 15px;">Relatório Fiscal e Estatístico</div>
+              </div>
+              <div>
+                <div style="color: #8a8a8a; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">LOCALIZAÇÃO FÍSICA</div>
+                <div style="font-weight: 600; color: #1a1a1a; font-size: 15px;">Sala A, Prateleira 4, Caixa 102-B</div>
+              </div>
+              <div>
+                <div style="color: #8a8a8a; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">ID ÚNICO</div>
+                <div style="color: #64748b; font-family: monospace; font-size: 13px;">ANA-CFB-1912-004-R</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discussion Section Modernizada -->
+    <div style="background: #f8fafc; border-top: 1px solid #e8e8e8; width: 100%;">
+      <div style="max-width: 1536px; margin: 0 auto; padding: 80px 48px;">
+        <div style="display: flex; flex-direction: column; gap: 40px;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
+            <div>
+              <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #800020; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 12px;">COMUNIDADE</span>
+              <h2 style="color: #1a1a1a; font-size: 32px; font-weight: 700; margin-bottom: 8px;">Discussão Académica</h2>
+              <p style="color: #64748b; font-size: 16px;">Comentários recentes de investigadores da rede.</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+              <button (click)="navigateTo('/comunidade/criar-topico')" style="background: linear-gradient(135deg, #800020, #6b0119); padding: 12px 20px; border-radius: 40px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5"/></svg>
+                <span style="font-weight: 600; color: white; font-size: 14px;">Criar Tópico</span>
+              </button>
+              <button (click)="navigateTo('/forum/community')" style="background: transparent; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; color: #800020; font-weight: 600; font-size: 14px;" onmouseover="this.style.gap='10px'" onmouseout="this.style.gap='6px'">
+                <span>Ver todas as discussões</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="#800020"><path d="M6 3L11 8L6 13" stroke="#800020" stroke-width="1.5"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- Comment 1 -->
+            <div (click)="navigateTo('/forum/community/discussao')" style="background: white; border-radius: 16px; border-left: 3px solid #800020; padding: 24px; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.04);" onmouseover="this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)'">
+              <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 16px;">
+                <div style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); border-radius: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+                  <span style="font-weight: 700; color: #800020; font-size: 16px;">DA</span>
+                </div>
+                <div>
+                  <div style="font-weight: 700; color: #1a1a1a; font-size: 15px; margin-bottom: 2px;">Dr. Afonso Henriques</div>
+                  <div style="color: #8a8a8a; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase;">UNIVERSIDADE AGOSTINHO NETO</div>
+                </div>
+              </div>
+              <p style="color: #4a4a4a; font-size: 14px; line-height: 1.5; margin-bottom: 16px;">
+                "A análise da pág. 14 sobre os subsídios ao carvão é crucial para entender por que a tração a vapor persistiu tanto tempo em relação à eletrificação sugerida posteriormente..."
+              </p>
+              <div style="display: flex; gap: 16px; align-items: center;">
+                <span style="color: #8a8a8a; font-size: 12px;">Há 2 dias</span>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="#8a8a8a"><path d="M6 0.5C2.96 0.5 0.5 2.96 0.5 6C0.5 9.04 2.96 11.5 6 11.5C9.04 11.5 11.5 9.04 11.5 6C11.5 2.96 9.04 0.5 6 0.5Z"/><path d="M6 3V6L8 7" stroke="white" stroke-width="0.8"/></svg>
+                  <span style="color: #8a8a8a; font-size: 12px;">4 respostas</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comment 2 -->
+            <div (click)="navigateTo('/forum/community/discussao')" style="background: white; border-radius: 16px; border-left: 3px solid #cbd5e1; padding: 24px; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.04);" onmouseover="this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)'">
+              <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 16px;">
+                <div style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); border-radius: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+                  <span style="font-weight: 700; color: #64748b; font-size: 16px;">MS</span>
+                </div>
+                <div>
+                  <div style="font-weight: 700; color: #1a1a1a; font-size: 15px; margin-bottom: 2px;">Maria dos Santos</div>
+                  <div style="color: #8a8a8a; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase;">INVESTIGADORA INDEPENDENTE</div>
+                </div>
+              </div>
+              <p style="color: #4a4a4a; font-size: 14px; line-height: 1.5; margin-bottom: 16px;">
+                "Alguém tem dados complementares sobre a mão-de-obra local recrutada no Huambo citada nos anexos deste relatório? Gostaria de comparar com os censos de 1915."
+              </p>
+              <div style="display: flex; gap: 16px; align-items: center;">
+                <span style="color: #8a8a8a; font-size: 12px;">Há 1 semana</span>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="#8a8a8a"><path d="M6 0.5C2.96 0.5 0.5 2.96 0.5 6C0.5 9.04 2.96 11.5 6 11.5C9.04 11.5 11.5 9.04 11.5 6C11.5 2.96 9.04 0.5 6 0.5Z"/><path d="M6 3V6L8 7" stroke="white" stroke-width="0.8"/></svg>
+                  <span style="color: #8a8a8a; font-size: 12px;">0 respostas</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

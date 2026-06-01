@@ -1,0 +1,1 @@
+{"ast":null,"code":"import { HomeVisitor } from './pages/home/home-user/home-visitor';\nexport const routes = [{\n  path: '',\n  component: HomeVisitor\n}];","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}
