@@ -21,7 +21,7 @@ class AuthController extends Controller
             'full_name' => ['nullable', 'string', 'max:255'],
             'institution' => ['nullable', 'string', 'max:255'],
             'province' => ['nullable', 'string', 'max:50'],
-            'role' => ['nullable', 'in:estudante,investigador,professor'],
+            'role' => ['nullable', 'in:estudante,investigador,professor,admin'],
         ]);
 
         $payload = DB::transaction(function () use ($validated): array {
@@ -123,10 +123,28 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
+        $userId = $user->id;
+
+        $profile = DB::table('user_profiles')->where('user_id', $userId)->first();
+
+        $accessGrants = DB::table('user_access_grants as uag')
+            ->join('access_levels as al', 'uag.access_level_id', '=', 'al.id')
+            ->where('uag.user_id', $userId)
+            ->whereNull('uag.revoked_at')
+            ->select(
+                'uag.id',
+                'uag.user_id',
+                'uag.access_level_id',
+                'uag.granted_at',
+                'al.name as access_level_name',
+                'al.description as access_level_description'
+            )
+            ->get();
 
         return response()->json([
             'user' => $user,
-            'profile' => DB::table('user_profiles')->where('user_id', $user->id)->first(),
+            'profile' => $profile,
+            'access_grants' => $accessGrants,
         ]);
     }
 
