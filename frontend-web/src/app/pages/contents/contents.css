@@ -1,0 +1,83 @@
+/* Reset e estilos base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Estilos do layout */
+.bg-f8f9ff {
+  background-color: #f8f9ff;
+}
+
+/* Rotação do dropdown */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Estilos responsivos */
+@media (max-width: 1024px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  
+  .show-on-mobile {
+    display: block !important;
+  }
+}
+
+/* Animações */
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-open {
+  animation: dropdownSlide 200ms ease-out forwards;
+}
+
+/* Hover effects */
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* Animações suaves */
+* {
+  transition-timing-function: cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #800020;
+}

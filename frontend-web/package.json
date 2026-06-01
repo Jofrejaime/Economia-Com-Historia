@@ -5,5 +5,22 @@
   "scripts": {
     "start": "echo Inicializar Angular CLI neste modulo",
     "build": "echo Build ainda nao configurado"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^21.2.12",
+    "@angular/compiler-cli": "^21.2.14",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@angular/animations": "^21.2.14",
+    "@angular/common": "^21.2.14",
+    "@angular/compiler": "^21.2.14",
+    "@angular/core": "^21.2.14",
+    "@angular/forms": "^21.2.14",
+    "@angular/platform-browser": "^21.2.14",
+    "@angular/platform-browser-dynamic": "^21.2.14",
+    "@angular/router": "^21.2.14",
+    "rxjs": "^7.8.2",
+    "zone.js": "^0.16.2"
   }
 }
