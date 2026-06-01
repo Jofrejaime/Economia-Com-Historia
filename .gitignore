@@ -9,6 +9,10 @@ dist/
 .flutter-plugins-dependencies
 .packages
 
+# Angular
+.angular/
+
+
 # PHP/Laravel
 vendor/
 .env
