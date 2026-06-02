@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { firstValueFrom, Observable, catchError, map, of } from 'rxjs';
+import { firstValueFrom, Observable, catchError, map, of, timeout, TimeoutError } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 interface LoginResponse {
@@ -45,7 +45,6 @@ export interface RegisterResult extends LoginResult {
 export interface ForgotPasswordResult {
   ok: boolean;
   message?: string;
-  resetToken?: string;
 }
 
 export interface ResetPasswordResult {
@@ -119,12 +118,19 @@ export class AuthService {
 
   forgotPassword(email: string): Observable<ForgotPasswordResult> {
     return this.http.post<ForgotPasswordResponse>(`${environment.apiBaseUrl}/api/auth/forgot-password`, { email }).pipe(
+      timeout({ first: 15000 }),
       map((data) => ({
         ok: true,
         message: data.message,
-        resetToken: data.reset_token,
       })),
       catchError((error: unknown) => {
+        if (error instanceof TimeoutError) {
+          return of({
+            ok: false,
+            message: 'O servidor demorou demasiado a responder. Verifique a ligação e tente novamente.',
+          });
+        }
+
         if (error instanceof HttpErrorResponse) {
           return of({
             ok: false,
@@ -146,11 +152,19 @@ export class AuthService {
     password_confirmation: string;
   }): Observable<ResetPasswordResult> {
     return this.http.post<ResetPasswordResponse>(`${environment.apiBaseUrl}/api/auth/reset-password`, payload).pipe(
+      timeout({ first: 15000 }),
       map((data) => ({
         ok: true,
         message: data.message,
       })),
       catchError((error: unknown) => {
+        if (error instanceof TimeoutError) {
+          return of({
+            ok: false,
+            message: 'O servidor demorou demasiado a responder. Verifique a ligação e tente novamente.',
+          });
+        }
+
         if (error instanceof HttpErrorResponse) {
           return of({
             ok: false,

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,14 +14,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'email' => 'test@example.com',
-            'password_hash' => bcrypt('password'),
-            'email_verified' => true,
-            'is_active' => true,
-            'role' => 'admin',
+        // Seeders de Pessoa 1 (Jofre Jaime) - Core e Autenticação
+        // Ordem importa: níveis primeiro, depois users
+        $this->call([
+            LevelDefinitionsSeeder::class,
+            UserSeeder::class,
+            BadgesSeeder::class,
         ]);
+
+        // Aqui irão seeders de Pessoa 2 (Abel Canas) - Conteúdo e Funcionalidades
+        // $this->call([
+        //     DocumentSeeder::class,
+        //     QuizSeeder::class,
+        //     CommunitySeeder::class,
+        // ]);
     }
 }
+

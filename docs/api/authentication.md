@@ -1,191 +1,330 @@
-# Authentication Endpoints
+# 🔐 API de Autenticação - Documentação Completa
 
-Complete guide for user authentication, session management, and password recovery.
-
-## Endpoints Summary
-
-| Method | Endpoint | Auth | Purpose |
-|--------|----------|------|---------|
-| POST | `/auth/register` | No | Create new user account |
-| POST | `/auth/login` | No | Authenticate user |
-| POST | `/auth/logout` | Yes | Revoke session token |
-| POST | `/auth/refresh` | Yes | Refresh token before expiry |
-| POST | `/auth/forgot-password` | No | Request password reset |
-| POST | `/auth/reset-password` | No | Reset password with token |
-| POST | `/auth/verify-email` | No | Confirm email address |
-| POST | `/auth/resend-verification` | Yes | Resend verification email |
-| GET | `/me` | Yes | Get authenticated user profile |
+**Versão:** 1.0.0  
+**Base URL:** `http://127.0.0.1:8000/api`  
+**Autenticação:** Bearer Token (JWT)
 
 ---
 
-## 1. Register User
+## 📋 Índice
 
-Create a new user account and receive authentication token.
+1. [Endpoints Públicos](#endpoints-públicos)
+2. [Endpoints Protegidos](#endpoints-protegidos)
+3. [Modelos de Dados](#modelos-de-dados)
+4. [Códigos de Erro](#códigos-de-erro)
+5. [Exemplos de Uso](#exemplos-de-uso)
 
-### Request
+---
 
+## 🔓 Endpoints Públicos
+
+### POST /auth/register - Registar Novo Utilizador
+
+**Descrição:** Cria uma nova conta de utilizador com perfil associado.
+
+**Request:**
 ```http
-POST /auth/register
+POST /api/auth/register HTTP/1.1
+Host: 127.0.0.1:8000
 Content-Type: application/json
 
 {
-  "name": "João Silva",
-  "email": "joao@example.com",
-  "password": "SecurePassword123!",
-  "password_confirmation": "SecurePassword123!"
+  "email": "student@example.com",
+  "password": "MyPassword123!",
+  "password_confirmation": "MyPassword123!",
+  "display_name": "João Silva",
+  "full_name": "João Pedro da Silva",
+  "institution": "ISPTEC",
+  "province": "Luanda",
+  "role": "estudante"
 }
 ```
 
-### Parameters
+**Validações:**
+| Campo | Tipo | Validação |
+|-------|------|-----------|
+| email | string | required, email, unique, max:255 |
+| password | string | required, min:8, mixedCase, numbers, symbols, uncompromised, confirmed |
+| display_name | string | required, max:100 |
+| full_name | string | nullable, max:255 |
+| institution | string | nullable, max:255 |
+| province | string | nullable, in:list_of_18_provinces |
+| role | string | nullable, in:estudante,investigador,professor,admin |
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| name | string | ✅ Yes | User's full name (max 255) |
-| email | string | ✅ Yes | Unique email address (valid email format) |
-| password | string | ✅ Yes | Password (min 8 chars, must include uppercase, number, special char) |
-| password_confirmation | string | ✅ Yes | Must match password |
-
-### Response
-
-**Status: 201 Created**
-
+**Response (201 Created):**
 ```json
 {
+  "message": "Registered successfully.",
+  "token": "xyz123abc...",
+  "verification_token": "verification_token_123...",
   "user": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
-    "name": "João Silva",
-    "email": "joao@example.com",
+    "email": "student@example.com",
     "email_verified": false,
     "is_active": true,
-    "role": "user",
-    "created_at": "2026-06-01T10:30:00Z",
-    "profile": {
-      "bio": null,
-      "avatar": null,
-      "location": null
-    }
-  },
-  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+    "role": "estudante",
+    "created_at": "2024-06-02T10:00:00Z",
+    "updated_at": "2024-06-02T10:00:00Z"
+  }
 }
 ```
 
-### Errors
-
+**Response (422 Validation Error):**
 ```json
-// Validation Error
 {
-  "message": "The given data was invalid.",
+  "message": "The email field must be a valid email address.",
   "errors": {
-    "email": ["The email has already been taken."],
-    "password": ["The password must be at least 8 characters."]
-  },
-  "status_code": 422
+    "email": ["The email field must be a valid email address."],
+    "password": ["The password field must contain at least one uppercase character."]
+  }
 }
 ```
 
 ---
 
-## 2. Login User
+### POST /auth/login - Autenticar Utilizador
 
-Authenticate with email and password.
+**Descrição:** Autentica um utilizador e retorna token de sessão.
 
-### Request
-
+**Request:**
 ```http
-POST /auth/login
+POST /api/auth/login HTTP/1.1
+Host: 127.0.0.1:8000
 Content-Type: application/json
 
 {
-  "email": "joao@example.com",
-  "password": "SecurePassword123!"
+  "email": "student@example.com",
+  "password": "MyPassword123!"
 }
 ```
 
-### Parameters
+**Response (200 OK):**
+```json
+{
+  "message": "Login successful.",
+  "token": "xyz123abc...",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "student@example.com",
+    "email_verified": true,
+    "is_active": true,
+    "role": "estudante",
+    "last_login_at": "2024-06-02T15:30:00Z"
+  }
+}
+```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| email | string | ✅ Yes | Registered email address |
-| password | string | ✅ Yes | Account password |
+**Response (422 Invalid Credentials):**
+```json
+{
+  "message": "Invalid credentials."
+}
+```
 
-### Response
+---
 
-**Status: 200 OK**
+### POST /auth/forgot-password - Solicitar Reset de Password
 
+**Descrição:** Envia email com link de reset de password.
+
+**Request:**
+```http
+POST /api/auth/forgot-password HTTP/1.1
+Host: 127.0.0.1:8000
+Content-Type: application/json
+
+{
+  "email": "student@example.com"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "If this email exists, a reset link has been sent."
+}
+```
+
+⚠️ **Nota:** Retorna sempre mensagem genérica por segurança (prevenção de email enumeration).
+
+---
+
+### POST /auth/reset-password - Redefinir Password
+
+**Descrição:** Redefine password usando token de reset.
+
+**Request:**
+```http
+POST /api/auth/reset-password HTTP/1.1
+Host: 127.0.0.1:8000
+Content-Type: application/json
+
+{
+  "token": "reset_token_123...",
+  "password": "NewPassword456!",
+  "password_confirmation": "NewPassword456!"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Password reset successfully."
+}
+```
+
+**Response (422 Invalid Token):**
+```json
+{
+  "message": "Invalid or expired token."
+}
+```
+
+---
+
+### POST /auth/verify-email - Verificar Email
+
+**Descrição:** Verifica email usando token de verificação.
+
+**Request:**
+```http
+POST /api/auth/verify-email HTTP/1.1
+Host: 127.0.0.1:8000
+Content-Type: application/json
+
+{
+  "token": "verification_token_123..."
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Email verified successfully."
+}
+```
+
+---
+
+### POST /auth/resend-verification - Reenviar Email de Verificação
+
+**Descrição:** Reenvia token de verificação de email.
+
+**Request:**
+```http
+POST /api/auth/resend-verification HTTP/1.1
+Host: 127.0.0.1:8000
+Content-Type: application/json
+
+{
+  "email": "student@example.com"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Verification token generated.",
+  "verification_token": "new_verification_token_..."
+}
+```
+
+---
+
+## 🔒 Endpoints Protegidos
+
+**Autenticação Requerida:** Todos os endpoints requerem header:
+```http
+Authorization: Bearer {token}
+```
+
+### POST /auth/logout - Logout
+
+**Descrição:** Faz logout do utilizador e revoga token de sessão.
+
+**Request:**
+```http
+POST /api/auth/logout HTTP/1.1
+Host: 127.0.0.1:8000
+Authorization: Bearer xyz123abc...
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Logged out."
+}
+```
+
+---
+
+### POST /auth/refresh - Renovar Token
+
+**Descrição:** Renova token de sessão expirado.
+
+**Request:**
+```http
+POST /api/auth/refresh HTTP/1.1
+Host: 127.0.0.1:8000
+Authorization: Bearer xyz123abc...
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Token refreshed.",
+  "token": "new_token_xyz123abc..."
+}
+```
+
+---
+
+### GET /me - Obter Dados Completos do Utilizador
+
+**Descrição:** Retorna dados do utilizador autenticado, incluindo perfil e access grants.
+
+**Request:**
+```http
+GET /api/me HTTP/1.1
+Host: 127.0.0.1:8000
+Authorization: Bearer xyz123abc...
+```
+
+**Response (200 OK):**
 ```json
 {
   "user": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
-    "name": "João Silva",
-    "email": "joao@example.com",
+    "email": "student@example.com",
     "email_verified": true,
     "is_active": true,
-    "role": "user",
-    "last_login_at": "2026-06-01T10:35:00Z"
+    "role": "estudante",
+    "created_at": "2024-06-02T10:00:00Z",
+    "updated_at": "2024-06-02T10:00:00Z",
+    "last_login_at": "2024-06-02T15:30:00Z"
   },
-  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-  "expires_at": "2026-07-01T10:35:00Z"
-}
-```
-
-### Errors
-
-```json
-// Invalid Credentials
-{
-  "message": "Invalid email or password.",
-  "status_code": 401
-}
-
-// Account Inactive
-{
-  "message": "Your account has been deactivated.",
-  "status_code": 403
-}
-```
-
----
-
-## 3. Get Current User
-
-Retrieve authenticated user's profile and information.
-
-### Request
-
-```http
-GET /me
-Authorization: Bearer <token>
-```
-
-### Response
-
-**Status: 200 OK**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "name": "João Silva",
-  "email": "joao@example.com",
-  "email_verified": true,
-  "is_active": true,
-  "role": "user",
-  "created_at": "2026-06-01T10:30:00Z",
-  "last_login_at": "2026-06-01T10:35:00Z",
   "profile": {
-    "bio": "Interested in economics",
-    "avatar": "https://...",
-    "location": "Luanda, Angola"
+    "id": "uuid",
+    "user_id": "550e8400-e29b-41d4-a716-446655440000",
+    "display_name": "João Silva",
+    "full_name": "João Pedro da Silva",
+    "institution": "ISPTEC",
+    "province": "Luanda",
+    "bio": "Estudante de economia",
+    "website_url": "https://joao.com",
+    "research_areas": ["Economia", "História"],
+    "avatar_url": "http://127.0.0.1:8000/storage/avatars/.../xyz.jpg",
+    "created_at": "2024-06-02T10:00:00Z",
+    "updated_at": "2024-06-02T10:00:00Z"
   },
   "access_grants": [
     {
-      "id": "...",
-      "access_level_id": "...",
-      "access_level": {
-        "id": "public",
-        "name": "Public",
-        "description": "Free access to public content"
-      },
-      "granted_at": "2026-06-01T10:30:00Z"
+      "id": "uuid",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "access_level_id": "public",
+      "granted_at": "2024-06-02T10:00:00Z",
+      "access_level_name": "Público",
+      "access_level_description": "Acesso automático ao solicitar"
     }
   ]
 }
@@ -193,288 +332,181 @@ Authorization: Bearer <token>
 
 ---
 
-## 4. Refresh Token
+## 📊 Modelos de Dados
 
-Refresh authentication token before it expires (30-day TTL).
-
-### Request
-
-```http
-POST /auth/refresh
-Authorization: Bearer <current_token>
-```
-
-### Response
-
-**Status: 200 OK**
-
-```json
-{
-  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-  "expires_at": "2026-07-01T10:40:00Z",
-  "message": "Token refreshed successfully"
+### User Model
+```typescript
+interface User {
+  id: string;                    // UUID
+  email: string;                 // Email único
+  email_verified: boolean;       // Verificado?
+  is_active: boolean;            // Ativo?
+  role: 'estudante' | 'investigador' | 'professor' | 'admin';
+  created_at: string;            // ISO 8601
+  updated_at: string;            // ISO 8601
+  last_login_at: string | null;  // ISO 8601
 }
 ```
 
-### Errors
-
-```json
-// Token Expired
-{
-  "message": "Token has expired.",
-  "status_code": 401
+### Profile Model
+```typescript
+interface Profile {
+  id: string;                           // UUID
+  user_id: string;                      // FK User
+  display_name: string;                 // Nome de exibição
+  full_name: string | null;             // Nome completo
+  institution: string | null;           // Instituição
+  province: string | null;              // Província
+  bio: string | null;                   // Biografia (max 2000)
+  website_url: string | null;           // URL (validado)
+  research_areas: string[] | null;      // Áreas de pesquisa (max 10)
+  avatar_url: string | null;            // URL do avatar
+  created_at: string;                   // ISO 8601
+  updated_at: string;                   // ISO 8601
 }
 ```
 
----
-
-## 5. Logout
-
-Revoke current session token.
-
-### Request
-
-```http
-POST /auth/logout
-Authorization: Bearer <token>
-```
-
-### Response
-
-**Status: 200 OK**
-
-```json
-{
-  "message": "Logged out successfully"
+### AccessGrant Model
+```typescript
+interface AccessGrant {
+  id: string;                          // UUID
+  user_id: string;                     // FK User
+  access_level_id: string;             // FK AccessLevel
+  granted_at: string;                  // ISO 8601
+  access_level_name: string;           // Nome do nível
+  access_level_description: string;    // Descrição
 }
 ```
 
 ---
 
-## 6. Forgot Password
+## ❌ Códigos de Erro
 
-Request a password reset token via email.
-
-### Request
-
-```http
-POST /auth/forgot-password
-Content-Type: application/json
-
-{
-  "email": "joao@example.com"
-}
-```
-
-### Parameters
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| email | string | ✅ Yes | Registered email address |
-
-### Response
-
-**Status: 200 OK**
-
+### 400 Bad Request
 ```json
 {
-  "message": "If an account exists with this email, a password reset link has been sent."
+  "message": "Solicitação inválida"
 }
 ```
 
-**Email Content:**
-
-User receives email with reset link:
-```
-https://app.economia-historia.ao/reset-password?token=abc123def456&email=joao@example.com
-```
-
----
-
-## 7. Reset Password
-
-Reset password using token from email.
-
-### Request
-
-```http
-POST /auth/reset-password
-Content-Type: application/json
-
-{
-  "email": "joao@example.com",
-  "token": "abc123def456",
-  "password": "NewPassword123!",
-  "password_confirmation": "NewPassword123!"
-}
-```
-
-### Parameters
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| email | string | ✅ Yes | Associated email address |
-| token | string | ✅ Yes | Token from reset email |
-| password | string | ✅ Yes | New password (min 8 chars) |
-| password_confirmation | string | ✅ Yes | Must match password |
-
-### Response
-
-**Status: 200 OK**
-
+### 401 Unauthenticated
 ```json
 {
-  "message": "Password reset successfully"
+  "message": "Unauthenticated."
 }
 ```
 
-### Errors
-
+### 422 Validation Error
 ```json
-// Invalid Token
 {
-  "message": "The password reset link is invalid or expired.",
-  "status_code": 422
+  "message": "Erro de validação",
+  "errors": {
+    "field": ["mensagem de erro"]
+  }
+}
+```
+
+### 404 Not Found
+```json
+{
+  "message": "Recurso não encontrado"
+}
+```
+
+### 500 Server Error
+```json
+{
+  "message": "Erro interno do servidor"
 }
 ```
 
 ---
 
-## 8. Verify Email
+## 💻 Exemplos de Uso
 
-Confirm email address using verification token.
+### JavaScript/TypeScript (Fetch)
 
-### Request
+```typescript
+// Login
+const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    email: 'student@example.com',
+    password: 'MyPassword123!',
+  }),
+});
 
-```http
-POST /auth/verify-email
-Content-Type: application/json
+const data = await response.json();
+localStorage.setItem('token', data.token);
 
-{
-  "token": "verification_token_from_email"
-}
+// Usar token em requisições protegidas
+const meResponse = await fetch('http://127.0.0.1:8000/api/me', {
+  headers: {
+    'Authorization': `Bearer ${data.token}`,
+  },
+});
+
+const meData = await meResponse.json();
+console.log(meData.user);
 ```
 
-### Parameters
+### Angular (Service)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| token | string | ✅ Yes | Verification token sent to email |
+```typescript
+// auth.service.ts já existe no projeto
+import { AuthService } from './services/auth.service';
 
-### Response
+export class LoginComponent {
+  constructor(private auth: AuthService) {}
 
-**Status: 200 OK**
-
-```json
-{
-  "message": "Email verified successfully",
-  "user": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "email": "joao@example.com",
-    "email_verified": true
+  async login() {
+    const result = await this.auth.login('student@example.com', 'MyPassword123!');
+    
+    if (result.ok) {
+      this.auth.setSession(result.token!, result.user);
+      console.log('Login bem-sucedido!');
+    } else {
+      console.error(result.message);
+    }
   }
 }
 ```
 
 ---
 
-## 9. Resend Verification Email
+## 🔐 Segurança
 
-Resend verification email to current user.
+### Boas Práticas Implementadas
+- ✅ Password hashing com bcrypt
+- ✅ Password complexity validation
+- ✅ Token expiration (30 dias)
+- ✅ Session tracking (IP, User-Agent)
+- ✅ Email verification
+- ✅ Password reset com token temporário (1 hora)
+- ✅ Logout revoga todas as outras sessões
 
-### Request
+### Recomendações para Frontend
+- ✅ Guardar token em localStorage/sessionStorage
+- ✅ Enviar token em header Authorization
+- ✅ Tratar erros 401 (sessão expirada)
+- ✅ Renovar token se expirado
+- ✅ Fazer logout ao sair
 
-```http
-POST /auth/resend-verification
-Authorization: Bearer <token>
+---
+
+## 📝 Províncias Angolanas Válidas
+
 ```
-
-### Response
-
-**Status: 200 OK**
-
-```json
-{
-  "message": "Verification email sent successfully"
-}
-```
-
-### Errors
-
-```json
-// Already Verified
-{
-  "message": "Email is already verified.",
-  "status_code": 422
-}
+Bengo, Benguela, Bié, Cabinda, Cuando Cubango,
+Cuanza Norte, Cuanza Sul, Cunene, Huambo, Huíla,
+Luanda, Lunda Norte, Lunda Sul, Malanje, Moxico,
+Namibe, Uíge, Zaire
 ```
 
 ---
 
-## Token Management
-
-### Token Storage
-
-**Web (Angular/React):**
-```javascript
-// Store in localStorage
-localStorage.setItem('auth_token', response.token);
-
-// Retrieve for requests
-const token = localStorage.getItem('auth_token');
-```
-
-**Mobile (React Native):**
-```javascript
-// Store in SecureStore (Expo)
-import * as SecureStore from 'expo-secure-store';
-
-await SecureStore.setItemAsync('auth_token', response.token);
-const token = await SecureStore.getItemAsync('auth_token');
-```
-
-### Token Expiry Handling
-
-All tokens expire after 30 days. Implement automatic refresh:
-
-1. Store `expires_at` timestamp
-2. Check if token expires in next 24 hours
-3. Call refresh endpoint proactively
-4. Update stored token
-5. If refresh fails, prompt re-login
-
-### Token Revocation
-
-Calling logout immediately revokes the token. All pending requests with that token are rejected with 401.
-
----
-
-## Best Practices
-
-✅ **DO:**
-- Store tokens securely (SecureStore for mobile, encrypted localStorage for web)
-- Implement automatic token refresh before expiry
-- Clear token on logout
-- Include token in all protected requests
-- Handle 401 errors by prompting re-login
-- Use HTTPS in production
-
-❌ **DON'T:**
-- Store tokens in plain localStorage on web (use httpOnly cookies if possible)
-- Expose tokens in URL parameters
-- Share tokens between users
-- Store tokens in git/version control
-- Send tokens without HTTPS
-
----
-
-## Error Codes
-
-| Code | Error | Solution |
-|------|-------|----------|
-| 401 | Unauthorized | Token missing, invalid, or expired - login again |
-| 403 | Forbidden | Token revoked - login again |
-| 422 | Validation Failed | Check error details for specific field errors |
-| 429 | Too Many Requests | Wait before trying again |
-
-**Last Updated:** June 1, 2026
+**Última Atualização:** 02/06/2026  
+**Status:** ✅ Completo

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -19,11 +20,28 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
+            'password' => [
+                'required',
+                Password::min(8)
+                    ->mixedCase()      // Require uppercase and lowercase
+                    ->numbers()        // Require numbers
+                    ->symbols()        // Require symbols
+                    ->uncompromised()  // Check against known breaches
+                    ->confirmed(),
+            ],
             'display_name' => ['required', 'string', 'max:100'],
             'full_name' => ['nullable', 'string', 'max:255'],
             'institution' => ['nullable', 'string', 'max:255'],
-            'province' => ['nullable', 'string', 'max:50'],
+            'province' => [
+                'nullable',
+                'string',
+                'in:' . implode(',', [
+                    'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
+                    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla',
+                    'Luanda', 'Lunda Norte', 'Lunda Sul', 'Malanje', 'Moxico',
+                    'Namibe', 'Uíge', 'Zaire'
+                ]),
+            ],
             'role' => ['nullable', 'in:estudante,investigador,professor,admin'],
         ]);
 
@@ -202,7 +220,15 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'token' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => [
+                'required',
+                Password::min(8)
+                    ->mixedCase()      // Require uppercase and lowercase
+                    ->numbers()        // Require numbers
+                    ->symbols()        // Require symbols
+                    ->uncompromised()  // Check against known breaches
+                    ->confirmed(),
+            ],
         ]);
 
         $verification = $this->findActiveVerificationToken($validated['token'], 'password_reset');

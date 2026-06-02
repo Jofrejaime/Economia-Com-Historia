@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
@@ -32,10 +33,20 @@ class ProfileController extends Controller
             'display_name' => ['sometimes', 'string', 'max:100'],
             'full_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'institution' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'province' => ['sometimes', 'nullable', 'string', 'max:50'],
-            'bio' => ['sometimes', 'nullable', 'string'],
+            'province' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'in:' . implode(',', [
+                    'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
+                    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla',
+                    'Luanda', 'Lunda Norte', 'Lunda Sul', 'Malanje', 'Moxico',
+                    'Namibe', 'Uíge', 'Zaire'
+                ]),
+            ],
+            'bio' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'website_url' => ['sometimes', 'nullable', 'string', 'max:500', 'url'],
-            'research_areas' => ['sometimes', 'nullable', 'array'],
+            'research_areas' => ['sometimes', 'nullable', 'array', 'max:10'],
             'research_areas.*' => ['string', 'max:100'],
         ]);
 
@@ -55,7 +66,13 @@ class ProfileController extends Controller
     public function updateAvatar(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'avatar' => ['required', 'image', 'mimes:jpeg,png,gif,webp', 'max:5120'],
+            'avatar' => [
+                'required',
+                'image',
+                'mimes:jpeg,png,gif,webp',
+                'max:5120',
+                'dimensions:min_width=100,min_height=100,max_width=2000,max_height=2000',
+            ],
         ]);
 
         $userId = $request->user()->id;
@@ -64,24 +81,28 @@ class ProfileController extends Controller
         // Delete old avatar if exists
         $oldProfile = DB::table('user_profiles')->where('user_id', $userId)->first();
         if ($oldProfile && $oldProfile->avatar_url) {
+            // ✅ FIXED: avatar_url now contains path, not full URL
             Storage::disk('public')->delete($oldProfile->avatar_url);
         }
 
         // Store new avatar
         $path = $file->store("avatars/{$userId}", 'public');
-        $url = Storage::disk('public')->url($path);
 
+        // ✅ FIXED: Save path instead of URL to database
         DB::table('user_profiles')->updateOrInsert(
             ['user_id' => $userId],
             [
-                'avatar_url' => $url,
+                'avatar_url' => $path,  // Store relative path: "avatars/{user_id}/filename.jpg"
                 'updated_at' => now(),
             ]
         );
 
+        // Generate URL for response (frontend needs this)
+        $url = Storage::disk('public')->url($path);
+
         return response()->json([
             'message' => 'Avatar uploaded successfully.',
-            'avatar_url' => $url,
+            'avatar_url' => $url,  // Return full URL to frontend
         ]);
     }
 
@@ -89,7 +110,15 @@ class ProfileController extends Controller
     {
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => [
+                'required',
+                Password::min(8)
+                    ->mixedCase()      // Require uppercase and lowercase
+                    ->numbers()        // Require numbers
+                    ->symbols()        // Require symbols
+                    ->uncompromised()  // Check against known breaches
+                    ->confirmed(),
+            ],
         ]);
 
         $user = $request->user();
@@ -108,12 +137,23 @@ class ProfileController extends Controller
                 'password_hash' => Hash::make($validated['password']),
             ])->save();
 
-            // Revoke all existing sessions except current
+            // ✅ FIXED: Safely revoke sessions with proper null check
             $currentToken = $this->getCurrentSessionToken();
-            DB::table('user_sessions')
-                ->where('user_id', $user->id)
-                ->where('refresh_token', '!=', $currentToken)
-                ->delete();
+            
+            if ($currentToken) {
+                // If we found current token, revoke all OTHER sessions
+                DB::table('user_sessions')
+                    ->where('user_id', $user->id)
+                    ->where('refresh_token', '!=', $currentToken)
+                    ->delete();
+            } else {
+                // If we couldn't identify current token, only revoke EXPIRED sessions
+                // This prevents accidentally revoking the current session
+                DB::table('user_sessions')
+                    ->where('user_id', $user->id)
+                    ->where('expires_at', '<', now())
+                    ->delete();
+            }
         });
 
         return response()->json([

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
@@ -33,6 +34,11 @@ export class ResetPasswordComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
+    if (!this.token) {
+      this.errorMessage = 'Token de recuperação em falta. Abra novamente o link do email.';
+      return;
+    }
+
     if (this.password !== this.confirmPassword) {
       this.errorMessage = 'As palavras-passe não coincidem.';
       return;
@@ -46,10 +52,13 @@ export class ResetPasswordComponent implements OnInit {
         password: this.password,
         password_confirmation: this.confirmPassword,
       })
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+        })
+      )
       .subscribe({
         next: (result) => {
-          this.loading = false;
-
           if (result.ok) {
             this.successMessage = result.message || 'Palavra-passe redefinida com sucesso.';
             this.password = '';
@@ -60,7 +69,6 @@ export class ResetPasswordComponent implements OnInit {
           this.errorMessage = this.getFriendlyError(result.message);
         },
         error: (err: unknown) => {
-          this.loading = false;
           const message = err instanceof Error ? err.message : 'Falha ao redefinir a palavra-passe.';
           this.errorMessage = this.getFriendlyError(message);
         },
@@ -84,6 +92,10 @@ export class ResetPasswordComponent implements OnInit {
 
     if (normalized.includes('422') || normalized.includes('unprocessable')) {
       return 'Não foi possível validar os dados. Verifique os campos e tente novamente.';
+    }
+
+    if (normalized.includes('demorou demasiado') || normalized.includes('timeout')) {
+      return 'O servidor demorou demasiado a responder. Tente novamente em instantes.';
     }
 
     return message || 'Não foi possível redefinir a palavra-passe.';
