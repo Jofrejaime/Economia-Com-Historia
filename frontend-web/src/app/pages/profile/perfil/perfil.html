@@ -5,18 +5,6 @@
   <main style="flex: 1; width: 100%;">
     <div style="max-width: 1536px; margin: 0 auto; padding: 40px 48px;">
       
-      <!-- Mensagem de Erro -->
-      <div *ngIf="state.error" style="margin-bottom: 24px; background: rgba(185,28,28,0.08); color: #7f1d1d; padding: 16px 20px; border-radius: 12px; border: 1px solid rgba(185,28,28,0.15); display: flex; justify-content: space-between; align-items: center;">
-        <span>{{ state.error }}</span>
-        <button (click)="clearError()" style="background: none; border: none; color: #7f1d1d; font-size: 20px; cursor: pointer; padding: 0;">✕</button>
-      </div>
-
-      <!-- Mensagem de Sucesso -->
-      <div *ngIf="state.success" style="margin-bottom: 24px; background: rgba(34,197,94,0.08); color: #15803d; padding: 16px 20px; border-radius: 12px; border: 1px solid rgba(34,197,94,0.15); display: flex; justify-content: space-between; align-items: center;">
-        <span>{{ state.success }}</span>
-        <button (click)="clearSuccess()" style="background: none; border: none; color: #15803d; font-size: 20px; cursor: pointer; padding: 0;">✕</button>
-      </div>
-
       <!-- Loading State -->
       <div *ngIf="state.isLoadingProfile" style="text-align: center; padding: 60px 20px;">
         <div style="font-size: 18px; color: #6a6a6a;">
@@ -70,7 +58,7 @@
       </div>
 
       <!-- Méritos e Distinções -->
-      <div style="margin-bottom: 64px;">
+      <div style="margin-bottom: 64px;" *ngIf="merits.length > 0">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
           <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0;">Méritos e Distinções</h2>
           <button style="color: #800020; font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">Ver Todos os Certificados →</button>
@@ -100,11 +88,54 @@
           <!-- Header do Modal -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <h2 style="color: #1a1a1a; font-size: 24px; font-weight: 700; margin: 0;">Editar Perfil</h2>
-            <button (click)="closeEditProfileModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #8a8a8a; padding: 0;">✕</button>
+            <button (click)="closeEditProfileModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #8a8a8a; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">×</button>
           </div>
 
           <!-- Formulário -->
           <form [formGroup]="editForm" style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- Avatar Upload -->
+            <div>
+              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 12px;">Foto de Perfil</label>
+              
+              <!-- Input de arquivo (hidden) -->
+              <input #avatarInput 
+                     type="file" 
+                     accept="image/jpeg,image/png,image/webp"
+                     (change)="onAvatarSelected($event)"
+                     style="display: none;">
+
+              <!-- Avatar Container with Pencil Icon Overlay -->
+              <div style="position: relative; display: inline-block; width: 120px; height: 120px; margin-bottom: 12px;">
+                <!-- Current or Preview Avatar -->
+                <img [src]="getAvatarSrc()" 
+                     alt="Avatar de perfil"
+                     style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 2px solid #eef2f6;">
+                
+                <!-- Pencil Icon Button Overlay -->
+                <button type="button"
+                        (click)="avatarInput.click()"
+                        [disabled]="state.isLoadingStats"
+                        style="position: absolute; bottom: 0; right: 0; width: 40px; height: 40px; border-radius: 50%; background: #800020; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2); font-weight: bold;"
+                        title="Alterar foto de perfil">
+                  ✎
+                </button>
+              </div>
+
+              <!-- Validações e Info -->
+              <p *ngIf="avatarError" style="color: #ba1a1a; font-size: 12px; margin-top: 8px;">Erro: {{ avatarError }}</p>
+              <p style="color: #8a8a8a; font-size: 11px; margin-top: 8px;">
+                JPG, PNG ou WebP (máx 5MB)
+              </p>
+
+              <!-- Remover Seleção (apenas se houver preview) -->
+              <button *ngIf="avatarPreview"
+                      type="button"
+                      (click)="clearAvatarSelection()"
+                      style="width: 100%; padding: 8px; margin-top: 8px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; color: #991b1b; font-size: 12px; font-weight: 500;">
+                Remover Seleção
+              </button>
+            </div>
             
             <!-- Nome de Exibição -->
             <div>
@@ -165,7 +196,7 @@
                      type="text" 
                      placeholder="Ex: História Económica, Análise de Dados, Economia Social"
                      style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit;">
-              <p style="color: #8a8a8a; font-size: 11px; margin-top: 4px;">💡 Digite: área1, área2, área3 (sem limite de caracteres, mas máximo 10 áreas)</p>
+              <p style="color: #8a8a8a; font-size: 11px; margin-top: 4px;">Máx 2000 caracteres</p>
             </div>
 
             <!-- Botões de Ação -->
@@ -187,43 +218,29 @@
       </div>
 
       <!-- Controles de Conta -->
-      <div style="margin-bottom: 64px;">
+      <div style="margin-bottom: 64px;" *ngIf="settings.privacy.length > 0 || settings.notifications.length > 0">
         <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0 0 24px 0;">Controlos de Conta</h2>
         <div style="background: #f8fafc; border-radius: 20px; padding: 32px; max-width: 480px; border: 1px solid #eef2f6;">
           
-          <div style="margin-bottom: 28px;">
+          <div style="margin-bottom: 28px;" *ngIf="settings.privacy.length > 0">
             <p style="font-weight: 600; color: #800020; margin: 0 0 16px 0; font-size: 13px; letter-spacing: 0.5px;">PRIVACIDADE E SEGURANÇA</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="color: #1a1a1a; font-size: 14px;">Perfil Académico Público</span>
-              <button (click)="togglePrivacySetting(0)" 
+            <div *ngFor="let setting of settings.privacy; let i = index" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="color: #1a1a1a; font-size: 14px;">{{ setting.label }}</span>
+              <button (click)="togglePrivacySetting(i)" 
                       style="width: 20px; height: 20px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none;"
-                      [style.backgroundColor]="settings.privacy[0].checked ? '#800020' : 'white'"
-                      [style.border]="settings.privacy[0].checked ? 'none' : '1px solid #e2e8f0'"></button>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #1a1a1a; font-size: 14px;">Autenticação de Dois Factores</span>
-              <button (click)="togglePrivacySetting(1)" 
-                      style="width: 20px; height: 20px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none;"
-                      [style.backgroundColor]="settings.privacy[1].checked ? '#800020' : 'white'"
-                      [style.border]="settings.privacy[1].checked ? 'none' : '1px solid #e2e8f0'"></button>
+                      [style.backgroundColor]="setting.checked ? '#800020' : 'white'"
+                      [style.border]="setting.checked ? 'none' : '1px solid #e2e8f0'"></button>
             </div>
           </div>
 
-          <div style="margin-bottom: 24px; padding-top: 20px; border-top: 1px solid #eef2f6;">
+          <div style="margin-bottom: 24px; padding-top: 20px; border-top: 1px solid #eef2f6;" *ngIf="settings.notifications.length > 0">
             <p style="font-weight: 600; color: #800020; margin: 0 0 16px 0; font-size: 13px; letter-spacing: 0.5px;">NOTIFICAÇÕES</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="color: #1a1a1a; font-size: 14px;">Atualizações do Arquivo</span>
-              <button (click)="toggleNotificationSetting(0)" 
+            <div *ngFor="let setting of settings.notifications; let i = index" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="color: #1a1a1a; font-size: 14px;">{{ setting.label }}</span>
+              <button (click)="toggleNotificationSetting(i)" 
                       style="width: 20px; height: 20px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none;"
-                      [style.backgroundColor]="settings.notifications[0].checked ? '#800020' : 'white'"
-                      [style.border]="settings.notifications[0].checked ? 'none' : '1px solid #e2e8f0'"></button>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #1a1a1a; font-size: 14px;">Menções de Pares</span>
-              <button (click)="toggleNotificationSetting(1)" 
-                      style="width: 20px; height: 20px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none;"
-                      [style.backgroundColor]="settings.notifications[1].checked ? '#800020' : 'white'"
-                      [style.border]="settings.notifications[1].checked ? 'none' : '1px solid #e2e8f0'"></button>
+                      [style.backgroundColor]="setting.checked ? '#800020' : 'white'"
+                      [style.border]="setting.checked ? 'none' : '1px solid #e2e8f0'"></button>
             </div>
           </div>
 
@@ -232,7 +249,7 @@
       </div>
 
       <!-- Conteúdos Criados -->
-      <div>
+      <div *ngIf="userContents.length > 0">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
           <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0;">Conteúdos Criados</h2>
           <span style="color: #8a8a8a; font-size: 14px; background: #f1f5f9; padding: 6px 14px; border-radius: 30px;">{{ userContents.length }} publicações</span>
@@ -241,14 +258,14 @@
           <div *ngFor="let content of userContents" style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #eef2f6; cursor: pointer; transition: all 0.3s;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <span style="background: #f8fafc; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #800020;">{{ content.type }}</span>
-              <span style="color: #8a8a8a; font-size: 12px;">📅 {{ content.date }}</span>
+              <span style="color: #8a8a8a; font-size: 12px;">{{ content.date }}</span>
             </div>
             <h3 style="color: #1a1a1a; font-size: 18px; font-weight: 700; margin: 0 0 12px 0;">{{ content.title }}</h3>
             <p style="color: #6a6a6a; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0;">{{ content.description }}</p>
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
               <div style="display: flex; gap: 16px;">
-                <span style="color: #8a8a8a; font-size: 12px;">📁 {{ content.category }}</span>
-                <span style="color: #8a8a8a; font-size: 12px;">👁️ {{ content.views }} visualizações</span>
+                <span style="color: #8a8a8a; font-size: 12px;">{{ content.category }}</span>
+                <span style="color: #8a8a8a; font-size: 12px;">{{ content.views }} visualizações</span>
               </div>
               <span style="color: #800020; font-size: 13px; font-weight: 600;">Ler mais →</span>
             </div>

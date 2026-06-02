@@ -36,13 +36,10 @@
       <!-- Right Icons: Perfil + Logout - Desktop -->
       <div class="desktop-icons" style="display: flex; gap: 12px; align-items: center;">
         <!-- Ícone do Perfil -->
-        <div routerLink="/auth/perfil" style="width: 36px; height: 36px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.3s;" 
+        <div routerLink="/auth/perfil" style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.3s; overflow: hidden; border: 2px solid rgba(255,255,255,0.3);" 
              onmouseover="this.style.transform='scale(1.05)'" 
              onmouseout="this.style.transform='scale(1)'">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
+          <img [src]="avatarUrl" alt="Avatar do Perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
         </div>
         
         <!-- Ícone de Sair (Logout) -->
@@ -68,11 +65,8 @@
         <a routerLink="/forum/community" routerLinkActive="active" (click)="closeMobileMenu()" style="text-decoration: none; font-size: 16px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer; padding: 8px 0;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Comunidade</a>
         <a routerLink="/quiz" routerLinkActive="active" (click)="closeMobileMenu()" style="text-decoration: none; font-size: 16px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer; padding: 8px 0;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Quiz</a>
         <div style="display: flex; gap: 16px; align-items: center; padding-top: 8px;">
-          <div routerLink="/auth/perfil" (click)="closeMobileMenu()" style="width: 36px; height: 36px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
+          <div routerLink="/auth/perfil" (click)="closeMobileMenu()" style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid rgba(255,255,255,0.3);">
+            <img [src]="avatarUrl" alt="Avatar do Perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
           </div>
           <div (click)="logout()" style="width: 36px; height: 36px; background: transparent; border: 1px solid #800020; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2">

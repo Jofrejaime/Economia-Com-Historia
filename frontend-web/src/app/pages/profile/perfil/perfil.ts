@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { ProfileService } from '../../../services/profile.service';
+import { ToastService } from '../../../services/toast.service';
 
 interface Merit {
   iconPath: string;
@@ -27,20 +28,11 @@ interface Content {
   author: string;
 }
 
-interface ProfileEditForm {
-  display_name: string;
-  bio: string;
-  institution: string;
-  province: string;
-  research_areas: string[];
-}
-
 interface UiState {
   isLoadingProfile: boolean;
   isLoadingStats: boolean;
   isEditingProfile: boolean;
   error: string | null;
-  success: string | null;
 }
 
 interface Stat {
@@ -68,12 +60,17 @@ export class PerfilComponent implements OnInit {
     isLoadingProfile: true,
     isLoadingStats: false,
     isEditingProfile: false,
-    error: null,
-    success: null
+    error: null
   };
 
   // Formulário de edição
   editForm!: FormGroup;
+
+  // Avatar
+  avatarPreview: string | null = null;
+  avatarFile: File | null = null;
+  avatarError: string | null = null;
+  avatarPreviewTime: number = 0;
 
   // Lista de províncias de Angola
   angolasProvinces = [
@@ -103,93 +100,24 @@ export class PerfilComponent implements OnInit {
     { label: 'DOCUMENTOS LIDOS', value: '0', unit: 'arquivos', color: '#574142', progress: null }
   ];
 
-  // Méritos e Distinções (mantém defaults até carregar do backend)
-  merits: Merit[] = [
-    {
-      iconPath: 'M12 2L15 8.5L22 9.5L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9.5L9 8.5L12 2Z',
-      iconViewBox: '0 0 24 24',
-      title: 'Mestre da Moeda',
-      description: ['Atribuído por completar o percurso completo da história monetária do século XVIII.'],
-      id: 'AEA-4492-X',
-      isActive: true
-    },
-    {
-      iconPath: 'M4 4H20V20H4V4Z M8 8H16V16H8V8Z',
-      iconViewBox: '0 0 24 24',
-      title: 'Arquivista Principal',
-      description: ['Reconhecido por contribuir com mais de 20 fontes primárias para o repositório.'],
-      id: 'AEA-1102-A',
-      isActive: true
-    },
-    {
-      iconPath: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Z M12 6V12L16 14',
-      iconViewBox: '0 0 24 24',
-      title: 'Ligação Institucional',
-      description: ['Estabelecer 5 ligações institucionais dentro da rede do Arquivo.'],
-      progress: 'EM PROGRESSO: 3/5',
-      isActive: false
-    },
-    {
-      iconPath: 'M9 12L11 14L15 10M21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12Z',
-      iconViewBox: '0 0 24 24',
-      title: 'Verificador de Factos Prata',
-      description: ['Rever 50 submissões da comunidade com uma taxa de verificação de 95%.'],
-      progress: 'EM PROGRESSO: 12/50',
-      isActive: false
-    }
-  ];
+  // Méritos e Distinções (dinâmicos do backend)
+  merits: Merit[] = [];
 
-  // Configurações de conta
-  settings = {
-    privacy: [
-      { label: 'Perfil Académico Público', checked: true },
-      { label: 'Autenticação de Dois Factores', checked: false }
-    ],
-    notifications: [
-      { label: 'Atualizações do Arquivo', checked: true },
-      { label: 'Menções de Pares', checked: true }
-    ]
+  // Configurações de conta (dinâmicas do backend)
+  settings: { privacy: Array<{label: string; checked: boolean}>; notifications: Array<{label: string; checked: boolean}> } = {
+    privacy: [],
+    notifications: []
   };
 
-  // Conteúdos criados (mantém defaults até carregar do backend)
-  userContents: Content[] = [
-    {
-      id: 1,
-      title: 'Análise do Sistema Monetário de Luanda no Século XVIII',
-      type: 'Artigo Académico',
-      date: '15 de Março, 2026',
-      views: 1245,
-      category: 'História Económica',
-      description: 'Estudo detalhado sobre as transformações monetárias e econômicas do sistema de comércio em Luanda durante o século XVIII.',
-      author: 'Dr. José Ndele'
-    },
-    {
-      id: 2,
-      title: 'Transições Macroeconómicas no Centro Comercial',
-      type: 'Documento de Pesquisa',
-      date: '2 de Fevereiro, 2026',
-      views: 892,
-      category: 'Economia',
-      description: 'Análise das mudanças estruturais nos principais centros de comércio e seu impacto na economia regional.',
-      author: 'Dr. José Ndele'
-    },
-    {
-      id: 3,
-      title: 'Repositório de Moeda do Século XIX - Vol. 3',
-      type: 'Compilação Histórica',
-      date: '10 de Janeiro, 2026',
-      views: 2103,
-      category: 'Numismática',
-      description: 'Terceiro volume da compilação histórica de moedas circuladas em território angolano no século XIX.',
-      author: 'Dr. José Ndele'
-    }
-  ];
+  // Conteúdos criados (dinâmicos do backend)
+  userContents: Content[] = [];
 
   constructor(
     private router: Router,
     private profileService: ProfileService,
     private cdr: ChangeDetectorRef,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private toastService: ToastService
   ) {
     // Inicializar formulário vazio
     this.editForm = this.fb.group({
@@ -216,7 +144,7 @@ export class PerfilComponent implements OnInit {
       this.profileBio = ['Backend não respondeu. Mostrando dados padrão.'];
       
       this.state.isLoadingProfile = false;
-      this.state.error = '⚠️ Backend não respondeu. Tente recarregar a página.';
+      this.state.error = 'Backend não respondeu. Tente recarregar a página.';
       this.cdr.detectChanges();
     }, 6000);
 
@@ -234,6 +162,9 @@ export class PerfilComponent implements OnInit {
       if (user) {
         this.mapUserDataToStats(user);
       }
+
+      // Carregar dados adicionais (méritos, conteúdos, configurações)
+      await this.loadAdditionalData();
 
       // Pré-preencher formulário com dados atuais
       if (profile) {
@@ -365,6 +296,28 @@ export class PerfilComponent implements OnInit {
   }
 
   /**
+   * Carrega dados adicionais do backend (méritos, conteúdos, configurações)
+   */
+  private async loadAdditionalData(): Promise<void> {
+    try {
+      // TODO: Implementar endpoints no backend para:
+      // 1. GET /api/profile/merits - Retornar méritos do utilizador
+      // 2. GET /api/profile/contents - Retornar conteúdos criados
+      // 3. GET /api/profile/settings - Retornar configurações de privacidade/notificações
+      
+      // Por enquanto, manter arrays vazios até backend implementar
+      this.merits = [];
+      this.userContents = [];
+      this.settings = {
+        privacy: [],
+        notifications: []
+      };
+    } catch (error) {
+      // Falhar silenciosamente se não conseguir carregar dados adicionais
+    }
+  }
+
+  /**
    * Retorna mensagem de erro apropriada
    */
   private getErrorMessage(error: any): string {
@@ -405,6 +358,9 @@ export class PerfilComponent implements OnInit {
    */
   closeEditProfileModal(): void {
     this.state.isEditingProfile = false;
+    // Recarregar perfil para garantir que temos dados atualizados
+    // (especialmente avatar que pode ter sido atualizado)
+    this.refreshProfile();
   }
 
   /**
@@ -435,21 +391,39 @@ export class PerfilComponent implements OnInit {
         updates.research_areas = updates.research_areas.slice(0, 10);
       }
 
+      // Salvar dados do perfil
       await this.profileService.updateProfile(updates);
 
-      // Atualizar dados locais
+      // Se houver novo avatar, fazer upload
+      if (this.avatarFile) {
+        const response = await this.profileService.updateAvatar(this.avatarFile);
+        // Usar diretamente a URL retornada pelo backend (já completa e processada)
+        if (response?.avatar_url) {
+          // Atualizar URL imediatamente para mostrar mudança
+          this.profileAvatarUrl = response.avatar_url + '?t=' + Date.now();
+        }
+        // Limpar seleção
+        this.avatarPreview = null;
+        this.avatarFile = null;
+        this.avatarPreviewTime = 0;
+      }
+
+      // Atualizar dados locais com os valores do form
       this.profileData = { ...this.profileData, ...updates };
       this.mapProfileData(this.profileData, this.userData);
+      
+      // Forçar detecção de mudanças
+      this.cdr.detectChanges();
 
-      this.state.success = '✅ Perfil atualizado com sucesso!';
+      // Fechar modal após sucesso
       this.closeEditProfileModal();
-
-      // Limpar mensagem de sucesso após 3 segundos
-      setTimeout(() => {
-        this.state.success = null;
-      }, 3000);
+      
+      // Mostrar toast de sucesso
+      this.toastService.success('Perfil atualizado com sucesso!');
     } catch (error) {
-      this.state.error = this.getErrorMessage(error);
+      const errorMsg = this.getErrorMessage(error);
+      this.state.error = errorMsg;
+      this.toastService.error(errorMsg);
     } finally {
       this.state.isLoadingStats = false;
       this.cdr.detectChanges();
@@ -470,7 +444,85 @@ export class PerfilComponent implements OnInit {
         research_areas: this.profileData.research_areas || []
       });
     }
+    this.avatarPreview = null;
+    this.avatarFile = null;
+    this.avatarError = null;
+    this.avatarPreviewTime = 0;
     this.closeEditProfileModal();
+  }
+
+  /**
+   * Retorna a URL correta do avatar (preview ou atual)
+   */
+  getAvatarSrc(): string {
+    // Se há preview, usar diretamente
+    if (this.avatarPreview) {
+      return this.avatarPreview;
+    }
+    // Caso contrário, usar o avatar atual
+    return this.profileAvatarUrl;
+  }
+
+  /**
+   * Quando usuário seleciona arquivo de avatar
+   */
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    this.avatarError = null;
+
+    // Validar tipo de arquivo
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      this.avatarError = 'Tipo de arquivo não permitido. Use JPG, PNG ou WebP.';
+      return;
+    }
+
+    // Validar tamanho (máx 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB em bytes
+    if (file.size > maxSize) {
+      this.avatarError = 'Arquivo muito grande. Máximo 5MB.';
+      return;
+    }
+
+    // Criar preview usando FileReader
+    const reader = new FileReader();
+    
+    reader.onload = (e: any) => {
+      // Atualizar preview imediatamente
+      const result = e.target?.result;
+      if (result && typeof result === 'string') {
+        this.avatarPreview = result;
+        this.avatarPreviewTime = Date.now();
+        // Forçar Angular a detectar mudanças
+        this.cdr.markForCheck();
+      }
+    };
+    
+    reader.onerror = () => {
+      this.avatarError = 'Erro ao ler arquivo. Tente novamente.';
+    };
+
+    // Iniciar leitura do arquivo
+    reader.readAsDataURL(file);
+
+    // Guardar arquivo para upload
+    this.avatarFile = file;
+  }
+
+  /**
+   * Limpar seleção de avatar
+   */
+  clearAvatarSelection(): void {
+    this.avatarPreview = null;
+    this.avatarFile = null;
+    this.avatarError = null;
+    this.avatarPreviewTime = 0;
   }
 
   /**
@@ -478,10 +530,7 @@ export class PerfilComponent implements OnInit {
    */
   downloadPortfolio(): void {
     // TODO: Implementar download de portfólio
-    this.state.success = 'Funcionalidade de download em desenvolvimento.';
-    setTimeout(() => {
-      this.state.success = null;
-    }, 3000);
+    this.toastService.info('Funcionalidade de download em desenvolvimento.');
   }
 
   /**
@@ -494,10 +543,7 @@ export class PerfilComponent implements OnInit {
     
     if (confirm) {
       // TODO: Implementar desativação de conta
-      this.state.success = 'Funcionalidade de desativação em desenvolvimento.';
-      setTimeout(() => {
-        this.state.success = null;
-      }, 3000);
+      this.toastService.info('Funcionalidade de desativação em desenvolvimento.');
     }
   }
 
@@ -529,24 +575,21 @@ export class PerfilComponent implements OnInit {
   }
 
   /**
-   * Limpar mensagem de erro
-   */
-  clearError(): void {
-    this.state.error = null;
-    this.profileError = null;
-  }
-
-  /**
-   * Limpar mensagem de sucesso
-   */
-  clearSuccess(): void {
-    this.state.success = null;
-  }
-
-  /**
    * Atualizar perfil manualmente
    */
   refreshProfile(): void {
-    void this.loadProfile();
+    // Carregar perfil em background (sem mostrar loading spinner)
+    this.profileService.getMe().then(me => {
+      const profile = me?.profile ?? null;
+      const user = me?.user as Record<string, unknown> | undefined;
+      
+      if (profile) {
+        this.profileData = profile;
+        this.mapProfileData(profile, user);
+        this.cdr.detectChanges();
+      }
+    }).catch(error => {
+      // Silenciosamente falhar em background, sem mostrar erro
+    });
   }
 }
