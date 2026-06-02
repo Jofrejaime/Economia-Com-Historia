@@ -1,0 +1,206 @@
+<div class="dashboard-container">
+  
+  <!-- Main Container with Sidebar -->
+  <div class="main-layout">
+    
+    <!-- Sidebar Navigation (Fixa) -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-area">
+          <div class="logo-title">
+            <p class="logo-line1">Economia com</p>
+            <p class="logo-line2">História</p>
+          </div>
+        </div>
+        <div class="subtitle-area">
+          <p class="subtitle-text">PAINEL DE GESTÃO</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Visão Geral -->
+        <div class="nav-item" [class.active]="isActive('/admin/dashboard/visao-geral')" (click)="navigateTo('/admin/dashboard/visao-geral')">
+          <div class="nav-link">
+            <div class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M9 1L1 5L9 9L17 5L9 1Z" [attr.fill]="isActive('/admin/dashboard/visao-geral') ? 'white' : 'none'" [attr.stroke]="isActive('/admin/dashboard/visao-geral') ? 'white' : '#475569'" stroke-width="1.5"/>
+                <path d="M1 9L9 13L17 9" [attr.stroke]="isActive('/admin/dashboard/visao-geral') ? 'white' : '#475569'" stroke-width="1.5" fill="none"/>
+                <path d="M1 13L9 17L17 13" [attr.stroke]="isActive('/admin/dashboard/visao-geral') ? 'white' : '#475569'" stroke-width="1.5" fill="none"/>
+              </svg>
+            </div>
+            <span class="nav-text">Visão Geral</span>
+          </div>
+        </div>
+
+        <!-- Pedidos de Acesso -->
+        <div class="nav-item" [class.active]="isActive('/admin/dashboard/pedidos')" (click)="navigateTo('/admin/dashboard/pedidos')">
+          <div class="nav-link">
+            <div class="nav-icon">
+              <svg width="16" height="20" viewBox="0 0 16 20" fill="none">
+                <path d="M8 1L1 5V15L8 19L15 15V5L8 1Z" [attr.stroke]="isActive('/admin/dashboard/pedidos') ? 'white' : '#475569'" stroke-width="1.5" fill="none"/>
+                <path d="M8 5V9M8 13H8.01" [attr.stroke]="isActive('/admin/dashboard/pedidos') ? 'white' : '#475569'" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="nav-text">Pedidos de Acesso</span>
+          </div>
+          <div class="nav-badge">{{ pendingCount }}</div>
+        </div>
+
+        <!-- Utilizadores -->
+        <div class="nav-item" [class.active]="isActive('/admin/dashboard/utilizadores')" (click)="navigateTo('/admin/dashboard/utilizadores')">
+          <div class="nav-link">
+            <div class="nav-icon">
+              <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+                <path d="M15 1C17.2091 1 19 2.79086 19 5C19 7.20914 17.2091 9 15 9M1 15V13C1 9.68629 3.68629 7 7 7H11C14.3137 7 17 9.68629 17 13V15" [attr.stroke]="isActive('/admin/dashboard/utilizadores') ? 'white' : '#475569'" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="9" cy="4" r="3" [attr.stroke]="isActive('/admin/dashboard/utilizadores') ? 'white' : '#475569'" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <span class="nav-text">Utilizadores</span>
+          </div>
+        </div>
+
+        <!-- Categorias -->
+        <div class="nav-item" [class.active]="isActive('/admin/dashboard/categorias')" (click)="navigateTo('/admin/dashboard/categorias')">
+          <div class="nav-link">
+            <div class="nav-icon">
+              <svg width="19" height="20" viewBox="0 0 19 20" fill="none">
+                <path d="M2 3H17V17H2V3Z" [attr.stroke]="isActive('/admin/dashboard/categorias') ? 'white' : '#475569'" stroke-width="1.5" fill="none"/>
+                <path d="M6 7H13M6 11H10" [attr.stroke]="isActive('/admin/dashboard/categorias') ? 'white' : '#475569'" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="nav-text">Categorias</span>
+          </div>
+        </div>
+
+        <!-- Conteúdos -->
+        <div class="nav-item" [class.active]="isActive('/admin/dashboard/conteudos')" (click)="navigateTo('/admin/dashboard/conteudos')">
+          <div class="nav-link">
+            <div class="nav-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 3H17V17H3V3Z" [attr.stroke]="isActive('/admin/dashboard/conteudos') ? 'white' : '#475569'" stroke-width="1.5" fill="none"/>
+                <path d="M7 7H13M7 10H11" [attr.stroke]="isActive('/admin/dashboard/conteudos') ? 'white' : '#475569'" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="nav-text">Conteúdos</span>
+          </div>
+        </div>
+
+        <!-- Comunidade -->
+        <div class="nav-item" [class.active]="isActive('/admin/dashboard/comunidade')" (click)="navigateTo('/admin/dashboard/comunidade')">
+          <div class="nav-link">
+            <div class="nav-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 2C5.58 2 2 5.58 2 10C2 14.42 5.58 18 10 18C14.42 18 18 14.42 18 10C18 5.58 14.42 2 10 2Z" [attr.stroke]="isActive('/admin/dashboard/comunidade') ? 'white' : '#475569'" stroke-width="1.5"/>
+                <path d="M7 8H13M7 12H11" [attr.stroke]="isActive('/admin/dashboard/comunidade') ? 'white' : '#475569'" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="nav-text">Comunidade</span>
+          </div>
+        </div>
+
+        <!-- Denúncias -->
+<div class="nav-item" [class.active]="isActive('/admin/dashboard/denuncias')" (click)="navigateTo('/admin/dashboard/denuncias')">
+  <div class="nav-link">
+    <div class="nav-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 2L1 21h22L12 2z"/>
+        <circle cx="12" cy="16" r="1.5"/>
+        <path d="M12 9v4"/>
+      </svg>
+    </div>
+    <span class="nav-text">Denúncias</span>
+  </div>
+  <div class="nav-badge">{{ pendingReportsCount }}</div>
+</div>
+
+<!-- Quizzes -->
+<div class="nav-item" [class.active]="isActive('/admin/dashboard/quizzes')" (click)="navigateTo('/admin/dashboard/quizzes')">
+  <div class="nav-link">
+    <div class="nav-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/>
+      </svg>
+    </div>
+    <span class="nav-text">Questionários</span>
+  </div>
+</div>
+
+        <!-- Configurações -->
+        <div class="nav-item" [class.active]="isActive('/admin/dashboard/configuracoes')" (click)="navigateTo('/admin/dashboard/configuracoes')">
+          <div class="nav-link">
+            <div class="nav-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="3" [attr.stroke]="isActive('/admin/dashboard/configuracoes') ? 'white' : '#475569'" stroke-width="1.5"/>
+                <path d="M16.5 10C16.5 10.4 16.4 10.8 16.3 11.1L18 12.5L16.5 15L14.5 13.8C13.7 14.5 12.7 15 11.6 15.2L11 17H9L8.4 15.2C7.3 15 6.3 14.5 5.5 13.8L3.5 15L2 12.5L3.7 11.1C3.6 10.8 3.5 10.4 3.5 10C3.5 9.6 3.6 9.2 3.7 8.9L2 7.5L3.5 5L5.5 6.2C6.3 5.5 7.3 5 8.4 4.8L9 3H11L11.6 4.8C12.7 5 13.7 5.5 14.5 6.2L16.5 5L18 7.5L16.3 8.9C16.4 9.2 16.5 9.6 16.5 10Z" [attr.stroke]="isActive('/admin/dashboard/configuracoes') ? 'white' : '#475569'" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <span class="nav-text">Configurações</span>
+          </div>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="profile-card">
+          <div class="profile-icon">
+            <svg width="10.5" height="11.667" viewBox="0 0 10.5 11.667" fill="white">
+              <path d="M5.25 0L0 5.25L5.25 10.5L10.5 5.25L5.25 0Z"/>
+            </svg>
+          </div>
+          <div class="profile-info">
+            <p class="profile-name">Dr. Manuel Costa</p>
+            <p class="profile-role">Curador Chefe</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content - Router Outlet (Conteúdo dinâmico) -->
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="admin-footer">
+    <div class="footer-content">
+      <div class="footer-links">
+        <div class="footer-col">
+          <p class="footer-title">Economia com História</p>
+          <p class="footer-text">Plataforma institucional dedicada à excelência académica e à preservação histórica do património económico angolano.</p>
+        </div>
+        <div class="footer-col">
+          <p class="footer-heading">ADMINISTRAÇÃO</p>
+          <p class="footer-link">Manual do Curador</p>
+          <p class="footer-link">Auditoria de Acessos</p>
+          <p class="footer-link">Protocolos de Segurança</p>
+        </div>
+        <div class="footer-col">
+          <p class="footer-heading">INSTITUCIONAL</p>
+          <p class="footer-link">Repositório Central</p>
+          <p class="footer-link">Parcerias Académicas</p>
+          <p class="footer-link">Publicações</p>
+        </div>
+        <div class="footer-col">
+          <p class="footer-heading">LEGAL</p>
+          <p class="footer-link">Política de Privacidade</p>
+          <p class="footer-link">Termos de Utilização</p>
+          <p class="footer-link">Direitos de Propriedade</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="copyright">© {{ currentYear }} ANGOLAN ECONOMIC ARCHIVE. TODOS OS DIREITOS RESERVADOS.</div>
+        <div class="social-icons">
+          <svg width="16.667" height="16.667" viewBox="0 0 16.667 16.667" fill="#94A3B8">
+            <path d="M16.667 8.333C16.667 3.73 12.937 0 8.333 0 3.73 0 0 3.73 0 8.333c0 4.16 3.047 7.6 7.031 8.23v-5.82H4.915v-2.41h2.116V6.247c0-2.09 1.245-3.247 3.15-3.247.91 0 1.87.165 1.87.165v2.058h-1.054c-1.04 0-1.36.645-1.36 1.306v1.57h2.318l-.37 2.41h-1.947v5.82c3.984-.63 7.03-4.07 7.03-8.23z"/>
+          </svg>
+          <svg width="16.667" height="13.333" viewBox="0 0 16.667 13.333" fill="#94A3B8">
+            <path d="M16.667 1.58c-.61.27-1.27.45-1.96.53.7-.42 1.24-1.09 1.5-1.89-.66.39-1.39.67-2.17.82-.62-.66-1.5-1.07-2.48-1.07-1.88 0-3.4 1.52-3.4 3.4 0 .27.03.53.09.78-2.82-.14-5.33-1.5-7-3.56-.29.5-.46 1.08-.46 1.7 0 1.18.6 2.22 1.51 2.83-.56-.02-1.08-.17-1.54-.43v.04c0 1.65 1.17 3.02 2.73 3.34-.29.08-.59.12-.9.12-.22 0-.43-.02-.64-.06.43 1.35 1.69 2.33 3.18 2.36-1.17.92-2.64 1.46-4.23 1.46-.27 0-.55-.02-.82-.05 1.52.97 3.33 1.54 5.27 1.54 6.32 0 9.78-5.24 9.78-9.78 0-.15 0-.3-.01-.45.67-.48 1.25-1.08 1.71-1.77z"/>
+          </svg>
+          <svg width="15" height="16.667" viewBox="0 0 15 16.667" fill="#94A3B8">
+            <path d="M13.5 0H1.5C.67 0 0 .67 0 1.5v13.667c0 .83.67 1.5 1.5 1.5h12c.83 0 1.5-.67 1.5-1.5V1.5c0-.83-.67-1.5-1.5-1.5zM4.5 14.167h-2.5V5h2.5v9.167zM3.25 3.917c-.83 0-1.5-.67-1.5-1.5 0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5c0 .83-.67 1.5-1.5 1.5zM14.167 14.167h-2.5V9.417c0-1.13-.02-2.58-1.57-2.58-1.57 0-1.81 1.23-1.81 2.5v4.83h-2.5V5h2.4v1.25h.03c.34-.64 1.16-1.31 2.38-1.31 2.55 0 3.02 1.68 3.02 3.86v5.37z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>

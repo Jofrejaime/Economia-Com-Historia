@@ -15,7 +15,20 @@ import { DiscussionThreadComponent } from './pages/forum/discussion-thread/discu
 import { HomeVisitorComponent } from './pages/home/home-visitor/home-visitor';
 import { CategoryViewComponent } from './pages/forum/category-view/category-view';
 import { CategoryDetailComponent } from './pages/forum/category-detail/category-detail';
+<<<<<<< HEAD
+import { DashboardAdminComponent } from './pages/admin/dashboard-admin/dashboard-admin';
+import { OverviewPageComponent } from './pages/admin/dashboard-admin/pages/overview-page/overview-page';
+import { RequestsPageComponent } from './pages/admin/dashboard-admin/pages/request-page/request-page';
+import { UsersPageComponent } from './pages/admin/dashboard-admin/pages/users-page/users-page';
+import { CategoriesPageComponent } from './pages/admin/dashboard-admin/pages/categories-page/categories-page';
+import { ContentsPageComponent } from './pages/admin/dashboard-admin/pages/contents-page/contents-page';
+import { CommunityPageComponent } from './pages/admin/dashboard-admin/pages/community-page/community-page';
+import { SettingsPageComponent } from './pages/admin/dashboard-admin/pages/settings-page/settings-page';
+import { ReportsPageComponent } from './pages/admin/dashboard-admin/pages/reports-page/reports-page';
+import { QuizzesManagerPageComponent } from './pages/admin/dashboard-admin/pages/quizzes-manager-page/quizzes-manager-page';
+=======
 import { authGuard } from './guards/auth.guard';
+>>>>>>> 1fd836a96305728af392a94760c740bbb5043d11
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -28,6 +41,33 @@ export const routes: Routes = [
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/login', component: LoginComponent },
   { path: 'auth/criar-conta', component: RegisterComponent },
+<<<<<<< HEAD
+  { path: 'contents/view/:id', component: ContentsViewComponent },
+  { path: 'forum/comunidade/criar-topico', component: CreateTopicComponent },
+  { path: 'forum/community/discussao', component: DiscussionThreadComponent },
+  { path: 'landing', component: HomeVisitorComponent },
+  { path: 'forum/categorias', component: CategoryViewComponent },
+  { path: 'forum/categoria/:id', component: CategoryDetailComponent },
+  
+  // Admin Routes (com rotas aninhadas - CORRIGIDO)
+  {
+    path: 'admin/dashboard',
+    component: DashboardAdminComponent,
+    children: [
+      { path: '', redirectTo: 'visao-geral', pathMatch: 'full' },
+      { path: 'visao-geral', component: OverviewPageComponent },
+      { path: 'pedidos', component: RequestsPageComponent },
+      { path: 'utilizadores', component: UsersPageComponent },
+      { path: 'categorias', component: CategoriesPageComponent },
+      { path: 'conteudos', component: ContentsPageComponent },
+      { path: 'comunidade', component: CommunityPageComponent },
+      { path: 'configuracoes', component: SettingsPageComponent },
+       { path: 'denuncias', component: ReportsPageComponent }, 
+    { path: 'quizzes', component: QuizzesManagerPageComponent }, 
+    ]
+  },
+  
+=======
   { path: 'auth/forgot-password', component: ForgotPasswordComponent },
   { path: 'auth/reset-password', component: ResetPasswordComponent },
   { path: 'contents/view/:id', canActivate: [authGuard], component: ContentsViewComponent },
@@ -36,5 +76,6 @@ export const routes: Routes = [
   { path: 'landing', component: HomeVisitorComponent },
   { path: 'forum/categorias', canActivate: [authGuard], component: CategoryViewComponent },
   { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },
+>>>>>>> 1fd836a96305728af392a94760c740bbb5043d11
   { path: '**', redirectTo: '/home' }
 ];
