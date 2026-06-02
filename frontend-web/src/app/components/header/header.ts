@@ -1,6 +1,7 @@
 import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -12,7 +13,7 @@ import { Router, RouterModule } from '@angular/router';
 export class HeaderComponent {
   mobileMenuOpen = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private auth: AuthService) {}
 
   toggleMobileMenu(): void {
     this.mobileMenuOpen = !this.mobileMenuOpen;
@@ -22,9 +23,9 @@ export class HeaderComponent {
     this.mobileMenuOpen = false;
   }
 
-  logout(): void {
-    localStorage.removeItem('user');
-    this.router.navigate(['/landing']);
+  async logout(): Promise<void> {
+    await this.auth.logout();
+    await this.router.navigate(['/landing']);
   }
 
   @HostListener('window:resize', ['$event'])
