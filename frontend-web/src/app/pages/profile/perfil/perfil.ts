@@ -18,14 +18,13 @@ interface Merit {
 }
 
 interface Content {
-  id: number;
+  id: string;
   title: string;
   type: string;
   date: string;
   views: number;
   category: string;
   description: string;
-  author: string;
 }
 
 interface UiState {
@@ -79,37 +78,32 @@ export class PerfilComponent implements OnInit {
     'Kwanza Norte', 'Kwanza Sul', 'Malanje', 'Moxico', 'Namibe', 'Uíge', 'Zaire'
   ].sort();
 
-  // Dados do perfil
-  profileName = 'Carregando...';
-  profileStatus = 'CARREGANDO DADOS...';
-  profileBio = ['A carregar contexto do utilizador...'];
-  profileAvatarUrl = 'https://www.lusakavoice.com/wp-content/uploads/2014/08/Screen-Shot-2014-08-06-at-3.06.26-AM.png';
+  // Dados do perfil (carregados do backend)
+  profileName = '';
+  profileStatus = '';
+  profileBio: string[] = [];
+  profileAvatarUrl = '';
   profileEmail = '';
   profileRole = '';
-  profileError: string | null = null;
 
   // Dados brutos do backend
   userData: any = null;
   profileData: any = null;
+  profileError: string | null = null;
   
-  // Estatísticas (agora dinâmicas)
-  stats: Stat[] = [
-    { label: 'PONTUAÇÃO ACADÉMICA TOTAL', value: '0', unit: 'pts', color: '#6b0119', progress: 0 },
-    { label: 'QUESTIONÁRIOS CONCLUÍDOS', value: '0', unit: 'de 200', color: '#8b1e2d', progress: 0 },
-    { label: 'NÍVEL ATUAL', value: '1', subtext: 'de 5 níveis', rankBadge: 'Iniciante', color: 'white', bgColor: '#8b1e2d', progress: null },
-    { label: 'DOCUMENTOS LIDOS', value: '0', unit: 'arquivos', color: '#574142', progress: null }
-  ];
+  // Estatísticas (carregadas do backend)
+  stats: Stat[] = [];
 
-  // Méritos e Distinções (dinâmicos do backend)
+  // Méritos e Distinções (dinâmicos do backend - aguardando endpoint)
   merits: Merit[] = [];
 
-  // Configurações de conta (dinâmicas do backend)
+  // Configurações de conta (dinâmicas do backend - aguardando endpoint)
   settings: { privacy: Array<{label: string; checked: boolean}>; notifications: Array<{label: string; checked: boolean}> } = {
     privacy: [],
     notifications: []
   };
 
-  // Conteúdos criados (dinâmicos do backend)
+  // Conteúdos criados (dinâmicos do backend - aguardando endpoint)
   userContents: Content[] = [];
 
   constructor(
@@ -137,20 +131,8 @@ export class PerfilComponent implements OnInit {
     this.state.isLoadingProfile = true;
     this.state.error = null;
 
-    // Timeout de emergência - se nada responder em 6s, força o fim
-    const emergencyTimeout = setTimeout(() => {
-      this.profileName = 'Usuário Autenticado';
-      this.profileStatus = 'ESTATUTO ACADÉMICO: UTILIZADOR AUTENTICADO';
-      this.profileBio = ['Backend não respondeu. Mostrando dados padrão.'];
-      
-      this.state.isLoadingProfile = false;
-      this.state.error = 'Backend não respondeu. Tente recarregar a página.';
-      this.cdr.detectChanges();
-    }, 6000);
-
     try {
       const me = await this.profileService.getMe();
-      clearTimeout(emergencyTimeout);
 
       const profile = me?.profile ?? null;
       const user = me?.user as Record<string, unknown> | undefined;
@@ -173,7 +155,6 @@ export class PerfilComponent implements OnInit {
           bio: profile.bio || '',
           institution: profile.institution || '',
           province: profile.province || '',
-          // Converter array para string (join com vírgula)
           research_areas: Array.isArray(profile.research_areas) 
             ? profile.research_areas.join(', ') 
             : ''
@@ -188,11 +169,6 @@ export class PerfilComponent implements OnInit {
     } catch (error) {
       this.profileError = this.getErrorMessage(error);
       this.state.error = this.profileError;
-      
-      // Mostrar dados padrão em caso de erro
-      this.profileName = 'Erro ao Carregar';
-      this.profileStatus = 'ESTATUTO ACADÉMICO: ERRO DE CONEXÃO';
-      this.profileBio = [this.profileError];
     } finally {
       this.state.isLoadingProfile = false;
       this.cdr.detectChanges();
@@ -203,7 +179,7 @@ export class PerfilComponent implements OnInit {
    * Mapeia dados do backend para exibição de perfil
    */
   private mapProfileData(profile: any, user: any): void {
-    // Nome
+    // Nome - usar display_name ou email como fallback
     this.profileName = (profile?.display_name as string) || 
                        (user?.['email'] as string) || 
                        'Perfil Académico';
@@ -219,18 +195,16 @@ export class PerfilComponent implements OnInit {
     if (profile?.bio) {
       this.profileBio = profile.bio.split('\n').filter((line: string) => line.trim());
       if (this.profileBio.length === 0) {
-        this.profileBio = ['O seu perfil está sincronizado com o contrato de identidade da API.'];
+        this.profileBio = ['Seu perfil está sincronizado com a API.'];
       }
     } else {
-      this.profileBio = ['O seu perfil está sincronizado com o contrato de identidade da API.'];
+      this.profileBio = ['Seu perfil está sincronizado com a API.'];
     }
 
-    // Avatar
-    if (profile?.avatar_url) {
-      this.profileAvatarUrl = profile.avatar_url;
-    }
+    // Avatar (vazio se não houver)
+    this.profileAvatarUrl = profile?.avatar_url || '';
 
-    // Email e role (para referência)
+    // Email e role (para referência interna)
     this.profileEmail = (user?.['email'] as string) || '';
     this.profileRole = (user?.['role'] as string) || '';
   }

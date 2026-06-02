@@ -15,7 +15,7 @@ import { DiscussionThreadComponent } from './pages/forum/discussion-thread/discu
 import { HomeVisitorComponent } from './pages/home/home-visitor/home-visitor';
 import { CategoryViewComponent } from './pages/forum/category-view/category-view';
 import { CategoryDetailComponent } from './pages/forum/category-detail/category-detail';
-<<<<<<< HEAD
+import { authGuard } from './guards/auth.guard';
 import { DashboardAdminComponent } from './pages/admin/dashboard-admin/dashboard-admin';
 import { OverviewPageComponent } from './pages/admin/dashboard-admin/pages/overview-page/overview-page';
 import { RequestsPageComponent } from './pages/admin/dashboard-admin/pages/request-page/request-page';
@@ -26,9 +26,6 @@ import { CommunityPageComponent } from './pages/admin/dashboard-admin/pages/comm
 import { SettingsPageComponent } from './pages/admin/dashboard-admin/pages/settings-page/settings-page';
 import { ReportsPageComponent } from './pages/admin/dashboard-admin/pages/reports-page/reports-page';
 import { QuizzesManagerPageComponent } from './pages/admin/dashboard-admin/pages/quizzes-manager-page/quizzes-manager-page';
-=======
-import { authGuard } from './guards/auth.guard';
->>>>>>> 1fd836a96305728af392a94760c740bbb5043d11
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -41,15 +38,16 @@ export const routes: Routes = [
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/login', component: LoginComponent },
   { path: 'auth/criar-conta', component: RegisterComponent },
-<<<<<<< HEAD
-  { path: 'contents/view/:id', component: ContentsViewComponent },
-  { path: 'forum/comunidade/criar-topico', component: CreateTopicComponent },
-  { path: 'forum/community/discussao', component: DiscussionThreadComponent },
+  { path: 'auth/forgot-password', component: ForgotPasswordComponent },
+  { path: 'auth/reset-password', component: ResetPasswordComponent },
+  { path: 'contents/view/:id', canActivate: [authGuard], component: ContentsViewComponent },
+  { path: 'forum/comunidade/criar-topico', canActivate: [authGuard], component: CreateTopicComponent },
+  { path: 'forum/community/discussao', canActivate: [authGuard], component: DiscussionThreadComponent },
   { path: 'landing', component: HomeVisitorComponent },
-  { path: 'forum/categorias', component: CategoryViewComponent },
-  { path: 'forum/categoria/:id', component: CategoryDetailComponent },
+  { path: 'forum/categorias', canActivate: [authGuard], component: CategoryViewComponent },
+  { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },
   
-  // Admin Routes (com rotas aninhadas - CORRIGIDO)
+  // Admin Routes (com rotas aninhadas)
   {
     path: 'admin/dashboard',
     component: DashboardAdminComponent,
@@ -62,20 +60,10 @@ export const routes: Routes = [
       { path: 'conteudos', component: ContentsPageComponent },
       { path: 'comunidade', component: CommunityPageComponent },
       { path: 'configuracoes', component: SettingsPageComponent },
-       { path: 'denuncias', component: ReportsPageComponent }, 
-    { path: 'quizzes', component: QuizzesManagerPageComponent }, 
+      { path: 'denuncias', component: ReportsPageComponent },
+      { path: 'quizzes', component: QuizzesManagerPageComponent }
     ]
   },
   
-=======
-  { path: 'auth/forgot-password', component: ForgotPasswordComponent },
-  { path: 'auth/reset-password', component: ResetPasswordComponent },
-  { path: 'contents/view/:id', canActivate: [authGuard], component: ContentsViewComponent },
-  { path: 'forum/comunidade/criar-topico', canActivate: [authGuard], component: CreateTopicComponent },
-  { path: 'forum/community/discussao', canActivate: [authGuard], component: DiscussionThreadComponent },
-  { path: 'landing', component: HomeVisitorComponent },
-  { path: 'forum/categorias', canActivate: [authGuard], component: CategoryViewComponent },
-  { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },
->>>>>>> 1fd836a96305728af392a94760c740bbb5043d11
   { path: '**', redirectTo: '/home' }
 ];

@@ -32,7 +32,7 @@ export class ProfileService {
   /**
    * Garante que a URL do avatar é completa e acessível
    */
-  private ensureCompleteAvatarUrl(url: string | null | undefined): string | null {
+  private ensureCompleteAvatarUrl(url: string | null | undefined): string | null | undefined {
     if (!url) return null;
     
     // Se já começa com http, é uma URL completa
@@ -55,12 +55,12 @@ export class ProfileService {
   /**
    * Processa uma resposta de profile para garantir URLs completas
    */
-  private processProfile(profile: ApiProfile | null | undefined): ApiProfile | null {
-    if (!profile) return null;
+  private processProfile(profile: ApiProfile | null | undefined): ApiProfile | undefined {
+    if (!profile) return undefined;
     
     return {
       ...profile,
-      avatar_url: this.ensureCompleteAvatarUrl(profile.avatar_url)
+      avatar_url: this.ensureCompleteAvatarUrl(profile.avatar_url) as string | null | undefined
     };
   }
 
@@ -80,7 +80,7 @@ export class ProfileService {
       
       // Processar profile para garantir URLs completas
       if (response.profile) {
-        response.profile = this.processProfile(response.profile) ?? undefined;
+        response.profile = this.processProfile(response.profile) ?? (response.profile || undefined);
       }
       
       return response;
@@ -105,7 +105,8 @@ export class ProfileService {
       
       // Processar profile para garantir URLs completas
       if (response.profile) {
-        response.profile = this.processProfile(response.profile) ?? response.profile;
+        const processed = this.processProfile(response.profile);
+        response.profile = processed as ApiProfile;
       }
       
       return response;
@@ -140,7 +141,8 @@ export class ProfileService {
       
       // Processar profile para garantir URLs completas
       if (response.profile) {
-        response.profile = this.processProfile(response.profile) ?? response.profile;
+        const processed = this.processProfile(response.profile);
+        response.profile = processed as ApiProfile | undefined;
       }
       
       return response;
@@ -171,7 +173,7 @@ export class ProfileService {
       // Processar URL para garantir que é completa
       if (response.avatar_url) {
         const completeUrl = this.ensureCompleteAvatarUrl(response.avatar_url);
-        response.avatar_url = completeUrl ?? undefined;
+        response.avatar_url = (completeUrl ?? undefined) as string | undefined;
       }
       
       return response;

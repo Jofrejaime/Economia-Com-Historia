@@ -13,7 +13,7 @@ import { ProfileService } from '../../services/profile.service';
 })
 export class HeaderComponent implements OnInit {
   mobileMenuOpen = false;
-  avatarUrl = 'https://www.lusakavoice.com/wp-content/uploads/2014/08/Screen-Shot-2014-08-06-at-3.06.26-AM.png';
+  avatarUrl = ''; // Will be loaded from backend
 
   constructor(
     private router: Router,
@@ -30,9 +30,13 @@ export class HeaderComponent implements OnInit {
       const me = await this.profileService.getMe();
       if (me?.profile?.avatar_url) {
         this.avatarUrl = me.profile.avatar_url;
+      } else {
+        // Fallback: Use initials or default icon if no avatar
+        this.avatarUrl = '';
       }
     } catch (error) {
-      // Falhar silenciosamente, usar default
+      // Falhar silenciosamente, deixar vazio (mostrará ícone padrão)
+      this.avatarUrl = '';
     }
   }
 

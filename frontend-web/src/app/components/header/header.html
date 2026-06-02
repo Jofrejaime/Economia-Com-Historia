@@ -39,7 +39,11 @@
         <div routerLink="/auth/perfil" style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.3s; overflow: hidden; border: 2px solid rgba(255,255,255,0.3);" 
              onmouseover="this.style.transform='scale(1.05)'" 
              onmouseout="this.style.transform='scale(1)'">
-          <img [src]="avatarUrl" alt="Avatar do Perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+          <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Avatar do Perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+          <svg *ngIf="!avatarUrl" width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M 12 14 C 7.6 14 4 16.7 4 20 L 20 20 C 20 16.7 16.4 14 12 14 Z"/>
+          </svg>
         </div>
         
         <!-- Ícone de Sair (Logout) -->
@@ -66,7 +70,11 @@
         <a routerLink="/quiz" routerLinkActive="active" (click)="closeMobileMenu()" style="text-decoration: none; font-size: 16px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer; padding: 8px 0;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Quiz</a>
         <div style="display: flex; gap: 16px; align-items: center; padding-top: 8px;">
           <div routerLink="/auth/perfil" (click)="closeMobileMenu()" style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid rgba(255,255,255,0.3);">
-            <img [src]="avatarUrl" alt="Avatar do Perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+            <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Avatar do Perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+            <svg *ngIf="!avatarUrl" width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M 12 14 C 7.6 14 4 16.7 4 20 L 20 20 C 20 16.7 16.4 14 12 14 Z"/>
+            </svg>
           </div>
           <div (click)="logout()" style="width: 36px; height: 36px; background: transparent; border: 1px solid #800020; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2">
