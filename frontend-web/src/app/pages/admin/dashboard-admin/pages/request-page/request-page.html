@@ -1,0 +1,377 @@
+<div class="requests-container">
+  
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Pedidos de Acesso</h1>
+      <p class="page-subtitle">Aprovação e gestão de acessos a categorias premium e restritas.</p>
+    </div>
+    <div *ngIf="pending.length > 0" class="pending-alert">
+      <div class="pending-dot"></div>
+      <span class="pending-text">{{ pending.length }} pendente{{ pending.length !== 1 ? 's' : '' }}</span>
+    </div>
+  </div>
+
+  <!-- Stats Strip -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fef2f2;">
+        <span class="stat-value" style="color: #dc2626;">{{ pending.length }}</span>
+      </div>
+      <p class="stat-label">TOTAL PENDENTES</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fff7ed;">
+        <span class="stat-value" style="color: #ea580c;">{{ jindungoPending.length }}</span>
+      </div>
+      <p class="stat-label">🔥 JINDUNGO</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fdf4ff;">
+        <span class="stat-value" style="color: #7c3aed;">{{ restritoPending.length }}</span>
+      </div>
+      <p class="stat-label">🔒 RESTRITOS</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #f0fdf4;">
+        <span class="stat-value" style="color: #16a34a;">{{ todayProcessedCount }}</span>
+      </div>
+      <p class="stat-label">PROCESSADOS HOJE</p>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button 
+      (click)="setActiveTab('pending')" 
+      class="tab-btn"
+      [class.tab-active]="activeTab === 'pending'">
+      Pendentes
+      <span class="tab-count" [class.count-active]="activeTab === 'pending'">{{ pending.length }}</span>
+    </button>
+    <button 
+      (click)="setActiveTab('history')" 
+      class="tab-btn"
+      [class.tab-active]="activeTab === 'history'">
+      Historial
+      <span class="tab-count" [class.count-active]="activeTab === 'history'">{{ history.length }}</span>
+    </button>
+  </div>
+
+  <!-- ========== TAB: PENDENTES ========== -->
+  <div *ngIf="activeTab === 'pending'">
+    
+    <!-- Empty State -->
+    <div *ngIf="pending.length === 0" class="empty-state">
+      <div class="empty-icon">✓</div>
+      <h2 class="empty-title">Sem pedidos pendentes</h2>
+      <p class="empty-subtitle">Todos os pedidos foram processados.</p>
+    </div>
+
+    <!-- Pending Requests -->
+    <div *ngIf="pending.length > 0">
+      
+      <!-- Jindungo Section -->
+      <div *ngIf="jindungoPending.length > 0" class="section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">🔥</span>
+            <h2 class="section-heading">Pedidos Jindungo</h2>
+            <span class="section-badge badge-jindungo">{{ jindungoPending.length }}</span>
+            <p class="section-desc">— Acesso a conteúdos premium. Aprovação directa.</p>
+          </div>
+        </div>
+        <div class="requests-list">
+          <div *ngFor="let req of jindungoPending" class="request-card" [style.borderLeftColor]="getAccentColor(req.type)">
+            <!-- Feedback Overlay -->
+            <div *ngIf="isConfirmAction(req.id, 'approved')" class="feedback-overlay approved">
+              <div class="feedback-content">
+                <div class="feedback-icon approved">✓</div>
+                <p class="feedback-text approved">Acesso aprovado!</p>
+              </div>
+            </div>
+            <div *ngIf="isConfirmAction(req.id, 'rejected')" class="feedback-overlay rejected">
+              <div class="feedback-content">
+                <div class="feedback-icon rejected">✗</div>
+                <p class="feedback-text rejected">Pedido rejeitado</p>
+              </div>
+            </div>
+
+            <div class="request-content">
+              <div class="request-main">
+                <!-- Avatar -->
+                <div class="request-avatar" [style.background]="req.avatarColor">
+                  {{ req.avatarInitials }}
+                </div>
+
+                <!-- Info -->
+                <div class="request-info">
+                  <div class="request-header">
+                    <div>
+                      <p class="request-name">{{ req.name }}</p>
+                      <p class="request-meta">{{ req.institution }} · {{ req.email }}</p>
+                    </div>
+                    <div class="request-badges">
+                      <span class="type-badge" [class.badge-jindungo]="req.type === 'jindungo'" [class.badge-restrito]="req.type === 'restrito'">
+                        {{ getTypeIcon(req.type) }} {{ getTypeLabel(req.type) }}
+                      </span>
+                      <span class="request-time">
+                        <span class="clock-icon">⏱️</span> {{ req.timeAgo }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Category -->
+                  <div class="request-category">
+                    <span class="category-label">Categoria solicitada:</span>
+                    <span class="category-value" [style.background]="getAccentBg(req.type)" [style.color]="getAccentColor(req.type)">
+                      {{ req.category }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Note Field (Restricted Only) -->
+              <div *ngIf="req.type === 'restrito' && noteOpenStates[req.id]" class="note-field">
+                <label class="note-label">Nota de justificação (obrigatória para aprovação)</label>
+                <textarea 
+                  [ngModel]="noteTexts[req.id]" 
+                  (ngModelChange)="updateNoteText(req.id, $event)"
+                  rows="2" 
+                  placeholder="Descreva o motivo da aprovação ou informação adicional..."
+                  class="note-textarea"></textarea>
+              </div>
+
+              <!-- Actions -->
+              <div class="request-actions">
+                <div class="actions-left">
+                  <button *ngIf="req.type === 'restrito' && !noteOpenStates[req.id]" 
+                          (click)="toggleNoteOpen(req.id)" 
+                          class="action-link">
+                    <span class="chevron-down">▼</span>
+                    Adicionar nota
+                  </button>
+                  <button *ngIf="req.type === 'restrito' && noteOpenStates[req.id]" 
+                          (click)="toggleNoteOpen(req.id)" 
+                          class="action-link close">
+                    <span class="chevron-up">▲</span>
+                    Fechar nota
+                  </button>
+                </div>
+                <div class="actions-right">
+                  <button (click)="handleReject(req.id)" class="btn-reject">Rejeitar</button>
+                  <button (click)="handleApprove(req.id)" 
+                          [disabled]="req.type === 'restrito' && noteOpenStates[req.id] && !noteTexts[req.id]?.trim()"
+                          class="btn-approve">
+                    {{ req.type === 'restrito' && noteOpenStates[req.id] ? 'Confirmar Aprovação' : 'Aprovar' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Restritos Section -->
+      <div *ngIf="restritoPending.length > 0" class="section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">🔒</span>
+            <h2 class="section-heading">Pedidos Restritos</h2>
+            <span class="section-badge badge-restrito">{{ restritoPending.length }}</span>
+            <p class="section-desc">— Requerem nota de justificação antes da aprovação.</p>
+          </div>
+        </div>
+        <div class="requests-list">
+          <div *ngFor="let req of restritoPending" class="request-card" [style.borderLeftColor]="getAccentColor(req.type)">
+            <!-- Feedback Overlay -->
+            <div *ngIf="isConfirmAction(req.id, 'approved')" class="feedback-overlay approved">
+              <div class="feedback-content">
+                <div class="feedback-icon approved">✓</div>
+                <p class="feedback-text approved">Acesso aprovado!</p>
+              </div>
+            </div>
+            <div *ngIf="isConfirmAction(req.id, 'rejected')" class="feedback-overlay rejected">
+              <div class="feedback-content">
+                <div class="feedback-icon rejected">✗</div>
+                <p class="feedback-text rejected">Pedido rejeitado</p>
+              </div>
+            </div>
+
+            <div class="request-content">
+              <div class="request-main">
+                <div class="request-avatar" [style.background]="req.avatarColor">
+                  {{ req.avatarInitials }}
+                </div>
+                <div class="request-info">
+                  <div class="request-header">
+                    <div>
+                      <p class="request-name">{{ req.name }}</p>
+                      <p class="request-meta">{{ req.institution }} · {{ req.email }}</p>
+                    </div>
+                    <div class="request-badges">
+                      <span class="type-badge" [class.badge-jindungo]="req.type === 'jindungo'" [class.badge-restrito]="req.type === 'restrito'">
+                        {{ getTypeIcon(req.type) }} {{ getTypeLabel(req.type) }}
+                      </span>
+                      <span class="request-time">
+                        <span class="clock-icon">⏱️</span> {{ req.timeAgo }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="request-category">
+                    <span class="category-label">Categoria solicitada:</span>
+                    <span class="category-value" [style.background]="getAccentBg(req.type)" [style.color]="getAccentColor(req.type)">
+                      {{ req.category }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="req.type === 'restrito' && noteOpenStates[req.id]" class="note-field">
+                <label class="note-label">Nota de justificação (obrigatória para aprovação)</label>
+                <textarea 
+                  [ngModel]="noteTexts[req.id]" 
+                  (ngModelChange)="updateNoteText(req.id, $event)"
+                  rows="2" 
+                  placeholder="Descreva o motivo da aprovação ou informação adicional..."
+                  class="note-textarea"></textarea>
+              </div>
+
+              <div class="request-actions">
+                <div class="actions-left">
+                  <button *ngIf="req.type === 'restrito' && !noteOpenStates[req.id]" 
+                          (click)="toggleNoteOpen(req.id)" 
+                          class="action-link">
+                    <span class="chevron-down">▼</span>
+                    Adicionar nota
+                  </button>
+                  <button *ngIf="req.type === 'restrito' && noteOpenStates[req.id]" 
+                          (click)="toggleNoteOpen(req.id)" 
+                          class="action-link close">
+                    <span class="chevron-up">▲</span>
+                    Fechar nota
+                  </button>
+                </div>
+                <div class="actions-right">
+                  <button (click)="handleReject(req.id)" class="btn-reject">Rejeitar</button>
+                  <button (click)="handleApprove(req.id)" 
+                          [disabled]="req.type === 'restrito' && noteOpenStates[req.id] && !noteTexts[req.id]?.trim()"
+                          class="btn-approve">
+                    {{ req.type === 'restrito' && noteOpenStates[req.id] ? 'Confirmar Aprovação' : 'Aprovar' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: HISTORIAL ========== -->
+  <div *ngIf="activeTab === 'history'">
+    
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          [(ngModel)]="search"
+          placeholder="Pesquisar por nome, categoria ou instituição..."
+          class="search-input" />
+      </div>
+
+      <div class="filter-select">
+        <span class="filter-icon">⚙️</span>
+        <select [(ngModel)]="filterDecision" class="select">
+          <option value="todos">Todas as decisões</option>
+          <option value="aprovado">Aprovados</option>
+          <option value="rejeitado">Rejeitados</option>
+        </select>
+      </div>
+
+      <div class="filter-select">
+        <span class="filter-icon">⚙️</span>
+        <select [(ngModel)]="filterType" class="select">
+          <option value="todos">Todos os tipos</option>
+          <option value="jindungo">Jindungo</option>
+          <option value="restrito">Restrito</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="history-table-wrapper">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Utilizador</th>
+            <th>Tipo</th>
+            <th>Categoria</th>
+            <th>Data</th>
+            <th>Decisão</th>
+            <th>Processado por</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="filteredHistory.length === 0">
+            <td colspan="6" class="empty-row">
+              <p class="empty-text">Nenhum registo encontrado.</p>
+            </td>
+          </tr>
+          <ng-container *ngFor="let item of filteredHistory">
+            <tr class="history-row">
+              <td class="history-user">
+                <div class="user-cell">
+                  <div class="history-avatar" [style.background]="item.avatarColor">
+                    {{ item.avatarInitials }}
+                  </div>
+                  <div>
+                    <p class="user-name">{{ item.name }}</p>
+                    <p class="user-institution">{{ item.institution }}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="type-badge-small" [class.badge-jindungo]="item.type === 'jindungo'" [class.badge-restrito]="item.type === 'restrito'">
+                  {{ getTypeIcon(item.type) }} {{ getTypeLabel(item.type) }}
+                </span>
+              </td>
+              <td class="history-category">{{ item.category }}</td>
+              <td class="history-date">{{ item.date }}</td>
+              <td>
+                <span class="decision-badge" [class.badge-approved]="item.decision === 'aprovado'" [class.badge-rejected]="item.decision === 'rejeitado'">
+                  {{ getDecisionIcon(item.decision) }} {{ getDecisionLabel(item.decision) }}
+                </span>
+              </td>
+              <td class="history-processed">
+                <div class="processed-cell">
+                  <span>{{ item.processedBy }}</span>
+                  <button *ngIf="item.note" (click)="toggleHistoryNoteOpen(item.id)" class="note-toggle">
+                    <span class="chevron-down-small">▼</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <!-- Note Row -->
+            <tr *ngIf="item.note && historyNoteOpenStates[item.id]" class="note-row">
+              <td colspan="6">
+                <p class="note-text">
+                  <span class="note-label-inline">Nota: </span>
+                  {{ item.note }}
+                </p>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+
+      <!-- Table Footer -->
+      <div *ngIf="filteredHistory.length > 0" class="table-footer">
+        <p class="footer-count">{{ filteredHistory.length }} registo{{ filteredHistory.length !== 1 ? 's' : '' }}</p>
+        <button (click)="exportCSV()" class="export-btn">Exportar CSV</button>
+      </div>
+    </div>
+  </div>
+</div>

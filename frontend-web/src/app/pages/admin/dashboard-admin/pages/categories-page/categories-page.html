@@ -1,0 +1,235 @@
+<div class="categories-container">
+  
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Categorias</h1>
+      <p class="page-subtitle">Gestão das categorias de acesso e conteúdo do arquivo.</p>
+    </div>
+    <button class="btn-primary" (click)="openAddCategoryModal()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Nova Categoria
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+        <span class="stat-value" style="color: #3b82f6;">📂</span>
+      </div>
+      <div>
+        <p class="stat-label">TOTAL</p>
+        <p class="stat-number">{{ getStats().total }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">
+        <span class="stat-value" style="color: #22c55e;">✓</span>
+      </div>
+      <div>
+        <p class="stat-label">ATIVAS</p>
+        <p class="stat-number">{{ getStats().active }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+        <span class="stat-value" style="color: #3b82f6;">🌐</span>
+      </div>
+      <div>
+        <p class="stat-label">PÚBLICAS</p>
+        <p class="stat-number">{{ getStats().public }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+        <span class="stat-value" style="color: #f59e0b;">🔒</span>
+      </div>
+      <div>
+        <p class="stat-label">RESTRITAS</p>
+        <p class="stat-number">{{ getStats().restricted }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar categorias por nome ou descrição..." class="search-input">
+    </div>
+    <div class="filter-select">
+      <select [(ngModel)]="filterType" class="select">
+        <option value="todos">Todos os tipos</option>
+        <option value="public">🌐 Público</option>
+        <option value="jindungo">🔥 Jindungo</option>
+        <option value="restricted">🔒 Restrito</option>
+      </select>
+    </div>
+    <div class="filter-select">
+      <select [(ngModel)]="filterStatus" class="select">
+        <option value="todos">Todos os status</option>
+        <option value="active">✓ Ativo</option>
+        <option value="inactive">○ Inativo</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Categories Grid -->
+  <div class="categories-grid">
+    <div *ngFor="let cat of filteredCategories" class="category-card" [style.borderTopColor]="cat.color">
+      <div class="card-header">
+        <div class="card-title-section">
+          <div class="category-icon" [style.background]="cat.color + '20'" [style.color]="cat.color">
+            {{ cat.icon }}
+          </div>
+          <h3 class="category-name">{{ cat.name }}</h3>
+        </div>
+        <div class="card-badges">
+          <span class="type-badge" [class]="getTypeBadgeClass(cat.type)">
+            {{ getTypeIcon(cat.type) }} {{ getTypeLabel(cat.type) }}
+          </span>
+          <span class="status-badge" [class]="getStatusBadgeClass(cat.status)" (click)="$event.stopPropagation()">
+            <span class="status-dot" [class.active]="cat.status === 'active'"></span>
+            {{ getStatusLabel(cat.status) }}
+          </span>
+        </div>
+      </div>
+      
+      <p class="category-description">{{ cat.description }}</p>
+      
+      <div class="category-stats">
+        <div class="stat-item">
+          <span class="stat-icon-small">📄</span>
+          <span>{{ cat.documents }} documentos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-icon-small">💬</span>
+          <span>{{ cat.topics }} tópicos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-icon-small">👥</span>
+          <span>{{ cat.members }} membros</span>
+        </div>
+      </div>
+      
+      <div class="card-actions">
+        <button class="action-btn edit" (click)="openEditCategoryModal(cat)">✏️ Editar</button>
+        <button class="action-btn toggle" (click)="toggleCategoryStatus(cat.id)">
+          {{ cat.status === 'active' ? '📥 Desativar' : '📤 Ativar' }}
+        </button>
+        <button class="action-btn delete" (click)="deleteCategory(cat.id)">🗑️ Eliminar</button>
+      </div>
+    </div>
+    
+    <div *ngIf="filteredCategories.length === 0" class="empty-state">
+      <p>📭 Nenhuma categoria encontrada</p>
+      <button class="btn-primary" (click)="openAddCategoryModal()">Criar primeira categoria</button>
+    </div>
+  </div>
+
+  <!-- Modal de Criar/Editar Categoria -->
+  <div class="modal-overlay" *ngIf="showCategoryModal" (click)="closeCategoryModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingCategory ? 'Editar Categoria' : 'Nova Categoria' }}</h2>
+        <button class="modal-close" (click)="closeCategoryModal()">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome da Categoria <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="categoryForm.name" class="form-input" placeholder="Ex: Análise de Políticas">
+          </div>
+          <div class="form-group">
+            <label>Ícone</label>
+            <select [(ngModel)]="categoryForm.icon" class="form-input">
+              <option *ngFor="let icon of iconOptions" [value]="icon.value">{{ icon.value }} {{ icon.name }}</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Descrição <span class="required">*</span></label>
+          <textarea [(ngModel)]="categoryForm.description" rows="3" class="form-input" placeholder="Descreva o propósito e conteúdo da categoria..."></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo de Acesso</label>
+            <select [(ngModel)]="categoryForm.type" class="form-input">
+              <option value="public">🌐 Público - Acesso livre</option>
+              <option value="jindungo">🔥 Jindungo - Conteúdo premium</option>
+              <option value="restricted">🔒 Restrito - Acesso limitado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="categoryForm.status" class="form-input">
+              <option value="active">✓ Ativo</option>
+              <option value="inactive">○ Inativo</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cor de Destaque</label>
+            <div class="color-select">
+              <div *ngFor="let color of colorOptions" class="color-option" 
+                   [style.background]="color.value" 
+                   [class.selected]="categoryForm.color === color.value"
+                   (click)="categoryForm.color = color.value">
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Estatísticas (opcional)</label>
+            <div class="stats-preview">
+              <div class="stat-input-group">
+                <span class="stat-input-icon">📄</span>
+                <input type="number" [(ngModel)]="categoryForm.documents" class="form-input-sm" placeholder="Documentos">
+              </div>
+              <div class="stat-input-group">
+                <span class="stat-input-icon">💬</span>
+                <input type="number" [(ngModel)]="categoryForm.topics" class="form-input-sm" placeholder="Tópicos">
+              </div>
+              <div class="stat-input-group">
+                <span class="stat-input-icon">👥</span>
+                <input type="number" [(ngModel)]="categoryForm.members" class="form-input-sm" placeholder="Membros">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="preview-box">
+          <div class="preview-title">Pré-visualização</div>
+          <div class="preview-card" [style.borderTopColor]="categoryForm.color">
+            <div class="preview-header">
+              <div class="preview-icon" [style.background]="categoryForm.color + '20'" [style.color]="categoryForm.color">
+                {{ categoryForm.icon || '📁' }}
+              </div>
+              <div>
+                <div class="preview-name">{{ categoryForm.name || 'Nome da Categoria' }}</div>
+                <div class="preview-badge">
+                  <span class="type-badge" [class]="getTypeBadgeClass(categoryForm.type)">
+                    {{ getTypeIcon(categoryForm.type) }} {{ getTypeLabel(categoryForm.type) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p class="preview-description">{{ categoryForm.description || 'Descrição da categoria aparecerá aqui...' }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeCategoryModal()">Cancelar</button>
+        <button class="btn-save" (click)="saveCategory()">💾 Guardar Categoria</button>
+      </div>
+    </div>
+  </div>
+</div>

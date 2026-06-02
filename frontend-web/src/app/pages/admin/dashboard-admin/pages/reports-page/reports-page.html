@@ -1,0 +1,185 @@
+<div class="reports-container">
+  
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Denúncias</h1>
+      <p class="page-subtitle">Gestão de denúncias de comentários da comunidade.</p>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+        <span class="stat-value" style="color: #3b82f6;">⚠️</span>
+      </div>
+      <div>
+        <p class="stat-label">TOTAL</p>
+        <p class="stat-number">{{ getStats().total }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+        <span class="stat-value" style="color: #f59e0b;">⏳</span>
+      </div>
+      <div>
+        <p class="stat-label">PENDENTES</p>
+        <p class="stat-number">{{ getStats().pending }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">
+        <span class="stat-value" style="color: #22c55e;">✓</span>
+      </div>
+      <div>
+        <p class="stat-label">RESOLVIDOS</p>
+        <p class="stat-number">{{ getStats().resolved }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0);">
+        <span class="stat-value" style="color: #64748b;">📁</span>
+      </div>
+      <div>
+        <p class="stat-label">ARQUIVADOS</p>
+        <p class="stat-number">{{ getStats().dismissed }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar por comentário, autor ou denunciante..." class="search-input">
+    </div>
+    <div class="filter-select">
+      <select [(ngModel)]="filterStatus" class="select">
+        <option value="todos">Todos os status</option>
+        <option value="pending">⏳ Pendentes</option>
+        <option value="resolved">✓ Resolvidos</option>
+        <option value="dismissed">📁 Arquivados</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Reports Table -->
+  <div class="table-wrapper">
+    <table class="reports-table">
+      <thead>
+        <tr>
+          <th>Comentário</th>
+          <th>Autor</th>
+          <th>Denunciado por</th>
+          <th>Motivo</th>
+          <th>Discussão</th>
+          <th>Status</th>
+          <th>Data</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="filteredReports.length === 0">
+          <td colspan="8" class="empty-row">Nenhuma denúncia encontrada</td>
+        </tr>
+        <tr *ngFor="let report of filteredReports">
+          <td class="comment-cell">
+            <div class="comment-text">"{{ report.commentText | slice:0:80 }}{{ report.commentText.length > 80 ? '...' : '' }}"</div>
+            <div class="comment-meta">ID: #{{ report.commentId }}</div>
+          </td>
+          <td class="author-cell">
+            <div class="author-name">{{ report.author }}</div>
+            <div class="author-time">{{ report.reportedAt }}</div>
+          </td>
+          <td>{{ report.reportedBy }}</td>
+          <td>
+            <span class="reason-badge">
+              {{ getReasonIcon(report.reason) }} {{ report.reason }}
+            </span>
+          </td>
+          <td class="discussion-title">{{ report.discussionTitle | slice:0:40 }}{{ report.discussionTitle.length > 40 ? '...' : '' }}</td>
+          <td>
+            <span class="status-badge" [class]="getStatusBadgeClass(report.status)">
+              {{ report.status === 'pending' ? '⏳' : report.status === 'resolved' ? '✓' : '📁' }} {{ getStatusLabel(report.status) }}
+            </span>
+          </td>
+          <td>{{ report.date }}</td>
+          <td class="actions-cell">
+            <ng-container *ngIf="report.status === 'pending'">
+              <button class="action-btn approve" (click)="viewReport(report)" title="Analisar e aprovar">✓ Analisar</button>
+            </ng-container>
+            <button class="action-btn view" (click)="viewReport(report)" title="Ver detalhes">👁️ Ver</button>
+            <button *ngIf="report.status !== 'pending'" class="action-btn reopen" (click)="reopenReport(report.id)" title="Reabrir">🔄 Reabrir</button>
+            <button class="action-btn delete" (click)="deleteReport(report.id)" title="Eliminar">🗑️ Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal de Visualização/Processamento de Denúncia -->
+  <div class="modal-overlay" *ngIf="showReportModal" (click)="closeReportModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalhes da Denúncia</h2>
+        <button class="modal-close" (click)="closeReportModal()">✕</button>
+      </div>
+      
+      <div class="modal-body" *ngIf="viewingReport">
+        <!-- Informações da Denúncia -->
+        <div class="detail-section">
+          <div class="detail-label">Comentário Denunciado</div>
+          <div class="detail-value comment-box">"{{ viewingReport.commentText }}"</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-section">
+            <div class="detail-label">Autor do Comentário</div>
+            <div class="detail-value">{{ viewingReport.author }}</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-label">Denunciado por</div>
+            <div class="detail-value">{{ viewingReport.reportedBy }}</div>
+          </div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-section">
+            <div class="detail-label">Motivo</div>
+            <div class="detail-value">
+              <span class="reason-badge">
+                {{ getReasonIcon(viewingReport.reason) }} {{ viewingReport.reason }}
+              </span>
+            </div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-label">Discussão</div>
+            <div class="detail-value">{{ viewingReport.discussionTitle }}</div>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <div class="detail-label">Nota de Ação (opcional)</div>
+          <textarea [(ngModel)]="actionNote" rows="3" class="form-input" placeholder="Descreva a ação tomada ou motivo da decisão..."></textarea>
+        </div>
+        
+        <div class="info-box" *ngIf="viewingReport.actionNote && viewingReport.status !== 'pending'">
+          <div class="info-icon">ℹ️</div>
+          <div class="info-text">
+            <strong>Ação anterior</strong><br>
+            <span>{{ viewingReport.actionNote }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeReportModal()">Fechar</button>
+        <ng-container *ngIf="viewingReport?.status === 'pending'">
+          <button class="btn-dismiss" (click)="dismissReport(viewingReport!.id)">📁 Arquivar Denúncia</button>
+          <button class="btn-approve" (click)="approveReport(viewingReport!.id)">✓ Aprovar & Remover Comentário</button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

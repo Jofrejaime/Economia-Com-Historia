@@ -1,0 +1,360 @@
+<div class="contents-container">
+  
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Conteúdos</h1>
+      <p class="page-subtitle">Gestão de documentos, artigos, imagens, áudios e vídeos do arquivo.</p>
+    </div>
+    <button class="btn-primary" (click)="openAddContentModal()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Novo Conteúdo
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+        <span class="stat-value" style="color: #3b82f6;">📄</span>
+      </div>
+      <div>
+        <p class="stat-label">TOTAL</p>
+        <p class="stat-number">{{ getStats().total }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">
+        <span class="stat-value" style="color: #22c55e;">✓</span>
+      </div>
+      <div>
+        <p class="stat-label">PUBLICADOS</p>
+        <p class="stat-number">{{ getStats().published }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+        <span class="stat-value" style="color: #f59e0b;">📝</span>
+      </div>
+      <div>
+        <p class="stat-label">RASCUNHOS</p>
+        <p class="stat-number">{{ getStats().draft }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #fee2e2, #fecaca);">
+        <span class="stat-value" style="color: #ef4444;">🔄</span>
+      </div>
+      <div>
+        <p class="stat-label">EM REVISÃO</p>
+        <p class="stat-number">{{ getStats().review }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar por título, autor ou descrição..." class="search-input">
+    </div>
+    <div class="filter-select">
+      <select [(ngModel)]="filterStatus" class="select">
+        <option value="todos">Todos os status</option>
+        <option value="published">✓ Publicado</option>
+        <option value="draft">📝 Rascunho</option>
+        <option value="review">🔄 Em Revisão</option>
+      </select>
+    </div>
+    <div class="filter-select">
+      <select [(ngModel)]="filterCategory" class="select">
+        <option value="todos">Todas as categorias</option>
+        <option *ngFor="let cat of getCategories()" [value]="cat">{{ cat }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Contents Table -->
+  <div class="table-wrapper">
+    <table class="contents-table">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Tipo</th>
+          <th>Média</th>
+          <th>Categoria</th>
+          <th>Autor</th>
+          <th>Data</th>
+          <th>Status</th>
+          <th>Visualizações</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="filteredContents.length === 0">
+          <td colspan="9" class="empty-row">Nenhum conteúdo encontrado</td>
+        </tr>
+        <tr *ngFor="let content of filteredContents">
+          <td class="title-cell">
+            <div class="title-content">
+              <div class="title-row">
+                <span class="title-text">{{ content.title }}</span>
+                <div *ngIf="content.featuredImage" class="has-media-badge">📷</div>
+              </div>
+              <div class="title-tags" *ngIf="content.tags && content.tags.length">
+                <span *ngFor="let tag of content.tags.slice(0,2)" class="tag-badge">{{ tag }}</span>
+                <span *ngIf="content.tags.length > 2" class="tag-badge">+{{ content.tags.length - 2 }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="type-cell">{{ content.type }}</td>
+          <td class="media-cell">
+            <div class="media-icons">
+              <span *ngIf="content.mediaFiles?.some(m => m.type === 'image')" class="media-icon" title="Imagens">🖼️</span>
+              <span *ngIf="content.mediaFiles?.some(m => m.type === 'audio')" class="media-icon" title="Áudios">🎵</span>
+              <span *ngIf="content.mediaFiles?.some(m => m.type === 'video')" class="media-icon" title="Vídeos">🎬</span>
+              <span *ngIf="!content.mediaFiles?.length" class="media-icon empty">—</span>
+            </div>
+          </td>
+          <td class="category-cell">{{ content.category }}</td>
+          <td class="author-cell">{{ content.author }}</td>
+          <td class="date-cell">{{ content.date }}</td>
+          <td class="status-cell">
+            <span class="status-badge" [class]="getStatusBadgeClass(content.status)">
+              {{ getStatusIcon(content.status) }} {{ getStatusLabel(content.status) }}
+            </span>
+          </td>
+          <td class="views-cell">{{ content.views | number }}</td>
+          <td class="actions-cell">
+            <button class="action-btn edit" (click)="openEditContentModal(content)" title="Editar">✏️</button>
+            <button *ngIf="content.status !== 'published'" class="action-btn publish" (click)="publishContent(content.id)" title="Publicar">📤</button>
+            <button *ngIf="content.status === 'published'" class="action-btn archive" (click)="archiveContent(content.id)" title="Arquivar">📥</button>
+            <button class="action-btn delete" (click)="deleteContent(content.id)" title="Eliminar">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal de Criar/Editar Conteúdo -->
+  <div class="modal-overlay" *ngIf="showContentModal" (click)="closeContentModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingContent ? 'Editar Conteúdo' : 'Novo Conteúdo' }}</h2>
+        <button class="modal-close" (click)="closeContentModal()">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Tabs - Usando *ngIf em vez de JavaScript -->
+        <div class="form-tabs">
+          <button class="form-tab" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">📝 Informações</button>
+          <button class="form-tab" [class.active]="activeTab === 'media'" (click)="activeTab = 'media'">🖼️ Multimédia ({{ contentForm.mediaFiles?.length || 0 }})</button>
+        </div>
+        
+        <!-- Informações Gerais -->
+        <div *ngIf="activeTab === 'info'" class="tab-pane">
+          <div class="form-group">
+            <label>Título <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="contentForm.title" class="form-input" placeholder="Ex: O Ciclo do Café em Angola">
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo de Conteúdo</label>
+              <select [(ngModel)]="contentForm.type" class="form-input">
+                <option *ngFor="let type of contentTypes" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Categoria</label>
+              <select [(ngModel)]="contentForm.category" class="form-input">
+                <option *ngFor="let cat of categoriesList" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Autor <span class="required">*</span></label>
+              <input type="text" [(ngModel)]="contentForm.author" class="form-input" placeholder="Nome do autor">
+            </div>
+            <div class="form-group">
+              <label>Data</label>
+              <input type="text" [(ngModel)]="contentForm.date" class="form-input" placeholder="DD MMM YYYY">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Status</label>
+              <select [(ngModel)]="contentForm.status" class="form-input">
+                <option value="published">✓ Publicado</option>
+                <option value="draft">📝 Rascunho</option>
+                <option value="review">🔄 Em Revisão</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Visualizações iniciais</label>
+              <input type="number" [(ngModel)]="contentForm.views" class="form-input" min="0">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Descrição</label>
+            <textarea [(ngModel)]="contentForm.description" rows="3" class="form-input" placeholder="Descrição detalhada do conteúdo..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Tags</label>
+            <div class="tags-input">
+              <div class="tags-list">
+                <span *ngFor="let tag of contentForm.tags" class="tag-item">
+                  {{ tag }}
+                  <button type="button" class="tag-remove" (click)="removeTag(tag)">×</button>
+                </span>
+                <input type="text" [(ngModel)]="newTag" (keyup.enter)="addTag()" placeholder="Adicionar tag..." class="tag-input">
+              </div>
+            </div>
+            <div class="suggested-tags">
+              <span class="suggested-label">Sugestões:</span>
+              <span *ngFor="let tag of tagOptions" class="suggested-tag" (click)="selectTag(tag)">{{ tag }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Multimédia -->
+        <div *ngIf="activeTab === 'media'" class="tab-pane">
+          <!-- Media Gallery -->
+          <div class="media-gallery" *ngIf="contentForm.mediaFiles && contentForm.mediaFiles.length > 0">
+            <div class="media-section-title">Ficheiros Multimédia</div>
+            <div class="media-grid">
+              <div *ngFor="let media of contentForm.mediaFiles; let i = index" class="media-card">
+                <div class="media-preview">
+                  <div *ngIf="media.type === 'image'" class="media-image">
+                    <img [src]="media.url" [alt]="media.name" class="preview-img">
+                  </div>
+                  <div *ngIf="media.type === 'audio'" class="media-audio">
+                    <div class="media-placeholder">🎵</div>
+                    <audio controls [src]="media.url" class="audio-player"></audio>
+                  </div>
+                  <div *ngIf="media.type === 'video'" class="media-video">
+                    <video controls [src]="media.url" class="video-player"></video>
+                  </div>
+                </div>
+                <div class="media-info">
+                  <span class="media-name">{{ media.name }}</span>
+                  <span class="media-type">{{ getMediaIcon(media.type) }}</span>
+                </div>
+                <div class="media-actions">
+                  <button class="media-btn featured" (click)="setFeaturedImage(media.url)" title="Definir como imagem destacada">⭐</button>
+                  <button class="media-btn edit" (click)="openMediaModal(media.type, i)" title="Editar">✏️</button>
+                  <button class="media-btn delete" (click)="removeMedia(i)" title="Remover">🗑️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Add Media Buttons -->
+          <div class="add-media-section">
+            <div class="media-section-title">Adicionar Multimédia</div>
+            <div class="add-media-buttons">
+              <!-- Inputs de ficheiro escondidos -->
+              <input #fileImageInput type="file" id="file-input-image" accept="image/*" style="display: none" (change)="onFileSelected($event, 'image')">
+              <input #fileAudioInput type="file" id="file-input-audio" accept="audio/*" style="display: none" (change)="onFileSelected($event, 'audio')">
+              <input #fileVideoInput type="file" id="file-input-video" accept="video/*" style="display: none" (change)="onFileSelected($event, 'video')">
+              
+              <button type="button" class="add-media-btn image" (click)="triggerFileInput('image')">
+                <span class="media-icon-large">🖼️</span>
+                <span>Carregar Imagem</span>
+              </button>
+              <button type="button" class="add-media-btn audio" (click)="triggerFileInput('audio')">
+                <span class="media-icon-large">🎵</span>
+                <span>Carregar Áudio</span>
+              </button>
+              <button type="button" class="add-media-btn video" (click)="triggerFileInput('video')">
+                <span class="media-icon-large">🎬</span>
+                <span>Carregar Vídeo</span>
+              </button>
+            </div>
+            <div class="media-info-text">
+              <p>Ou insira uma URL externa clicando no botão de adicionar (✏️) após selecionar o tipo de multimédia</p>
+            </div>
+          </div>
+          
+          <!-- Featured Image Preview -->
+          <div class="featured-image-section" *ngIf="contentForm.featuredImage">
+            <div class="media-section-title">Imagem Destacada</div>
+            <div class="featured-preview">
+              <img [src]="contentForm.featuredImage" class="featured-img">
+              <button class="remove-featured" (click)="contentForm.featuredImage = ''">✕ Remover</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="info-box">
+          <div class="info-icon">ℹ️</div>
+          <div class="info-text">
+            <strong>Informação</strong><br>
+            <span>Para adicionar multimédia, clique nos botões "Carregar Imagem/Áudio/Vídeo" ou use o botão de edição (✏️) para inserir URL externo.</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeContentModal()">Cancelar</button>
+        <button class="btn-save" (click)="saveContent()">💾 Guardar Conteúdo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Adicionar/Editar Multimédia -->
+  <div class="modal-overlay" *ngIf="showMediaModal" (click)="closeMediaModal()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingMediaIndex !== null ? 'Editar' : 'Adicionar' }} {{ currentMediaType === 'image' ? 'Imagem' : currentMediaType === 'audio' ? 'Áudio' : 'Vídeo' }}</h2>
+        <button class="modal-close" (click)="closeMediaModal()">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Upload area -->
+        <div class="upload-area" (click)="triggerFileInput(currentMediaType)">
+          <div class="upload-icon">{{ currentMediaType === 'image' ? '🖼️' : currentMediaType === 'audio' ? '🎵' : '🎬' }}</div>
+          <div class="upload-text">Clique para selecionar ficheiro</div>
+          <div class="upload-hint">{{ currentMediaType === 'image' ? 'JPG, PNG, GIF até 10MB' : currentMediaType === 'audio' ? 'MP3, WAV até 20MB' : 'MP4, MOV até 100MB' }}</div>
+        </div>
+        
+        <div class="form-divider">ou</div>
+        
+        <div class="form-group">
+          <label>URL externo</label>
+          <input type="text" [(ngModel)]="mediaUrl" class="form-input" [placeholder]="'URL do ' + (currentMediaType === 'image' ? 'imagem' : currentMediaType === 'audio' ? 'áudio' : 'vídeo')">
+        </div>
+        
+        <div class="form-group">
+          <label>Nome <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="mediaName" class="form-input" placeholder="Ex: Foto da plantação de café">
+        </div>
+        
+        <div class="preview-container" *ngIf="mediaPreviewUrl || mediaUrl">
+          <div class="preview-title">Pré-visualização</div>
+          <div *ngIf="currentMediaType === 'image'" class="preview-image">
+            <img [src]="mediaPreviewUrl || mediaUrl" class="preview-img">
+          </div>
+          <div *ngIf="currentMediaType === 'audio'" class="preview-audio">
+            <audio controls [src]="mediaPreviewUrl || mediaUrl" class="audio-preview"></audio>
+          </div>
+          <div *ngIf="currentMediaType === 'video'" class="preview-video">
+            <video controls [src]="mediaPreviewUrl || mediaUrl" class="video-preview"></video>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeMediaModal()">Cancelar</button>
+        <button class="btn-save" (click)="saveMedia()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
