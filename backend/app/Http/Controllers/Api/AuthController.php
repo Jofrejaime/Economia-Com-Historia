@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\PasswordResetMail;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -157,14 +160,41 @@ class AuthController extends Controller
         $user = User::query()->where('email', $validated['email'])->first();
 
         if ($user === null || ! $user->is_active) {
-            return response()->json(['message' => 'If this email exists, a reset token has been generated.']);
+            return response()->json(['message' => 'If this email exists, a reset link has been sent.']);
         }
 
         $resetToken = $this->createVerificationToken($user->id, 'password_reset', now()->addHour());
+        $profile = DB::table('user_profiles')->where('user_id', $user->id)->first();
+        $recipientName = $profile->display_name ?? $user->email;
+
+        $resetUrl = rtrim((string) config('app.frontend_url'), '/') . '/auth/reset-password?token=' . urlencode($resetToken);
+
+        try {
+            Mail::to($user->email)->send(new PasswordResetMail(
+                $recipientName,
+                $resetUrl,
+                60,
+            ));
+        } catch (\Throwable $exception) {
+            DB::table('verification_tokens')
+                ->where('user_id', $user->id)
+                ->where('type', 'password_reset')
+                ->whereNull('used_at')
+                ->delete();
+
+            Log::error('Failed to send password reset email.', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Nao foi possivel enviar o email de recuperacao. Tente novamente daqui a instantes.',
+            ], 500);
+        }
 
         return response()->json([
-            'message' => 'Password reset token generated.',
-            'reset_token' => $resetToken,
+            'message' => 'If this email exists, a reset link has been sent.',
         ]);
     }
 

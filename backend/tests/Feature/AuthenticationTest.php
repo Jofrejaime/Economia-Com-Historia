@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Mail\PasswordResetMail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -148,6 +151,8 @@ class AuthenticationTest extends TestCase
 
     public function test_user_can_request_password_reset(): void
     {
+        Mail::fake();
+
         $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
             'password' => 'Password123!',
@@ -159,7 +164,13 @@ class AuthenticationTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        $response->assertJsonStructure(['message', 'reset_token']);
+
+        $response->assertJsonStructure(['message']);
+        $response->assertJsonMissing(['reset_token']);
+
+        Mail::assertSent(PasswordResetMail::class, function (PasswordResetMail $mail): bool {
+            return $mail->hasTo('test@example.com');
+        });
     }
 
     public function test_user_can_reset_password(): void
@@ -174,7 +185,12 @@ class AuthenticationTest extends TestCase
             'email' => 'test@example.com',
         ]);
 
-        $resetToken = $forgot->json('reset_token');
+        $forgot->assertStatus(200);
+
+        $resetToken = DB::table('verification_tokens')
+            ->where('type', 'password_reset')
+            ->whereNull('used_at')
+            ->value('token');
 
         $response = $this->postJson('/api/auth/reset-password', [
             'token' => $resetToken,
