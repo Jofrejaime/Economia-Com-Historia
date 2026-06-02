@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { ProfileService } from '../../../services/profile.service';
@@ -26,33 +27,84 @@ interface Content {
   author: string;
 }
 
+interface ProfileEditForm {
+  display_name: string;
+  bio: string;
+  institution: string;
+  province: string;
+  research_areas: string[];
+}
+
+interface UiState {
+  isLoadingProfile: boolean;
+  isLoadingStats: boolean;
+  isEditingProfile: boolean;
+  error: string | null;
+  success: string | null;
+}
+
+interface Stat {
+  label: string;
+  value: string | number;
+  unit?: string;
+  subtext?: string;
+  color?: string;
+  bgColor?: string;
+  rankBadge?: string;
+  progress?: number | null;
+}
+
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, HeaderComponent, FooterComponent],
   templateUrl: './perfil.html',
-  styleUrls: ['./perfil.css']
+  styleUrls: ['./perfil.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class PerfilComponent implements OnInit {
+  // Estado da UI
+  state: UiState = {
+    isLoadingProfile: true,
+    isLoadingStats: false,
+    isEditingProfile: false,
+    error: null,
+    success: null
+  };
+
+  // Formulário de edição
+  editForm!: FormGroup;
+
+  // Lista de províncias de Angola
+  angolasProvinces = [
+    'Luanda', 'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
+    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla', 'Kuando Kubango',
+    'Kwanza Norte', 'Kwanza Sul', 'Malanje', 'Moxico', 'Namibe', 'Uíge', 'Zaire'
+  ].sort();
+
   // Dados do perfil
-  profileName = 'Perfil Académico';
+  profileName = 'Carregando...';
   profileStatus = 'CARREGANDO DADOS...';
   profileBio = ['A carregar contexto do utilizador...'];
   profileAvatarUrl = 'https://www.lusakavoice.com/wp-content/uploads/2014/08/Screen-Shot-2014-08-06-at-3.06.26-AM.png';
-  profileLoading = true;
+  profileEmail = '';
+  profileRole = '';
   profileError: string | null = null;
-  
 
-  // Estatísticas
-  stats = [
-    { label: 'PONTUAÇÃO ACADÉMICA TOTAL', value: '12.450', unit: 'pts', color: '#6b0119', progress: 75 },
-    { label: 'QUESTIONÁRIOS CONCLUÍDOS', value: '142', unit: 'de 200 marcos históricos', color: '#8b1e2d', progress: 71 },
-    { label: 'POSIÇÃO GLOBAL DE PERÍODO', value: '#12', subtext: 'MELHORES DO PERÍODO', rankBadge: 'Quadro do Sector XX', color: 'white', bgColor: '#8b1e2d', progress: null },
-    { label: 'CERTIFICAÇÕES PARA A ÊNFASE', value: '28', unit: 'validações do arquivo', color: '#574142', progress: null }
+  // Dados brutos do backend
+  userData: any = null;
+  profileData: any = null;
+  
+  // Estatísticas (agora dinâmicas)
+  stats: Stat[] = [
+    { label: 'PONTUAÇÃO ACADÉMICA TOTAL', value: '0', unit: 'pts', color: '#6b0119', progress: 0 },
+    { label: 'QUESTIONÁRIOS CONCLUÍDOS', value: '0', unit: 'de 200', color: '#8b1e2d', progress: 0 },
+    { label: 'NÍVEL ATUAL', value: '1', subtext: 'de 5 níveis', rankBadge: 'Iniciante', color: 'white', bgColor: '#8b1e2d', progress: null },
+    { label: 'DOCUMENTOS LIDOS', value: '0', unit: 'arquivos', color: '#574142', progress: null }
   ];
 
-  // Méritos e Distinções
-   merits: Merit[] = [
+  // Méritos e Distinções (mantém defaults até carregar do backend)
+  merits: Merit[] = [
     {
       iconPath: 'M12 2L15 8.5L22 9.5L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9.5L9 8.5L12 2Z',
       iconViewBox: '0 0 24 24',
@@ -99,7 +151,7 @@ export class PerfilComponent implements OnInit {
     ]
   };
 
-  // Conteúdos criados
+  // Conteúdos criados (mantém defaults até carregar do backend)
   userContents: Content[] = [
     {
       id: 1,
@@ -130,92 +182,371 @@ export class PerfilComponent implements OnInit {
       category: 'Numismática',
       description: 'Terceiro volume da compilação histórica de moedas circuladas em território angolano no século XIX.',
       author: 'Dr. José Ndele'
-    },
-    {
-      id: 4,
-      title: 'Influências Comerciais nas Políticas Monetárias Coloniais',
-      type: 'Artigo Académico',
-      date: '18 de Dezembro, 2025',
-      views: 756,
-      category: 'História Económica',
-      description: 'Investigação sobre como as rotas comerciais influenciaram as decisões de política monetária durante o período colonial.',
-      author: 'Dr. José Ndele'
-    },
-    {
-      id: 5,
-      title: 'Metodologia de Catalogação para Arquivos Históricos',
-      type: 'Guia Metodológico',
-      date: '5 de Novembro, 2025',
-      views: 1567,
-      category: 'Arquivologia',
-      description: 'Guia completo para catalogação e preservação de documentos históricos em arquivos digitais e físicos.',
-      author: 'Dr. José Ndele'
-    },
-    {
-      id: 6,
-      title: 'Redes Comerciais do Atlântico Sul: Uma Perspectiva Angolana',
-      type: 'Artigo Académico',
-      date: '22 de Outubro, 2025',
-      views: 1834,
-      category: 'História Comercial',
-      description: 'Mapeamento das principais rotas e redes comerciais que conectavam Angola ao comércio transatlântico.',
-      author: 'Dr. José Ndele'
-    },
+    }
   ];
 
-  constructor(private router: Router, private profileService: ProfileService) {}
+  constructor(
+    private router: Router,
+    private profileService: ProfileService,
+    private cdr: ChangeDetectorRef,
+    private fb: FormBuilder
+  ) {
+    // Inicializar formulário vazio
+    this.editForm = this.fb.group({
+      display_name: ['', [Validators.required, Validators.maxLength(100)]],
+      bio: ['', [Validators.maxLength(2000)]],
+      institution: [''],
+      province: [''],
+      research_areas: ['']  // ← String, não array
+    });
+  }
 
   ngOnInit(): void {
-    void this.loadProfile();
+    this.loadProfile();
   }
 
   private async loadProfile(): Promise<void> {
+    this.state.isLoadingProfile = true;
+    this.state.error = null;
+
+    // Timeout de emergência - se nada responder em 6s, força o fim
+    const emergencyTimeout = setTimeout(() => {
+      this.profileName = 'Usuário Autenticado';
+      this.profileStatus = 'ESTATUTO ACADÉMICO: UTILIZADOR AUTENTICADO';
+      this.profileBio = ['Backend não respondeu. Mostrando dados padrão.'];
+      
+      this.state.isLoadingProfile = false;
+      this.state.error = '⚠️ Backend não respondeu. Tente recarregar a página.';
+      this.cdr.detectChanges();
+    }, 6000);
+
     try {
       const me = await this.profileService.getMe();
-      const profileResponse = await this.profileService.getProfile().catch(() => null);
-      const profile = profileResponse?.profile ?? me.profile ?? null;
-      const user = me.user as Record<string, unknown> | undefined;
+      clearTimeout(emergencyTimeout);
 
-      this.profileName = (profile?.display_name as string | undefined) || (user?.['email'] as string | undefined) || 'Perfil Académico';
-      this.profileStatus = profile?.institution
-        ? `ESTATUTO ACADÉMICO: ${profile.institution}`
-        : 'ESTATUTO ACADÉMICO: UTILIZADOR AUTENTICADO';
-      this.profileBio = [
-        (profile?.bio as string | null | undefined) ||
-          'O seu perfil está sincronizado com o contrato de identidade da API.',
-      ];
+      const profile = me?.profile ?? null;
+      const user = me?.user as Record<string, unknown> | undefined;
 
-      if (profile?.avatar_url) {
-        this.profileAvatarUrl = profile.avatar_url;
+      // Mapear dados do perfil para exibição
+      this.mapProfileData(profile, user);
+
+      // Mapear dados do utilizador para estatísticas
+      if (user) {
+        this.mapUserDataToStats(user);
       }
+
+      // Pré-preencher formulário com dados atuais
+      if (profile) {
+        this.editForm.patchValue({
+          display_name: profile.display_name || '',
+          bio: profile.bio || '',
+          institution: profile.institution || '',
+          province: profile.province || '',
+          // Converter array para string (join com vírgula)
+          research_areas: Array.isArray(profile.research_areas) 
+            ? profile.research_areas.join(', ') 
+            : ''
+        });
+      }
+
+      // Armazenar dados brutos para referência
+      this.userData = user;
+      this.profileData = profile;
+      
+      this.state.error = null;
     } catch (error) {
-      this.profileError = error instanceof Error ? error.message : 'Falha ao carregar o perfil.';
+      this.profileError = this.getErrorMessage(error);
+      this.state.error = this.profileError;
+      
+      // Mostrar dados padrão em caso de erro
+      this.profileName = 'Erro ao Carregar';
+      this.profileStatus = 'ESTATUTO ACADÉMICO: ERRO DE CONEXÃO';
+      this.profileBio = [this.profileError];
     } finally {
-      this.profileLoading = false;
+      this.state.isLoadingProfile = false;
+      this.cdr.detectChanges();
     }
   }
 
+  /**
+   * Mapeia dados do backend para exibição de perfil
+   */
+  private mapProfileData(profile: any, user: any): void {
+    // Nome
+    this.profileName = (profile?.display_name as string) || 
+                       (user?.['email'] as string) || 
+                       'Perfil Académico';
+
+    // Status académico
+    if (profile?.institution) {
+      this.profileStatus = `ESTATUTO ACADÉMICO: ${profile.institution}`;
+    } else {
+      this.profileStatus = 'ESTATUTO ACADÉMICO: UTILIZADOR AUTENTICADO';
+    }
+
+    // Bio (quebra em linhas se necessário)
+    if (profile?.bio) {
+      this.profileBio = profile.bio.split('\n').filter((line: string) => line.trim());
+      if (this.profileBio.length === 0) {
+        this.profileBio = ['O seu perfil está sincronizado com o contrato de identidade da API.'];
+      }
+    } else {
+      this.profileBio = ['O seu perfil está sincronizado com o contrato de identidade da API.'];
+    }
+
+    // Avatar
+    if (profile?.avatar_url) {
+      this.profileAvatarUrl = profile.avatar_url;
+    }
+
+    // Email e role (para referência)
+    this.profileEmail = (user?.['email'] as string) || '';
+    this.profileRole = (user?.['role'] as string) || '';
+  }
+
+  /**
+   * Mapeia dados do utilizador para estatísticas
+   */
+  private mapUserDataToStats(user: any): void {
+    const userLevels = user.user_levels || {};
+    const currentLevel = userLevels.current_level || 1;
+    const totalPoints = userLevels.total_points || 0;
+    const quizzesCompleted = userLevels.quizzes_completed || 0;
+
+    // Calcular progresso (0-100)
+    const progressPercentage = Math.min((currentLevel / 5) * 100, 100);
+
+    this.stats = [
+      {
+        label: 'PONTUAÇÃO ACADÉMICA TOTAL',
+        value: totalPoints.toLocaleString(),
+        unit: 'pts',
+        color: '#6b0119',
+        progress: progressPercentage
+      },
+      {
+        label: 'QUESTIONÁRIOS CONCLUÍDOS',
+        value: quizzesCompleted,
+        unit: 'de 200',
+        color: '#8b1e2d',
+        progress: Math.min((quizzesCompleted / 200) * 100, 100)
+      },
+      {
+        label: 'NÍVEL ATUAL',
+        value: currentLevel,
+        subtext: `de 5 níveis`,
+        rankBadge: this.getLevelName(currentLevel),
+        color: 'white',
+        bgColor: '#8b1e2d',
+        progress: null
+      },
+      {
+        label: 'DOCUMENTOS LIDOS',
+        value: userLevels.documents_read || 0,
+        unit: 'arquivos',
+        color: '#574142',
+        progress: Math.min(((userLevels.documents_read || 0) / 50) * 100, 100)
+      }
+    ];
+  }
+
+  /**
+   * Retorna o nome do nível baseado no número
+   */
+  private getLevelName(level: number): string {
+    const levelNames: { [key: number]: string } = {
+      1: 'Iniciante',
+      2: 'Aprendiz',
+      3: 'Especialista',
+      4: 'Mestre',
+      5: 'Arquivista'
+    };
+    return levelNames[level] || 'Iniciante';
+  }
+
+  /**
+   * Retorna mensagem de erro apropriada
+   */
+  private getErrorMessage(error: any): string {
+    if (error?.status === 401) {
+      return 'Sessão expirada. Por favor, faça login novamente.';
+    }
+    if (error?.status === 403) {
+      return 'Sem permissão para aceder a este perfil.';
+    }
+    if (error?.status === 404) {
+      return 'Perfil não encontrado.';
+    }
+    if (error?.status === 500) {
+      return 'Erro do servidor. Tente novamente mais tarde.';
+    }
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return 'Falha ao carregar o perfil.';
+  }
+
+  /**
+   * Navegar para uma rota
+   */
   navigateTo(path: string): void {
     this.router.navigate([path]);
   }
 
-  editBio(): void {
-    console.log('Editar bio académica');
+  /**
+   * Abrir modal de edição de perfil
+   */
+  openEditProfileModal(): void {
+    this.state.isEditingProfile = true;
   }
 
+  /**
+   * Fechar modal de edição
+   */
+  closeEditProfileModal(): void {
+    this.state.isEditingProfile = false;
+  }
+
+  /**
+   * Salvar mudanças do perfil
+   */
+  async saveProfileChanges(): Promise<void> {
+    if (!this.editForm.valid) {
+      this.state.error = 'Por favor, preencha todos os campos obrigatórios corretamente.';
+      return;
+    }
+
+    this.state.isLoadingStats = true;
+    this.state.error = null;
+
+    try {
+      let updates = this.editForm.value;
+
+      // Converter research_areas de string para array
+      if (typeof updates.research_areas === 'string') {
+        updates.research_areas = updates.research_areas
+          .split(',')
+          .map((area: string) => area.trim())
+          .filter((area: string) => area.length > 0);
+      }
+
+      // Limitar a 10 áreas
+      if (Array.isArray(updates.research_areas) && updates.research_areas.length > 10) {
+        updates.research_areas = updates.research_areas.slice(0, 10);
+      }
+
+      await this.profileService.updateProfile(updates);
+
+      // Atualizar dados locais
+      this.profileData = { ...this.profileData, ...updates };
+      this.mapProfileData(this.profileData, this.userData);
+
+      this.state.success = '✅ Perfil atualizado com sucesso!';
+      this.closeEditProfileModal();
+
+      // Limpar mensagem de sucesso após 3 segundos
+      setTimeout(() => {
+        this.state.success = null;
+      }, 3000);
+    } catch (error) {
+      this.state.error = this.getErrorMessage(error);
+    } finally {
+      this.state.isLoadingStats = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  /**
+   * Descartar mudanças e fechar modal
+   */
+  discardChanges(): void {
+    // Restaurar valores originais
+    if (this.profileData) {
+      this.editForm.patchValue({
+        display_name: this.profileData.display_name || '',
+        bio: this.profileData.bio || '',
+        institution: this.profileData.institution || '',
+        province: this.profileData.province || '',
+        research_areas: this.profileData.research_areas || []
+      });
+    }
+    this.closeEditProfileModal();
+  }
+
+  /**
+   * Descarregar portfólio
+   */
   downloadPortfolio(): void {
-    console.log('Descarregar portfólio');
+    // TODO: Implementar download de portfólio
+    this.state.success = 'Funcionalidade de download em desenvolvimento.';
+    setTimeout(() => {
+      this.state.success = null;
+    }, 3000);
   }
 
+  /**
+   * Desativar conta
+   */
   deactivateAccount(): void {
-    console.log('Desativar conta');
+    const confirm = window.confirm(
+      'Tem certeza que deseja desativar sua conta? Esta ação é irreversível.'
+    );
+    
+    if (confirm) {
+      // TODO: Implementar desativação de conta
+      this.state.success = 'Funcionalidade de desativação em desenvolvimento.';
+      setTimeout(() => {
+        this.state.success = null;
+      }, 3000);
+    }
   }
 
+  /**
+   * Toggle de configuração de privacidade
+   */
+  togglePrivacySetting(index: number): void {
+    this.settings.privacy[index].checked = !this.settings.privacy[index].checked;
+    // TODO: Salvar no backend via SettingsService
+  }
+
+  /**
+   * Toggle de configuração de notificações
+   */
+  toggleNotificationSetting(index: number): void {
+    this.settings.notifications[index].checked = !this.settings.notifications[index].checked;
+    // TODO: Salvar no backend via SettingsService
+  }
+
+  /**
+   * Toggle genérico de configuração
+   */
   toggleSetting(settingType: string, index: number): void {
     if (settingType === 'privacy') {
-      this.settings.privacy[index].checked = !this.settings.privacy[index].checked;
+      this.togglePrivacySetting(index);
     } else if (settingType === 'notifications') {
-      this.settings.notifications[index].checked = !this.settings.notifications[index].checked;
+      this.toggleNotificationSetting(index);
     }
+  }
+
+  /**
+   * Limpar mensagem de erro
+   */
+  clearError(): void {
+    this.state.error = null;
+    this.profileError = null;
+  }
+
+  /**
+   * Limpar mensagem de sucesso
+   */
+  clearSuccess(): void {
+    this.state.success = null;
+  }
+
+  /**
+   * Atualizar perfil manualmente
+   */
+  refreshProfile(): void {
+    void this.loadProfile();
   }
 }
