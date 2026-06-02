@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
-import { ContentCardComponent } from '../../auth/content-card/content-card';
+import { ProfileService } from '../../../services/profile.service';
 
 interface Merit {
   iconPath: string;
@@ -29,19 +29,18 @@ interface Content {
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent, ContentCardComponent],
+  imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent],
   templateUrl: './perfil.html',
   styleUrls: ['./perfil.css']
 })
-export class PerfilComponent {
+export class PerfilComponent implements OnInit {
   // Dados do perfil
-  profileName = 'Dr. José Ndele';
-  profileStatus = 'ESTATUTO ACADÉMICO: INVESTIGADOR SÉNIOR';
-  profileBio = [
-    'Principal contribuidor do Repositório de Moeda do Século XIX. Especialista em transições',
-    'macroeconómicas do centro comercial de Luanda. Atualmente a perseguir a distinção',
-    '"Arquivo de Ouro".'
-  ];
+  profileName = 'Perfil Académico';
+  profileStatus = 'CARREGANDO DADOS...';
+  profileBio = ['A carregar contexto do utilizador...'];
+  profileAvatarUrl = 'https://www.lusakavoice.com/wp-content/uploads/2014/08/Screen-Shot-2014-08-06-at-3.06.26-AM.png';
+  profileLoading = true;
+  profileError: string | null = null;
   
 
   // Estatísticas
@@ -164,7 +163,37 @@ export class PerfilComponent {
     },
   ];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private profileService: ProfileService) {}
+
+  ngOnInit(): void {
+    void this.loadProfile();
+  }
+
+  private async loadProfile(): Promise<void> {
+    try {
+      const me = await this.profileService.getMe();
+      const profileResponse = await this.profileService.getProfile().catch(() => null);
+      const profile = profileResponse?.profile ?? me.profile ?? null;
+      const user = me.user as Record<string, unknown> | undefined;
+
+      this.profileName = (profile?.display_name as string | undefined) || (user?.['email'] as string | undefined) || 'Perfil Académico';
+      this.profileStatus = profile?.institution
+        ? `ESTATUTO ACADÉMICO: ${profile.institution}`
+        : 'ESTATUTO ACADÉMICO: UTILIZADOR AUTENTICADO';
+      this.profileBio = [
+        (profile?.bio as string | null | undefined) ||
+          'O seu perfil está sincronizado com o contrato de identidade da API.',
+      ];
+
+      if (profile?.avatar_url) {
+        this.profileAvatarUrl = profile.avatar_url;
+      }
+    } catch (error) {
+      this.profileError = error instanceof Error ? error.message : 'Falha ao carregar o perfil.';
+    } finally {
+      this.profileLoading = false;
+    }
+  }
 
   navigateTo(path: string): void {
     this.router.navigate([path]);

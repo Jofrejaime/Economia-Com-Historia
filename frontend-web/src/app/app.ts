@@ -1,10 +1,29 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet],
-  template: `<router-outlet></router-outlet>`
+  template: `<router-outlet></router-outlet>`,
 })
-export class App {}
+export class App implements OnInit {
+  constructor(private auth: AuthService, private router: Router) {}
+
+  ngOnInit(): void {
+    void this.restoreSessionOnStart();
+  }
+
+  private async restoreSessionOnStart(): Promise<void> {
+    if (!this.auth.getToken()) {
+      return;
+    }
+
+    const restored = await this.auth.ensureSession();
+
+    if (restored && (this.router.url === '/auth/login' || this.router.url === '/landing')) {
+      void this.router.navigate(['/home']);
+    }
+  }
+}
