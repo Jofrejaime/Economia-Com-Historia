@@ -363,16 +363,32 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Already liked.'], 409);
         }
 
-        DB::table('document_likes')->insert([
-            'id' => (string) Str::uuid(),
-            'document_id' => $id,
-            'user_id' => $userId,
-            'created_at' => now(),
+        $likeId = (string) Str::uuid();
+
+        DB::transaction(function () use ($id, $userId, $likeId): void {
+            DB::table('document_likes')->insert([
+                'id' => $likeId,
+                'document_id' => $id,
+                'user_id' => $userId,
+                'created_at' => now(),
+            ]);
+
+            DB::table('documents')->where('id', $id)->increment('likes_count');
+        });
+
+        $gamification = $this->gamification->awardPoints(
+            $request->user(),
+            5,
+            PointTransactionReason::DOCUMENT_LIKED,
+            $id,
+            'document',
+            "Liked document: {$document->title}"
+        );
+
+        return response()->json([
+            'message' => 'Document liked.',
+            'gamification' => $gamification->toArray(),
         ]);
-
-        DB::table('documents')->where('id', $id)->increment('likes_count');
-
-        return response()->json(['message' => 'Document liked.']);
     }
 
     public function unlike(string $id, Request $request): JsonResponse
