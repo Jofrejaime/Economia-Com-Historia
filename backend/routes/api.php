@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AccessController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\GamificationController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\LeaderboardController;
 use App\Http\Controllers\Api\NotificationController;
@@ -32,6 +33,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::delete('/auth/sessions/others', [AuthController::class, 'destroyOtherSessions']);
     Route::delete('/auth/sessions/{id}', [AuthController::class, 'destroySession']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/me/point-transactions', [GamificationController::class, 'pointTransactions']);
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'show']);

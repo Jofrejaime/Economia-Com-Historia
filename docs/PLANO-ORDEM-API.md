@@ -6,7 +6,7 @@
 
 **Princípio:** fechar fundação → desbloquear conteúdo protegido → motor de pontos → fluxos que geram pontos → transversal (notificações) → moderação → ranking.
 
-**Estado atual (resumo):** Auth, Profile, Access e Documents adiantados; Gamificação (Levels/Points/Badges) sem serviço; Quiz, Community e Reports com muitos 501; Notifications e Leaderboard dependem de dados produzidos por outros módulos.
+**Estado atual (resumo):** Sprints 1–3 entregues no backend — Auth/Profile, Access+AccessGate+Documents (gate), `GamificationService`+fluxo quiz (`answer`/`complete`); Community, Reports e CRUD admin de quiz ainda 501; Notifications e Leaderboard sem integração com gamificação. Ver [`docs/sprints/`](sprints/).
 
 ---
 

@@ -1,8 +1,8 @@
 # 📚 Índice Completo de Documentação
 
-**Versão:** 1.0.0  
-**Data:** 02 de Junho de 2026  
-**Status:** ✅ COMPLETO
+**Versão:** 1.1.0  
+**Data:** 04 de Junho de 2026  
+**Status:** ✅ Actualizado (Sprints 2–3 backend)
 
 ---
 
@@ -38,6 +38,72 @@ Endpoints para gerenciar perfis, avatars e passwords.
 - ✅ Exemplos Angular
 
 **Incluir quando:** Desenvolvendo página de perfil/configurações
+
+---
+
+#### Access Control (Controlo de acesso)
+**Arquivo:** `docs/api/access-control.md`
+
+Pedidos de acesso, grants, revisão admin, `AccessGateService`.
+
+- ✅ `scope=mine|all`, filtros `status`
+- ✅ Auto-grant para `public`
+- ✅ Ownership em `showRequest`
+- ✅ Notas de implementação Sprint 2
+
+**Resumo sprint:** `docs/sprints/SPRINT-2-ACCESS-DOCUMENTS.md`
+
+**Incluir quando:** Pedir acesso a Jindungo/Restrito ou integrar permissões
+
+---
+
+#### Documents (Documentos)
+**Arquivo:** `docs/api/documents.md`
+
+Listagem filtrada por gate, detalhe, download, likes, favoritos, citações, categorias.
+
+- ✅ `GET /document-categories`
+- ✅ Gate em list/search/show e interacções
+
+**Incluir quando:** Biblioteca de documentos no frontend
+
+---
+
+#### Gamification (Gamificação)
+**Arquivo:** `docs/api/gamification.md`
+
+Pontos, níveis, badges, histórico de transacções, `GamificationService`.
+
+- ✅ `GET /me/point-transactions`
+- ✅ Dados em `GET /me`
+- ✅ Integração com conclusão de quiz
+
+**Resumo sprint:** `docs/sprints/SPRINT-3-GAMIFICATION-QUIZ.md`
+
+**Incluir quando:** Perfil com pontos/badges ou debug de pontuação
+
+---
+
+#### Quizzes (Questionários)
+**Arquivo:** `docs/api/quizzes.md`
+
+Tentativas: iniciar, responder, concluir; payload `gamification` no complete.
+
+- ✅ `POST .../answers`, `POST .../complete`
+- ⏳ CRUD professor/admin (501)
+
+**Incluir quando:** Fluxo de quiz na app
+
+---
+
+### 📋 Resumos de sprint (backend)
+
+| Sprint | Ficheiro |
+|--------|----------|
+| 2 — Access + Documents gate | `docs/sprints/SPRINT-2-ACCESS-DOCUMENTS.md` |
+| 3 — Gamification + Quiz mínimo | `docs/sprints/SPRINT-3-GAMIFICATION-QUIZ.md` |
+
+Plano geral: `docs/PLANO-ORDEM-API.md`
 
 ---
 

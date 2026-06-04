@@ -2,6 +2,32 @@
 
 Complete guide for managing user access levels, permissions, and approval workflows.
 
+> **Sprint 2 (implementado — Jun 2026):** Resumo técnico em [`docs/sprints/SPRINT-2-ACCESS-DOCUMENTS.md`](../sprints/SPRINT-2-ACCESS-DOCUMENTS.md). Documentos com gate: [`documents.md`](./documents.md).
+
+## Implementação actual (API Laravel)
+
+Esta secção reflecte o comportamento **real** do backend. Alguns exemplos mais abaixo podem usar formatos genéricos; em caso de dúvida, usar `{ "data": ... }` e as mensagens indicadas.
+
+| Aspecto | Comportamento |
+|---------|----------------|
+| Resposta de listas | `{ "data": [ ... ] }` |
+| Criar pedido | `POST /access-requests` com `access_level_id`, `justification` opcional |
+| Auto-grant `public` | Pedido `approved` + `user_access_grants` na mesma transacção |
+| Admin listagens | `?scope=all` em requests e grants |
+| Review | `PATCH /access-requests/{id}` com `status`, `review_notes` |
+| Revoke | `POST /access-grants/{id}/revoke` |
+| Gate de conteúdo | `AccessGateService` — ver sprint doc |
+
+**Mensagens de erro comuns:**
+
+- `409` — *You already have access to this level.* / *You already have a pending or approved request...*
+- `403` — *Forbidden.* em `showRequest` (não dono nem admin) ou `scope=all` sem role admin
+- `404` — *Request not found.* / *Grant not found.*
+
+**Notificações por e-mail** em aprovação/revogação: ainda **não** ligadas ao `NotificationService` (planeado Sprint 7).
+
+---
+
 ## Overview
 
 The access control system uses a 3-tier model with two approval mechanisms:
@@ -627,4 +653,4 @@ if (hasAccess) {
 | 409 | Conflict | Duplicate request or already granted |
 | 422 | Invalid Data | Check required fields and values |
 
-**Last Updated:** June 1, 2026
+**Last Updated:** June 4, 2026 (Sprint 2 implementation notes)
