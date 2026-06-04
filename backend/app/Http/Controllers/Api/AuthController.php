@@ -22,12 +22,12 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => [
                 'required',
+                'confirmed',
                 Password::min(8)
                     ->mixedCase()      // Require uppercase and lowercase
                     ->numbers()        // Require numbers
                     ->symbols()        // Require symbols
-                    ->uncompromised()  // Check against known breaches
-                    ->confirmed(),
+                    ->uncompromised(), // Check against known breaches
             ],
             'display_name' => ['required', 'string', 'max:100'],
             'full_name' => ['nullable', 'string', 'max:255'],
@@ -65,6 +65,21 @@ class AuthController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Initialize user level so /api/me returns level data immediately
+            DB::table('user_levels')->insert([
+                'id' => (string) Str::uuid(),
+                'user_id' => $user->id,
+                'current_level' => 1,
+                'total_points' => 0,
+                'weekly_points' => 0,
+                'monthly_points' => 0,
+                'quizzes_completed' => 0,
+                'documents_read' => 0,
+                'topics_created' => 0,
+                'replies_posted' => 0,
+                'updated_at' => now(),
+            ]);
+
             $verificationToken = $this->createVerificationToken($user->id, 'email_verification', now()->addDays(3));
 
             return [
@@ -99,11 +114,13 @@ class AuthController extends Controller
         $user->forceFill(['last_login_at' => now()])->save();
 
         $token = $this->issueSessionToken($user->id);
+        $profile = DB::table('user_profiles')->where('user_id', $user->id)->first();
 
         return response()->json([
             'message' => 'Login successful.',
             'token' => $token,
             'user' => $user,
+            'profile' => $profile,
         ]);
     }
 
@@ -162,10 +179,39 @@ class AuthController extends Controller
             )
             ->get();
 
+        // Gamification: user level + level definition
+        $userLevel = DB::table('user_levels')->where('user_id', $userId)->first();
+
+        $levelDefinition = null;
+        if ($userLevel) {
+            $levelDefinition = DB::table('level_definitions')
+                ->where('level', $userLevel->current_level)
+                ->first();
+        }
+
+        // Badges earned by the user
+        $badges = DB::table('user_badges as ub')
+            ->join('badges as b', 'ub.badge_id', '=', 'b.id')
+            ->where('ub.user_id', $userId)
+            ->select(
+                'b.id',
+                'b.name',
+                'b.description',
+                'b.icon_url',
+                'b.color_hex',
+                'b.category',
+                'ub.earned_at'
+            )
+            ->orderByDesc('ub.earned_at')
+            ->get();
+
         return response()->json([
             'user' => $user,
             'profile' => $profile,
             'access_grants' => $accessGrants,
+            'user_level' => $userLevel,
+            'level_definition' => $levelDefinition,
+            'badges' => $badges,
         ]);
     }
 
@@ -222,12 +268,12 @@ class AuthController extends Controller
             'token' => ['required', 'string'],
             'password' => [
                 'required',
+                'confirmed',
                 Password::min(8)
                     ->mixedCase()      // Require uppercase and lowercase
                     ->numbers()        // Require numbers
                     ->symbols()        // Require symbols
-                    ->uncompromised()  // Check against known breaches
-                    ->confirmed(),
+                    ->uncompromised(), // Check against known breaches
             ],
         ]);
 

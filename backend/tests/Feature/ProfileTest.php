@@ -20,8 +20,8 @@ class ProfileTest extends TestCase
         // Register and login a test user
         $response = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'TestPassword123!',
-            'password_confirmation' => 'TestPassword123!',
+            'password' => 'Ap9#xR7$wQ!z',
+            'password_confirmation' => 'Ap9#xR7$wQ!z',
             'display_name' => 'Test User',
             'full_name' => 'Test Full Name',
             'institution' => 'Test University',
@@ -102,9 +102,9 @@ class ProfileTest extends TestCase
     {
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
             ->putJson('/api/profile/password', [
-                'current_password' => 'TestPassword123!',
-                'password' => 'NewPassword456!',
-                'password_confirmation' => 'NewPassword456!',
+                'current_password' => 'Ap9#xR7$wQ!z',
+                'password' => 'Kh7#m9$Pq2!z',
+                'password_confirmation' => 'Kh7#m9$Pq2!z',
             ]);
 
         $response->assertStatus(200);
@@ -113,7 +113,7 @@ class ProfileTest extends TestCase
         // Verify can login with new password
         $loginResponse = $this->postJson('/api/auth/login', [
             'email' => 'test@example.com',
-            'password' => 'NewPassword456!',
+            'password' => 'Kh7#m9$Pq2!z',
         ]);
 
         $loginResponse->assertStatus(200);
@@ -125,8 +125,8 @@ class ProfileTest extends TestCase
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
             ->putJson('/api/profile/password', [
                 'current_password' => 'WrongPassword123!',
-                'password' => 'NewPassword456!',
-                'password_confirmation' => 'NewPassword456!',
+                'password' => 'Kh7#m9$Pq2!z',
+                'password_confirmation' => 'Kh7#m9$Pq2!z',
             ]);
 
         $response->assertStatus(422);
@@ -138,8 +138,8 @@ class ProfileTest extends TestCase
     {
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
             ->putJson('/api/profile/password', [
-                'current_password' => 'TestPassword123!',
-                'password' => 'NewPassword456!',
+                'current_password' => 'Ap9#xR7$wQ!z',
+                'password' => 'Kh7#m9$Pq2!z',
                 'password_confirmation' => 'Different456!',
             ]);
 

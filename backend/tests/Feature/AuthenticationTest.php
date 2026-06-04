@@ -16,7 +16,8 @@ class AuthenticationTest extends TestCase
     {
         $response = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
             'role' => 'estudante',
         ]);
@@ -34,13 +35,14 @@ class AuthenticationTest extends TestCase
     {
         $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
         $response = $this->postJson('/api/auth/login', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
         ]);
 
         $response->assertStatus(200);
@@ -55,7 +57,8 @@ class AuthenticationTest extends TestCase
     {
         $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -72,7 +75,8 @@ class AuthenticationTest extends TestCase
     {
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -99,7 +103,8 @@ class AuthenticationTest extends TestCase
     {
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -117,7 +122,8 @@ class AuthenticationTest extends TestCase
     {
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -135,7 +141,8 @@ class AuthenticationTest extends TestCase
     {
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -155,7 +162,8 @@ class AuthenticationTest extends TestCase
 
         $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -177,7 +185,8 @@ class AuthenticationTest extends TestCase
     {
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -194,8 +203,8 @@ class AuthenticationTest extends TestCase
 
         $response = $this->postJson('/api/auth/reset-password', [
             'token' => $resetToken,
-            'password' => 'NewPassword456!',
-            'password_confirmation' => 'NewPassword456!',
+            'password' => 'Ap9#xR7$wQ!z',
+            'password_confirmation' => 'Ap9#xR7$wQ!z',
         ]);
 
         $response->assertStatus(200);

@@ -112,12 +112,12 @@ class ProfileController extends Controller
             'current_password' => ['required', 'string'],
             'password' => [
                 'required',
+                'confirmed',
                 Password::min(8)
                     ->mixedCase()      // Require uppercase and lowercase
                     ->numbers()        // Require numbers
                     ->symbols()        // Require symbols
-                    ->uncompromised()  // Check against known breaches
-                    ->confirmed(),
+                    ->uncompromised(), // Check against known breaches
             ],
         ]);
 

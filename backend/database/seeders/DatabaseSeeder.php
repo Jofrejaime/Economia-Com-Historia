@@ -22,12 +22,12 @@ class DatabaseSeeder extends Seeder
             BadgesSeeder::class,
         ]);
 
-        // Aqui irão seeders de Pessoa 2 (Abel Canas) - Conteúdo e Funcionalidades
-        // $this->call([
-        //     DocumentSeeder::class,
-        //     QuizSeeder::class,
-        //     CommunitySeeder::class,
-        // ]);
+        // Seeders de conteúdo — Documentos, Quizzes, Comunidade
+        $this->call([
+            DocumentSeeder::class,
+            QuizSeeder::class,
+            CommunitySeeder::class,
+        ]);
     }
 }
 

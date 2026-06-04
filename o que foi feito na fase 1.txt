@@ -1,0 +1,27 @@
+Plano aprovado! Vou começar a executar. Primeiro, crio o task tracker e depois avanço com as implementações.
+
+Edited task.md
+
+Let me check `bootstrap/app.php` before I begin:
+
+Viewed app.php:1-23
+
+Now I'll start implementing everything. Let me begin with the core changes — Task 1 (enrich `me()`), Task 4 (register fix), Task 5 (login fix) are all in AuthController, and I'll do them together. I'll also create the EnsureRole middleware.
+
+Created EnsureRole.php
+
+Now register the middleware alias in bootstrap/app.php:
+
+Edited app.php
+
+Now update AuthController — enrich `me()`, `login()`, and `register()`:
+
+Edited AuthController.php
+
+Now let me implement the DocumentController with all stubs and enriched queries:
+
+Edited DocumentController.php
+
+Now let me reorganize the routes in `api.php` with role middleware:
+
+Edited api.php

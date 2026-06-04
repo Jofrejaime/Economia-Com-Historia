@@ -1,0 +1,103 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+title Economia com História - Diagrama de Classes (Avançado)
+
+class Utilizador {
+  id: int {id}
+  nome: string
+  email: string {unique}
+}
+
+class Tema {
+  id: int {id}
+  nome: string
+  descricao: string
+}
+
+class Conteudo {
+  id: int {id}
+  titulo: string
+  tipo: string
+}
+
+class Comentario {
+  id: int {id}
+  texto: string
+  dataCriacao: datetime
+}
+
+class Quiz {
+  id: int {id}
+  titulo: string
+}
+
+class Pergunta {
+  id: int {id}
+  enunciado: string
+}
+
+class Opcao {
+  id: int {id}
+  texto: string
+  correta: bool
+}
+
+class TentativaQuiz {
+  id: int {id}
+  inicio: datetime
+  fim: datetime
+}
+
+class RespostaUtilizador {
+  id: int {id}
+  correta: bool
+  dataResposta: datetime
+}
+
+class Resultado {
+  pontuacao: int
+  totalPerguntas: int
+  percentagem: float
+}
+
+class Topico {
+  id: int {id}
+  titulo: string
+  descricao: string
+  dataCriacao: datetime
+}
+
+class RespostaTopico {
+  id: int {id}
+  texto: string
+  dataCriacao: datetime
+}
+
+' ================= RELAÇÕES =================
+
+Tema "1" o-- "0..*" Conteudo : categoriza
+Tema "1" o-- "0..*" Quiz : organiza
+Tema "1" o-- "0..*" Topico : agrupa
+
+Utilizador "1" -- "0..*" Comentario : escreve
+Utilizador "1" -- "0..*" Topico : cria
+Utilizador "1" -- "0..*" RespostaTopico : responde
+Utilizador "1" -- "0..*" TentativaQuiz : realiza
+
+Conteudo "1" *-- "0..*" Comentario : possui {ordered}
+
+Quiz "1" *-- "1..*" Pergunta : contem {ordered}
+Pergunta "1" *-- "2..*" Opcao : oferece {ordered}
+
+Quiz "1" o-- "0..*" TentativaQuiz : tentativas
+
+TentativaQuiz "1" *-- "1..*" RespostaUtilizador : regista
+Pergunta "1" -- "0..*" RespostaUtilizador : respondidaPor
+Opcao "1" -- "0..*" RespostaUtilizador : opcaoSelecionada
+
+TentativaQuiz "1" *-- "1" Resultado : produz
+
+Topico "1" *-- "0..*" RespostaTopico : possui {ordered}
+
+@enduml

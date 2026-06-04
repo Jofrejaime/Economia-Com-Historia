@@ -13,13 +13,14 @@ class AccessControlTest extends TestCase
     {
         $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
         $login = $this->postJson('/api/auth/login', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
         ]);
 
         return $login->json('token');

@@ -1,0 +1,443 @@
+Relatório de Análise — Integração Angular + Laravel
+Análise baseada exclusivamente no código em backend/ e frontend-web/. Nenhuma alteração foi feita.
+
+1. Estado Atual do Projeto
+Funcionalidades concluídas
+Área	Estado
+Autenticação
+Login, registo, logout, refresh token, forgot/reset password integrados via AuthService
+Sessão
+authGuard + ensureSession() com retry via refresh
+Perfil (core)
+Leitura/edição de perfil, avatar, alteração de password via ProfileService
+Header
+Avatar carregado de GET /api/me
+Redirecionamento por role
+Admin → /admin/dashboard; outros → /home
+Backend auth/profile
+Controllers implementados com testes Feature (AuthenticationTest, ProfileTest, AccessControlTest)
+Funcionalidades parcialmente concluídas
+Área	O que funciona	O que falta
+Perfil (perfil.ts)
+Dados base + stats mapeados de user.user_levels
+user_levels não vem em GET /api/me; méritos, conteúdos e settings ficam vazios (TODO explícito ~L277)
+Registo
+UI + chamada API
+Frontend não envia password_confirmation (backend exige confirmed)
+Verificação de email
+POST /auth/verify-email, /resend-verification no backend
+Sem página/fluxo no frontend
+Admin dashboard
+UI completa com 8 sub-páginas
+Sem guard de role, sem API, 100% mock
+Rotas dinâmicas
+contents/view/:id, forum/categoria/:id definidas
+Componentes ignoram :id e mostram HTML estático
+Backend domínio
+Rotas declaradas em api.php (~75 endpoints)
+Muitos retornam 501; seeders de conteúdo comentados (DocumentSeeder, QuizSeeder, CommunitySeeder)
+Funcionalidades não iniciadas (frontend)
+Documentos/conteúdos (listagem, detalhe, filtros, CRUD admin)
+Fórum/comunidade (tópicos, respostas, likes, follow)
+Quizzes (listagem, tentativas, resultados, gestão admin)
+Pedidos de acesso (utilizador + moderação admin)
+Denúncias/moderation
+Notificações
+Leaderboard / ranking académico
+Configurações do sistema (admin)
+Gestão de utilizadores (admin)
+Landing page dinâmica (home-visitor é estática)
+2. Integrações Concluídas
+Serviços Angular com API real
+Serviço	Endpoints consumidos
+AuthService
+POST /api/auth/login, register, forgot-password, reset-password, refresh, logout; GET /api/me
+ProfileService
+GET /api/me, GET/PUT /api/profile, POST /api/profile/avatar, PUT /api/profile/password
+ToastService
+Local (sem API)
+Páginas/componentes integrados
+Componente	Integração
+login.ts
+Login + restore session + redirect por role
+register.ts
+Registo (com gap de password_confirmation)
+forgot-password.ts
+Recuperação de senha
+reset-password.ts
+Redefinição com token
+perfil.ts
+Perfil completo (parcial: stats/méritos/conteúdos)
+header.ts
+Avatar via ProfileService.getMe()
+auth.guard.ts
+Valida token + ensureSession()
+3. Mocks Encontrados
+3.1 Mock explícito (initMockData)
+Arquivo	Linha	Estrutura mockada	Endpoint real correspondente
+request-page.ts
+~58–203
+pending[] (6 pedidos), history[] (5 itens); approve/reject local com setTimeout
+GET /api/access-requests, PATCH /api/access-requests/{id} — incompletos para admin (GET só devolve pedidos do utilizador autenticado)
+3.2 Arrays hardcoded em páginas de utilizador
+Arquivo	Linha ~	Estrutura mockada	Endpoint real
+home-user.ts
+18–55
+categories, discussions, scholars
+GET /documents, GET /topics, GET /leaderboard/national
+contents.ts
+50–132
+themes, formats, documents[] (6 docs)
+GET /documents, GET /documents/search
+contents-view.html
+todo o ficheiro
+Página estática “Caminho de Ferro de Benguela”
+GET /documents/{id}
+community.ts
+55–165
+discussions[], categories[], featuredResearches[]
+GET /topics, GET /community/categories
+create-topic.ts
+29–66
+categories[]; submit faz console.log
+GET /community/categories, POST /topics (501)
+discussion-thread.ts
+39–138
+discussion, replies[], relatedTopics[]; reply → console.log
+GET /topics/{id}, GET /topics/{id}/replies, POST /topics/{id}/replies (501)
+category-view.ts
+30–97
+categories[]; handleRequestAccess altera estado local
+GET /community/categories, POST /access-requests
+category-detail.ts
+32–86
+discussions[], referenceDocs[], stats, curator
+GET /community/categories, GET /topics?category=
+quiz-list.ts
+27–80
+userLevel, featuredQuizzes[], quizzes[]
+GET /quizzes, GET /me (+ user_levels)
+question-quiz.ts
+22–61
+Pergunta única hardcoded; navega direto para resultado
+GET /quizzes/{id}/questions, POST /quiz-attempts/{id}/answers (501)
+quiz-result.ts
+43–79
+result completo (score, badge, answers)
+GET /quiz-attempts/{id}, POST /quiz-attempts/{id}/complete (501)
+3.3 Admin — 100% mock (CRUD local em memória)
+Arquivo	Linha ~	Estrutura mockada	Endpoint real
+overview-page.ts
+16–115
+kpiCards, activityData, goals, recentActivities
+Não existe endpoint de dashboard
+dashboard-admin.ts
+15–16
+pendingCount=12, pendingReportsCount=4
+Não existe
+users-page.ts
+48–109
+users[] (5 utilizadores)
+Não existe GET /users
+categories-page.ts
+48–120
+categories[] (6 categorias)
+GET /community/categories (leitura); CRUD → 501
+contents-page.ts
+112+
+contents[] + listas estáticas de tipos/tags
+GET/POST /documents (parcial)
+community-page.ts
+60–109
+discussions[]
+GET /topics (leitura)
+quizzes-manager-page.ts
+73–102
+quizzes[] com perguntas
+GET /quizzes (leitura); CRUD → 501
+reports-page.ts
+51–114
+reports[] (5 denúncias)
+GET /reports (só denúncias do reporter); action → 501
+settings-page.ts
+13–50
+Settings locais; saveSettings() → console.log
+Não existe endpoint de settings
+4. Endpoints Backend Não Utilizados
+Todos os endpoints abaixo existem em backend/routes/api.php mas não são chamados pelo frontend:
+
+Públicos
+GET /api/health
+POST /api/auth/verify-email
+POST /api/auth/resend-verification
+Autenticados — Acesso
+GET /api/access-levels
+GET /api/access-requests
+POST /api/access-requests
+GET /api/access-requests/{id}
+PATCH /api/access-requests/{id}
+GET /api/access-grants
+POST /api/access-grants/{id}/revoke
+Documentos
+GET /api/documents
+POST /api/documents
+GET /api/documents/search
+GET /api/documents/{id}
+PATCH /api/documents/{id}
+DELETE /api/documents/{id}
+POST/DELETE /api/documents/{id}/like
+POST /api/documents/{id}/download
+POST/DELETE /api/documents/{id}/favorite
+POST /api/documents/{id}/citations
+Quizzes
+GET /api/quizzes
+POST /api/quizzes
+GET /api/quizzes/{id}
+PATCH /api/quizzes/{id}
+DELETE /api/quizzes/{id}
+GET /api/quizzes/{id}/questions
+POST /api/quizzes/{id}/attempts
+GET /api/quiz-attempts/{id}
+POST /api/quiz-attempts/{id}/answers
+POST /api/quiz-attempts/{id}/complete
+GET /api/me/quiz-attempts
+Comunidade
+GET /api/community/categories
+POST /api/community/categories
+GET /api/topics
+POST /api/topics
+GET/PATCH/DELETE /api/topics/{id}
+Like/follow/unfollow de tópicos
+GET/POST /api/topics/{id}/replies
+CRUD/like/accept de replies
+Leaderboard / Stats
+GET /api/leaderboard/national
+GET /api/leaderboard/provincial (501)
+GET /api/leaderboard/snapshots
+GET /api/stats/provinces
+Notificações
+GET /api/notifications
+POST /api/notifications/send
+POST /api/notifications/invite
+PATCH /api/notifications/{id}/read
+PATCH /api/notifications/read-all
+DELETE /api/notifications/{id}
+Denúncias
+POST /api/reports
+GET /api/reports
+GET /api/reports/{id}
+PATCH /api/reports/{id}
+POST /api/reports/{id}/action
+5. Serviços Frontend Incompletos / Por Criar
+Serviço sugerido	Responsabilidade	Endpoints backend
+DocumentService
+Listagem, pesquisa, detalhe, favoritos, download
+/documents/*
+AccessService
+Níveis, pedidos, grants, revoke
+/access-*
+CommunityService
+Categorias, tópicos, respostas, interações
+/community/*, /topics/*, /replies/*
+QuizService
+Listagem, perguntas, tentativas, respostas, conclusão
+/quizzes/*, /quiz-attempts/*
+LeaderboardService
+Rankings nacionais/provinciais
+/leaderboard/*, /stats/provinces
+NotificationService
+Inbox, marcar lidas, enviar (admin)
+/notifications/*
+ReportService
+Criar denúncia, listar, moderar
+/reports/*
+AdminDashboardService
+KPIs, atividade recente
+Backend inexistente
+UserAdminService
+CRUD utilizadores
+Backend inexistente
+SettingsService
+Configurações globais
+Backend inexistente
+Infraestrutura em falta
+HttpInterceptor — auth headers repetidos manualmente em cada método
+models/ — pasta referenciada no README mas vazia/inexistente; tipos duplicados em cada componente
+adminGuard / roleGuard — admin acessível sem autenticação nem verificação de role
+ApiBaseService — centralizar environment.apiBaseUrl, headers, normalização de erros
+6. Próxima Prioridade Recomendada
+Fase 1 — Remover mocks críticos e corrigir fundação
+Corrigir registo (password_confirmation)
+Enriquecer GET /api/me com user_levels (stats do perfil)
+Criar HttpInterceptor + serviços base
+Proteger rotas admin (authGuard + adminGuard)
+Popular BD com seeders de conteúdo (comentados no DatabaseSeeder)
+Fase 2 — Integrar dados reais (utilizador)
+DocumentService → contents.ts + contents-view (usar :id)
+CommunityService → community, category-view, category-detail, discussion-thread
+AccessService → pedidos de acesso em category-view
+QuizService → fluxo listagem → pergunta → resultado
+Fase 3 — CRUDs pendentes
+Implementar stubs 501 no backend (prioridade: storeTopic, storeReply, answerAttempt, completeAttempt, reviewRequest admin)
+Admin: request-page → AccessService.reviewRequest
+Admin: contents-page → DocumentService
+Admin: quizzes-manager-page → QuizService
+Admin: community-page, reports-page
+Fase 4 — Dashboards e estatísticas
+Endpoint admin de KPIs (ou agregar endpoints existentes)
+overview-page + badges/contadores do dashboard-admin
+home-user → documentos recentes, tópicos, leaderboard
+LeaderboardService no perfil e home
+Fase 5 — Testes e validações
+E2E dos fluxos integrados
+Testes backend para endpoints 501
+Validar CORS, upload de avatar, sessão expirada
+Fluxo verify-email no frontend
+7. Plano Técnico
+#	Tarefa	Dificuldade	Impacto	Dependências	Arquivos afetados	Riscos
+1
+Corrigir password_confirmation no registo
+Baixa
+Alto
+Nenhuma
+register.ts, auth.service.ts
+Quebra registo em produção se não corrigido
+2
+Incluir user_levels em /api/me
+Baixa
+Médio
+Migration/seed user_levels
+AuthController.php, perfil.ts
+Stats a zero até corrigido
+3
+HTTP Interceptor + tipos partilhados
+Média
+Alto
+Nenhuma
+main.ts, novo interceptors/, models/
+Refactor transversal
+4
+adminGuard + auth no admin
+Baixa
+Crítico
+Auth integrado
+app.routes.ts, novo guard
+Admin exposto sem login
+5
+DocumentService + integrar contents
+Média
+Alto
+Interceptor, seeders
+contents.ts, contents-view.ts, novo service
+BD pode estar vazia; mapear schema (summary vs description, UUID vs number)
+6
+CommunityService + fórum
+Alta
+Alto
+Backend implementar POST topics/replies
+6 componentes forum
+13 endpoints community em 501
+7
+AccessService + request-page admin
+Média
+Alto
+Endpoint admin list all requests (não existe)
+request-page.ts, category-view.ts, AccessController.php
+GET atual filtra por user_id
+8
+QuizService + fluxo completo
+Alta
+Alto
+Implementar answer/complete no backend
+4 páginas quiz, QuizController.php
+Fluxo atual navega sem tentativa real
+9
+ReportService + admin denúncias
+Média
+Médio
+Implementar action no backend
+reports-page.ts, ReportController.php
+Index devolve só denúncias do reporter
+10
+NotificationService
+Média
+Baixo
+Nenhuma
+Header (badge), novo componente
+UI de notificações ainda não existe
+11
+Admin users CRUD
+Alta
+Médio
+Criar endpoints /users
+users-page.ts, novo controller
+Roles frontend (curator) ≠ backend (professor)
+12
+Dashboard KPIs
+Alta
+Médio
+Criar endpoint agregado
+overview-page.ts, dashboard-admin.ts
+Sem métricas reais hoje
+13
+Settings admin
+Média
+Baixo
+Criar endpoints settings
+settings-page.ts
+Apenas UI mock
+14
+Verify-email frontend
+Baixa
+Baixo
+Backend pronto
+Nova página auth
+Token exposto em dev no register response
+15
+Seeders conteúdo
+Média
+Alto
+Migrations OK
+database/seeders/*
+Integração mostra listas vazias sem seeds
+8. Problemas de Arquitetura, Tipagem e Duplicação
+Segurança
+Rotas /admin/dashboard/** sem canActivate: [authGuard] nem verificação de role === 'admin'
+Backend sem middleware de role — qualquer utilizador autenticado pode chamar reviewRequest, POST /documents, notifications/send, etc.
+Tipagem
+AuthService.me() retorna any; perfil.ts usa userData: any, profileData: any
+Interfaces duplicadas por componente (Document, Category, Quiz, User com shapes diferentes)
+IDs numéricos no frontend vs UUIDs no backend
+Estado e duplicação
+AuthService.me() e ProfileService.getMe() fazem a mesma chamada
+Lógica de headers auth repetida; sem interceptor
+Filtros/pesquisa implementados client-side sobre arrays mock (não escalam)
+Rotas inconsistentes
+forum/community/discussao sem :id — detalhe sempre o mesmo mock
+category-detail.viewDiscussion(id) navega para rota sem parâmetro
+README referencia /api/v1; código usa /api (sem versionamento)
+Desalinhamento domínio
+Admin categorias mock mistura conceitos de community_categories e document_categories (tabelas separadas no backend)
+Roles admin UI: admin|curator|researcher|student vs backend: estudante|investigador|professor|admin
+Access types frontend: jindungo|restricted|public vs backend: tabela access_levels
+Backend incompleto (501)
+Contagem: ~35 endpoints declarados mas retornam "Endpoint ready." com HTTP 501 — integração frontend dependerá de implementá-los primeiro ou falhará silenciosamente.
+
+Resumo Executivo
+Métrica	Valor
+Serviços Angular
+3 (auth, profile, toast)
+Endpoints backend
+~75
+Endpoints consumidos pelo frontend
+11 (~15%)
+Páginas com mocks
+20+
+Integração auth/profile
+~90%
+Resto da aplicação
+~5% (UI pronta, dados mock)
+A base de autenticação e perfil está sólida. Todo o resto — conteúdos, fórum, quizzes, admin, leaderboard, notificações — é UI funcional com estado local, aguardando services Angular e, em muitos casos, conclusão dos endpoints Laravel (501 ou inexistentes).
+
+(recomendação: Fase 1 — fundação + DocumentService)
+vamos a fase 1, primeiro comçamos pelo backend. terminar essa fase no backend, e depois proceguimos na integração com o front end.
