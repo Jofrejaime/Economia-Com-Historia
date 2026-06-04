@@ -1,32 +1,223 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { MainTabParamList } from '../../types/navigation';
 
 export function HomeScreen() {
+  const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   return (
     <ScreenContainer>
-      <View style={styles.content}>
-        <Text style={styles.title}>Home</Text>
-        <Text style={styles.subtitle}>Base da tela Home para migração gradual</Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <View style={styles.logoWrap}>
+              <Ionicons name="book" size={20} color="white" />
+            </View>
+            <View>
+              <Text style={styles.appTitle}>Economia com História</Text>
+              <Text style={styles.appSubtitle}>Angola</Text>
+            </View>
+          </View>
+          <Text style={styles.headerLead}>Aprende a história económica do teu país com conteúdo académico sério e acessível</Text>
+        </View>
+
+        {/* Featured Card (Jindungo) */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Em Destaque</Text>
+          <TouchableOpacity style={styles.featuredCard} activeOpacity={0.9}>
+            <ImageBackground
+              source={{ uri: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80' }}
+              style={styles.featuredImage}
+              imageStyle={{ borderRadius: 14 }}
+            >
+              <View style={styles.featuredOverlay} />
+              <View style={styles.featuredBody}>
+                <Text style={styles.featuredTag}>JINDUNGO</Text>
+                <Text style={styles.featuredTitle}>A Economia do Petróleo em Angola: Riqueza, Dependência e Perspectivas</Text>
+                <TouchableOpacity style={styles.featuredButton} onPress={() => navigation.navigate('Content')}>
+                  <Text style={styles.featuredButtonText}>Ler</Text>
+                </TouchableOpacity>
+              </View>
+            </ImageBackground>
+          </TouchableOpacity>
+        </View>
+
+        {/* Recent content list (simplified) */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitleSmall}>Conteúdos Recentes</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Content')}>
+              <Text style={styles.linkText}>Ver todos</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Content')}>
+            <View style={styles.cardImage} />
+            <View style={styles.cardBody}>
+              <Text style={styles.cardTag}>Introdução</Text>
+              <Text style={styles.cardTitle}>Independência e Reconstrução Económica (1975–1985)</Text>
+              <Text style={styles.cardMeta}>8 min de leitura</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Content')}>
+            <View style={styles.cardImage} />
+            <View style={styles.cardBody}>
+              <Text style={styles.cardTag}>Intermédio</Text>
+              <Text style={styles.cardTitle}>Kwanza: História e Desafios da Moeda Nacional</Text>
+              <Text style={styles.cardMeta}>14 min · áudio disponível</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    justifyContent: "center",
+  container: {
+    paddingBottom: 48,
+  },
+  header: {
+    backgroundColor: appTheme.colors.primary,
+    padding: 20,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  headerTop: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
   },
-  title: {
-    fontSize: appTheme.typography.title.fontSize,
-    fontWeight: appTheme.typography.title.fontWeight,
-    color: appTheme.colors.textPrimary,
+  logoWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
   },
-  subtitle: {
-    marginTop: appTheme.spacing.sm,
+  appTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  appSubtitle: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 12,
+  },
+  headerLead: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  section: {
+    marginTop: 20,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
     color: appTheme.colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
   },
+  featuredCard: {
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  featuredImage: {
+    height: 180,
+    justifyContent: 'flex-end',
+  },
+  featuredOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.35)'
+  },
+  featuredBody: {
+    padding: 14,
+  },
+  featuredTag: {
+    color: appTheme.colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  featuredTitle: {
+    color: appTheme.colors.surface,
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  featuredButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: appTheme.colors.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  featuredButtonText: {
+    color: appTheme.colors.primary,
+    fontWeight: '700',
+  },
+  sectionTitleSmall: {
+    color: appTheme.colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  linkText: {
+    color: appTheme.colors.primary,
+    fontWeight: '600',
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: appTheme.colors.surface,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+  },
+  cardImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    backgroundColor: appTheme.colors.border,
+    marginRight: 12,
+  },
+  cardBody: {
+    flex: 1,
+  },
+  cardTag: {
+    color: appTheme.colors.textSecondary,
+    fontSize: 11,
+    marginBottom: 4,
+  },
+  cardTitle: {
+    color: appTheme.colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 14,
+    marginBottom: 6,
+  },
+  cardMeta: {
+    color: appTheme.colors.textMuted,
+    fontSize: 12,
+  }
 });

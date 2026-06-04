@@ -7,7 +7,7 @@
 A plataforma **Economia com História** será construída com:
 
 - Frontend Web → Angular
-- Frontend Mobile → Flutter
+- Frontend Mobile → Vite/React
 - Backend API → PHP Laravel
 - Base de Dados → PostgreSQL
 - Object Storage → MinIO

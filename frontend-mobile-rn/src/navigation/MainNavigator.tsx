@@ -1,3 +1,4 @@
+// src/navigation/MainNavigator.tsx
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -13,6 +14,7 @@ import { appTheme } from "../constants/theme";
 const MainStack = createNativeStackNavigator<MainStackParamList>();
 const Tabs = createBottomTabNavigator<MainTabParamList>();
 
+// Navegador de abas (opções principais após o dashboard)
 function MainTabs() {
   return (
     <Tabs.Navigator
@@ -32,16 +34,16 @@ function MainTabs() {
   );
 }
 
+// Navegador principal: primeiro o Dashboard, depois as Tabs (e outras telas modais)
 export function MainNavigator() {
   return (
     <MainStack.Navigator
       initialRouteName="Dashboard"
-      screenOptions={{
-        headerShown: false,
-      }}
+      screenOptions={{ headerShown: false }}
     >
       <MainStack.Screen name="Dashboard" component={DashboardScreen} />
       <MainStack.Screen name="MainTabs" component={MainTabs} />
+      {/* Adicione aqui outras telas que não devem estar nas abas, se necessário */}
     </MainStack.Navigator>
   );
 }

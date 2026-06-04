@@ -23,6 +23,8 @@ export function RootNavigator() {
   return <AuthNavigator />;
 }
 
+export default RootNavigator;
+
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,

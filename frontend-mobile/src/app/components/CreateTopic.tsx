@@ -35,15 +35,7 @@ export default function CreateTopic({ onBack, onNavigate, onPublish, onSaveDraft
 
   return (
     <div className="min-h-screen bg-[#F8F9FF]">
-      {/* Status Bar */}
-      <div className="h-11 bg-white flex items-center justify-between px-5">
-        <span className="font-['IBM_Plex_Sans'] font-bold text-[15px]">9:41</span>
-        <div className="flex gap-1">
-          <div className="w-4 h-4">📶</div>
-          <div className="w-4 h-4">📡</div>
-          <div className="w-4 h-4">🔋</div>
-        </div>
-      </div>
+      {/* Status Bar */}   
 
       {/* Header */}
       <div className="bg-white border-b border-[#E5E7EB] px-6 py-4 sticky top-0 z-10">

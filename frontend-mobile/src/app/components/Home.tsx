@@ -16,14 +16,6 @@ export default function Home({ onLogin, onRegister, onViewJindungo, onViewArticl
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
       {/* Status Bar */}
-      <div className="h-11 bg-white flex items-center justify-between px-5">
-        <span className="font-['IBM_Plex_Sans'] font-bold text-[15px]">9:41</span>
-        <div className="flex gap-1">
-          <div className="w-4 h-4">📶</div>
-          <div className="w-4 h-4">📡</div>
-          <div className="w-4 h-4">🔋</div>
-        </div>
-      </div>
 
       {/* Header */}
       <header className="bg-[#8B1E2D] px-5 pt-8 pb-6">

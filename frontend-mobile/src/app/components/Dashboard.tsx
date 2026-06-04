@@ -17,14 +17,6 @@ export default function Dashboard({ userName = 'Luís', onViewContent, onViewJin
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
       {/* Status Bar */}
-      <div className="h-11 bg-white flex items-center justify-between px-5">
-        <span className="font-['IBM_Plex_Sans'] font-bold text-[15px]">9:41</span>
-        <div className="flex gap-1">
-          <div className="w-4 h-4">📶</div>
-          <div className="w-4 h-4">📡</div>
-          <div className="w-4 h-4">🔋</div>
-        </div>
-      </div>
 
       {/* Header with greeting */}
       <header className="bg-white px-5 pt-6 pb-4 border-b border-[#E5E7EB]">
