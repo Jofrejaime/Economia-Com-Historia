@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\AccessGateService;
+use App\Services\GamificationService;
+use App\Support\PointTransactionReason;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +15,7 @@ class DocumentController extends Controller
 {
     public function __construct(
         private readonly AccessGateService $accessGate,
+        private readonly GamificationService $gamification,
     ) {}
 
     public function categories(): JsonResponse
@@ -23,6 +26,41 @@ class DocumentController extends Controller
             ->get();
 
         return response()->json(['data' => $categories]);
+    }
+
+    public function myFavorites(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $query = DB::table('user_favorites as uf')
+            ->join('documents as d', 'uf.document_id', '=', 'd.id')
+            ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
+            ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
+            ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
+            ->select(
+                'd.*',
+                'dc.name as category_name',
+                'dc.slug as category_slug',
+                'dc.color_bg as category_color_bg',
+                'dc.icon as category_icon',
+                'al.name as access_level_name',
+                'al.icon as access_level_icon',
+                'al.color_bg as access_level_color_bg',
+                'al.color_text as access_level_color_text',
+                'up.display_name as author_display_name',
+                'up.avatar_url as author_avatar_url'
+            )
+            ->where('uf.user_id', $user->id);
+
+        if ($user->role !== 'admin') {
+            $query->where('d.status', 'published');
+        }
+
+        $this->accessGate->applyDocumentVisibilityFilter($query, $user, 'd');
+
+        $favorites = $query->orderByDesc('uf.created_at')->limit(50)->get();
+
+        return response()->json(['data' => $favorites]);
     }
 
     public function index(Request $request): JsonResponse
