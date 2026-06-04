@@ -27,8 +27,9 @@ Para pedir acesso a níveis restritos, ver [Access Control](./access-control.md)
 | GET | `/documents` | Sim | Listagem (filtrada por gate) |
 | GET | `/documents/search` | Sim | Pesquisa (filtrada por gate) |
 | GET | `/documents/{id}` | Sim | Detalhe |
+| GET | `/me/favorites` | Sim | Documentos favoritos do utilizador |
 | POST | `/documents/{id}/download` | Sim | Registar download |
-| POST | `/documents/{id}/like` | Sim | Like |
+| POST | `/documents/{id}/like` | Sim | Like (ganha 5 pontos) |
 | DELETE | `/documents/{id}/like` | Sim | Remover like |
 | POST | `/documents/{id}/favorite` | Sim | Favorito |
 | DELETE | `/documents/{id}/favorite` | Sim | Remover favorito |
@@ -95,6 +96,18 @@ Mesmo filtro de visibilidade que `GET /documents`.
 
 ---
 
+## GET /me/favorites
+
+Retorna a listagem de documentos marcados como favoritos pelo utilizador autenticado.
+
+*   Aplica as mesmas regras de visibilidade e filtros de segurança do **`AccessGateService`** (documentos restritos aos quais o utilizador não tem grant de acesso são ocultados).
+*   Resultados ordenados por data de favoritação decrescente (mais recente primeiro).
+*   Limite de paginação: máximo 50 resultados.
+
+**Resposta 200:** `{ "data": [ { ...documento com metadados } ] }`
+
+---
+
 ## GET /documents/{id}
 
 **200** — documento completo com metadados de categoria e autor.
@@ -121,6 +134,26 @@ Regista evento de download (utilizador deve passar no gate). Resposta inclui dad
 ## Interacções (like, favorite, citations)
 
 Todos exigem o mesmo acesso que `GET /documents/{id}`. Sem acesso → **403** com o mesmo corpo que no detalhe.
+
+### POST /documents/{id}/like
+
+Adiciona um like no documento e atribui **5 pontos** de gamificação ao utilizador autenticado sob a razão `document_liked` (idempotente).
+
+**Resposta 200:**
+```json
+{
+  "message": "Document liked.",
+  "gamification": {
+    "points_delta": 5,
+    "total_points": 105,
+    "current_level": 2,
+    "level_changed": false,
+    "previous_level": null,
+    "transactions": [ ... ],
+    "badges_earned": [ ... ]
+  }
+}
+```
 
 ### POST /documents/{id}/citations
 

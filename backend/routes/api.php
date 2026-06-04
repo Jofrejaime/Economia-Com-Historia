@@ -34,6 +34,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::delete('/auth/sessions/{id}', [AuthController::class, 'destroySession']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/me/point-transactions', [GamificationController::class, 'pointTransactions']);
+    Route::get('/me/favorites', [DocumentController::class, 'myFavorites']);
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'show']);
