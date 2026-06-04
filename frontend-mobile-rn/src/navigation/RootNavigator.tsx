@@ -16,11 +16,7 @@ export function RootNavigator() {
     );
   }
 
-  if (status === "authenticated") {
-    return <MainNavigator />;
-  }
-
-  return <AuthNavigator />;
+  return <MainNavigator />;
 }
 
 export default RootNavigator;

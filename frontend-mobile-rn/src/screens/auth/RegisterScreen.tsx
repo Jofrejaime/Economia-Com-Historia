@@ -12,9 +12,9 @@ import { AcademicLevelButton } from "../../components/AcademicLevelButton";
 import { InterestChip } from "../../components/InterestChip";
 import { appTheme } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
-import { AuthStackParamList } from "../../types/navigation";
+import { MainStackParamList } from "../../types/navigation";
 
-type Props = NativeStackScreenProps<AuthStackParamList, "Register">;
+type Props = NativeStackScreenProps<MainStackParamList, "Register">;
 
 const academicLevels = ["Ensino Médio", "Licenciatura", "Mestrado", "Outro"];
 const interestsList = ["Economia", "História", "Política", "Desenvolvimento", "Outro"];
@@ -78,6 +78,7 @@ export function RegisterScreen({ navigation }: Props) {
     setIsSubmitting(true);
     try {
       await signUp({ fullName, email, password });
+      navigation.navigate("MainTabs");
     } finally {
       setIsSubmitting(false);
     }

@@ -9,9 +9,9 @@ import { SocialButton } from "../../components/SocialButton";
 import { Divider } from "../../components/Divider";
 import { appTheme } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
-import { AuthStackParamList } from "../../types/navigation";
+import { MainStackParamList } from "../../types/navigation";
 
-type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
+type Props = NativeStackScreenProps<MainStackParamList, "Login">;
 
 export function LoginScreen({ navigation }: Props) {
   const { signIn } = useAuth();
@@ -39,6 +39,7 @@ export function LoginScreen({ navigation }: Props) {
     setIsSubmitting(true);
     try {
       await signIn({ email, password });
+      navigation.navigate("MainTabs");
     } finally {
       setIsSubmitting(false);
     }
@@ -48,6 +49,7 @@ export function LoginScreen({ navigation }: Props) {
     setIsSubmitting(true);
     try {
       await signIn({ email: "google.demo@local", password: "" });
+      navigation.navigate("MainTabs");
     } finally {
       setIsSubmitting(false);
     }

@@ -17,6 +17,8 @@ export type MainTabParamList = {
 export type MainStackParamList = {
   Dashboard: undefined;
   MainTabs: undefined;
+  Login: undefined;
+  Register: undefined;
   // Novas telas
   Podcast: undefined;
   Article: { type: 'jindungo' | 'micro' };

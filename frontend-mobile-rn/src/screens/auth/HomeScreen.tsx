@@ -36,7 +36,7 @@ export function HomeScreen({
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor={appTheme.colors.primary} />
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
@@ -56,7 +56,7 @@ export function HomeScreen({
         {/* Featured Content - Jindungo Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Feather name="flame" size={20} color={appTheme.colors.danger} />
+            <Ionicons name="flame" size={20} color={appTheme.colors.danger} />
             <Text style={styles.sectionTitle}>EM DESTAQUE</Text>
           </View>
 
@@ -71,7 +71,7 @@ export function HomeScreen({
                 <Text style={styles.tagIntermédioText}>Intermédio</Text>
               </View>
               <View style={styles.tagJindungo}>
-                <Feather name="flame" size={12} color="#fff" />
+                <Ionicons name="flame" size={12} color="#fff" />
                 <Text style={styles.tagJindungoText}>JINDUNGO</Text>
               </View>
             </View>
@@ -251,29 +251,7 @@ export function HomeScreen({
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={onViewContent}>
-          <Ionicons name="home-outline" size={24} color={appTheme.colors.primary} />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>Início</Text>
-          <View style={styles.activeDot} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={onViewContent}>
-          <Feather name="trending-up" size={24} color="#9CA3AF" />
-          <Text style={styles.navLabel}>Conteúdos</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={onViewCommunity}>
-          <Feather name="message-circle" size={24} color="#9CA3AF" />
-          <Text style={styles.navLabel}>Comunidade</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={onViewQuiz}>
-          <Feather name="trophy" size={24} color="#9CA3AF" />
-          <Text style={styles.navLabel}>Quiz</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Bottom Navigation is now managed by MainTabs */}
     </SafeAreaView>
   );
 }

@@ -1,31 +1,148 @@
-import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
+import { FormInput } from "../../components/FormInput";
 import { appTheme } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 
 export function PrivacyScreen() {
   const navigation = useNavigation();
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleUpdatePassword = () => {
+    if (!currentPassword) {
+      Alert.alert("Erro", "Por favor, insere a tua palavra-passe atual.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      Alert.alert("Erro", "A nova palavra-passe deve ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Erro", "A nova palavra-passe e a confirmação não coincidem.");
+      return;
+    }
+
+    Alert.alert("Sucesso", "A sua palavra-passe foi atualizada com sucesso!");
+    navigation.goBack();
+  };
+
   return (
-    <ScreenContainer>
+    <ScreenContainer style={styles.screen}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={appTheme.colors.primary} />
+          <Ionicons name="arrow-back" size={24} color="#7F1D1D" />
         </TouchableOpacity>
-        <Text style={styles.title}>Privacidade</Text>
+        <Text style={styles.title}>Privacidade e Segurança</Text>
       </View>
-      <View style={styles.content}>
-        <Text style={styles.placeholder}>Configurações de privacidade (em breve)</Text>
-      </View>
+
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.subtitle}>Alterar palavra-passe e acessos</Text>
+
+        <View style={styles.card}>
+          <FormInput
+            label="Palavra-passe Atual"
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            placeholder="••••••••"
+            secureTextEntry
+          />
+
+          <FormInput
+            label="Nova Palavra-passe"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            placeholder="••••••••"
+            secureTextEntry
+          />
+
+          <FormInput
+            label="Confirmar Nova Palavra-passe"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder="••••••••"
+            secureTextEntry
+          />
+
+          <TouchableOpacity style={styles.updateButton} onPress={handleUpdatePassword}>
+            <Text style={styles.updateButtonText}>Atualizar Palavra-passe</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
-  backButton: { marginRight: 16 },
-  title: { fontSize: 20, fontWeight: "700", color: appTheme.colors.textPrimary },
-  content: { flex: 1, justifyContent: "center", alignItems: "center" },
-  placeholder: { color: appTheme.colors.textMuted, fontSize: 16 },
+  screen: {
+    backgroundColor: "#F8F9FF",
+    paddingHorizontal: 0,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  backButton: {
+    marginRight: 16,
+    padding: 4,
+  },
+  title: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#7F1D1D",
+    letterSpacing: -0.4,
+  },
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 40,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#574142",
+    marginBottom: 24,
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  updateButton: {
+    backgroundColor: "#8B1E2D",
+    height: 48,
+    borderRadius: appTheme.radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+  },
+  updateButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+  },
 });

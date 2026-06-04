@@ -16,7 +16,7 @@ import { appTheme } from "../../constants/theme";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MainStackParamList } from "../../types/navigation";
-import { BottomNav } from "../../components/BottomNav";
+// Deleted unused BottomNav import
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -448,7 +448,6 @@ export function DashboardScreen() {
           <Text style={styles.signOutText}>Terminar Sessão</Text>
         </TouchableOpacity>
       </ScrollView>
-      <BottomNav activeTab="home" onNavPress={handleNavPress} />
     </ScreenContainer>
   );
 }
