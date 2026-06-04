@@ -114,4 +114,15 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | API authentication (token sessions)
+    |--------------------------------------------------------------------------
+    */
+
+    'api' => [
+        'require_email_verification' => (bool) env('AUTH_REQUIRE_EMAIL_VERIFICATION', false),
+        'expose_verification_token' => env('AUTH_EXPOSE_VERIFICATION_TOKEN'),
+    ],
+
 ];

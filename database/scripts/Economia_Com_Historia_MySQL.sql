@@ -142,7 +142,7 @@ CREATE TABLE verification_tokens (
   CONSTRAINT fk_vtokens_user
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT chk_vtokens_type
-    CHECK (type IN ('email_verify','password_reset','invite'))
+    CHECK (type IN ('email_verification','password_reset','invite'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

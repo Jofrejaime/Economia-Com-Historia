@@ -28,6 +28,9 @@ Route::prefix('auth')->group(function (): void {
 // ─── Authenticated routes (any logged-in user) ─────────────────────────────
 Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/auth/sessions', [AuthController::class, 'sessions']);
+    Route::delete('/auth/sessions/others', [AuthController::class, 'destroyOtherSessions']);
+    Route::delete('/auth/sessions/{id}', [AuthController::class, 'destroySession']);
     Route::get('/me', [AuthController::class, 'me']);
 
     // Profile
@@ -44,6 +47,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::get('/access-grants', [AccessController::class, 'grants']);
 
     // Documents — read + interactions
+    Route::get('/document-categories', [DocumentController::class, 'categories']);
     Route::get('/documents', [DocumentController::class, 'index']);
     Route::get('/documents/search', [DocumentController::class, 'search']);
     Route::get('/documents/{id}', [DocumentController::class, 'show']);

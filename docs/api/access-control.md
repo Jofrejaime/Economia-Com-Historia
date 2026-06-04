@@ -36,11 +36,17 @@ User requests "jindungo" level → Admin reviews →
 |--------|----------|------|---------|
 | GET | `/access-levels` | Yes | List all access levels |
 | POST | `/access-requests` | Yes | Request access to a level |
-| GET | `/access-requests` | Yes | List user's access requests |
+| GET | `/access-requests` | Yes | List requests (`scope=mine` default; admin `scope=all`; optional `status`) |
 | GET | `/access-requests/{id}` | Yes | Get specific request details |
 | PATCH | `/access-requests/{id}` | Yes | Review/approve/reject request (admin) |
-| GET | `/access-grants` | Yes | List user's granted access |
+| GET | `/access-grants` | Yes | List grants (`scope=mine` default; admin `scope=all`) |
 | POST | `/access-grants/{id}/revoke` | Yes | Revoke user's access (admin) |
+
+### Document access (Sprint 2)
+
+Protected documents use `AccessGateService` on `GET /documents`, `/documents/search`, `/documents/{id}`, download, like, favorite, and citation. Users need an active grant for `jindungo` / `restricted`, may always see `public`, see their own uploads, and admins bypass checks.
+
+`GET /document-categories` lists thematic categories.
 
 ---
 

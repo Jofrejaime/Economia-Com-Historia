@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -16,6 +17,8 @@ class ProfileTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Mail::fake();
 
         // Register and login a test user
         $response = $this->postJson('/api/auth/register', [
@@ -43,6 +46,8 @@ class ProfileTest extends TestCase
             'user' => ['id', 'email', 'email_verified', 'is_active', 'role'],
             'profile' => ['id', 'user_id', 'display_name', 'created_at'],
             'access_grants' => [],
+            'user_level' => ['current_level', 'total_points'],
+            'badges',
         ]);
         $this->assertEquals('test@example.com', $response->json('user.email'));
     }
@@ -207,6 +212,36 @@ class ProfileTest extends TestCase
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('access_grants'));
         $this->assertEquals('public', $response->json('access_grants.0.access_level_id'));
+    }
+
+    /** @test */
+    public function test_update_profile_rejects_invalid_province(): void
+    {
+        $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
+            ->putJson('/api/profile', [
+                'province' => 'Invalid Province',
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['province']);
+    }
+
+    /** @test */
+    public function test_me_returns_public_avatar_url_after_upload(): void
+    {
+        $image = \Illuminate\Http\UploadedFile::fake()->image('avatar.jpg', 100, 100);
+
+        $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
+            ->postJson('/api/profile/avatar', ['avatar' => $image])
+            ->assertStatus(200);
+
+        $me = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
+            ->getJson('/api/me');
+
+        $me->assertStatus(200);
+        $avatarUrl = $me->json('profile.avatar_url');
+        $this->assertNotNull($avatarUrl);
+        $this->assertStringContainsString('/storage/', $avatarUrl);
     }
 
     /** @test */

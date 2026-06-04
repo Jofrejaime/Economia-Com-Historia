@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Support\AngolaProvinces;
+use App\Support\ProfilePresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
@@ -18,12 +20,12 @@ class ProfileController extends Controller
         $userId = $request->user()->id;
         $profile = DB::table('user_profiles')->where('user_id', $userId)->first();
 
-        if (!$profile) {
+        if (! $profile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
         return response()->json([
-            'profile' => $profile,
+            'profile' => ProfilePresenter::presentProfile($profile),
         ]);
     }
 
@@ -33,33 +35,43 @@ class ProfileController extends Controller
             'display_name' => ['sometimes', 'string', 'max:100'],
             'full_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'institution' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'province' => [
-                'sometimes',
-                'nullable',
-                'string',
-                'in:' . implode(',', [
-                    'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
-                    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla',
-                    'Luanda', 'Lunda Norte', 'Lunda Sul', 'Malanje', 'Moxico',
-                    'Namibe', 'Uíge', 'Zaire'
-                ]),
-            ],
+            'province' => ['sometimes', 'nullable', 'string', AngolaProvinces::validationRule()],
             'bio' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'website_url' => ['sometimes', 'nullable', 'string', 'max:500', 'url'],
             'research_areas' => ['sometimes', 'nullable', 'array', 'max:10'],
             'research_areas.*' => ['string', 'max:100'],
         ]);
 
-        DB::table('user_profiles')->updateOrInsert(
-            ['user_id' => $request->user()->id],
-            array_merge($validated, ['updated_at' => now()])
-        );
+        $userId = $request->user()->id;
+        $payload = $validated;
 
-        $updated = DB::table('user_profiles')->where('user_id', $request->user()->id)->first();
+        if (array_key_exists('research_areas', $payload)) {
+            $payload['research_areas'] = $payload['research_areas'] !== null
+                ? json_encode($payload['research_areas'])
+                : null;
+        }
+
+        $existing = DB::table('user_profiles')->where('user_id', $userId)->first();
+
+        if ($existing) {
+            DB::table('user_profiles')
+                ->where('user_id', $userId)
+                ->update(array_merge($payload, ['updated_at' => now()]));
+        } else {
+            DB::table('user_profiles')->insert(array_merge($payload, [
+                'id' => (string) Str::uuid(),
+                'user_id' => $userId,
+                'display_name' => $payload['display_name'] ?? 'User',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]));
+        }
+
+        $updated = DB::table('user_profiles')->where('user_id', $userId)->first();
 
         return response()->json([
             'message' => 'Profile updated successfully.',
-            'profile' => $updated,
+            'profile' => ProfilePresenter::presentProfile($updated),
         ]);
     }
 
@@ -78,31 +90,26 @@ class ProfileController extends Controller
         $userId = $request->user()->id;
         $file = $validated['avatar'];
 
-        // Delete old avatar if exists
         $oldProfile = DB::table('user_profiles')->where('user_id', $userId)->first();
         if ($oldProfile && $oldProfile->avatar_url) {
-            // ✅ FIXED: avatar_url now contains path, not full URL
             Storage::disk('public')->delete($oldProfile->avatar_url);
         }
 
-        // Store new avatar
         $path = $file->store("avatars/{$userId}", 'public');
 
-        // ✅ FIXED: Save path instead of URL to database
         DB::table('user_profiles')->updateOrInsert(
             ['user_id' => $userId],
             [
-                'avatar_url' => $path,  // Store relative path: "avatars/{user_id}/filename.jpg"
+                'avatar_url' => $path,
                 'updated_at' => now(),
             ]
         );
 
-        // Generate URL for response (frontend needs this)
-        $url = Storage::disk('public')->url($path);
+        $url = ProfilePresenter::avatarPublicUrl($path);
 
         return response()->json([
             'message' => 'Avatar uploaded successfully.',
-            'avatar_url' => $url,  // Return full URL to frontend
+            'avatar_url' => $url,
         ]);
     }
 
@@ -114,41 +121,35 @@ class ProfileController extends Controller
                 'required',
                 'confirmed',
                 Password::min(8)
-                    ->mixedCase()      // Require uppercase and lowercase
-                    ->numbers()        // Require numbers
-                    ->symbols()        // Require symbols
-                    ->uncompromised(), // Check against known breaches
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised(),
             ],
         ]);
 
         $user = $request->user();
 
-        // Verify current password
-        if (!Hash::check($validated['current_password'], $user->password_hash)) {
+        if (! Hash::check($validated['current_password'], $user->password_hash)) {
             return response()->json([
                 'message' => 'Current password is incorrect.',
                 'errors' => ['current_password' => ['The current password is incorrect.']],
             ], 422);
         }
 
-        // Update password
-        DB::transaction(function () use ($user, $validated): void {
+        DB::transaction(function () use ($user, $validated, $request): void {
             $user->forceFill([
                 'password_hash' => Hash::make($validated['password']),
             ])->save();
 
-            // ✅ FIXED: Safely revoke sessions with proper null check
-            $currentToken = $this->getCurrentSessionToken();
-            
+            $currentToken = $this->getCurrentSessionToken($request);
+
             if ($currentToken) {
-                // If we found current token, revoke all OTHER sessions
                 DB::table('user_sessions')
                     ->where('user_id', $user->id)
                     ->where('refresh_token', '!=', $currentToken)
                     ->delete();
             } else {
-                // If we couldn't identify current token, only revoke EXPIRED sessions
-                // This prevents accidentally revoking the current session
                 DB::table('user_sessions')
                     ->where('user_id', $user->id)
                     ->where('expires_at', '<', now())
@@ -161,18 +162,18 @@ class ProfileController extends Controller
         ]);
     }
 
-    private function getCurrentSessionToken(): ?string
+    private function getCurrentSessionToken(Request $request): ?string
     {
-        $token = request()->bearerToken() ?? request()->header('X-Session-Token');
-        
+        $token = $request->bearerToken() ?? $request->header('X-Session-Token');
+
         if ($token) {
             $session = DB::table('user_sessions')
                 ->where('refresh_token', $token)
                 ->first();
-            
+
             return $session?->refresh_token;
         }
-        
+
         return null;
     }
 }
