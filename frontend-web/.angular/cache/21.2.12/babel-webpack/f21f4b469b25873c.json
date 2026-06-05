@@ -1,1 +1,0 @@
-{"ast":null,"code":"import { bootstrapApplication } from '@angular/platform-browser';\nimport { provideRouter } from '@angular/router';\nimport { App } from './app/app';\nbootstrapApplication(App, {\n  providers: [provideRouter(routes)]\n});","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

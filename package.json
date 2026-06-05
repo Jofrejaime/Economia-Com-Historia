@@ -1,0 +1,15 @@
+{
+  "name": "economia-com-historia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma educativa interativa sobre economia e historia angolana",
+  "scripts": {
+    "dev": "cd frontend-web && npm run dev",
+    "build": "cd frontend-web && npm run build",
+    "start": "cd frontend-web && npm run start",
+    "install:frontend": "cd frontend-web && npm install"
+  },
+  "workspaces": [
+    "frontend-web"
+  ]
+}

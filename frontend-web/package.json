@@ -3,23 +3,26 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "start": "echo Inicializar Angular CLI neste modulo",
-    "build": "echo Build ainda nao configurado"
+    "dev": "ng serve --host 0.0.0.0 --port 3000 --disable-host-check",
+    "start": "ng serve --host 0.0.0.0 --port 3000 --disable-host-check",
+    "build": "ng build --configuration production",
+    "watch": "ng build --watch --configuration development"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^21.2.12",
+    "@angular/cli": "^21.2.12",
     "@angular/compiler-cli": "^21.2.14",
     "typescript": "^5.9.3"
   },
   "dependencies": {
     "@angular/animations": "^21.2.14",
-    "@angular/common": "^21.2.14",
+    "@angular/common": "^21.2.16",
     "@angular/compiler": "^21.2.14",
-    "@angular/core": "^21.2.14",
+    "@angular/core": "^21.2.16",
     "@angular/forms": "^21.2.14",
     "@angular/platform-browser": "^21.2.14",
     "@angular/platform-browser-dynamic": "^21.2.14",
-    "@angular/router": "^21.2.14",
+    "@angular/router": "^21.2.16",
     "rxjs": "^7.8.2",
     "zone.js": "^0.16.2"
   }
