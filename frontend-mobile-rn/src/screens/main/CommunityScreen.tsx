@@ -92,7 +92,9 @@ export function CommunityScreen({ navigation }: any) {
     <Pressable style={styles.card} onPress={() => navigation?.navigate("TopicDiscussion", { id: item.id })}>
       <View style={styles.row}>
         <View style={[styles.avatar, item.isPinned ? styles.avatarPinned : styles.avatarDefault]}>
-          <Text style={styles.avatarText}>{item.authorInitials}</Text>
+          <Text style={[styles.avatarText, item.isPinned ? styles.avatarTextPinned : styles.avatarTextDefault]}>
+            {item.authorInitials}
+          </Text>
         </View>
         <View style={styles.cardBody}>
           <View style={styles.metaRow}>
@@ -308,8 +310,13 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   avatarText: {
-    color: appTheme.colors.surface,
     fontWeight: "700",
+  },
+  avatarTextPinned: {
+    color: appTheme.colors.surface,
+  },
+  avatarTextDefault: {
+    color: appTheme.colors.primary,
   },
   cardBody: {
     flex: 1,

@@ -227,7 +227,7 @@ export function ContentScreen() {
     if (active) return "white";
     switch (category) {
       case "jindungo":
-        return appTheme.colors.danger;
+        return appTheme.colors.primary;
       case "micro":
         return appTheme.colors.primary;
       case "podcast":

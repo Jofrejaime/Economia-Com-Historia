@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   submitButton: {
     minHeight: 48,
     borderRadius: appTheme.radius.md,
-    backgroundColor: appTheme.colors.primaryDark,
+    backgroundColor: appTheme.colors.secondary,
     alignItems: "center",
     justifyContent: "center",
   },
