@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Services\Gamification\GamificationResult;
+use App\Services\NotificationService;
 use App\Support\PointTransactionReason;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,10 @@ use InvalidArgumentException;
 
 class GamificationService
 {
+    public function __construct(
+        private readonly NotificationService $notificationService,
+    ) {}
+
     /**
      * Award points (positive) and sync level / badges.
      */
@@ -91,6 +96,16 @@ class GamificationService
                     'current_level' => $newLevel,
                     'updated_at' => now(),
                 ]);
+
+            // Send notification for level up
+            $this->notificationService->send(
+                $user,
+                'level_up',
+                'Level Up!',
+                "Congratulations! You have reached Level {$newLevel}. Keep going!",
+                (string) $newLevel,
+                'level'
+            );
         }
 
         $badgesEarned = $this->evaluateBadges($user);
@@ -136,6 +151,16 @@ class GamificationService
             ]);
 
             $earned[] = $badge;
+
+            // Send notification for badge earned
+            $this->notificationService->send(
+                $user,
+                'badge_earned',
+                'New Badge Earned!',
+                "You have earned the badge: {$badge->name}",
+                $badge->id,
+                'badge'
+            );
         }
 
         return $earned;

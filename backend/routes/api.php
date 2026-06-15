@@ -107,6 +107,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     // Reports — create own
     Route::post('/reports', [ReportController::class, 'store']);
     Route::get('/reports', [ReportController::class, 'index']);
+    Route::get('/reports/pending', [ReportController::class, 'pending']);
     Route::get('/reports/{id}', [ReportController::class, 'show']);
 
     // ─── Admin + Professor: content creation ────────────────────────────

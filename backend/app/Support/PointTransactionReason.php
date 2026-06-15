@@ -16,6 +16,8 @@ final class PointTransactionReason
 
     public const REPLY_POSTED = 'reply_posted';
 
+    public const REPLY_ACCEPTED = 'reply_accepted';
+
     public const DOCUMENT_LIKED = 'document_liked';
 
     public const ADMIN_ADJUSTMENT = 'admin_adjustment';
@@ -32,6 +34,7 @@ final class PointTransactionReason
             self::DOCUMENT_UPLOAD,
             self::TOPIC_CREATED,
             self::REPLY_POSTED,
+            self::REPLY_ACCEPTED,
             self::DOCUMENT_LIKED,
             self::ADMIN_ADJUSTMENT,
         ];

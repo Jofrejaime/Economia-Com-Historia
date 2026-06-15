@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\AccessGateService;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +15,7 @@ class AccessController extends Controller
 {
     public function __construct(
         private readonly AccessGateService $accessGate,
+        private readonly NotificationService $notificationService,
     ) {}
 
     public function index(): JsonResponse
@@ -147,7 +150,11 @@ class AccessController extends Controller
             return response()->json(['message' => 'This request has already been reviewed.'], 409);
         }
 
-        DB::transaction(function () use ($accessRequest, $validated, $request, $id): void {
+        // Get user and access level data before transaction
+        $user = User::find($accessRequest->user_id);
+        $accessLevel = DB::table('access_levels')->where('id', $accessRequest->access_level_id)->first();
+
+        DB::transaction(function () use ($accessRequest, $validated, $request, $id, $user, $accessLevel) {
             DB::table('user_access_requests')
                 ->where('id', $id)
                 ->update([
@@ -182,6 +189,26 @@ class AccessController extends Controller
                             'request_id' => $id,
                         ]);
                 }
+
+                // Send notification for approval
+                $this->notificationService->send(
+                    $user,
+                    'access_request_approved',
+                    'Access Request Approved',
+                    "Your request for {$accessLevel->name} access has been approved.",
+                    $id,
+                    'access_request'
+                );
+            } else {
+                // Send notification for rejection
+                $this->notificationService->send(
+                    $user,
+                    'access_request_rejected',
+                    'Access Request Rejected',
+                    "Your request for {$accessLevel->name} access has been rejected.",
+                    $id,
+                    'access_request'
+                );
             }
         });
 
