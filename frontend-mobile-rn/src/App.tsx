@@ -1,15 +1,21 @@
 // App.tsx (raiz do projeto)
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { AuthProvider } from "../src/context/AuthContext";
-import { RootNavigator } from "../src/navigation/RootNavigator";
+import { AuthProvider } from "./context/AuthContext";
+import { CommunityProvider } from "./context/CommunityContext";
+import { RootNavigator } from "./navigation/RootNavigator";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
+      <CommunityProvider>
+        <ErrorBoundary>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </ErrorBoundary>
+      </CommunityProvider>
     </AuthProvider>
   );
 }

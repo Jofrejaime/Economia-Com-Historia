@@ -4,6 +4,34 @@ export type AuthStackParamList = {
   Register: undefined;
 };
 
+export interface CommunityTopic {
+  id: string;
+  author: string;
+  authorInitials: string;
+  time: string;
+  title: string;
+  description: string;
+  category: string;
+  image?: string;
+  quote?: string;
+  replies: number;
+  views: string;
+  isPinned?: boolean;
+  isPrivate?: boolean;
+  isActive?: boolean;
+  createdAt: string;
+  comments: {
+    id: string;
+    author: string;
+    authorAvatar: string;
+    time: string;
+    content: string;
+    likes: number;
+    replies: number;
+    isLiked?: boolean;
+  }[];
+}
+
 // Tipos para as tabs principais
 export type MainTabParamList = {
   Home: undefined;
@@ -26,7 +54,7 @@ export type MainStackParamList = {
   QuizFeedback: { isCorrect: boolean; onNext?: () => void };
   QuizResult: undefined;
   CreateTopic: { initialTitle?: string; initialCategory?: string };
-  TopicDiscussion: undefined;
+  TopicDiscussion: { id: string };
   PersonalInfo: undefined;
   Notifications: undefined;
   NotificationPreferences: undefined;

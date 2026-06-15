@@ -234,6 +234,10 @@ export function DashboardScreen() {
     navigation.navigate("MainTabs");
   };
 
+  const handleOpenDiscussion = (id: string) => {
+    navigation.navigate("TopicDiscussion", { id });
+  };
+
   return (
     <ScreenContainer>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -492,7 +496,7 @@ export function DashboardScreen() {
                     backgroundColor: item.isHighlight ? "#FDF3F4" : "#F5F5F5",
                   },
                 ]}
-                onPress={handleGoToTabs}
+                onPress={() => handleOpenDiscussion(item.id)}
               >
                 <Text style={styles.debateTitle}>{item.title}</Text>
                 <View style={styles.debateMetaRow}>
