@@ -129,6 +129,7 @@ export function CreateTopicScreen() {
       isPrivate: accessLevel === "limited",
       isActive: true,
       createdAt: new Date().toISOString(),
+      members: selectedMembers,
       comments: [],
     };
 

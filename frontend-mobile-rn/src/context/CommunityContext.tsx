@@ -19,6 +19,7 @@ interface CommunityContextValue {
   addComment: (topicId: string, comment: CommunityComment) => void;
   toggleCommentLike: (topicId: string, commentId: string) => void;
   addReply: (topicId: string, commentId: string) => void;
+  updateTopic: (topicId: string, updates: Partial<CommunityTopic>) => void;
 }
 
 const CommunityContext = createContext<CommunityContextValue | undefined>(undefined);
@@ -38,6 +39,9 @@ const initialTopics: CommunityTopic[] = [
     isPrivate: false,
     isActive: true,
     createdAt: new Date("2026-06-08T10:00:00Z").toISOString(),
+    members: [
+      { id: "u7", name: "Eduardo Loureiro", username: "eduardo_l", avatarUri: null }
+    ],
     comments: [
       {
         id: "1",
@@ -76,6 +80,7 @@ const initialTopics: CommunityTopic[] = [
     isPrivate: false,
     isActive: true,
     createdAt: new Date("2026-06-07T16:20:00Z").toISOString(),
+    members: [],
     comments: [
       {
         id: "1",
@@ -102,6 +107,10 @@ const initialTopics: CommunityTopic[] = [
     isPrivate: true,
     isActive: false,
     createdAt: new Date("2026-06-05T14:30:00Z").toISOString(),
+    members: [
+      { id: "u4", name: "Carla Domingos", username: "carla.dom", avatarUri: null },
+      { id: "u7", name: "Eduardo Loureiro", username: "eduardo_l", avatarUri: null }
+    ],
     comments: [
       {
         id: "1",
@@ -170,8 +179,16 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const updateTopic = (topicId: string, updates: Partial<CommunityTopic>) => {
+    setTopics((current) =>
+      current.map((topic) =>
+        topic.id === topicId ? { ...topic, ...updates } : topic
+      )
+    );
+  };
+
   const value = useMemo(
-    () => ({ topics, addTopic, getTopicById, addComment, toggleCommentLike, addReply }),
+    () => ({ topics, addTopic, getTopicById, addComment, toggleCommentLike, addReply, updateTopic }),
     [topics],
   );
 

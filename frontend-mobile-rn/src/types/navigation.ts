@@ -1,3 +1,5 @@
+import { UserProfile } from "./room";
+
 // Tipos para autenticação (já existem)
 export type AuthStackParamList = {
   Login: undefined;
@@ -20,6 +22,7 @@ export interface CommunityTopic {
   isPrivate?: boolean;
   isActive?: boolean;
   createdAt: string;
+  members?: UserProfile[];
   comments: {
     id: string;
     author: string;
@@ -55,10 +58,11 @@ export type MainStackParamList = {
   QuizResult: undefined;
   CreateTopic: { initialTitle?: string; initialCategory?: string };
   TopicDiscussion: { id: string };
+  ManageMembers: { topicId: string };
   PersonalInfo: undefined;
   Notifications: undefined;
   NotificationPreferences: undefined;
-  Privacy: undefined;
+  Privacy: { isFromRecovery?: boolean; recoveryEmail?: string } | undefined;
   Support: undefined;
   JindungoPermission: undefined;
   LoginPrompt: { type: 'create-topic' | 'comment' | 'quiz' };

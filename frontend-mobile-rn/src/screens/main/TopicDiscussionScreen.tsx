@@ -10,6 +10,8 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Switch,
+  Alert,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
@@ -25,7 +27,7 @@ export function TopicDiscussionScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<TopicDiscussionRouteProp>();
   const { user } = useAuth();
-  const { getTopicById, addComment, toggleCommentLike, addReply } = useCommunity();
+  const { getTopicById, addComment, toggleCommentLike, addReply, updateTopic } = useCommunity();
   const isLoggedIn = user !== null;
   const topic = getTopicById(route.params.id);
 
@@ -37,7 +39,7 @@ export function TopicDiscussionScreen() {
   const [composerFocused, setComposerFocused] = useState(false);
   const [comments, setComments] = useState(topic?.comments ?? []);
   const [isPrivate, setIsPrivate] = useState(topic?.isPrivate ?? false);
-  const [isTerminated, setIsTerminated] = useState(false);
+  const [isTerminated, setIsTerminated] = useState(topic?.isActive === false);
   const [showManagementMenu, setShowManagementMenu] = useState(false);
   const isAuthor = user?.id === topic?.author || user?.name === topic?.author;
 
@@ -45,8 +47,10 @@ export function TopicDiscussionScreen() {
     if (topic) {
       setComments(topic.comments);
       setTopicLikes(topic.replies);
+      setIsPrivate(topic.isPrivate ?? false);
+      setIsTerminated(topic.isActive === false);
     }
-  }, [topic?.id, topic?.comments, topic?.replies]);
+  }, [topic?.id, topic?.comments, topic?.replies, topic?.isPrivate, topic?.isActive]);
 
   if (!topic) {
     return (
@@ -110,19 +114,39 @@ export function TopicDiscussionScreen() {
     setReplyingTo(null);
   };
 
-  const handleTogglePrivacy = () => {
-    setIsPrivate(!isPrivate);
-    setShowManagementMenu(false);
+  const handleTogglePrivacy = (value: boolean) => {
+    if (!topic) return;
+    setIsPrivate(value);
+    updateTopic(topic.id, { isPrivate: value });
   };
 
   const handleTerminateDiscussion = () => {
-    setIsTerminated(true);
-    setShowManagementMenu(false);
+    if (!topic) return;
+    Alert.alert(
+      "Terminar Discussão",
+      "Esta ação é irreversível. Ao terminar a discussão, a sala de chat passará a funcionar apenas em modo de leitura (não será possível enviar novos comentários ou respostas).\n\nDeseja continuar?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Confirmar",
+          style: "destructive",
+          onPress: () => {
+            setIsTerminated(true);
+            updateTopic(topic.id, { isActive: false });
+            setShowManagementMenu(false);
+          },
+        },
+      ]
+    );
   };
 
-  const handleAddMembers = () => {
-    // Navegar para tela de adição de membros ou abrir modal
+  const handleManageMembers = () => {
+    if (!topic) return;
     setShowManagementMenu(false);
+    navigation.navigate("ManageMembers", { topicId: topic.id });
   };
 
 
@@ -156,21 +180,27 @@ export function TopicDiscussionScreen() {
         {/* Management Menu */}
         {isAuthor && showManagementMenu && (
           <View style={styles.managementMenu}>
-            <TouchableOpacity style={styles.menuItem} onPress={handleTogglePrivacy}>
-              <Ionicons 
-                name={isPrivate ? "lock-closed" : "globe"} 
-                size={18} 
-                color={appTheme.colors.primary} 
+            <View style={styles.menuItemSwitchRow}>
+              <View style={styles.menuItemSwitchLabelContainer}>
+                <Ionicons 
+                  name={isPrivate ? "lock-closed" : "globe"} 
+                  size={18} 
+                  color={appTheme.colors.primary} 
+                />
+                <Text style={styles.menuItemText}>Privado ({isPrivate ? "Activo" : "Desactivado"})</Text>
+              </View>
+              <Switch
+                value={isPrivate}
+                onValueChange={handleTogglePrivacy}
+                trackColor={{ false: "#E5E7EB", true: "#D1D5DB" }}
+                thumbColor={isPrivate ? appTheme.colors.primary : "#3B82F6"}
               />
-              <Text style={styles.menuItemText}>
-                {isPrivate ? "Tornar Público" : "Tornar Privado"}
-              </Text>
-            </TouchableOpacity>
+            </View>
             
             {isPrivate && (
-              <TouchableOpacity style={styles.menuItem} onPress={handleAddMembers}>
-                <Ionicons name="person-add" size={18} color={appTheme.colors.primary} />
-                <Text style={styles.menuItemText}>Adicionar Membros</Text>
+              <TouchableOpacity style={styles.menuItem} onPress={handleManageMembers}>
+                <Ionicons name="people" size={18} color={appTheme.colors.primary} />
+                <Text style={styles.menuItemText}>Gestão de Membros</Text>
               </TouchableOpacity>
             )}
             
@@ -438,6 +468,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: appTheme.colors.textPrimary,
+  },
+  menuItemSwitchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  menuItemSwitchLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   terminatedBanner: {
     backgroundColor: "#DC2626",
@@ -825,9 +868,6 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     opacity: 0.45,
-  },
-  floatingActionBtn: {
-    display: "none",
   },
   notFoundContainer: {
     flex: 1,

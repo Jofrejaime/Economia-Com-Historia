@@ -33,6 +33,7 @@ import { PrivacyScreen } from "../screens/main/PrivacyScreen";
 import { SupportScreen } from "../screens/main/SupportScreen";
 import { JindungoPermissionScreen } from "../screens/main/JindungoPermissionScreen";
 import { LoginPromptScreen } from "../screens/main/LoginPromptScreen";
+import { ManageMembersScreen } from "../screens/main/ManageMembersScreen";
 
 const MainStack = createNativeStackNavigator<MainStackParamList>();
 const Tabs = createBottomTabNavigator<MainTabParamList>();
@@ -177,6 +178,7 @@ export function MainNavigator() {
       <MainStack.Screen name="QuizResult" component={QuizResultScreen} />
       <MainStack.Screen name="CreateTopic" component={CreateTopicScreen} />
       <MainStack.Screen name="TopicDiscussion" component={TopicDiscussionScreen} />
+      <MainStack.Screen name="ManageMembers" component={ManageMembersScreen} />
       <MainStack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
       <MainStack.Screen name="Notifications" component={NotificationsScreen} />
       <MainStack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />

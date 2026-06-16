@@ -54,12 +54,16 @@ export function CommunityScreen() {
           <View style={styles.metaRow}>
             {item.isPinned && (
               <View style={[styles.badge, styles.badgePinned]}>
-                <Text style={styles.badgeText}>DESTAQUE</Text>
+                <Text style={[styles.badgeText, styles.badgeTextPinned]}>DESTAQUE</Text>
               </View>
             )}
-            {item.isActive && (
+            {item.isActive ? (
               <View style={[styles.badge, styles.badgeActive]}>
-                <Text style={styles.badgeText}>A DECORRER</Text>
+                <Text style={[styles.badgeText, styles.badgeTextActive]}>A DECORRER</Text>
+              </View>
+            ) : (
+              <View style={[styles.badge, styles.badgeTerminated]}>
+                <Text style={[styles.badgeText, styles.badgeTextTerminated]}>TERMINADO</Text>
               </View>
             )}
             <View style={styles.privacyPill}>
@@ -293,10 +297,21 @@ const styles = StyleSheet.create({
   badgeActive: {
     backgroundColor: "rgba(4,120,87,0.08)",
   },
+  badgeTerminated: {
+    backgroundColor: "rgba(107,114,128,0.08)",
+  },
   badgeText: {
-    color: appTheme.colors.primary,
     fontWeight: "700",
     fontSize: 12,
+  },
+  badgeTextPinned: {
+    color: appTheme.colors.primary,
+  },
+  badgeTextActive: {
+    color: "#047857",
+  },
+  badgeTextTerminated: {
+    color: "#6B7280",
   },
   privacyPill: {
     flexDirection: "row",

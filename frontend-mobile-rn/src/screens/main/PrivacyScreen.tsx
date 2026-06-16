@@ -1,20 +1,29 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { FormInput } from "../../components/FormInput";
 import { appTheme } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../hooks/useAuth";
+import { MainStackParamList } from "../../types/navigation";
+
+type PrivacyScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, "Privacy">;
 
 export function PrivacyScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<PrivacyScreenNavigationProp>();
+  const route = useRoute<RouteProp<MainStackParamList, "Privacy">>();
+  const { signOut, user } = useAuth();
+
+  const { isFromRecovery } = route.params || {};
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleUpdatePassword = () => {
-    if (!currentPassword) {
+  const handleUpdatePassword = async () => {
+    if (!isFromRecovery && !currentPassword) {
       Alert.alert("Erro", "Por favor, insere a tua palavra-passe atual.");
       return;
     }
@@ -28,7 +37,15 @@ export function PrivacyScreen() {
     }
 
     Alert.alert("Sucesso", "A sua palavra-passe foi atualizada com sucesso!");
-    navigation.goBack();
+    
+    if (isFromRecovery) {
+      if (user) {
+        await signOut();
+      }
+      navigation.navigate("Login");
+    } else {
+      navigation.goBack();
+    }
   };
 
   return (
@@ -49,13 +66,15 @@ export function PrivacyScreen() {
         <Text style={styles.subtitle}>Alterar palavra-passe e acessos</Text>
 
         <View style={styles.card}>
-          <FormInput
-            label="Palavra-passe Atual"
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-            placeholder="••••••••"
-            secureTextEntry
-          />
+          {!isFromRecovery && (
+            <FormInput
+              label="Palavra-passe Atual"
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              placeholder="••••••••"
+              secureTextEntry
+            />
+          )}
 
           <FormInput
             label="Nova Palavra-passe"
