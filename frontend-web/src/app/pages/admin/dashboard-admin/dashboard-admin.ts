@@ -40,7 +40,7 @@ export class DashboardAdminComponent {
     try {
       // Se o AuthService tiver um método logout que retorna Promise
       await this.authService.logout();
-      this.router.navigate(['/login']);
+      this.router.navigate(['/landing']);
     } catch (error) {
       // Fallback: logout local mesmo se o serviço falhar
       console.warn('Logout com fallback local:', error);
@@ -48,7 +48,7 @@ export class DashboardAdminComponent {
       localStorage.removeItem('refresh_token');
       // Limpar outros dados de sessão se necessário
       sessionStorage.clear();
-      this.router.navigate(['/login']);
+      this.router.navigate(['/landing']);
     }
   }
 }
