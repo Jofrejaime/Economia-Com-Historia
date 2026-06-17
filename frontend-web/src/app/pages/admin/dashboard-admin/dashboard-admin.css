@@ -188,6 +188,127 @@
   color: #64748b;
 }
 
+/* ============================================
+   BOTÃO DE LOGOUT - FUNDO BORDEAUX
+   ============================================ */
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(139,30,45,0.3);
+  background: #6b0119;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  width: 100%;
+}
+
+.logout-button:hover {
+  background: #8b1e2d;
+  border-color: #6b0119;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139,30,45,0.3);
+}
+
+.logout-button:active {
+  transform: translateY(0);
+  background: #5a0015;
+}
+
+.logout-button svg {
+  flex-shrink: 0;
+  stroke: white;
+  transition: stroke 0.3s ease;
+  width: 18px;
+  height: 18px;
+}
+
+.logout-button:hover svg {
+  stroke: #f0f0f0;
+}
+
+.logout-button span {
+  flex: 1;
+  text-align: left;
+}
+
+/* Responsivo para tablets e mobile */
+@media (max-width: 992px) {
+  .logout-button {
+    padding: 10px 14px;
+    font-size: 13px;
+    gap: 10px;
+    justify-content: center;
+  }
+  
+  .logout-button svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .logout-button {
+    padding: 12px 16px;
+    font-size: 14px;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+  
+  .logout-button svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logout-button {
+    padding: 10px 12px;
+    font-size: 12px;
+    gap: 10px;
+    border-radius: 6px;
+  }
+  
+  .logout-button svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+/* Sidebar colapsada (apenas ícone) */
+@media (max-width: 992px) {
+  .sidebar:not(:hover) .logout-button span {
+    display: none;
+  }
+  
+  .sidebar:not(:hover) .logout-button {
+    justify-content: center;
+    padding: 10px;
+    gap: 0;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin: 8px auto 0;
+    background: #8b1e2d;
+  }
+  
+  .sidebar:not(:hover) .logout-button svg {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+  }
+  
+  .sidebar:not(:hover) .logout-button:hover {
+    background: #6b0119;
+  }
+}
+
 /* Main Content */
 .main-content {
   flex: 1;
@@ -206,9 +327,9 @@
    FOOTER - ESTILOS CONSISTENTES COM A HOME
    ============================================ */
 .admin-footer {
-  background: #f8f9ff; /* ALTERADO: antes #f1f5f9 */
+  background: #f8f9ff;
   width: 100%;
-  border-top: 1px solid rgba(222,191,191,0.2); /* ALTERADO */
+  border-top: 1px solid rgba(222,191,191,0.2);
   margin-top: auto;
 }
 
@@ -229,7 +350,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 18px;
-  color: #6b0119; /* ALTERADO: antes #0f172a */
+  color: #6b0119;
   margin-bottom: 24px;
 }
 
@@ -237,7 +358,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 400;
   font-size: 14px;
-  color: #574142; /* ALTERADO: antes #64748b */
+  color: #574142;
   line-height: 1.6;
   max-width: 320px;
 }
@@ -247,7 +368,6 @@
   font-weight: 700;
   font-size: 11px;
   letter-spacing: 1.1px;
-  
   color: #6b0119;
   margin-bottom: 24px;
 }
@@ -256,14 +376,14 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 400;
   font-size: 14px;
-  color: #574142; /* ALTERADO: antes #64748b */
+  color: #574142;
   margin-bottom: 12px;
   cursor: pointer;
   transition: color 0.3s ease;
 }
 
 .footer-link:hover {
-  color: #8b1e2d; /* ALTERADO: antes #6b0119 */
+  color: #8b1e2d;
 }
 
 .footer-bottom {
@@ -271,7 +391,7 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 33px;
-  border-top: 1px solid rgba(222,191,191,0.2); /* ALTERADO */
+  border-top: 1px solid rgba(222,191,191,0.2);
   flex-wrap: wrap;
   gap: 16px;
 }
@@ -281,7 +401,6 @@
   font-weight: 400;
   font-size: 11px;
   letter-spacing: 1.1px;
-  
   color: #94a3b8;
 }
 
@@ -316,7 +435,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 36px;
-  color: #6b0119; /* ALTERADO: antes #121c2a */
+  color: #6b0119;
   letter-spacing: -0.72px;
 }
 
@@ -324,7 +443,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 400;
   font-size: 16px;
-  color: #574142; /* ALTERADO: antes #64748b */
+  color: #574142;
   margin-top: 4px;
 }
 
@@ -338,7 +457,7 @@
 .date-picker {
   background: white;
   padding: 10px 20px;
-  border-radius: 6px; /* ALTERADO: antes 4px */
+  border-radius: 6px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -346,7 +465,7 @@
   font-weight: 600;
   font-size: 14px;
   color: #334155;
-  border: 1px solid rgba(222,191,191,0.1); /* NOVO */
+  border: 1px solid rgba(222,191,191,0.1);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
@@ -357,9 +476,9 @@
 }
 
 .btn-primary {
-  background: #8b1e2d; /* ALTERADO: antes #6b0119 */
+  background: #8b1e2d;
   padding: 10px 24px;
-  border-radius: 6px; /* ALTERADO: antes 4px */
+  border-radius: 6px;
   border: none;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
@@ -393,7 +512,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border: 1px solid rgba(222,191,191,0.1); /* NOVO */
+  border: 1px solid rgba(222,191,191,0.1);
   min-height: 120px;
   transition: all 0.2s ease;
 }
@@ -404,15 +523,14 @@
 }
 
 .kpi-card.bordered {
-  border-left: 4px solid #8b1e2d; /* ALTERADO: antes #ba1a1a */
+  border-left: 4px solid #8b1e2d;
 }
 
 .kpi-label {
   font-family: 'Poppins', sans-serif;
-  font-weight: 600; /* ALTERADO: antes 700 */
+  font-weight: 600;
   font-size: 10px;
   letter-spacing: 1px;
-  
   color: #94a3b8;
 }
 
@@ -469,7 +587,7 @@
 .status-dot {
   width: 8px;
   height: 8px;
-  background: #8b1e2d; /* ALTERADO: antes #ba1a1a */
+  background: #8b1e2d;
   border-radius: 50%;
 }
 
@@ -477,8 +595,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 10px;
-  
-  color: #8b1e2d; /* ALTERADO: antes #ba1a1a */
+  color: #8b1e2d;
 }
 
 .progress-bar {
@@ -490,7 +607,7 @@
 }
 
 .progress-fill {
-  background: #8b1e2d; /* ALTERADO: antes #6b0119 */
+  background: #8b1e2d;
   height: 100%;
   border-radius: 12px;
 }
@@ -538,7 +655,7 @@
   background: white;
   border-radius: 8px;
   padding: 32px;
-  border: 1px solid rgba(222,191,191,0.1); /* NOVO */
+  border: 1px solid rgba(222,191,191,0.1);
   overflow: hidden;
 }
 
@@ -555,7 +672,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 18px;
-  color: #6b0119; /* ALTERADO: antes #121c2a */
+  color: #6b0119;
 }
 
 .legend {
@@ -578,10 +695,9 @@
 
 .legend-item span {
   font-family: 'Poppins', sans-serif;
-  font-weight: 600; /* ALTERADO: antes 700 */
+  font-weight: 600;
   font-size: 10px;
   letter-spacing: 1px;
-  
   color: #64748b;
 }
 
@@ -606,7 +722,7 @@
 
 .bar {
   width: 70%;
-  background: #8b1e2d; /* ALTERADO: antes #6b0119 */
+  background: #8b1e2d;
   border-radius: 4px 4px 2px 2px;
   transition: height 0.3s ease;
 }
@@ -617,10 +733,9 @@
 
 .bar-label {
   font-family: 'Poppins', sans-serif;
-  font-weight: 600; /* ALTERADO: antes 700 */
+  font-weight: 600;
   font-size: 9px;
   text-align: center;
-  
   color: #94a3b8;
   margin-top: 8px;
 }
@@ -632,14 +747,14 @@
   background: white;
   border-radius: 8px;
   padding: 32px;
-  border: 1px solid rgba(222,191,191,0.1); /* NOVO */
+  border: 1px solid rgba(222,191,191,0.1);
 }
 
 .goals-card h3 {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 18px;
-  color: #6b0119; /* ALTERADO: antes #121c2a */
+  color: #6b0119;
   margin-bottom: 24px;
 }
 
@@ -662,16 +777,16 @@
 
 .goal-label span:first-child {
   font-family: 'Poppins', sans-serif;
-  font-weight: 500; /* ALTERADO: antes 700 */
+  font-weight: 500;
   font-size: 12px;
-  color: #574142; /* ALTERADO: antes #475569 */
+  color: #574142;
 }
 
 .goal-percent {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 12px;
-  color: #8b1e2d; /* ALTERADO: antes #6b0119 */
+  color: #8b1e2d;
 }
 
 .goal-progress {
@@ -682,14 +797,14 @@
 }
 
 .goal-fill {
-  background: #8b1e2d; /* ALTERADO: antes #6b0119 */
+  background: #8b1e2d;
   height: 100%;
   border-radius: 12px;
 }
 
 .badge-card {
   background: #f8fafc;
-  border-radius: 6px; /* ALTERADO: antes 4px */
+  border-radius: 6px;
   padding: 16px;
   display: flex;
   align-items: center;
@@ -701,7 +816,7 @@
   width: 48px;
   height: 48px;
   background: rgba(251,191,36,0.1);
-  border-radius: 8px; /* ALTERADO: antes 12px */
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -717,10 +832,9 @@
 
 .badge-subtitle {
   font-family: 'Poppins', sans-serif;
-  font-weight: 500; /* ALTERADO: antes 400 */
+  font-weight: 500;
   font-size: 10px;
   letter-spacing: -0.5px;
-  
   color: #64748b;
 }
 
@@ -731,7 +845,7 @@
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(222,191,191,0.1); /* NOVO */
+  border: 1px solid rgba(222,191,191,0.1);
 }
 
 .feed-header {
@@ -739,7 +853,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 32px;
-  border-bottom: 1px solid rgba(222,191,191,0.1); /* ALTERADO */
+  border-bottom: 1px solid rgba(222,191,191,0.1);
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -748,16 +862,16 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 18px;
-  color: #6b0119; /* ALTERADO: antes #121c2a */
+  color: #6b0119;
 }
 
 .filter-btn {
   background: none;
   border: none;
   font-family: 'Poppins', sans-serif;
-  font-weight: 600; /* ALTERADO: antes 700 */
+  font-weight: 600;
   font-size: 12px;
-  color: #8b1e2d; /* ALTERADO: antes #6b0119 */
+  color: #8b1e2d;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -771,14 +885,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 32px;
-  border-bottom: 1px solid rgba(222,191,191,0.1); /* ALTERADO */
+  border-bottom: 1px solid rgba(222,191,191,0.1);
   gap: 16px;
   flex-wrap: wrap;
   transition: background 0.2s;
 }
 
 .feed-item:hover {
-  background: rgba(139,30,45,0.03); /* ALTERADO: antes #fafafa */
+  background: rgba(139,30,45,0.03);
 }
 
 .feed-left {
@@ -792,7 +906,7 @@
 .feed-icon {
   width: 40px;
   height: 40px;
-  border-radius: 8px; /* ALTERADO: antes 12px */
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -827,7 +941,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 400;
   font-size: 12px;
-  color: #574142; /* ALTERADO: antes #64748b */
+  color: #574142;
 }
 
 .feed-right {
@@ -846,12 +960,12 @@
 }
 
 .feed-btn {
-  background: #8b1e2d; /* ALTERADO: antes #6b0119 */
+  background: #8b1e2d;
   padding: 6px 16px;
-  border-radius: 6px; /* ALTERADO: antes 2px */
+  border-radius: 6px;
   border: none;
   font-family: 'Poppins', sans-serif;
-  font-weight: 600; /* ALTERADO: antes 700 */
+  font-weight: 600;
   font-size: 11px;
   color: white;
   cursor: pointer;
@@ -865,10 +979,10 @@
 .feed-btn-outline {
   background: none;
   padding: 6px 17px;
-  border-radius: 6px; /* ALTERADO: antes 2px */
+  border-radius: 6px;
   border: 1px solid rgba(107,1,25,0.2);
   font-family: 'Poppins', sans-serif;
-  font-weight: 600; /* ALTERADO: antes 700 */
+  font-weight: 600;
   font-size: 11px;
   color: #6b0119;
   cursor: pointer;
@@ -884,7 +998,6 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 10px;
-  
 }
 
 .feed-badge.success {
@@ -900,12 +1013,11 @@
   background: #f8fafc;
   padding: 15px 16px;
   border: none;
-  border-top: 1px solid rgba(222,191,191,0.1); /* NOVO */
+  border-top: 1px solid rgba(222,191,191,0.1);
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 11px;
   letter-spacing: 1.1px;
-  
   color: #64748b;
   cursor: pointer;
   transition: all 0.3s ease;
