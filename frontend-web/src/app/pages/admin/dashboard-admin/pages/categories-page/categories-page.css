@@ -2,12 +2,13 @@
    CATEGORIAS - ESTILOS CONSISTENTES COM A HOME
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
 }
 
 .categories-container {
@@ -30,7 +31,7 @@
 }
 
 .page-title {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 28px;
   color: #6b0119;
@@ -38,7 +39,7 @@
 }
 
 .page-subtitle {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 400;
   font-size: 14px;
   color: #574142;
@@ -53,7 +54,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 14px;
   color: white;
@@ -111,16 +112,16 @@
 }
 
 .stat-label {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 10px;
-  text-transform: uppercase;
+  
   color: #94a3b8;
   letter-spacing: 1px;
 }
 
 .stat-number {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 28px;
   color: #121c2a;
@@ -156,7 +157,7 @@
   padding: 12px 16px 12px 42px;
   border: 1px solid rgba(222,191,191,0.2);
   border-radius: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   transition: all 0.2s ease;
   background: white;
@@ -183,7 +184,7 @@
 .select {
   background: transparent;
   border: none;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   color: #574142;
   cursor: pointer;
@@ -242,7 +243,7 @@
 }
 
 .category-name {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 18px;
   color: #121c2a;
@@ -298,7 +299,7 @@
 }
 
 .category-description {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   color: #574142;
   line-height: 1.5;
@@ -318,7 +319,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: #574142;
 }
@@ -338,7 +339,7 @@
   flex: 1;
   padding: 8px 12px;
   border-radius: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 12px;
   cursor: pointer;
@@ -392,7 +393,7 @@
 }
 
 .modal-header h2 {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 20px;
   color: #6b0119;
@@ -426,7 +427,7 @@
 
 .form-group label {
   display: block;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 13px;
   color: #574142;
@@ -442,7 +443,7 @@
   padding: 10px 14px;
   border: 1px solid rgba(222,191,191,0.2);
   border-radius: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   transition: all 0.2s;
 }
@@ -458,7 +459,7 @@
   padding: 8px 10px;
   border: 1px solid rgba(222,191,191,0.2);
   border-radius: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
 }
 
@@ -541,10 +542,10 @@ textarea.form-input {
 }
 
 .preview-title {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 12px;
-  text-transform: uppercase;
+  
   color: #94a3b8;
   margin-bottom: 12px;
   letter-spacing: 1px;
@@ -578,7 +579,7 @@ textarea.form-input {
 }
 
 .preview-name {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 16px;
   color: #121c2a;
@@ -591,7 +592,7 @@ textarea.form-input {
 }
 
 .preview-description {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: #574142;
   line-height: 1.4;
@@ -615,7 +616,7 @@ textarea.form-input {
   border-radius: 8px;
   border: 1px solid rgba(222,191,191,0.2);
   background: white;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
@@ -633,7 +634,7 @@ textarea.form-input {
   border: none;
   background: #8b1e2d;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;

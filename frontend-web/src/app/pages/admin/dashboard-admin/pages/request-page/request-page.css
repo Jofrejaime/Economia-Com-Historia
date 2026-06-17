@@ -2,12 +2,13 @@
    PEDIDOS DE ACESSO - ESTILOS CONSISTENTES COM A HOME
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
 }
 
 .requests-container {
@@ -30,7 +31,7 @@
 }
 
 .page-title {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 28px;
   color: #6b0119;
@@ -39,7 +40,7 @@
 }
 
 .page-subtitle {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 400;
   font-size: 14px;
   color: #574142;
@@ -66,7 +67,7 @@
 }
 
 .pending-text {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 13px;
   color: #dc2626;
@@ -120,16 +121,16 @@
 }
 
 .stat-label {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 10px;
   letter-spacing: 0.8px;
-  text-transform: uppercase;
+  
   color: #94a3b8;
 }
 
 .stat-number {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 28px;
   color: #121c2a;
@@ -154,7 +155,7 @@
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 14px;
   color: #64748b;
@@ -177,7 +178,7 @@
   border-radius: 9999px;
   background: #94a3b8;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 10px;
 }
@@ -211,14 +212,14 @@
 }
 
 .empty-title {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 22px;
   color: #121c2a;
 }
 
 .empty-subtitle {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   color: #574142;
   margin-top: 8px;
@@ -247,7 +248,7 @@
 }
 
 .section-heading {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 18px;
   color: #6b0119;
@@ -256,7 +257,7 @@
 .section-badge {
   padding: 2px 8px;
   border-radius: 9999px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 10px;
   background: rgba(139,30,45,0.1);
@@ -264,7 +265,7 @@
 }
 
 .section-desc {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: #94a3b8;
   margin-left: 8px;
@@ -310,7 +311,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 12px;
   flex-shrink: 0;
@@ -330,14 +331,14 @@
 }
 
 .request-name {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 14px;
   color: #121c2a;
 }
 
 .request-meta {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 400;
   font-size: 12px;
   color: #574142;
@@ -357,7 +358,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: 9999px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 10px;
   background: rgba(139,30,45,0.1);
@@ -368,7 +369,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   color: #94a3b8;
 }
@@ -386,18 +387,18 @@
 }
 
 .category-label {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.8px;
-  text-transform: uppercase;
+  
   color: #475569;
 }
 
 .category-value {
   padding: 2px 8px;
   border-radius: 4px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 11px;
 }
@@ -412,11 +413,11 @@
 
 .note-label {
   display: block;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.8px;
-  text-transform: uppercase;
+  
   color: #475569;
   margin-bottom: 6px;
 }
@@ -427,7 +428,7 @@
   border-radius: 8px;
   padding: 8px 12px;
   resize: vertical;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: #121c2a;
   transition: all 0.2s;
@@ -464,7 +465,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 12px;
   color: #8b1e2d;
@@ -495,7 +496,7 @@
   color: #8b1e2d;
   padding: 6px 16px;
   border-radius: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 12px;
   cursor: pointer;
@@ -512,7 +513,7 @@
   padding: 6px 16px;
   border-radius: 6px;
   border: none;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 12px;
   cursor: pointer;
@@ -579,7 +580,7 @@
 }
 
 .feedback-text {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 13px;
 }
@@ -624,7 +625,7 @@
   border: 1px solid rgba(222,191,191,0.2);
   border-radius: 8px;
   background: white;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   transition: all 0.2s;
 }
@@ -653,7 +654,7 @@
 .select {
   background: transparent;
   border: none;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: #475569;
@@ -680,11 +681,11 @@
 .history-table th {
   text-align: left;
   padding: 16px 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.8px;
-  text-transform: uppercase;
+  
   color: #94a3b8;
   border-bottom: 1px solid rgba(222,191,191,0.1);
 }
@@ -716,21 +717,21 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 11px;
   flex-shrink: 0;
 }
 
 .user-name {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 13px;
   color: #121c2a;
 }
 
 .user-institution {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   color: #94a3b8;
 }
@@ -741,7 +742,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: 9999px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 10px;
   background: rgba(139,30,45,0.1);
@@ -750,7 +751,7 @@
 
 .history-category, .history-date, .history-processed {
   padding: 16px 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: #574142;
 }
@@ -761,7 +762,7 @@
   gap: 4px;
   padding: 4px 10px;
   border-radius: 9999px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 11px;
 }
@@ -808,7 +809,7 @@
 
 .note-text {
   padding: 12px 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   font-style: italic;
   color: #8b1e2d;
@@ -828,7 +829,7 @@
 }
 
 .empty-text {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   color: #94a3b8;
 }
@@ -845,7 +846,7 @@
 }
 
 .footer-count {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: #94a3b8;
 }
@@ -853,11 +854,11 @@
 .export-btn {
   background: none;
   border: none;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 11px;
   letter-spacing: 0.8px;
-  text-transform: uppercase;
+  
   color: #475569;
   cursor: pointer;
   transition: color 0.2s;

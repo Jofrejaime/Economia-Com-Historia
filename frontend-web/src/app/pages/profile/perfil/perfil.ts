@@ -548,6 +548,61 @@ export class PerfilComponent implements OnInit {
     }
   }
 
+  // ===== NOVOS MÉTODOS PARA AS FUNCIONALIDADES ADICIONADAS =====
+
+/**
+ * Abrir notificações
+ */
+openNotifications(): void {
+  // TODO: Navegar para página de notificações ou abrir modal
+  this.router.navigate(['/notificacoes']);
+  // Ou abrir dropdown/modal
+}
+
+/**
+ * Abrir preferências de notificação
+ */
+openNotificationPreferences(): void {
+  // TODO: Navegar para página de preferências
+  this.router.navigate(['/preferencias/notificacoes']);
+}
+
+/**
+ * Abrir privacidade e segurança
+ */
+openPrivacy(): void {
+  // TODO: Navegar para página de privacidade
+  this.router.navigate(['/privacidade']);
+}
+
+/**
+ * Abrir suporte
+ */
+openSupport(): void {
+  // TODO: Navegar para página de suporte
+  this.router.navigate(['/suporte']);
+}
+
+/**
+ * Obter valor de estatística
+ */
+getStatValue(key: string): string | number {
+  const statMap: { [key: string]: { value: string | number; fallback: string | number } } = {
+    totalPoints: { value: this.stats[0]?.value || 14850, fallback: '14.850' },
+    quizzesCompleted: { value: this.stats[1]?.value || 42, fallback: '42' },
+    globalRank: { value: this.stats[2]?.value || 12, fallback: '12' },
+    documentsRead: { value: this.stats[3]?.value || 1247, fallback: '1.247' },
+    documentsProgress: { value: this.stats[3]?.progress || 75, fallback: '75' }
+  };
+  
+  const stat = statMap[key];
+  if (!stat) return '';
+  
+  // Se o valor for undefined ou null, usar fallback
+  return stat.value || stat.fallback;
+}
+
+
   /**
    * Atualizar perfil manualmente
    */
