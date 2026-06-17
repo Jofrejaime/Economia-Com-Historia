@@ -14,11 +14,11 @@
     </button>
   </div>
 
-  <!-- Stats Cards -->
+  <!-- Stats Cards - TODOS BORDEAUX -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
-        <span class="stat-value" style="color: #3b82f6;">📋</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">📋</span>
       </div>
       <div>
         <p class="stat-label">TOTAL</p>
@@ -26,8 +26,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">
-        <span class="stat-value" style="color: #22c55e;">✓</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">✓</span>
       </div>
       <div>
         <p class="stat-label">PUBLICADOS</p>
@@ -35,8 +35,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-        <span class="stat-value" style="color: #f59e0b;">📝</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">📝</span>
       </div>
       <div>
         <p class="stat-label">RASCUNHOS</p>
@@ -44,8 +44,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
-        <span class="stat-value" style="color: #3b82f6;">👥</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">👥</span>
       </div>
       <div>
         <p class="stat-label">MÉDIA DE PARTICIPAÇÕES</p>
@@ -88,7 +88,7 @@
             {{ quiz.difficulty }}
           </span>
         </div>
-        <span class="status-badge" [class]="getStatusBadgeClass(quiz.status)">
+        <span class="status-badge">
           {{ getStatusLabel(quiz.status) }}
         </span>
       </div>
@@ -116,11 +116,11 @@
       </div>
       
       <div class="card-actions">
-        <button class="action-btn edit" (click)="openEditModal(quiz)">✏️ Editar</button>
-        <button class="action-btn toggle" (click)="toggleStatus(quiz)">
+        <button class="action-btn" (click)="openEditModal(quiz)">✏️ Editar</button>
+        <button class="action-btn" (click)="toggleStatus(quiz)">
           {{ quiz.status === 'published' ? '📥 Despublicar' : '📤 Publicar' }}
         </button>
-        <button class="action-btn delete" (click)="deleteQuiz(quiz.id)">🗑️ Eliminar</button>
+        <button class="action-btn" (click)="deleteQuiz(quiz.id)">🗑️ Eliminar</button>
       </div>
     </div>
     
@@ -216,7 +216,7 @@
               <div class="question-header">
                 <div class="question-number">Pergunta {{ i + 1 }}</div>
                 <div class="question-actions">
-                  <button class="icon-btn delete" (click)="removeQuestion(i)">🗑️ Remover</button>
+                  <button class="icon-btn" (click)="removeQuestion(i)">🗑️ Remover</button>
                 </div>
               </div>
               <p class="question-text">{{ question.text }}</p>

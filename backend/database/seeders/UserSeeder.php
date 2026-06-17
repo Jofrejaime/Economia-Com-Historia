@@ -83,64 +83,66 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
-            // Extract profile data
-            $displayName = $userData['display_name'];
-            $fullName = $userData['full_name'];
-            $institution = $userData['institution'];
-            $province = $userData['province'];
-            $bio = $userData['bio'] ?? null;
-            $researchAreas = $userData['research_areas'] ?? null;
+    // Extrai dados do perfil
+    $displayName  = $userData['display_name'];
+    $fullName     = $userData['full_name'];
+    $institution  = $userData['institution'];
+    $province     = $userData['province'];
+    $bio          = $userData['bio'] ?? null;
+    $researchAreas = $userData['research_areas'] ?? null;
 
-            // Remove profile data from user array
-            unset(
-                $userData['display_name'],
-                $userData['full_name'],
-                $userData['institution'],
-                $userData['province'],
-                $userData['bio'],
-                $userData['research_areas']
-            );
+    // Gera o UUID aqui, sem depender do modelo
+    $userId = (string) Str::uuid();
 
-            // Create user
-            $user = User::create($userData);
+    // Insere o utilizador diretamente
+    DB::table('users')->insert([
+        'id'             => $userId,
+        'email'          => $userData['email'],
+        'password_hash'  => $userData['password_hash'], // já vem com bcrypt()
+        'role'           => $userData['role'],
+        'email_verified' => $userData['email_verified'] ? 1 : 0,
+        'is_active'      => $userData['is_active'] ? 1 : 0,
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
 
-            // Create profile
-            DB::table('user_profiles')->insert([
-                'id' => (string) Str::uuid(),
-                'user_id' => $user->id,
-                'display_name' => $displayName,
-                'full_name' => $fullName,
-                'institution' => $institution,
-                'province' => $province,
-                'bio' => $bio,
-                'research_areas' => $researchAreas,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+    // Insere o perfil
+    DB::table('user_profiles')->insert([
+        'id'           => (string) Str::uuid(),
+        'user_id'      => $userId,
+        'display_name' => $displayName,
+        'full_name'    => $fullName,
+        'institution'  => $institution,
+        'province'     => $province,
+        'bio'          => $bio,
+        'research_areas' => $researchAreas,
+        'created_at'   => now(),
+        'updated_at'   => now(),
+    ]);
 
-            // Grant public access
-            DB::table('user_access_grants')->insert([
-                'id' => (string) Str::uuid(),
-                'user_id' => $user->id,
-                'access_level_id' => 'public',
-                'granted_at' => now(),
-                'is_active' => true,
-            ]);
+    // Acesso público
+    DB::table('user_access_grants')->insert([
+        'id'              => (string) Str::uuid(),
+        'user_id'         => $userId,
+        'access_level_id' => 'public',
+        'granted_at'      => now(),
+        'is_active'       => true,
+    ]);
 
-            // Initialize user level
-            DB::table('user_levels')->insert([
-                'id' => (string) Str::uuid(),
-                'user_id' => $user->id,
-                'current_level' => 1,
-                'total_points' => 0,
-                'weekly_points' => 0,
-                'monthly_points' => 0,
-                'quizzes_completed' => 0,
-                'documents_read' => 0,
-                'topics_created' => 0,
-                'replies_posted' => 0,
-                'updated_at' => now(),
-            ]);
-        }
+    // Nível inicial
+    DB::table('user_levels')->insert([
+        'id'               => (string) Str::uuid(),
+        'user_id'          => $userId,
+        'current_level'    => 1,
+        'total_points'     => 0,
+        'weekly_points'    => 0,
+        'monthly_points'   => 0,
+        'quizzes_completed'=> 0,
+        'documents_read'   => 0,
+        'topics_created'   => 0,
+        'replies_posted'   => 0,
+        'updated_at'       => now(),
+    ]);
+}
     }
 }

@@ -12,31 +12,34 @@
     </div>
   </div>
 
-  <!-- Stats Strip -->
+  <!-- Stats Strip - TODOS BORDEAUX -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon" style="background: #fef2f2;">
-        <span class="stat-value" style="color: #dc2626;">{{ pending.length }}</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">⏳</span>
       </div>
-      <p class="stat-label">TOTAL PENDENTES</p>
+      <div>
+        <p class="stat-label">TOTAL PENDENTES</p>
+        <p class="stat-number">{{ pending.length }}</p>
+      </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: #fff7ed;">
-        <span class="stat-value" style="color: #ea580c;">{{ jindungoPending.length }}</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">🔥</span>
       </div>
-      <p class="stat-label">🔥 JINDUNGO</p>
+      <div>
+        <p class="stat-label">JINDUNGO</p>
+        <p class="stat-number">{{ jindungoPending.length }}</p>
+      </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: #fdf4ff;">
-        <span class="stat-value" style="color: #7c3aed;">{{ restritoPending.length }}</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">✓</span>
       </div>
-      <p class="stat-label">🔒 RESTRITOS</p>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon" style="background: #f0fdf4;">
-        <span class="stat-value" style="color: #16a34a;">{{ todayProcessedCount }}</span>
+      <div>
+        <p class="stat-label">PROCESSADOS HOJE</p>
+        <p class="stat-number">{{ todayProcessedCount }}</p>
       </div>
-      <p class="stat-label">PROCESSADOS HOJE</p>
     </div>
   </div>
 
@@ -77,7 +80,7 @@
           <div class="section-title">
             <span class="section-icon">🔥</span>
             <h2 class="section-heading">Pedidos Jindungo</h2>
-            <span class="section-badge badge-jindungo">{{ jindungoPending.length }}</span>
+            <span class="section-badge">{{ jindungoPending.length }}</span>
             <p class="section-desc">— Acesso a conteúdos premium. Aprovação directa.</p>
           </div>
         </div>
@@ -112,7 +115,7 @@
                       <p class="request-meta">{{ req.institution }} · {{ req.email }}</p>
                     </div>
                     <div class="request-badges">
-                      <span class="type-badge" [class.badge-jindungo]="req.type === 'jindungo'" [class.badge-restrito]="req.type === 'restrito'">
+                      <span class="type-badge">
                         {{ getTypeIcon(req.type) }} {{ getTypeLabel(req.type) }}
                       </span>
                       <span class="request-time">
@@ -171,100 +174,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Restritos Section -->
-      <div *ngIf="restritoPending.length > 0" class="section">
-        <div class="section-header">
-          <div class="section-title">
-            <span class="section-icon">🔒</span>
-            <h2 class="section-heading">Pedidos Restritos</h2>
-            <span class="section-badge badge-restrito">{{ restritoPending.length }}</span>
-            <p class="section-desc">— Requerem nota de justificação antes da aprovação.</p>
-          </div>
-        </div>
-        <div class="requests-list">
-          <div *ngFor="let req of restritoPending" class="request-card" [style.borderLeftColor]="getAccentColor(req.type)">
-            <!-- Feedback Overlay -->
-            <div *ngIf="isConfirmAction(req.id, 'approved')" class="feedback-overlay approved">
-              <div class="feedback-content">
-                <div class="feedback-icon approved">✓</div>
-                <p class="feedback-text approved">Acesso aprovado!</p>
-              </div>
-            </div>
-            <div *ngIf="isConfirmAction(req.id, 'rejected')" class="feedback-overlay rejected">
-              <div class="feedback-content">
-                <div class="feedback-icon rejected">✗</div>
-                <p class="feedback-text rejected">Pedido rejeitado</p>
-              </div>
-            </div>
-
-            <div class="request-content">
-              <div class="request-main">
-                <div class="request-avatar" [style.background]="req.avatarColor">
-                  {{ req.avatarInitials }}
-                </div>
-                <div class="request-info">
-                  <div class="request-header">
-                    <div>
-                      <p class="request-name">{{ req.name }}</p>
-                      <p class="request-meta">{{ req.institution }} · {{ req.email }}</p>
-                    </div>
-                    <div class="request-badges">
-                      <span class="type-badge" [class.badge-jindungo]="req.type === 'jindungo'" [class.badge-restrito]="req.type === 'restrito'">
-                        {{ getTypeIcon(req.type) }} {{ getTypeLabel(req.type) }}
-                      </span>
-                      <span class="request-time">
-                        <span class="clock-icon">⏱️</span> {{ req.timeAgo }}
-                      </span>
-                    </div>
-                  </div>
-                  <div class="request-category">
-                    <span class="category-label">Categoria solicitada:</span>
-                    <span class="category-value" [style.background]="getAccentBg(req.type)" [style.color]="getAccentColor(req.type)">
-                      {{ req.category }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div *ngIf="req.type === 'restrito' && noteOpenStates[req.id]" class="note-field">
-                <label class="note-label">Nota de justificação (obrigatória para aprovação)</label>
-                <textarea 
-                  [ngModel]="noteTexts[req.id]" 
-                  (ngModelChange)="updateNoteText(req.id, $event)"
-                  rows="2" 
-                  placeholder="Descreva o motivo da aprovação ou informação adicional..."
-                  class="note-textarea"></textarea>
-              </div>
-
-              <div class="request-actions">
-                <div class="actions-left">
-                  <button *ngIf="req.type === 'restrito' && !noteOpenStates[req.id]" 
-                          (click)="toggleNoteOpen(req.id)" 
-                          class="action-link">
-                    <span class="chevron-down">▼</span>
-                    Adicionar nota
-                  </button>
-                  <button *ngIf="req.type === 'restrito' && noteOpenStates[req.id]" 
-                          (click)="toggleNoteOpen(req.id)" 
-                          class="action-link close">
-                    <span class="chevron-up">▲</span>
-                    Fechar nota
-                  </button>
-                </div>
-                <div class="actions-right">
-                  <button (click)="handleReject(req.id)" class="btn-reject">Rejeitar</button>
-                  <button (click)="handleApprove(req.id)" 
-                          [disabled]="req.type === 'restrito' && noteOpenStates[req.id] && !noteTexts[req.id]?.trim()"
-                          class="btn-approve">
-                    {{ req.type === 'restrito' && noteOpenStates[req.id] ? 'Confirmar Aprovação' : 'Aprovar' }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -288,15 +197,6 @@
           <option value="todos">Todas as decisões</option>
           <option value="aprovado">Aprovados</option>
           <option value="rejeitado">Rejeitados</option>
-        </select>
-      </div>
-
-      <div class="filter-select">
-        <span class="filter-icon">⚙️</span>
-        <select [(ngModel)]="filterType" class="select">
-          <option value="todos">Todos os tipos</option>
-          <option value="jindungo">Jindungo</option>
-          <option value="restrito">Restrito</option>
         </select>
       </div>
     </div>
@@ -334,7 +234,7 @@
                 </div>
               </td>
               <td>
-                <span class="type-badge-small" [class.badge-jindungo]="item.type === 'jindungo'" [class.badge-restrito]="item.type === 'restrito'">
+                <span class="type-badge-small">
                   {{ getTypeIcon(item.type) }} {{ getTypeLabel(item.type) }}
                 </span>
               </td>

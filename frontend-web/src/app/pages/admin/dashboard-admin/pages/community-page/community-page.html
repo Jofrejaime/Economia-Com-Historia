@@ -14,11 +14,11 @@
     </button>
   </div>
 
-  <!-- Stats Cards -->
+  <!-- Stats Cards - TODOS BORDEAUX -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
-        <span class="stat-value" style="color: #3b82f6;">💬</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">💬</span>
       </div>
       <div>
         <p class="stat-label">TÓPICOS</p>
@@ -26,8 +26,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">
-        <span class="stat-value" style="color: #22c55e;">✓</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">✓</span>
       </div>
       <div>
         <p class="stat-label">ATIVOS</p>
@@ -35,8 +35,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
-        <span class="stat-value" style="color: #3b82f6;">📝</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">📝</span>
       </div>
       <div>
         <p class="stat-label">RESPOSTAS</p>
@@ -44,8 +44,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-        <span class="stat-value" style="color: #f59e0b;">👁️</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">👁️</span>
       </div>
       <div>
         <p class="stat-label">VISUALIZAÇÕES</p>
@@ -103,17 +103,17 @@
           <td>{{ disc.views | number }}</td>
           <td>{{ disc.lastActivity }}</td>
           <td>
-            <span class="status-badge" [class]="getStatusBadgeClass(disc.status)">
+            <span class="status-badge">
               {{ disc.status === 'active' ? '✓' : disc.status === 'locked' ? '🔒' : '📁' }} {{ getStatusLabel(disc.status) }}
             </span>
           </td>
           <td class="actions-cell">
-            <button class="action-btn edit" (click)="openEditDiscussionModal(disc)" title="Editar">✏️ Editar</button>
-            <button *ngIf="disc.status !== 'locked'" class="action-btn lock" (click)="toggleLockDiscussion(disc.id)" title="Bloquear">🔒 Bloquear</button>
-            <button *ngIf="disc.status === 'locked'" class="action-btn unlock" (click)="toggleLockDiscussion(disc.id)" title="Desbloquear">🔓 Desbloquear</button>
-            <button *ngIf="disc.status !== 'archived'" class="action-btn archive" (click)="archiveDiscussion(disc.id)" title="Arquivar">📁 Arquivar</button>
-            <button *ngIf="disc.status === 'archived'" class="action-btn restore" (click)="restoreDiscussion(disc.id)" title="Restaurar">🔄 Restaurar</button>
-            <button class="action-btn delete" (click)="deleteDiscussion(disc.id)" title="Eliminar">🗑️ Eliminar</button>
+            <button class="action-btn" (click)="openEditDiscussionModal(disc)" title="Editar">✏️ </button>
+            <button *ngIf="disc.status !== 'locked'" class="action-btn" (click)="toggleLockDiscussion(disc.id)" title="Bloquear">🔒 </button>
+            <button *ngIf="disc.status === 'locked'" class="action-btn" (click)="toggleLockDiscussion(disc.id)" title="Desbloquear">🔓 </button>
+            <button *ngIf="disc.status !== 'archived'" class="action-btn" (click)="archiveDiscussion(disc.id)" title="Arquivar">📁 </button>
+            <button *ngIf="disc.status === 'archived'" class="action-btn" (click)="restoreDiscussion(disc.id)" title="Restaurar">🔄 </button>
+            <button class="action-btn" (click)="deleteDiscussion(disc.id)" title="Eliminar">🗑️ </button>
           </td>
         </tr>
       </tbody>

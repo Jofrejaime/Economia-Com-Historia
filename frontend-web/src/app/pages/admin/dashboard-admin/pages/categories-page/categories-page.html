@@ -14,11 +14,11 @@
     </button>
   </div>
 
-  <!-- Stats Cards -->
+  <!-- Stats Cards - TODOS BORDEAUX -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
-        <span class="stat-value" style="color: #3b82f6;">📂</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">📂</span>
       </div>
       <div>
         <p class="stat-label">TOTAL</p>
@@ -26,8 +26,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">
-        <span class="stat-value" style="color: #22c55e;">✓</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">✓</span>
       </div>
       <div>
         <p class="stat-label">ATIVAS</p>
@@ -35,8 +35,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
-        <span class="stat-value" style="color: #3b82f6;">🌐</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">🌐</span>
       </div>
       <div>
         <p class="stat-label">PÚBLICAS</p>
@@ -44,8 +44,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-        <span class="stat-value" style="color: #f59e0b;">🔒</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">🔒</span>
       </div>
       <div>
         <p class="stat-label">RESTRITAS</p>
@@ -79,19 +79,19 @@
 
   <!-- Categories Grid -->
   <div class="categories-grid">
-    <div *ngFor="let cat of filteredCategories" class="category-card" [style.borderTopColor]="cat.color">
+    <div *ngFor="let cat of filteredCategories" class="category-card">
       <div class="card-header">
         <div class="card-title-section">
-          <div class="category-icon" [style.background]="cat.color + '20'" [style.color]="cat.color">
+          <div class="category-icon">
             {{ cat.icon }}
           </div>
           <h3 class="category-name">{{ cat.name }}</h3>
         </div>
         <div class="card-badges">
-          <span class="type-badge" [class]="getTypeBadgeClass(cat.type)">
+          <span class="type-badge">
             {{ getTypeIcon(cat.type) }} {{ getTypeLabel(cat.type) }}
           </span>
-          <span class="status-badge" [class]="getStatusBadgeClass(cat.status)" (click)="$event.stopPropagation()">
+          <span class="status-badge" (click)="$event.stopPropagation()">
             <span class="status-dot" [class.active]="cat.status === 'active'"></span>
             {{ getStatusLabel(cat.status) }}
           </span>
@@ -116,11 +116,11 @@
       </div>
       
       <div class="card-actions">
-        <button class="action-btn edit" (click)="openEditCategoryModal(cat)">✏️ Editar</button>
-        <button class="action-btn toggle" (click)="toggleCategoryStatus(cat.id)">
+        <button class="action-btn" (click)="openEditCategoryModal(cat)">✏️ Editar</button>
+        <button class="action-btn" (click)="toggleCategoryStatus(cat.id)">
           {{ cat.status === 'active' ? '📥 Desativar' : '📤 Ativar' }}
         </button>
-        <button class="action-btn delete" (click)="deleteCategory(cat.id)">🗑️ Eliminar</button>
+        <button class="action-btn" (click)="deleteCategory(cat.id)">🗑️ Eliminar</button>
       </div>
     </div>
     
@@ -207,15 +207,15 @@
         
         <div class="preview-box">
           <div class="preview-title">Pré-visualização</div>
-          <div class="preview-card" [style.borderTopColor]="categoryForm.color">
+          <div class="preview-card">
             <div class="preview-header">
-              <div class="preview-icon" [style.background]="categoryForm.color + '20'" [style.color]="categoryForm.color">
+              <div class="preview-icon">
                 {{ categoryForm.icon || '📁' }}
               </div>
               <div>
                 <div class="preview-name">{{ categoryForm.name || 'Nome da Categoria' }}</div>
                 <div class="preview-badge">
-                  <span class="type-badge" [class]="getTypeBadgeClass(categoryForm.type)">
+                  <span class="type-badge">
                     {{ getTypeIcon(categoryForm.type) }} {{ getTypeLabel(categoryForm.type) }}
                   </span>
                 </div>

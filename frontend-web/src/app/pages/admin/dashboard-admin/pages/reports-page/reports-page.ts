@@ -145,13 +145,13 @@ export class ReportsPageComponent {
 
   getReasonIcon(reason: string): string {
     const icons: Record<string, string> = {
-      'Informação incorreta': '📝',
-      'Linguagem inadequada': '🗣️',
-      'Spam': '📧',
-      'Links maliciosos': '🔗',
-      'Plágio': '📋'
+      'Informação incorreta': '',
+      'Linguagem inadequada': '',
+      'Spam': '',
+      'Links maliciosos': '',
+      'Plágio': ''
     };
-    return icons[reason] || '⚠️';
+    return icons[reason] || '';
   }
 
   getStats() {
