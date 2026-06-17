@@ -77,7 +77,7 @@ class NotificationController extends Controller
         return response()->json([
             'message' => 'Notification sent.',
             'notification' => $notificationData,
-        ]);
+        ], 201);
     }
 
     public function sendInvite(Request $request): JsonResponse
@@ -100,8 +100,17 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Invite email sent.']);
     }
 
-    public function markRead(string $id): JsonResponse
+    public function markRead(string $id, Request $request): JsonResponse
     {
+        $notification = DB::table('notifications')
+            ->where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if ($notification === null) {
+            return response()->json(['message' => 'Notification not found.'], 404);
+        }
+
         DB::table('notifications')
             ->where('id', $id)
             ->update(['is_read' => true, 'read_at' => now()]);
@@ -119,8 +128,17 @@ class NotificationController extends Controller
         return response()->json(['message' => 'All notifications marked as read.']);
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $id, Request $request): JsonResponse
     {
+        $notification = DB::table('notifications')
+            ->where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if ($notification === null) {
+            return response()->json(['message' => 'Notification not found.'], 404);
+        }
+
         DB::table('notifications')->where('id', $id)->delete();
 
         return response()->json(['message' => 'Notification deleted.', 'id' => $id]);

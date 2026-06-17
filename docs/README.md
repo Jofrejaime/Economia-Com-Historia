@@ -4,7 +4,8 @@ Diretorio central de documentacao tecnica, funcional e de arquitetura.
 
 ## Estrutura base
 
-- api
+- api — referência de endpoints (`authentication`, `access-control`, `documents`, `gamification`, `quizzes`, …)
+- sprints — resumos de entrega por sprint (`SPRINT-2-…`, `SPRINT-3-…`)
 - architecture
 - diagrams
 - uml

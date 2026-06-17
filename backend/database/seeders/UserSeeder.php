@@ -83,66 +83,108 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
-    // Extrai dados do perfil
-    $displayName  = $userData['display_name'];
-    $fullName     = $userData['full_name'];
-    $institution  = $userData['institution'];
-    $province     = $userData['province'];
-    $bio          = $userData['bio'] ?? null;
-    $researchAreas = $userData['research_areas'] ?? null;
+            // Extract profile data
+            $displayName = $userData['display_name'];
+            $fullName = $userData['full_name'];
+            $institution = $userData['institution'];
+            $province = $userData['province'];
+            $bio = $userData['bio'] ?? null;
+            $researchAreas = $userData['research_areas'] ?? null;
 
-    // Gera o UUID aqui, sem depender do modelo
-    $userId = (string) Str::uuid();
+            // Remove profile data from user array
+            unset(
+                $userData['display_name'],
+                $userData['full_name'],
+                $userData['institution'],
+                $userData['province'],
+                $userData['bio'],
+                $userData['research_areas']
+            );
 
-    // Insere o utilizador diretamente
-    DB::table('users')->insert([
-        'id'             => $userId,
-        'email'          => $userData['email'],
-        'password_hash'  => $userData['password_hash'], // já vem com bcrypt()
-        'role'           => $userData['role'],
-        'email_verified' => $userData['email_verified'] ? 1 : 0,
-        'is_active'      => $userData['is_active'] ? 1 : 0,
-        'created_at'     => now(),
-        'updated_at'     => now(),
-    ]);
+            // Create user via DB::table to bypass:
+            // 1. WithoutModelEvents disabling UUID-generating `creating` event
+            // 2. `id` not in Fillable (mass assignment)
+            // 3. `hashed` cast double-hashing the already-bcrypted password
+            $userId = (string) Str::uuid();
+            DB::table('users')->insert([
+                'id' => $userId,
+                'email' => $userData['email'],
+                'password_hash' => $userData['password_hash'],
+                'email_verified' => $userData['email_verified'],
+                'is_active' => $userData['is_active'],
+                'role' => $userData['role'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $user = (object) ['id' => $userId, 'role' => $userData['role']];
 
-    // Insere o perfil
-    DB::table('user_profiles')->insert([
-        'id'           => (string) Str::uuid(),
-        'user_id'      => $userId,
-        'display_name' => $displayName,
-        'full_name'    => $fullName,
-        'institution'  => $institution,
-        'province'     => $province,
-        'bio'          => $bio,
-        'research_areas' => $researchAreas,
-        'created_at'   => now(),
-        'updated_at'   => now(),
-    ]);
+            // Create profile
+            DB::table('user_profiles')->insert([
+                'id' => (string) Str::uuid(),
+                'user_id' => $user->id,
+                'display_name' => $displayName,
+                'full_name' => $fullName,
+                'institution' => $institution,
+                'province' => $province,
+                'bio' => $bio,
+                'research_areas' => $researchAreas,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-    // Acesso público
-    DB::table('user_access_grants')->insert([
-        'id'              => (string) Str::uuid(),
-        'user_id'         => $userId,
-        'access_level_id' => 'public',
-        'granted_at'      => now(),
-        'is_active'       => true,
-    ]);
+            // Grant public access
+            DB::table('user_access_grants')->insert([
+                'id' => (string) Str::uuid(),
+                'user_id' => $user->id,
+                'access_level_id' => 'public',
+                'granted_at' => now(),
+                'is_active' => true,
+            ]);
 
-    // Nível inicial
-    DB::table('user_levels')->insert([
-        'id'               => (string) Str::uuid(),
-        'user_id'          => $userId,
-        'current_level'    => 1,
-        'total_points'     => 0,
-        'weekly_points'    => 0,
-        'monthly_points'   => 0,
-        'quizzes_completed'=> 0,
-        'documents_read'   => 0,
-        'topics_created'   => 0,
-        'replies_posted'   => 0,
-        'updated_at'       => now(),
-    ]);
-}
+            // Initialize user level with varied data per role
+            $levelData = match ($user->role) {
+                'admin' => ['current_level' => 5, 'total_points' => 1500, 'weekly_points' => 120, 'monthly_points' => 450, 'quizzes_completed' => 15, 'documents_read' => 40, 'topics_created' => 8, 'replies_posted' => 25],
+                'professor' => ['current_level' => 4, 'total_points' => 850, 'weekly_points' => 80, 'monthly_points' => 320, 'quizzes_completed' => 10, 'documents_read' => 30, 'topics_created' => 12, 'replies_posted' => 35],
+                'investigador' => ['current_level' => 4, 'total_points' => 720, 'weekly_points' => 65, 'monthly_points' => 280, 'quizzes_completed' => 8, 'documents_read' => 25, 'topics_created' => 6, 'replies_posted' => 20],
+                default => ['current_level' => 2, 'total_points' => 150, 'weekly_points' => 30, 'monthly_points' => 95, 'quizzes_completed' => 3, 'documents_read' => 8, 'topics_created' => 2, 'replies_posted' => 5],
+            };
+
+            DB::table('user_levels')->insert(array_merge([
+                'id' => (string) Str::uuid(),
+                'user_id' => $user->id,
+                'updated_at' => now(),
+            ], $levelData));
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // Populate leaderboard_nacional_cache
+        // ──────────────────────────────────────────────────────────────
+        $rankedUsers = DB::table('users as u')
+            ->join('user_profiles as up', 'up.user_id', '=', 'u.id')
+            ->join('user_levels as ul', 'ul.user_id', '=', 'u.id')
+            ->where('u.is_active', true)
+            ->orderByDesc('ul.total_points')
+            ->orderByDesc('ul.quizzes_completed')
+            ->select('u.id', 'up.display_name', 'up.province', 'up.avatar_url',
+                     'ul.total_points', 'ul.quizzes_completed', 'ul.weekly_points', 'ul.current_level')
+            ->get();
+
+        $rank = 0;
+        foreach ($rankedUsers as $ru) {
+            $rank++;
+            DB::table('leaderboard_nacional_cache')->insert([
+                'rank_position' => $rank,
+                'user_id' => $ru->id,
+                'display_name' => $ru->display_name,
+                'province' => $ru->province,
+                'avatar_url' => $ru->avatar_url,
+                'total_points' => $ru->total_points,
+                'quizzes_completed' => $ru->quizzes_completed,
+                'weekly_points' => $ru->weekly_points,
+                'current_level' => $ru->current_level,
+                'prev_rank' => 0,
+                'refreshed_at' => now(),
+            ]);
+        }
     }
 }

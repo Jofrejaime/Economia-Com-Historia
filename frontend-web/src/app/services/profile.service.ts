@@ -29,6 +29,41 @@ export interface MeResponse {
 export class ProfileService {
   constructor(private http: HttpClient, private auth: AuthService) {}
 
+  /**
+   * Garante que a URL do avatar é completa e acessível
+   */
+  private ensureCompleteAvatarUrl(url: string | null | undefined): string | null | undefined {
+    if (!url) return null;
+    
+    // Se já começa com http, é uma URL completa
+    if (url.startsWith('http')) return url;
+    
+    // Se é um caminho relativo, construir URL completa
+    if (url.startsWith('/')) {
+      return `${environment.apiBaseUrl}${url}`;
+    }
+    
+    // Caso especial: se começa com "avatars/", adicionar /storage/
+    if (url.startsWith('avatars/')) {
+      return `${environment.apiBaseUrl}/storage/${url}`;
+    }
+    
+    // Fallback: assumir que é um caminho relativo no storage
+    return `${environment.apiBaseUrl}/storage/${url}`;
+  }
+
+  /**
+   * Processa uma resposta de profile para garantir URLs completas
+   */
+  private processProfile(profile: ApiProfile | null | undefined): ApiProfile | undefined {
+    if (!profile) return undefined;
+    
+    return {
+      ...profile,
+      avatar_url: this.ensureCompleteAvatarUrl(profile.avatar_url) as string | null | undefined
+    };
+  }
+
   async getMe(): Promise<MeResponse> {
     const token = this.auth.getToken();
 
@@ -37,11 +72,18 @@ export class ProfileService {
     }
 
     try {
-      return await firstValueFrom(
+      const response = await firstValueFrom(
         this.http.get<MeResponse>(`${environment.apiBaseUrl}/api/me`, {
           headers: this.auth.getAuthHeaders(token),
         })
       );
+      
+      // Processar profile para garantir URLs completas
+      if (response.profile) {
+        response.profile = this.processProfile(response.profile) ?? (response.profile || undefined);
+      }
+      
+      return response;
     } catch (error) {
       throw this.normalizeError(error, 'Falha ao carregar o contexto do utilizador');
     }
@@ -55,11 +97,19 @@ export class ProfileService {
     }
 
     try {
-      return await firstValueFrom(
+      const response = await firstValueFrom(
         this.http.get<{ profile: ApiProfile }>(`${environment.apiBaseUrl}/api/profile`, {
           headers: this.auth.getAuthHeaders(token),
         })
       );
+      
+      // Processar profile para garantir URLs completas
+      if (response.profile) {
+        const processed = this.processProfile(response.profile);
+        response.profile = processed as ApiProfile;
+      }
+      
+      return response;
     } catch (error) {
       throw this.normalizeError(error, 'Falha ao carregar o perfil');
     }
@@ -81,13 +131,21 @@ export class ProfileService {
     }
 
     try {
-      return await firstValueFrom(
+      const response = await firstValueFrom(
         this.http.put<{ message?: string; profile?: ApiProfile }>(
           `${environment.apiBaseUrl}/api/profile`,
           payload,
           { headers: this.auth.getAuthHeaders(token) }
         )
       );
+      
+      // Processar profile para garantir URLs completas
+      if (response.profile) {
+        const processed = this.processProfile(response.profile);
+        response.profile = processed as ApiProfile | undefined;
+      }
+      
+      return response;
     } catch (error) {
       throw this.normalizeError(error, 'Falha ao atualizar o perfil');
     }
@@ -104,13 +162,21 @@ export class ProfileService {
     formData.append('avatar', avatar);
 
     try {
-      return await firstValueFrom(
+      const response = await firstValueFrom(
         this.http.post<{ message?: string; avatar_url?: string }>(
           `${environment.apiBaseUrl}/api/profile/avatar`,
           formData,
           { headers: this.auth.getAuthHeaders(token) }
         )
       );
+      
+      // Processar URL para garantir que é completa
+      if (response.avatar_url) {
+        const completeUrl = this.ensureCompleteAvatarUrl(response.avatar_url);
+        response.avatar_url = (completeUrl ?? undefined) as string | undefined;
+      }
+      
+      return response;
     } catch (error) {
       throw this.normalizeError(error, 'Falha ao atualizar o avatar');
     }

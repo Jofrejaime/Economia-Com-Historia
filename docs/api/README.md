@@ -2,9 +2,9 @@
 
 > Complete API reference for the Economia com História platform. This documentation covers authentication, access control, notifications, and integration guidelines for frontend clients.
 
-**Version:** 1.0.0  
-**Last Updated:** June 1, 2026  
-**Status:** Production Ready
+**Version:** 1.1.0  
+**Last Updated:** June 4, 2026  
+**Status:** In development (Sprints 1–3 delivered on backend)
 
 ## Table of Contents
 
@@ -77,6 +77,12 @@ The system implements 3-tier access levels:
 
 **See:** [Access Control Endpoints](./access-control.md)
 
+## Documents & Quizzes
+
+- **Documents** (Sprint 2 — access-filtered listings): [Documents](./documents.md)
+- **Gamification** (Sprint 3 — points, levels, badges): [Gamification](./gamification.md)
+- **Quizzes** (Sprint 3 — attempts + completion): [Quizzes](./quizzes.md)
+
 ## Endpoints
 
 ### Authentication & Auth
@@ -89,6 +95,7 @@ The system implements 3-tier access levels:
 - `POST /auth/verify-email` - Verify email address
 - `POST /auth/resend-verification` - Resend verification email
 - `GET /me` - Get current authenticated user
+- `GET /me/point-transactions` - Point transaction history
 
 **See:** [Authentication Endpoints](./authentication.md)
 
@@ -102,6 +109,29 @@ The system implements 3-tier access levels:
 - `POST /access-grants/{id}/revoke` - Revoke access grant
 
 **See:** [Access Control Endpoints](./access-control.md)
+
+### Documents
+- `GET /document-categories` - List thematic categories
+- `GET /documents` - List documents (visibility filtered)
+- `GET /documents/search` - Search documents
+- `GET /documents/{id}` - Document detail
+- `POST /documents/{id}/download` - Register download
+- `POST|DELETE /documents/{id}/like` - Like / unlike
+- `POST|DELETE /documents/{id}/favorite` - Favorite / unfavorite
+- `POST /documents/{id}/citations` - Generate citation
+
+**See:** [Documents](./documents.md)
+
+### Quizzes
+- `GET /quizzes` - List quizzes
+- `GET /quizzes/{id}` - Quiz detail
+- `GET /quizzes/{id}/questions` - Questions
+- `POST /quizzes/{id}/attempts` - Start attempt
+- `POST /quiz-attempts/{id}/answers` - Submit answer
+- `POST /quiz-attempts/{id}/complete` - Complete attempt (triggers gamification)
+- `GET /me/quiz-attempts` - User attempt history
+
+**See:** [Quizzes](./quizzes.md) · [Gamification](./gamification.md)
 
 ### Notifications
 - `GET /notifications` - List user's notifications
@@ -180,4 +210,6 @@ STORAGE_KEY=economia_token
 
 ---
 
-**Last Updated:** June 1, 2026 | **Maintained By:** Backend Team (Pessoa 1)
+**Sprint notes:** [Sprint 2](../sprints/SPRINT-2-ACCESS-DOCUMENTS.md) · [Sprint 3](../sprints/SPRINT-3-GAMIFICATION-QUIZ.md)
+
+**Last Updated:** June 4, 2026 | **Maintained By:** Backend Team (Pessoa 1)

@@ -5,15 +5,23 @@
   <main style="flex: 1; width: 100%;">
     <div style="max-width: 1536px; margin: 0 auto; padding: 40px 48px;">
       
-      <!-- Profile Header Modernizado -->
+      <!-- Loading State -->
+      <div *ngIf="state.isLoadingProfile" style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 18px; color: #6a6a6a;">
+          <p style="margin: 0 0 20px 0; font-weight: 500;">Carregando seu perfil...</p>
+          <div style="display: inline-block; width: 50px; height: 50px; border: 4px solid #eef2f6; border-top: 4px solid #800020; border-radius: 50%; animation: spinnerRotate 1s linear infinite;"></div>
+        </div>
+      </div>
+
+      <!-- Conteúdo do Perfil -->
+      <div [style.display]="state.isLoadingProfile ? 'none' : 'block'">
+      
+      <!-- Profile Header -->
       <div style="display: flex; gap: 48px; margin-bottom: 48px; flex-wrap: wrap;">
         <div style="background: linear-gradient(135deg, #dee9fc, #f1f5f9); border-radius: 20px; overflow: hidden; width: 280px; height: 280px; box-shadow: 0 8px 20px rgba(0,0,0,0.06);">
-          <img alt="Profile Background" [src]="profileAvatarUrl" style="width: 100%; height: 100%; object-fit: cover;" />
+          <img alt="Profile Avatar" [src]="profileAvatarUrl" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
         <div style="flex: 1;">
-          <div *ngIf="profileError" style="margin-bottom: 16px; background: rgba(185,28,28,0.08); color: #7f1d1d; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(185,28,28,0.15);">
-            {{ profileError }}
-          </div>
           <div style="margin-bottom: 12px;">
             <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #800020; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; display: inline-block;">ESTATUTO ACADÉMICO</span>
           </div>
@@ -21,72 +29,44 @@
           <p style="color: #6a6a6a; font-size: 16px; line-height: 1.5; margin: 0;">{{ profileStatus }}</p>
           <p *ngFor="let line of profileBio" style="color: #6a6a6a; font-size: 16px; line-height: 1.5; margin: 8px 0 0 0;">{{ line }}</p>
           <div style="display: flex; gap: 14px; margin-top: 28px;">
-            <button style="background: linear-gradient(135deg, #800020, #6b0119); padding: 10px 28px; border-radius: 40px; border: none; cursor: pointer; color: white; font-weight: 500; font-size: 14px; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(128,0,32,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">Editar Bio Académica</button>
-            <button style="background: none; padding: 10px 28px; border-radius: 40px; border: 1px solid #e2e8f0; cursor: pointer; color: #800020; font-weight: 500; font-size: 14px; transition: all 0.3s;" onmouseover="this.style.borderColor='#800020'; this.style.backgroundColor='rgba(128,0,32,0.04)'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.backgroundColor='transparent'">Descarregar Portfólio</button>
+            <button (click)="openEditProfileModal()" style="background: linear-gradient(135deg, #800020, #6b0119); padding: 10px 28px; border-radius: 40px; border: none; cursor: pointer; color: white; font-weight: 500; font-size: 14px; transition: all 0.3s;">Editar Perfil</button>
+            <button (click)="downloadPortfolio()" style="background: none; padding: 10px 28px; border-radius: 40px; border: 1px solid #e2e8f0; cursor: pointer; color: #800020; font-weight: 500; font-size: 14px; transition: all 0.3s;">Descarregar Portfólio</button>
           </div>
         </div>
       </div>
 
-      <!-- Stats Grid Modernizado -->
+      <!-- Stats Grid -->
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 64px;">
-        
-        <!-- Card 1 -->
-        <div style="background: white; border-radius: 20px; padding: 24px; border: 1px solid #eef2f6;">
-          <p style="font-weight: 600; font-size: 11px; margin: 0 0 12px 0; color: #8a8a8a; letter-spacing: 0.5px;">PONTUAÇÃO ACADÉMICA TOTAL</p>
-          <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 16px;">
-            <span style="font-weight: 700; font-size: 42px; color: #800020;">12.450</span>
-            <span style="color: #8a8a8a; font-size: 14px;">pts</span>
+        <div *ngFor="let stat of stats" 
+             style="background: white; border-radius: 20px; padding: 24px; border: 1px solid #eef2f6;"
+             [style.backgroundColor]="stat.bgColor || 'white'"
+             [style.color]="stat.color">
+          <p style="font-weight: 600; font-size: 11px; margin: 0 0 12px 0; color: #8a8a8a; letter-spacing: 0.5px;">{{ stat.label }}</p>
+          <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 16px;" *ngIf="stat.progress !== null">
+            <span style="font-weight: 700; font-size: 42px;" [style.color]="stat.color">{{ stat.value }}</span>
+            <span style="color: #8a8a8a; font-size: 14px;">{{ stat.unit }}</span>
           </div>
-          <div style="background-color: #f1f5f9; height: 8px; border-radius: 10px; overflow: hidden;">
-            <div style="background: linear-gradient(90deg, #800020, #6b0119); height: 8px; border-radius: 10px; width: 75%;"></div>
+          <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 16px;" *ngIf="stat.progress === null">
+            <span style="font-weight: 700; font-size: 42px;" [style.color]="stat.color">{{ stat.value }}</span>
+            <span style="color: #8a8a8a; font-size: 14px;">{{ stat.subtext }}</span>
           </div>
-        </div>
-
-        <!-- Card 2 -->
-        <div style="background: white; border-radius: 20px; padding: 24px; border: 1px solid #eef2f6;">
-          <p style="font-weight: 600; font-size: 11px; margin: 0 0 12px 0; color: #8a8a8a; letter-spacing: 0.5px;">QUESTIONÁRIOS CONCLUÍDOS</p>
-          <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 16px;">
-            <span style="font-weight: 700; font-size: 42px; color: #800020;">142</span>
-            <span style="color: #8a8a8a; font-size: 14px;">de 200</span>
+          <div *ngIf="stat.progress !== null" style="background-color: #f1f5f9; height: 8px; border-radius: 10px; overflow: hidden;">
+            <div style="height: 8px; border-radius: 10px; background: linear-gradient(90deg, #800020, #6b0119);" [style.width]="stat.progress + '%'"></div>
           </div>
-          <div style="background-color: #f1f5f9; height: 8px; border-radius: 10px; overflow: hidden;">
-            <div style="background: linear-gradient(90deg, #800020, #6b0119); height: 8px; border-radius: 10px; width: 71%;"></div>
-          </div>
-        </div>
-
-        <!-- Card 3 - Destaque -->
-        <div style="background: linear-gradient(135deg, #800020, #6b0119); border-radius: 20px; padding: 24px; position: relative; overflow: hidden;">
-          <div style="position: absolute; top: -30px; right: -30px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
-          <p style="font-weight: 600; font-size: 11px; margin: 0 0 12px 0; color: rgba(255,255,255,0.8); letter-spacing: 0.5px;">POSIÇÃO GLOBAL</p>
-          <div style="margin-bottom: 20px;">
-            <span style="font-weight: 700; font-size: 48px; color: white;">#12</span>
-          </div>
-          <p style="color: rgba(255,255,255,0.9); font-size: 11px; margin: 0; font-weight: 500;">MELHORES DO PERÍODO</p>
-          <p style="color: rgba(255,255,255,0.7); font-size: 11px; margin: 4px 0 0 0;">Quadro do Sector XX</p>
-        </div>
-
-        <!-- Card 4 -->
-        <div style="background: white; border-radius: 20px; padding: 24px; border: 1px solid #eef2f6;">
-          <p style="font-weight: 600; font-size: 11px; margin: 0 0 12px 0; color: #8a8a8a; letter-spacing: 0.5px;">CERTIFICAÇÕES</p>
-          <div style="display: flex; align-items: baseline; gap: 6px;">
-            <span style="font-weight: 700; font-size: 42px; color: #1a1a1a;">28</span>
-            <span style="color: #8a8a8a; font-size: 14px;">validações</span>
-          </div>
+          <p *ngIf="stat.rankBadge" style="color: rgba(255,255,255,0.7); font-size: 11px; margin: 4px 0 0 0; font-weight: 500;">{{ stat.rankBadge }}</p>
         </div>
       </div>
 
-      <!-- Méritos e Distinções Modernizado -->
-      <div style="margin-bottom: 64px;">
+      <!-- Méritos e Distinções -->
+      <div style="margin-bottom: 64px;" *ngIf="merits.length > 0">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
           <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0;">Méritos e Distinções</h2>
-          <button style="color: #800020; font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: gap 0.3s;" onmouseover="this.style.gap='10px'" onmouseout="this.style.gap='6px'">Ver Todos os Certificados →</button>
+          <button style="color: #800020; font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">Ver Todos os Certificados →</button>
         </div>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
           <div *ngFor="let merit of merits" 
                style="background: #f8fafc; border-radius: 16px; padding: 20px; display: flex; gap: 16px; border: 1px solid #eef2f6; transition: all 0.3s;"
-               [style.opacity]="merit.isActive ? '1' : '0.6'"
-               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.04)'"
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+               [style.opacity]="merit.isActive ? '1' : '0.6'">
             <div style="background: white; border-radius: 14px; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
               <svg width="32" height="32" [attr.viewBox]="merit.iconViewBox" fill="none">
                 <path [attr.d]="merit.iconPath" [style.fill]="merit.isActive ? '#800020' : '#cbd5e1'"/>
@@ -101,77 +81,198 @@
         </div>
       </div>
 
-      <!-- Controles de Conta Modernizado -->
-      <div style="margin-bottom: 64px;">
-        <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0 0 24px 0;">Controlos de Conta</h2>
-        <div style="background: #f8fafc; border-radius: 20px; padding: 32px; max-width: 480px; border: 1px solid #eef2f6;">
+      <!-- MODAL: Editar Perfil -->
+      <div *ngIf="state.isEditingProfile" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: white; border-radius: 20px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
           
-          <div style="margin-bottom: 28px;">
-            <p style="font-weight: 600; color: #800020; margin: 0 0 16px 0; font-size: 13px; letter-spacing: 0.5px;">PRIVACIDADE E SEGURANÇA</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="color: #1a1a1a; font-size: 14px;">Perfil Académico Público</span>
-              <div style="width: 20px; height: 20px; border-radius: 6px; background-color: #800020; cursor: pointer; transition: all 0.2s;"></div>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #1a1a1a; font-size: 14px;">Autenticação de Dois Factores</span>
-              <div style="width: 20px; height: 20px; border-radius: 6px; background-color: white; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.2s;"></div>
-            </div>
+          <!-- Header do Modal -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="color: #1a1a1a; font-size: 24px; font-weight: 700; margin: 0;">Editar Perfil</h2>
+            <button (click)="closeEditProfileModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #8a8a8a; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">×</button>
           </div>
 
-          <div style="margin-bottom: 24px; padding-top: 20px; border-top: 1px solid #eef2f6;">
-            <p style="font-weight: 600; color: #800020; margin: 0 0 16px 0; font-size: 13px; letter-spacing: 0.5px;">NOTIFICAÇÕES</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="color: #1a1a1a; font-size: 14px;">Atualizações do Arquivo</span>
-              <div style="width: 20px; height: 20px; border-radius: 6px; background-color: #800020; cursor: pointer;"></div>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #1a1a1a; font-size: 14px;">Menções de Pares</span>
-              <div style="width: 20px; height: 20px; border-radius: 6px; background-color: #800020; cursor: pointer;"></div>
-            </div>
-          </div>
+          <!-- Formulário -->
+          <form [formGroup]="editForm" style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- Avatar Upload -->
+            <div>
+              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 12px;">Foto de Perfil</label>
+              
+              <!-- Input de arquivo (hidden) -->
+              <input #avatarInput 
+                     type="file" 
+                     accept="image/jpeg,image/png,image/webp"
+                     (change)="onAvatarSelected($event)"
+                     style="display: none;">
 
-          <button style="width: 100%; padding: 14px; background: none; border: 1px solid #e2e8f0; border-radius: 40px; cursor: pointer; margin-top: 16px; color: #ba1a1a; font-weight: 600; font-size: 14px; transition: all 0.3s;" onmouseover="this.style.backgroundColor='rgba(186,26,26,0.05)'; this.style.borderColor='#ba1a1a'" onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='#e2e8f0'">Desativar Conta do Arquivo</button>
+              <!-- Avatar Container with Pencil Icon Overlay -->
+              <div style="position: relative; display: inline-block; width: 120px; height: 120px; margin-bottom: 12px;">
+                <!-- Current or Preview Avatar -->
+                <img [src]="getAvatarSrc()" 
+                     alt="Avatar de perfil"
+                     style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 2px solid #eef2f6;">
+                
+                <!-- Pencil Icon Button Overlay -->
+                <button type="button"
+                        (click)="avatarInput.click()"
+                        [disabled]="state.isLoadingStats"
+                        style="position: absolute; bottom: 0; right: 0; width: 40px; height: 40px; border-radius: 50%; background: #800020; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2); font-weight: bold;"
+                        title="Alterar foto de perfil">
+                  ✎
+                </button>
+              </div>
+
+              <!-- Validações e Info -->
+              <p *ngIf="avatarError" style="color: #ba1a1a; font-size: 12px; margin-top: 8px;">Erro: {{ avatarError }}</p>
+              <p style="color: #8a8a8a; font-size: 11px; margin-top: 8px;">
+                JPG, PNG ou WebP (máx 5MB)
+              </p>
+
+              <!-- Remover Seleção (apenas se houver preview) -->
+              <button *ngIf="avatarPreview"
+                      type="button"
+                      (click)="clearAvatarSelection()"
+                      style="width: 100%; padding: 8px; margin-top: 8px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; color: #991b1b; font-size: 12px; font-weight: 500;">
+                Remover Seleção
+              </button>
+            </div>
+            
+            <!-- Nome de Exibição -->
+            <div>
+              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Nome de Exibição *</label>
+              <input formControlName="display_name" 
+                     type="text" 
+                     placeholder="Seu nome completo"
+                     style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit;">
+              <p *ngIf="editForm.get('display_name')?.hasError('required') && editForm.get('display_name')?.touched" 
+                 style="color: #ba1a1a; font-size: 12px; margin-top: 4px;">Campo obrigatório</p>
+              <p *ngIf="editForm.get('display_name')?.hasError('maxlength') && editForm.get('display_name')?.touched" 
+                 style="color: #ba1a1a; font-size: 12px; margin-top: 4px;">Máximo 100 caracteres</p>
+            </div>
+
+            <!-- Bio -->
+            <div>
+              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">
+                Bio Académica 
+                <span style="color: #8a8a8a; font-weight: 400;">
+                  ({{ editForm.get('bio')?.value?.length || 0 }}/2000)
+                </span>
+              </label>
+              <textarea formControlName="bio" 
+                        placeholder="Descreva sua área de pesquisa e interesses académicos..."
+                        style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; min-height: 100px; resize: vertical;">
+              </textarea>
+              <p *ngIf="editForm.get('bio')?.hasError('maxlength') && editForm.get('bio')?.touched" 
+                 style="color: #ba1a1a; font-size: 12px; margin-top: 4px;">Máximo 2000 caracteres</p>
+            </div>
+
+            <!-- Instituição -->
+            <div>
+              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Instituição</label>
+              <input formControlName="institution" 
+                     type="text" 
+                     placeholder="Sua universidade ou organização"
+                     style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit;">
+            </div>
+
+            <!-- Província -->
+            <div>
+              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Província</label>
+              <select formControlName="province" 
+                      style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; background: white;">
+                <option value="">Selecione uma província...</option>
+                <option *ngFor="let province of angolasProvinces" [value]="province">{{ province }}</option>
+              </select>
+            </div>
+
+            <!-- Áreas de Pesquisa -->
+            <div>
+              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">
+                Áreas de Pesquisa
+                <span style="color: #8a8a8a; font-weight: 400; font-size: 12px;"> (máximo 10)</span>
+              </label>
+              <p style="color: #6a6a6a; font-size: 12px; margin: 0 0 8px 0;">Separe as áreas com vírgula</p>
+              <input formControlName="research_areas" 
+                     type="text" 
+                     placeholder="Ex: História Económica, Análise de Dados, Economia Social"
+                     style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit;">
+              <p style="color: #8a8a8a; font-size: 11px; margin-top: 4px;">Máx 2000 caracteres</p>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid #eef2f6; padding-top: 20px;">
+              <button (click)="saveProfileChanges()" 
+                      [disabled]="!editForm.valid || state.isLoadingStats"
+                      style="flex: 1; padding: 12px; background: linear-gradient(135deg, #800020, #6b0119); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                      [style.opacity]="!editForm.valid || state.isLoadingStats ? '0.6' : '1'">
+                {{ state.isLoadingStats ? 'Salvando...' : 'Salvar Mudanças' }}
+              </button>
+              <button (click)="discardChanges()" 
+                      type="button"
+                      style="flex: 1; padding: 12px; background: #f1f5f9; color: #1a1a1a; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                Descartar
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
-      <!-- Conteúdos Criados Modernizado -->
-      <div>
+      <!-- Controles de Conta -->
+      <div style="margin-bottom: 64px;" *ngIf="settings.privacy.length > 0 || settings.notifications.length > 0">
+        <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0 0 24px 0;">Controlos de Conta</h2>
+        <div style="background: #f8fafc; border-radius: 20px; padding: 32px; max-width: 480px; border: 1px solid #eef2f6;">
+          
+          <div style="margin-bottom: 28px;" *ngIf="settings.privacy.length > 0">
+            <p style="font-weight: 600; color: #800020; margin: 0 0 16px 0; font-size: 13px; letter-spacing: 0.5px;">PRIVACIDADE E SEGURANÇA</p>
+            <div *ngFor="let setting of settings.privacy; let i = index" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="color: #1a1a1a; font-size: 14px;">{{ setting.label }}</span>
+              <button (click)="togglePrivacySetting(i)" 
+                      style="width: 20px; height: 20px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none;"
+                      [style.backgroundColor]="setting.checked ? '#800020' : 'white'"
+                      [style.border]="setting.checked ? 'none' : '1px solid #e2e8f0'"></button>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 24px; padding-top: 20px; border-top: 1px solid #eef2f6;" *ngIf="settings.notifications.length > 0">
+            <p style="font-weight: 600; color: #800020; margin: 0 0 16px 0; font-size: 13px; letter-spacing: 0.5px;">NOTIFICAÇÕES</p>
+            <div *ngFor="let setting of settings.notifications; let i = index" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="color: #1a1a1a; font-size: 14px;">{{ setting.label }}</span>
+              <button (click)="toggleNotificationSetting(i)" 
+                      style="width: 20px; height: 20px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none;"
+                      [style.backgroundColor]="setting.checked ? '#800020' : 'white'"
+                      [style.border]="setting.checked ? 'none' : '1px solid #e2e8f0'"></button>
+            </div>
+          </div>
+
+          <button (click)="deactivateAccount()" style="width: 100%; padding: 14px; background: none; border: 1px solid #e2e8f0; border-radius: 40px; cursor: pointer; margin-top: 16px; color: #ba1a1a; font-weight: 600; font-size: 14px; transition: all 0.3s;">Desativar Conta do Arquivo</button>
+        </div>
+      </div>
+
+      <!-- Conteúdos Criados -->
+      <div *ngIf="userContents.length > 0">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
           <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0;">Conteúdos Criados</h2>
-          <span style="color: #8a8a8a; font-size: 14px; background: #f1f5f9; padding: 6px 14px; border-radius: 30px;">6 publicações</span>
+          <span style="color: #8a8a8a; font-size: 14px; background: #f1f5f9; padding: 6px 14px; border-radius: 30px;">{{ userContents.length }} publicações</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 16px;">
-          <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #eef2f6; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='rgba(128,0,32,0.15)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.04)'" onmouseout="this.style.borderColor='#eef2f6'; this.style.boxShadow='none'">
+          <div *ngFor="let content of userContents" style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #eef2f6; cursor: pointer; transition: all 0.3s;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-              <span style="background: #f8fafc; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #800020;">Artigo Académico</span>
-              <span style="color: #8a8a8a; font-size: 12px;">📅 15 de Março, 2026</span>
+              <span style="background: #f8fafc; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #800020;">{{ content.type }}</span>
+              <span style="color: #8a8a8a; font-size: 12px;">{{ content.date }}</span>
             </div>
-            <h3 style="color: #1a1a1a; font-size: 18px; font-weight: 700; margin: 0 0 12px 0;">Análise do Sistema Monetário de Luanda no Século XVIII</h3>
-            <p style="color: #6a6a6a; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0;">Estudo detalhado sobre as transformações monetárias e econômicas do sistema de comércio em Luanda durante o século XVIII.</p>
+            <h3 style="color: #1a1a1a; font-size: 18px; font-weight: 700; margin: 0 0 12px 0;">{{ content.title }}</h3>
+            <p style="color: #6a6a6a; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0;">{{ content.description }}</p>
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
               <div style="display: flex; gap: 16px;">
-                <span style="color: #8a8a8a; font-size: 12px;">📁 História Económica</span>
-                <span style="color: #8a8a8a; font-size: 12px;">👁️ 1.245 visualizações</span>
-              </div>
-              <span style="color: #800020; font-size: 13px; font-weight: 600;">Ler mais →</span>
-            </div>
-          </div>
-          <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #eef2f6; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='rgba(128,0,32,0.15)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.04)'" onmouseout="this.style.borderColor='#eef2f6'; this.style.boxShadow='none'">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-              <span style="background: #f8fafc; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #800020;">Documento de Pesquisa</span>
-              <span style="color: #8a8a8a; font-size: 12px;">📅 2 de Fevereiro, 2026</span>
-            </div>
-            <h3 style="color: #1a1a1a; font-size: 18px; font-weight: 700; margin: 0 0 12px 0;">Transições Macroeconómicas no Centro Comercial</h3>
-            <p style="color: #6a6a6a; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0;">Análise das mudanças estruturais nos principais centros de comércio e seu impacto na economia regional.</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-              <div style="display: flex; gap: 16px;">
-                <span style="color: #8a8a8a; font-size: 12px;">📁 Economia</span>
-                <span style="color: #8a8a8a; font-size: 12px;">👁️ 892 visualizações</span>
+                <span style="color: #8a8a8a; font-size: 12px;">{{ content.category }}</span>
+                <span style="color: #8a8a8a; font-size: 12px;">{{ content.views }} visualizações</span>
               </div>
               <span style="color: #800020; font-size: 13px; font-weight: 600;">Ler mais →</span>
             </div>
           </div>
         </div>
+      </div>
+
       </div>
     </div>
   </main>

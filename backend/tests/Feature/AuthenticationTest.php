@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Mail\EmailVerificationMail;
 use App\Mail\PasswordResetMail;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,9 +16,12 @@ class AuthenticationTest extends TestCase
 
     public function test_user_can_register(): void
     {
+        Mail::fake();
+
         $response = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
             'role' => 'estudante',
         ]);
@@ -28,19 +33,150 @@ class AuthenticationTest extends TestCase
             'verification_token',
             'user' => ['id', 'email', 'email_verified', 'is_active', 'role'],
         ]);
+
+        Mail::assertSent(EmailVerificationMail::class, function (EmailVerificationMail $mail): bool {
+            return $mail->hasTo('test@example.com');
+        });
+    }
+
+    public function test_register_rejects_admin_role(): void
+    {
+        Mail::fake();
+
+        $response = $this->postJson('/api/auth/register', [
+            'email' => 'admin-attempt@example.com',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
+            'display_name' => 'Admin Attempt',
+            'role' => 'admin',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['role']);
+    }
+
+    public function test_login_rejects_inactive_user(): void
+    {
+        Mail::fake();
+
+        $this->postJson('/api/auth/register', [
+            'email' => 'inactive@example.com',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
+            'display_name' => 'Inactive User',
+        ]);
+
+        User::query()->where('email', 'inactive@example.com')->update(['is_active' => false]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'inactive@example.com',
+            'password' => 'Kh7#m9$Pq2!z',
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_refresh_rejects_expired_session(): void
+    {
+        Mail::fake();
+
+        $register = $this->postJson('/api/auth/register', [
+            'email' => 'expired@example.com',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
+            'display_name' => 'Expired Session',
+        ]);
+
+        $token = $register->json('token');
+
+        DB::table('user_sessions')
+            ->where('refresh_token', $token)
+            ->update(['expires_at' => now()->subMinute()]);
+
+        $response = $this->postJson('/api/auth/refresh', [], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_user_can_manage_sessions(): void
+    {
+        Mail::fake();
+
+        $register = $this->postJson('/api/auth/register', [
+            'email' => 'sessions@example.com',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
+            'display_name' => 'Session User',
+        ]);
+
+        $token = $register->json('token');
+
+        $this->postJson('/api/auth/login', [
+            'email' => 'sessions@example.com',
+            'password' => 'Kh7#m9$Pq2!z',
+        ]);
+
+        $list = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/auth/sessions');
+
+        $list->assertStatus(200);
+        $this->assertGreaterThanOrEqual(2, count($list->json('data')));
+
+        $otherSession = collect($list->json('data'))->first(fn (array $s) => $s['is_current'] === false);
+        $this->assertNotNull($otherSession);
+
+        $revoke = $this->withHeader('Authorization', "Bearer {$token}")
+            ->deleteJson('/api/auth/sessions/'.$otherSession['id']);
+
+        $revoke->assertStatus(200);
+
+        $revokeOthers = $this->withHeader('Authorization', "Bearer {$token}")
+            ->deleteJson('/api/auth/sessions/others');
+
+        $revokeOthers->assertStatus(200);
+        $revokeOthers->assertJsonPath('revoked_count', 0);
+    }
+
+    public function test_resend_verification_sends_email(): void
+    {
+        Mail::fake();
+
+        $this->postJson('/api/auth/register', [
+            'email' => 'resend@example.com',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
+            'display_name' => 'Resend User',
+        ]);
+
+        Mail::fake();
+
+        $response = $this->postJson('/api/auth/resend-verification', [
+            'email' => 'resend@example.com',
+        ]);
+
+        $response->assertStatus(200);
+
+        Mail::assertSent(EmailVerificationMail::class, function (EmailVerificationMail $mail): bool {
+            return $mail->hasTo('resend@example.com');
+        });
     }
 
     public function test_user_can_login(): void
     {
+        Mail::fake();
+
         $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
         $response = $this->postJson('/api/auth/login', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
         ]);
 
         $response->assertStatus(200);
@@ -53,9 +189,12 @@ class AuthenticationTest extends TestCase
 
     public function test_login_fails_with_invalid_credentials(): void
     {
+        Mail::fake();
+
         $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -70,9 +209,12 @@ class AuthenticationTest extends TestCase
 
     public function test_user_can_access_protected_me_route(): void
     {
+        Mail::fake();
+
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -97,9 +239,12 @@ class AuthenticationTest extends TestCase
 
     public function test_user_can_verify_email(): void
     {
+        Mail::fake();
+
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -115,9 +260,12 @@ class AuthenticationTest extends TestCase
 
     public function test_user_can_refresh_token(): void
     {
+        Mail::fake();
+
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -133,9 +281,12 @@ class AuthenticationTest extends TestCase
 
     public function test_user_can_logout(): void
     {
+        Mail::fake();
+
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -155,7 +306,8 @@ class AuthenticationTest extends TestCase
 
         $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -175,9 +327,12 @@ class AuthenticationTest extends TestCase
 
     public function test_user_can_reset_password(): void
     {
+        Mail::fake();
+
         $register = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'Password123!',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
             'display_name' => 'Test User',
         ]);
 
@@ -194,8 +349,8 @@ class AuthenticationTest extends TestCase
 
         $response = $this->postJson('/api/auth/reset-password', [
             'token' => $resetToken,
-            'password' => 'NewPassword456!',
-            'password_confirmation' => 'NewPassword456!',
+            'password' => 'Ap9#xR7$wQ!z',
+            'password_confirmation' => 'Ap9#xR7$wQ!z',
         ]);
 
         $response->assertStatus(200);

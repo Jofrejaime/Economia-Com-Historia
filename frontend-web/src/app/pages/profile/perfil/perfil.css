@@ -5,6 +5,21 @@
   box-sizing: border-box;
 }
 
+/* Animação do Spinner de Loading */
+@keyframes spinnerRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Aplicar animação ao div */
+div[style*="animation: spinnerRotate"] {
+  animation: spinnerRotate 1s linear infinite !important;
+}
+
 /* Animações suaves */
 button, div[style*="cursor: pointer"] {
   transition: all 0.2s ease;

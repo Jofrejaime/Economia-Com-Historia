@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Services\AccessGateService;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,19 +13,49 @@ use Illuminate\Support\Str;
 
 class AccessController extends Controller
 {
+    public function __construct(
+        private readonly AccessGateService $accessGate,
+        private readonly NotificationService $notificationService,
+    ) {}
+
     public function index(): JsonResponse
     {
-        $levels = DB::table('access_levels')->get();
+        $levels = DB::table('access_levels')->orderBy('id')->get();
 
         return response()->json(['data' => $levels]);
     }
 
     public function requests(Request $request): JsonResponse
     {
-        $requests = DB::table('user_access_requests')
-            ->where('user_id', $request->user()->id)
-            ->orderByDesc('created_at')
-            ->get();
+        $validated = $request->validate([
+            'scope' => ['sometimes', 'in:mine,all'],
+            'status' => ['sometimes', 'in:pending,approved,rejected,revoked'],
+        ]);
+
+        $scope = $validated['scope'] ?? 'mine';
+
+        if ($scope === 'all' && $request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Forbidden. Insufficient role privileges.'], 403);
+        }
+
+        $query = DB::table('user_access_requests as uar')
+            ->join('access_levels as al', 'uar.access_level_id', '=', 'al.id')
+            ->leftJoin('user_profiles as up', 'uar.user_id', '=', 'up.user_id')
+            ->select(
+                'uar.*',
+                'al.name as access_level_name',
+                'up.display_name as user_display_name',
+            );
+
+        if ($scope === 'mine') {
+            $query->where('uar.user_id', $request->user()->id);
+        }
+
+        if (! empty($validated['status'])) {
+            $query->where('uar.status', $validated['status']);
+        }
+
+        $requests = $query->orderByDesc('uar.created_at')->limit(100)->get();
 
         return response()->json(['data' => $requests]);
     }
@@ -34,17 +67,24 @@ class AccessController extends Controller
             'justification' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $user = $request->user();
+        $accessLevelId = $validated['access_level_id'];
+
+        if (in_array($accessLevelId, $this->accessGate->activeGrantLevelIds($user), true)) {
+            return response()->json(['message' => 'You already have access to this level.'], 409);
+        }
+
         $existingRequest = DB::table('user_access_requests')
-            ->where('user_id', $request->user()->id)
-            ->where('access_level_id', $validated['access_level_id'])
-            ->where('status', '!=', 'rejected')
+            ->where('user_id', $user->id)
+            ->where('access_level_id', $accessLevelId)
+            ->whereIn('status', ['pending', 'approved'])
             ->first();
 
         if ($existingRequest !== null) {
             return response()->json(['message' => 'You already have a pending or approved request for this access level.'], 409);
         }
 
-        $accessLevel = DB::table('access_levels')->where('id', $validated['access_level_id'])->first();
+        $accessLevel = DB::table('access_levels')->where('id', $accessLevelId)->first();
 
         if ($accessLevel === null) {
             return response()->json(['message' => 'Access level not found.'], 404);
@@ -53,30 +93,22 @@ class AccessController extends Controller
         $requestId = (string) Str::uuid();
         $status = $accessLevel->auto_grant ? 'approved' : 'pending';
 
-        DB::table('user_access_requests')->insert([
-            'id' => $requestId,
-            'user_id' => $request->user()->id,
-            'access_level_id' => $validated['access_level_id'],
-            'status' => $status,
-            'justification' => $validated['justification'] ?? null,
-            'reviewed_by' => null,
-            'reviewed_at' => $status === 'approved' ? now() : null,
-            'created_at' => now(),
-        ]);
-
-        if ($accessLevel->auto_grant) {
-            DB::table('user_access_grants')->insert([
-                'id' => (string) Str::uuid(),
-                'user_id' => $request->user()->id,
-                'access_level_id' => $validated['access_level_id'],
-                'granted_by' => null,
-                'request_id' => $requestId,
-                'granted_at' => now(),
-                'expires_at' => null,
-                'revoked_at' => null,
-                'is_active' => true,
+        DB::transaction(function () use ($user, $validated, $accessLevelId, $requestId, $status, $accessLevel): void {
+            DB::table('user_access_requests')->insert([
+                'id' => $requestId,
+                'user_id' => $user->id,
+                'access_level_id' => $accessLevelId,
+                'status' => $status,
+                'justification' => $validated['justification'] ?? null,
+                'reviewed_by' => $status === 'approved' ? null : null,
+                'reviewed_at' => $status === 'approved' ? now() : null,
+                'created_at' => now(),
             ]);
-        }
+
+            if ($accessLevel->auto_grant) {
+                $this->createGrant($user->id, $accessLevelId, null, $requestId);
+            }
+        });
 
         $newRequest = DB::table('user_access_requests')->where('id', $requestId)->first();
 
@@ -86,15 +118,19 @@ class AccessController extends Controller
         ], 201);
     }
 
-    public function showRequest(string $id): JsonResponse
+    public function showRequest(Request $request, string $id): JsonResponse
     {
-        $request = DB::table('user_access_requests')->where('id', $id)->first();
+        $accessRequest = DB::table('user_access_requests')->where('id', $id)->first();
 
-        if ($request === null) {
+        if ($accessRequest === null) {
             return response()->json(['message' => 'Request not found.'], 404);
         }
 
-        return response()->json(['data' => $request]);
+        if ($request->user()->role !== 'admin' && $accessRequest->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        return response()->json(['data' => $accessRequest]);
     }
 
     public function reviewRequest(Request $request, string $id): JsonResponse
@@ -114,7 +150,11 @@ class AccessController extends Controller
             return response()->json(['message' => 'This request has already been reviewed.'], 409);
         }
 
-        DB::transaction(function () use ($accessRequest, $validated, $request, $id): void {
+        // Get user and access level data before transaction
+        $user = User::find($accessRequest->user_id);
+        $accessLevel = DB::table('access_levels')->where('id', $accessRequest->access_level_id)->first();
+
+        DB::transaction(function () use ($accessRequest, $validated, $request, $id, $user, $accessLevel) {
             DB::table('user_access_requests')
                 ->where('id', $id)
                 ->update([
@@ -128,21 +168,47 @@ class AccessController extends Controller
                 $existing = DB::table('user_access_grants')
                     ->where('user_id', $accessRequest->user_id)
                     ->where('access_level_id', $accessRequest->access_level_id)
+                    ->whereNull('revoked_at')
                     ->first();
 
                 if ($existing === null) {
-                    DB::table('user_access_grants')->insert([
-                        'id' => (string) Str::uuid(),
-                        'user_id' => $accessRequest->user_id,
-                        'access_level_id' => $accessRequest->access_level_id,
-                        'granted_by' => $request->user()->id,
-                        'request_id' => $id,
-                        'granted_at' => now(),
-                        'expires_at' => null,
-                        'revoked_at' => null,
-                        'is_active' => true,
-                    ]);
+                    $this->createGrant(
+                        $accessRequest->user_id,
+                        $accessRequest->access_level_id,
+                        $request->user()->id,
+                        $id,
+                    );
+                } elseif (! $existing->is_active) {
+                    DB::table('user_access_grants')
+                        ->where('id', $existing->id)
+                        ->update([
+                            'is_active' => true,
+                            'revoked_at' => null,
+                            'granted_by' => $request->user()->id,
+                            'granted_at' => now(),
+                            'request_id' => $id,
+                        ]);
                 }
+
+                // Send notification for approval
+                $this->notificationService->send(
+                    $user,
+                    'access_request_approved',
+                    'Access Request Approved',
+                    "Your request for {$accessLevel->name} access has been approved.",
+                    $id,
+                    'access_request'
+                );
+            } else {
+                // Send notification for rejection
+                $this->notificationService->send(
+                    $user,
+                    'access_request_rejected',
+                    'Access Request Rejected',
+                    "Your request for {$accessLevel->name} access has been rejected.",
+                    $id,
+                    'access_request'
+                );
             }
         });
 
@@ -156,15 +222,33 @@ class AccessController extends Controller
 
     public function grants(Request $request): JsonResponse
     {
-        $grants = DB::table('user_access_grants')
-            ->where('user_id', $request->user()->id)
-            ->where('is_active', true)
-            ->where(function ($query): void {
-                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-            })
-            ->get();
+        $validated = $request->validate([
+            'scope' => ['sometimes', 'in:mine,all'],
+        ]);
 
-        return response()->json(['data' => $grants]);
+        $scope = $validated['scope'] ?? 'mine';
+
+        if ($scope === 'all' && $request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Forbidden. Insufficient role privileges.'], 403);
+        }
+
+        $query = DB::table('user_access_grants as uag')
+            ->join('access_levels as al', 'uag.access_level_id', '=', 'al.id')
+            ->select(
+                'uag.*',
+                'al.name as access_level_name',
+            )
+            ->where('uag.is_active', true)
+            ->whereNull('uag.revoked_at')
+            ->where(function ($builder): void {
+                $builder->whereNull('uag.expires_at')->orWhere('uag.expires_at', '>', now());
+            });
+
+        if ($scope === 'mine') {
+            $query->where('uag.user_id', $request->user()->id);
+        }
+
+        return response()->json(['data' => $query->orderByDesc('uag.granted_at')->get()]);
     }
 
     public function revokeGrant(Request $request, string $id): JsonResponse
@@ -187,6 +271,25 @@ class AccessController extends Controller
         return response()->json([
             'message' => 'Grant revoked.',
             'data' => $updated,
+        ]);
+    }
+
+    private function createGrant(
+        string $userId,
+        string $accessLevelId,
+        ?string $grantedBy,
+        ?string $requestId,
+    ): void {
+        DB::table('user_access_grants')->insert([
+            'id' => (string) Str::uuid(),
+            'user_id' => $userId,
+            'access_level_id' => $accessLevelId,
+            'granted_by' => $grantedBy,
+            'request_id' => $requestId,
+            'granted_at' => now(),
+            'expires_at' => null,
+            'revoked_at' => null,
+            'is_active' => true,
         ]);
     }
 }

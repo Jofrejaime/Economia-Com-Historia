@@ -4,6 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
+interface User {
+  id?: string;
+  role?: 'admin' | 'professor' | 'investigador' | 'estudante' | string;
+  email?: string;
+  display_name?: string;
+  [key: string]: unknown;
+}
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -31,7 +39,27 @@ export class LoginComponent implements OnInit {
     const restored = await this.auth.ensureSession();
 
     if (restored) {
-      void this.router.navigate(['/home']);
+      this.redirectByRole();
+    }
+  }
+
+  /**
+   * Redirect based on user role
+   */
+  private redirectByRole(): void {
+    const user = this.auth.getUser() as User | null;
+    const userRole = user?.role ?? 'estudante';
+
+    switch (userRole) {
+      case 'admin':
+        void this.router.navigate(['/admin/dashboard']);
+        break;
+      case 'professor':
+      case 'investigador':
+      case 'estudante':
+      default:
+        void this.router.navigate(['/home']);
+        break;
     }
   }
 
@@ -51,7 +79,7 @@ export class LoginComponent implements OnInit {
         this.cdr.detectChanges();
 
         if (result.ok) {
-          void this.router.navigate(['/home']);
+          this.redirectByRole();
           return;
         }
 

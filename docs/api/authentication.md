@@ -49,7 +49,7 @@ Content-Type: application/json
 | full_name | string | nullable, max:255 |
 | institution | string | nullable, max:255 |
 | province | string | nullable, in:list_of_18_provinces |
-| role | string | nullable, in:estudante,investigador,professor,admin |
+| role | string | nullable, in:estudante,investigador,professor (admin não permitido no registo público) |
 
 **Response (201 Created):**
 ```json
@@ -208,7 +208,7 @@ Content-Type: application/json
 
 ### POST /auth/resend-verification - Reenviar Email de Verificação
 
-**Descrição:** Reenvia token de verificação de email.
+**Descrição:** Reenvia email de verificação com link para o frontend (`FRONTEND_URL/auth/verify-email?token=...`). O campo `verification_token` só aparece na resposta em `local`/`testing` ou se `AUTH_EXPOSE_VERIFICATION_TOKEN=true`.
 
 **Request:**
 ```http
@@ -224,10 +224,11 @@ Content-Type: application/json
 **Response (200 OK):**
 ```json
 {
-  "message": "Verification token generated.",
-  "verification_token": "new_verification_token_..."
+  "message": "If the account exists, a verification email was sent."
 }
 ```
+
+**Nota:** No registo (`POST /auth/register`) é enviado o mesmo email de verificação. Tipos de token na BD: `email_verification`, `password_reset`, `invite`.
 
 ---
 
@@ -237,6 +238,26 @@ Content-Type: application/json
 ```http
 Authorization: Bearer {token}
 ```
+
+### GET /auth/sessions - Listar Sessões Activas
+
+**Descrição:** Lista sessões do utilizador autenticado (marca `is_current` na sessão do token usado).
+
+**Response (200 OK):** `{ "data": [ { "id", "ip_address", "user_agent", "expires_at", "created_at", "is_current" } ] }`
+
+---
+
+### DELETE /auth/sessions/{id} - Revogar Sessão
+
+**Descrição:** Revoga uma sessão própria por ID.
+
+---
+
+### DELETE /auth/sessions/others - Revogar Outras Sessões
+
+**Descrição:** Revoga todas as sessões excepto a do token actual. Resposta: `{ "message", "revoked_count" }`.
+
+---
 
 ### POST /auth/logout - Logout
 

@@ -1,0 +1,102 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+title Economy with History - Class Diagram (Advanced UML)
+
+class User {
+  id: int {id}
+  name: string
+  email: string {unique}
+}
+
+class Theme {
+  id: int {id}
+  name: string
+  description: string
+}
+
+class Content {
+  id: int {id}
+  title: string
+  type: string
+}
+
+class Comment {
+  id: int {id}
+  text: string
+  createdAt: datetime
+}
+
+class Quiz {
+  id: int {id}
+  title: string
+}
+
+class Question {
+  id: int {id}
+  statement: string
+}
+
+class Option {
+  id: int {id}
+  text: string
+  isCorrect: bool
+}
+
+class QuizAttempt {
+  id: int {id}
+  startTime: datetime
+  endTime: datetime
+}
+
+class UserAnswer {
+  id: int {id}
+  isCorrect: bool
+  answeredAt: datetime
+}
+
+class Result {
+  score: int
+  totalQuestions: int
+}
+
+class Topic {
+  id: int {id}
+  title: string
+  description: string
+  createdAt: datetime
+}
+
+class TopicReply {
+  id: int {id}
+  text: string
+  createdAt: datetime
+}
+
+' ================= RELATIONSHIPS =================
+
+Theme "1" o-- "0..*" Content : categorizes
+Theme "1" o-- "0..*" Quiz : organizes
+Theme "1" o-- "0..*" Topic : groups
+
+User "1" -- "0..*" Comment : writes
+User "1" -- "0..*" Topic : creates
+User "1" -- "0..*" TopicReply : replies
+User "1" -- "0..*" QuizAttempt : performs
+
+Content "1" *-- "0..*" Comment : has {ordered}
+
+Quiz "1" *-- "1..*" Question : contains {ordered}
+Question "1" *-- "2..*" Option : provides {ordered}
+
+Quiz "1" o-- "0..*" QuizAttempt : attempts
+
+QuizAttempt "1" *-- "1..*" UserAnswer : records
+Question "1" -- "0..*" UserAnswer : answeredBy
+Option "1" -- "0..*" UserAnswer : selectedOption
+
+QuizAttempt "1" *-- "1" Result : produces
+
+Topic "1" *-- "0..*" TopicReply : has {ordered}
+
+@enduml

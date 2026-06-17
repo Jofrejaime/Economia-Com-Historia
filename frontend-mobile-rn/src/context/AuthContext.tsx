@@ -1,9 +1,7 @@
 import React, { createContext, useEffect, useMemo, useState } from "react";
-import { STORAGE_KEYS } from "../services/storage/keys";
-import { getSecureItem, removeSecureItem, setSecureItem } from "../services/storage/secureStorage";
-import { getLocalItem, removeLocalItem, setLocalItem } from "../services/storage/localStorage";
-import { setAuthToken } from "../services/http/tokenManager";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthState, AuthUser, SignInInput, SignUpInput } from "../types/auth";
+import { setAuthToken } from "../services/http/tokenManager";
 
 interface AuthContextValue extends AuthState {
   signIn: (input: SignInInput) => Promise<void>;
@@ -22,82 +20,89 @@ export const AuthContext = createContext<AuthContextValue | undefined>(undefined
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>(initialState);
 
+  // Carrega sessão salva ao iniciar
   useEffect(() => {
-    const bootstrap = async () => {
+    const loadSession = async () => {
       try {
-        const [token, user] = await Promise.all([
-          getSecureItem(STORAGE_KEYS.token),
-          getLocalItem<AuthUser>(STORAGE_KEYS.user),
-        ]);
-
-        if (token && user) {
+        const token = await AsyncStorage.getItem("@auth_token");
+        const userJson = await AsyncStorage.getItem("@auth_user");
+        if (token && userJson) {
+          const user = JSON.parse(userJson);
+          // Sincroniza token em memória para o cliente HTTP
           setAuthToken(token);
           setState({ status: "authenticated", token, user });
           return;
         }
-      } catch {
-        // Keep unauthenticated state if persisted data is unavailable.
+      } catch (error) {
+        console.warn("Erro ao carregar sessão", error);
       }
-
-      setAuthToken(null);
       setState({ status: "unauthenticated", token: null, user: null });
     };
-
-    void bootstrap();
+    loadSession();
   }, []);
 
-  const signIn = async ({ email }: SignInInput) => {
-    // Placeholder auth flow for migration foundation.
-    const mockToken = "migration-foundation-token";
+  // Login (simula chamada API)
+  const signIn = async ({ email, password }: SignInInput) => {
+    // Mock – busca utilizador "existente" pelo email
+    const mockToken = "mock-jwt-token-" + Date.now();
     const mockUser: AuthUser = {
-      id: "local-user",
-      name: "Utilizador",
+      id: "user-" + email,
+      name: email.split("@")[0], // nome baseado no email
       email,
     };
-
-    await Promise.all([
-      setSecureItem(STORAGE_KEYS.token, mockToken),
-      setLocalItem(STORAGE_KEYS.user, mockUser),
-    ]);
-
+    try {
+      const registeredEmailsRaw = await AsyncStorage.getItem("@registered_emails");
+      const registeredEmails = registeredEmailsRaw ? JSON.parse(registeredEmailsRaw) : [];
+      if (!registeredEmails.includes(email.toLowerCase())) {
+        registeredEmails.push(email.toLowerCase());
+        await AsyncStorage.setItem("@registered_emails", JSON.stringify(registeredEmails));
+      }
+    } catch (error) {
+      console.warn("Erro ao salvar email registrado", error);
+    }
+    await AsyncStorage.setItem("@auth_token", mockToken);
+    await AsyncStorage.setItem("@auth_user", JSON.stringify(mockUser));
+    // Mantém token em memória para o interceptor HTTP
     setAuthToken(mockToken);
     setState({ status: "authenticated", token: mockToken, user: mockUser });
   };
 
-  const signUp = async ({ fullName, email }: SignUpInput) => {
-    const mockToken = "migration-foundation-token";
+  // Registo (simula criação de conta)
+  const signUp = async ({ fullName, email, password }: SignUpInput) => {
+    const mockToken = "mock-jwt-token-" + Date.now();
     const mockUser: AuthUser = {
-      id: "local-user",
+      id: "user-" + email,
       name: fullName,
       email,
     };
-
-    await Promise.all([
-      setSecureItem(STORAGE_KEYS.token, mockToken),
-      setLocalItem(STORAGE_KEYS.user, mockUser),
-    ]);
-
+    try {
+      const registeredEmailsRaw = await AsyncStorage.getItem("@registered_emails");
+      const registeredEmails = registeredEmailsRaw ? JSON.parse(registeredEmailsRaw) : [];
+      if (!registeredEmails.includes(email.toLowerCase())) {
+        registeredEmails.push(email.toLowerCase());
+        await AsyncStorage.setItem("@registered_emails", JSON.stringify(registeredEmails));
+      }
+    } catch (error) {
+      console.warn("Erro ao salvar email registrado", error);
+    }
+    await AsyncStorage.setItem("@auth_token", mockToken);
+    await AsyncStorage.setItem("@auth_user", JSON.stringify(mockUser));
     setAuthToken(mockToken);
     setState({ status: "authenticated", token: mockToken, user: mockUser });
   };
 
+  // Logout
   const signOut = async () => {
-    await Promise.all([
-      removeSecureItem(STORAGE_KEYS.token),
-      removeLocalItem(STORAGE_KEYS.user),
-    ]);
+    await AsyncStorage.removeItem("@auth_token");
+    await AsyncStorage.removeItem("@auth_user");
+    // Remove também o token mantido em memória
     setAuthToken(null);
     setState({ status: "unauthenticated", token: null, user: null });
   };
 
   const value = useMemo(
-    () => ({
-      ...state,
-      signIn,
-      signUp,
-      signOut,
-    }),
-    [state],
+    () => ({ ...state, signIn, signUp, signOut }),
+    [state]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

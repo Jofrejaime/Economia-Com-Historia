@@ -1,12 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { ToastComponent } from './components/toast/toast';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: `<router-outlet></router-outlet>`,
+  imports: [RouterOutlet, ToastComponent],
+  template: `
+    <app-toast></app-toast>
+    <router-outlet></router-outlet>
+  `,
 })
 export class App implements OnInit {
   constructor(private auth: AuthService, private router: Router) {}

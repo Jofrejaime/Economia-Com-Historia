@@ -3,55 +3,57 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EmailVerificationMail;
 use App\Mail\PasswordResetMail;
 use App\Models\User;
+use App\Support\AngolaProvinces;
+use App\Support\FrontendUrl;
+use App\Support\ProfilePresenter;
+use App\Support\VerificationTokenType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
+    private const REGISTERABLE_ROLES = ['estudante', 'investigador', 'professor'];
+
     public function register(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => [
                 'required',
+                'confirmed',
                 Password::min(8)
-                    ->mixedCase()      // Require uppercase and lowercase
-                    ->numbers()        // Require numbers
-                    ->symbols()        // Require symbols
-                    ->uncompromised()  // Check against known breaches
-                    ->confirmed(),
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised(),
             ],
             'display_name' => ['required', 'string', 'max:100'],
             'full_name' => ['nullable', 'string', 'max:255'],
             'institution' => ['nullable', 'string', 'max:255'],
-            'province' => [
-                'nullable',
-                'string',
-                'in:' . implode(',', [
-                    'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
-                    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla',
-                    'Luanda', 'Lunda Norte', 'Lunda Sul', 'Malanje', 'Moxico',
-                    'Namibe', 'Uíge', 'Zaire'
-                ]),
-            ],
-            'role' => ['nullable', 'in:estudante,investigador,professor,admin'],
+            'province' => ['nullable', 'string', AngolaProvinces::validationRule()],
+            'role' => ['nullable', 'in:'.implode(',', self::REGISTERABLE_ROLES)],
         ]);
 
-        $payload = DB::transaction(function () use ($validated): array {
+        $role = in_array($validated['role'] ?? 'estudante', self::REGISTERABLE_ROLES, true)
+            ? ($validated['role'] ?? 'estudante')
+            : 'estudante';
+
+        $payload = DB::transaction(function () use ($validated, $role): array {
             $user = User::query()->create([
                 'email' => $validated['email'],
                 'password_hash' => $validated['password'],
                 'email_verified' => false,
                 'is_active' => true,
-                'role' => $validated['role'] ?? 'estudante',
+                'role' => $role,
             ]);
 
             DB::table('user_profiles')->insert([
@@ -65,7 +67,25 @@ class AuthController extends Controller
                 'updated_at' => now(),
             ]);
 
-            $verificationToken = $this->createVerificationToken($user->id, 'email_verification', now()->addDays(3));
+            DB::table('user_levels')->insert([
+                'id' => (string) Str::uuid(),
+                'user_id' => $user->id,
+                'current_level' => 1,
+                'total_points' => 0,
+                'weekly_points' => 0,
+                'monthly_points' => 0,
+                'quizzes_completed' => 0,
+                'documents_read' => 0,
+                'topics_created' => 0,
+                'replies_posted' => 0,
+                'updated_at' => now(),
+            ]);
+
+            $verificationToken = $this->createVerificationToken(
+                $user->id,
+                VerificationTokenType::EMAIL_VERIFICATION,
+                now()->addDays(3),
+            );
 
             return [
                 'user' => $user,
@@ -73,14 +93,23 @@ class AuthController extends Controller
             ];
         });
 
+        $emailSent = $this->sendVerificationEmail($payload['user'], $payload['verification_token']);
+
         $token = $this->issueSessionToken($payload['user']->id);
 
-        return response()->json([
-            'message' => 'Registered successfully.',
+        $response = [
+            'message' => $emailSent
+                ? 'Registered successfully. Please verify your email.'
+                : 'Registered successfully. We could not send the verification email; use resend verification.',
             'token' => $token,
-            'verification_token' => $payload['verification_token'],
             'user' => $payload['user'],
-        ], 201);
+        ];
+
+        if ($this->shouldExposeVerificationToken()) {
+            $response['verification_token'] = $payload['verification_token'];
+        }
+
+        return response()->json($response, 201);
     }
 
     public function login(Request $request): JsonResponse
@@ -96,22 +125,34 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials.'], 422);
         }
 
+        if (! $user->is_active) {
+            return response()->json(['message' => 'This account has been deactivated.'], 403);
+        }
+
+        if (config('auth.api.require_email_verification') && ! $user->email_verified) {
+            return response()->json([
+                'message' => 'Please verify your email before logging in.',
+            ], 403);
+        }
+
         $user->forceFill(['last_login_at' => now()])->save();
 
         $token = $this->issueSessionToken($user->id);
+        $profile = DB::table('user_profiles')->where('user_id', $user->id)->first();
 
         return response()->json([
             'message' => 'Login successful.',
             'token' => $token,
             'user' => $user,
+            'profile' => ProfilePresenter::presentProfile($profile),
         ]);
     }
 
     public function refresh(Request $request): JsonResponse
     {
-        $token = $request->bearerToken() ?? $request->header('X-Session-Token');
+        $token = $this->extractBearerOrSessionToken($request);
 
-        if (! is_string($token) || $token === '') {
+        if ($token === null) {
             return response()->json(['message' => 'Token missing.'], 422);
         }
 
@@ -119,6 +160,12 @@ class AuthController extends Controller
 
         if ($session === null) {
             return response()->json(['message' => 'Invalid token.'], 422);
+        }
+
+        if ($session->expires_at <= now()) {
+            DB::table('user_sessions')->where('id', $session->id)->delete();
+
+            return response()->json(['message' => 'Session expired.'], 401);
         }
 
         $newToken = $this->issueSessionToken($session->user_id);
@@ -132,9 +179,9 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $token = $request->bearerToken() ?? $request->header('X-Session-Token');
+        $token = $this->extractBearerOrSessionToken($request);
 
-        if (is_string($token) && $token !== '') {
+        if ($token !== null) {
             DB::table('user_sessions')->where('refresh_token', $token)->delete();
         }
 
@@ -162,10 +209,93 @@ class AuthController extends Controller
             )
             ->get();
 
+        $userLevel = DB::table('user_levels')->where('user_id', $userId)->first();
+
+        $levelDefinition = null;
+        if ($userLevel) {
+            $levelDefinition = DB::table('level_definitions')
+                ->where('level', $userLevel->current_level)
+                ->first();
+        }
+
+        $badges = DB::table('user_badges as ub')
+            ->join('badges as b', 'ub.badge_id', '=', 'b.id')
+            ->where('ub.user_id', $userId)
+            ->select(
+                'b.id',
+                'b.name',
+                'b.description',
+                'b.icon_url',
+                'b.color_hex',
+                'b.category',
+                'ub.earned_at'
+            )
+            ->orderByDesc('ub.earned_at')
+            ->get();
+
         return response()->json([
             'user' => $user,
-            'profile' => $profile,
+            'profile' => ProfilePresenter::presentProfile($profile),
             'access_grants' => $accessGrants,
+            'user_level' => $userLevel,
+            'level_definition' => $levelDefinition,
+            'badges' => $badges,
+        ]);
+    }
+
+    public function sessions(Request $request): JsonResponse
+    {
+        $currentToken = $this->extractBearerOrSessionToken($request);
+
+        $sessions = DB::table('user_sessions')
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (object $session) use ($currentToken): array {
+                return [
+                    'id' => $session->id,
+                    'ip_address' => $session->ip_address,
+                    'user_agent' => $session->user_agent,
+                    'expires_at' => $session->expires_at,
+                    'created_at' => $session->created_at,
+                    'is_current' => $currentToken !== null && $session->refresh_token === $currentToken,
+                ];
+            });
+
+        return response()->json(['data' => $sessions]);
+    }
+
+    public function destroySession(Request $request, string $id): JsonResponse
+    {
+        $session = DB::table('user_sessions')
+            ->where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if ($session === null) {
+            return response()->json(['message' => 'Session not found.'], 404);
+        }
+
+        DB::table('user_sessions')->where('id', $id)->delete();
+
+        return response()->json(['message' => 'Session revoked.', 'id' => $id]);
+    }
+
+    public function destroyOtherSessions(Request $request): JsonResponse
+    {
+        $currentToken = $this->extractBearerOrSessionToken($request);
+
+        $query = DB::table('user_sessions')->where('user_id', $request->user()->id);
+
+        if ($currentToken !== null) {
+            $query->where('refresh_token', '!=', $currentToken);
+        }
+
+        $deleted = $query->delete();
+
+        return response()->json([
+            'message' => 'Other sessions revoked.',
+            'revoked_count' => $deleted,
         ]);
     }
 
@@ -181,11 +311,15 @@ class AuthController extends Controller
             return response()->json(['message' => 'If this email exists, a reset link has been sent.']);
         }
 
-        $resetToken = $this->createVerificationToken($user->id, 'password_reset', now()->addHour());
+        $resetToken = $this->createVerificationToken(
+            $user->id,
+            VerificationTokenType::PASSWORD_RESET,
+            now()->addHour(),
+        );
         $profile = DB::table('user_profiles')->where('user_id', $user->id)->first();
         $recipientName = $profile->display_name ?? $user->email;
 
-        $resetUrl = rtrim((string) config('app.frontend_url'), '/') . '/auth/reset-password?token=' . urlencode($resetToken);
+        $resetUrl = FrontendUrl::build('/auth/reset-password', ['token' => $resetToken]);
 
         try {
             Mail::to($user->email)->send(new PasswordResetMail(
@@ -196,7 +330,7 @@ class AuthController extends Controller
         } catch (\Throwable $exception) {
             DB::table('verification_tokens')
                 ->where('user_id', $user->id)
-                ->where('type', 'password_reset')
+                ->where('type', VerificationTokenType::PASSWORD_RESET)
                 ->whereNull('used_at')
                 ->delete();
 
@@ -222,16 +356,19 @@ class AuthController extends Controller
             'token' => ['required', 'string'],
             'password' => [
                 'required',
+                'confirmed',
                 Password::min(8)
-                    ->mixedCase()      // Require uppercase and lowercase
-                    ->numbers()        // Require numbers
-                    ->symbols()        // Require symbols
-                    ->uncompromised()  // Check against known breaches
-                    ->confirmed(),
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised(),
             ],
         ]);
 
-        $verification = $this->findActiveVerificationToken($validated['token'], 'password_reset');
+        $verification = $this->findActiveVerificationToken(
+            $validated['token'],
+            VerificationTokenType::PASSWORD_RESET,
+        );
 
         if ($verification === null) {
             return response()->json(['message' => 'Invalid or expired token.'], 422);
@@ -243,7 +380,7 @@ class AuthController extends Controller
 
             DB::table('verification_tokens')
                 ->where('user_id', $user->id)
-                ->where('type', 'password_reset')
+                ->where('type', VerificationTokenType::PASSWORD_RESET)
                 ->whereNull('used_at')
                 ->update(['used_at' => now()]);
         });
@@ -257,7 +394,10 @@ class AuthController extends Controller
             'token' => ['required', 'string'],
         ]);
 
-        $verification = $this->findActiveVerificationToken($validated['token'], 'email_verification');
+        $verification = $this->findActiveVerificationToken(
+            $validated['token'],
+            VerificationTokenType::EMAIL_VERIFICATION,
+        );
 
         if ($verification === null) {
             return response()->json(['message' => 'Invalid or expired token.'], 422);
@@ -269,7 +409,7 @@ class AuthController extends Controller
 
             DB::table('verification_tokens')
                 ->where('user_id', $user->id)
-                ->where('type', 'email_verification')
+                ->where('type', VerificationTokenType::EMAIL_VERIFICATION)
                 ->whereNull('used_at')
                 ->update(['used_at' => now()]);
         });
@@ -286,19 +426,67 @@ class AuthController extends Controller
         $user = User::query()->where('email', $validated['email'])->first();
 
         if ($user === null) {
-            return response()->json(['message' => 'If the account exists, a verification token was sent.']);
+            return response()->json(['message' => 'If the account exists, a verification email was sent.']);
         }
 
         if ($user->email_verified) {
             return response()->json(['message' => 'Email is already verified.']);
         }
 
-        $verificationToken = $this->createVerificationToken($user->id, 'email_verification', now()->addDays(3));
+        $verificationToken = $this->createVerificationToken(
+            $user->id,
+            VerificationTokenType::EMAIL_VERIFICATION,
+            now()->addDays(3),
+        );
 
-        return response()->json([
-            'message' => 'Verification token generated.',
-            'verification_token' => $verificationToken,
-        ]);
+        $this->sendVerificationEmail($user, $verificationToken);
+
+        $response = [
+            'message' => 'If the account exists, a verification email was sent.',
+        ];
+
+        if ($this->shouldExposeVerificationToken()) {
+            $response['verification_token'] = $verificationToken;
+        }
+
+        return response()->json($response);
+    }
+
+    private function sendVerificationEmail(User $user, string $verificationToken): bool
+    {
+        $profile = DB::table('user_profiles')->where('user_id', $user->id)->first();
+        $recipientName = $profile->display_name ?? $user->email;
+
+        $verificationUrl = FrontendUrl::build('/auth/verify-email', ['token' => $verificationToken]);
+
+        try {
+            Mail::to($user->email)->send(new EmailVerificationMail(
+                $recipientName,
+                $verificationUrl,
+                3,
+            ));
+
+            return true;
+        } catch (\Throwable $exception) {
+            Log::error('Failed to send verification email.', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    private function shouldExposeVerificationToken(): bool
+    {
+        $configured = config('auth.api.expose_verification_token');
+
+        if ($configured !== null) {
+            return filter_var($configured, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return app()->environment('local', 'testing');
     }
 
     private function createVerificationToken(string $userId, string $type, \DateTimeInterface $expiresAt): string
@@ -350,4 +538,21 @@ class AuthController extends Controller
 
         return $token;
     }
-} 
+
+    private function extractBearerOrSessionToken(Request $request): ?string
+    {
+        $bearerToken = $request->bearerToken();
+
+        if (is_string($bearerToken) && $bearerToken !== '') {
+            return $bearerToken;
+        }
+
+        $headerToken = $request->header('X-Session-Token');
+
+        if (is_string($headerToken) && $headerToken !== '') {
+            return $headerToken;
+        }
+
+        return null;
+    }
+}

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -17,11 +18,13 @@ class ProfileTest extends TestCase
     {
         parent::setUp();
 
+        Mail::fake();
+
         // Register and login a test user
         $response = $this->postJson('/api/auth/register', [
             'email' => 'test@example.com',
-            'password' => 'TestPassword123!',
-            'password_confirmation' => 'TestPassword123!',
+            'password' => 'Ap9#xR7$wQ!z',
+            'password_confirmation' => 'Ap9#xR7$wQ!z',
             'display_name' => 'Test User',
             'full_name' => 'Test Full Name',
             'institution' => 'Test University',
@@ -43,6 +46,8 @@ class ProfileTest extends TestCase
             'user' => ['id', 'email', 'email_verified', 'is_active', 'role'],
             'profile' => ['id', 'user_id', 'display_name', 'created_at'],
             'access_grants' => [],
+            'user_level' => ['current_level', 'total_points'],
+            'badges',
         ]);
         $this->assertEquals('test@example.com', $response->json('user.email'));
     }
@@ -102,9 +107,9 @@ class ProfileTest extends TestCase
     {
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
             ->putJson('/api/profile/password', [
-                'current_password' => 'TestPassword123!',
-                'password' => 'NewPassword456!',
-                'password_confirmation' => 'NewPassword456!',
+                'current_password' => 'Ap9#xR7$wQ!z',
+                'password' => 'Kh7#m9$Pq2!z',
+                'password_confirmation' => 'Kh7#m9$Pq2!z',
             ]);
 
         $response->assertStatus(200);
@@ -113,7 +118,7 @@ class ProfileTest extends TestCase
         // Verify can login with new password
         $loginResponse = $this->postJson('/api/auth/login', [
             'email' => 'test@example.com',
-            'password' => 'NewPassword456!',
+            'password' => 'Kh7#m9$Pq2!z',
         ]);
 
         $loginResponse->assertStatus(200);
@@ -125,8 +130,8 @@ class ProfileTest extends TestCase
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
             ->putJson('/api/profile/password', [
                 'current_password' => 'WrongPassword123!',
-                'password' => 'NewPassword456!',
-                'password_confirmation' => 'NewPassword456!',
+                'password' => 'Kh7#m9$Pq2!z',
+                'password_confirmation' => 'Kh7#m9$Pq2!z',
             ]);
 
         $response->assertStatus(422);
@@ -138,8 +143,8 @@ class ProfileTest extends TestCase
     {
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
             ->putJson('/api/profile/password', [
-                'current_password' => 'TestPassword123!',
-                'password' => 'NewPassword456!',
+                'current_password' => 'Ap9#xR7$wQ!z',
+                'password' => 'Kh7#m9$Pq2!z',
                 'password_confirmation' => 'Different456!',
             ]);
 
@@ -207,6 +212,36 @@ class ProfileTest extends TestCase
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('access_grants'));
         $this->assertEquals('public', $response->json('access_grants.0.access_level_id'));
+    }
+
+    /** @test */
+    public function test_update_profile_rejects_invalid_province(): void
+    {
+        $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
+            ->putJson('/api/profile', [
+                'province' => 'Invalid Province',
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['province']);
+    }
+
+    /** @test */
+    public function test_me_returns_public_avatar_url_after_upload(): void
+    {
+        $image = \Illuminate\Http\UploadedFile::fake()->image('avatar.jpg', 100, 100);
+
+        $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
+            ->postJson('/api/profile/avatar', ['avatar' => $image])
+            ->assertStatus(200);
+
+        $me = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
+            ->getJson('/api/me');
+
+        $me->assertStatus(200);
+        $avatarUrl = $me->json('profile.avatar_url');
+        $this->assertNotNull($avatarUrl);
+        $this->assertStringContainsString('/storage/', $avatarUrl);
     }
 
     /** @test */
