@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Platform,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -90,7 +91,11 @@ export function ManageMembersScreen() {
   const handleSaveChanges = () => {
     if (!topic) return;
     updateTopic(topic.id, { members: selectedMembers });
-    Alert.alert("Sucesso", "Membros da discussão atualizados com sucesso!");
+    if (Platform.OS === "web") {
+      window.alert("Membros da discussão atualizados com sucesso!");
+    } else {
+      Alert.alert("Sucesso", "Membros da discussão atualizados com sucesso!");
+    }
     navigation.goBack();
   };
 
