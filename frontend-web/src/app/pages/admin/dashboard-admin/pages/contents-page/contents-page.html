@@ -101,7 +101,7 @@
             <div class="title-content">
               <div class="title-row">
                 <span class="title-text">{{ content.title }}</span>
-                <div *ngIf="content.featuredImage" class="has-media-badge">📷</div>
+                <div *ngIf="content.cover_image_url" class="has-media-badge">📷</div>
               </div>
               <div class="title-tags" *ngIf="content.tags && content.tags.length">
                 <span *ngFor="let tag of content.tags.slice(0,2)" class="tag-badge">{{ tag }}</span>
@@ -109,7 +109,7 @@
               </div>
             </div>
           </td>
-          <td class="type-cell">{{ content.type }}</td>
+          <td class="type-cell">{{ content.document_type }}</td>
           <td class="media-cell">
             <div class="media-icons">
               <span *ngIf="content.mediaFiles?.some(m => m.type === 'image')" class="media-icon" title="Imagens">🖼️</span>
@@ -118,15 +118,15 @@
               <span *ngIf="!content.mediaFiles?.length" class="media-icon empty">—</span>
             </div>
           </td>
-          <td class="category-cell">{{ content.category }}</td>
+          <td class="category-cell">{{ content.category_name || content.category_id }}</td>
           <td class="author-cell">{{ content.author }}</td>
-          <td class="date-cell">{{ content.date }}</td>
+          <td class="date-cell">{{ content.publication_date || content.created_at | date:'dd MMM yyyy' }}</td>
           <td>
             <span class="status-badge">
               {{ getStatusIcon(content.status) }} {{ getStatusLabel(content.status) }}
             </span>
           </td>
-          <td class="views-cell">{{ content.views | number }}</td>
+          <td class="views-cell">{{ content.views_count | number }}</td>
           <td class="actions-cell">
             <button class="action-btn" (click)="openEditContentModal(content)" title="Editar">✏️</button>
             <button *ngIf="content.status !== 'published'" class="action-btn" (click)="publishContent(content.id)" title="Publicar">📤</button>
@@ -163,14 +163,15 @@
           <div class="form-row">
             <div class="form-group">
               <label>Tipo de Conteúdo</label>
-              <select [(ngModel)]="contentForm.type" class="form-input">
-                <option *ngFor="let type of contentTypes" [value]="type">{{ type }}</option>
+              <select [(ngModel)]="contentForm.document_type" class="form-input">
+                <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
               </select>
             </div>
             <div class="form-group">
               <label>Categoria</label>
-              <select [(ngModel)]="contentForm.category" class="form-input">
-                <option *ngFor="let cat of categoriesList" [value]="cat">{{ cat }}</option>
+              <select [(ngModel)]="contentForm.category_id" class="form-input">
+                <option [value]="null">Sem categoria</option>
+                <option *ngFor="let cat of categoriesList" [value]="cat.id">{{ cat.name }}</option>
               </select>
             </div>
           </div>
@@ -181,8 +182,34 @@
               <input type="text" [(ngModel)]="contentForm.author" class="form-input" placeholder="Nome do autor">
             </div>
             <div class="form-group">
-              <label>Data</label>
-              <input type="text" [(ngModel)]="contentForm.date" class="form-input" placeholder="DD MMM YYYY">
+              <label>Instituição</label>
+              <input type="text" [(ngModel)]="contentForm.institution" class="form-input" placeholder="Instituição do autor">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Data de Publicação</label>
+              <input type="date" [(ngModel)]="contentForm.publication_date" class="form-input">
+            </div>
+            <div class="form-group">
+              <label>Nível Académico</label>
+              <select [(ngModel)]="contentForm.academic_level" class="form-input">
+                <option value="intro">Introdução</option>
+                <option value="intermediate">Intermédio</option>
+                <option value="advanced">Avançado</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Período (início)</label>
+              <input type="number" [(ngModel)]="contentForm.period_start" class="form-input" placeholder="Ano início">
+            </div>
+            <div class="form-group">
+              <label>Período (fim)</label>
+              <input type="number" [(ngModel)]="contentForm.period_end" class="form-input" placeholder="Ano fim">
             </div>
           </div>
           
@@ -196,14 +223,45 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Visualizações iniciais</label>
-              <input type="number" [(ngModel)]="contentForm.views" class="form-input" min="0">
+              <label>Nível de Acesso</label>
+              <select [(ngModel)]="contentForm.access_level_id" class="form-input">
+                <option value="public">🌐 Público</option>
+                <option value="jindungo">🔥 Jindungo</option>
+                <option value="restricted">🔒 Restrito</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>URL do PDF</label>
+              <input type="text" [(ngModel)]="contentForm.pdf_url" class="form-input" placeholder="https://...">
+            </div>
+            <div class="form-group">
+              <label>Localização Física</label>
+              <input type="text" [(ngModel)]="contentForm.physical_location" class="form-input" placeholder="Arquivo Central, Prateleira 3">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>ID Único</label>
+              <input type="text" [(ngModel)]="contentForm.unique_id" class="form-input" placeholder="Ex: DOC-2024-001">
+            </div>
+            <div class="form-group">
+              <label>Tipo de Registo</label>
+              <input type="text" [(ngModel)]="contentForm.record_type" class="form-input" placeholder="Ex: Carta, Relatório, Decreto">
             </div>
           </div>
           
           <div class="form-group">
-            <label>Descrição</label>
-            <textarea [(ngModel)]="contentForm.description" rows="3" class="form-input" placeholder="Descrição detalhada do conteúdo..."></textarea>
+            <label>Resumo <span class="required">*</span></label>
+            <textarea [(ngModel)]="contentForm.summary" rows="3" class="form-input" placeholder="Resumo do conteúdo..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Conteúdo Completo</label>
+            <textarea [(ngModel)]="contentForm.content" rows="5" class="form-input" placeholder="Texto completo do documento..."></textarea>
           </div>
           
           <div class="form-group">
@@ -283,11 +341,11 @@
           </div>
           
           <!-- Featured Image Preview -->
-          <div class="featured-image-section" *ngIf="contentForm.featuredImage">
-            <div class="media-section-title">Imagem Destacada</div>
+          <div class="featured-image-section" *ngIf="contentForm.cover_image_url">
+            <div class="media-section-title">Imagem de Capa</div>
             <div class="featured-preview">
-              <img [src]="contentForm.featuredImage" class="featured-img">
-              <button class="remove-featured" (click)="contentForm.featuredImage = ''">✕ Remover</button>
+              <img [src]="contentForm.cover_image_url" class="featured-img">
+              <button class="remove-featured" (click)="contentForm.cover_image_url = ''">✕ Remover</button>
             </div>
           </div>
         </div>

@@ -2,17 +2,31 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+// Interface com APENAS campos que existem nas migrations
 interface User {
-  id: number;
-  name: string;
+  // Tabela users
+  id: string;
   email: string;
-  institution: string;
-  role: 'admin' | 'curator' | 'researcher' | 'student';
-  status: 'active' | 'pending' | 'blocked';
-  joinDate: string;
-  lastActive: string;
-  avatarInitials: string;
-  avatarColor: string;
+  email_verified: boolean;
+  is_active: boolean;
+  role: 'estudante' | 'investigador' | 'curador' | 'administrador' | 'superadministrador';
+  created_at: string;
+  updated_at: string;
+  last_login_at: string | null;
+  
+  // Tabela user_profiles
+  display_name: string;
+  full_name: string | null;
+  institution: string | null;
+  province: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  research_areas: string[] | null;
+  
+  // Campos APENAS para frontend (não existem na BD)
+  avatarColor?: string;
+  avatarInitials?: string;
+  research_areas_input?: string;
 }
 
 @Component({
@@ -27,260 +41,364 @@ export class UsersPageComponent {
   filterRole = 'todos';
   filterStatus = 'todos';
   
-  // Modal control
   showUserModal = false;
   editingUser: User | null = null;
   
-  // Form data for new/edit user
+  avatarFile: File | null = null;
+  avatarPreview: string | null = null;
+  
+  // Lista de províncias
+  provinces = [
+    'Luanda', 'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
+    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla',
+    'Malanje', 'Moxico', 'Namibe', 'Uíge', 'Zaire'
+  ];
+
   userForm: User = {
-    id: 0,
-    name: '',
+    id: '',
     email: '',
-    institution: '',
-    role: 'student',
-    status: 'pending',
-    joinDate: '',
-    lastActive: 'Nunca',
-    avatarInitials: '',
-    avatarColor: '#6b0119'
+    email_verified: false,
+    is_active: true,
+    role: 'estudante',
+    created_at: '',
+    updated_at: '',
+    last_login_at: null,
+    display_name: '',
+    full_name: null,
+    institution: null,
+    province: null,
+    avatar_url: null,
+    bio: null,
+    research_areas: null,
+    research_areas_input: '',
+    avatarColor: '#8b1e2d',
+    avatarInitials: ''
   };
 
   users: User[] = [
     {
-      id: 1,
-      name: 'Dr. Manuel Costa',
+      id: '1',
       email: 'm.costa@arquivo.ao',
+      email_verified: true,
+      is_active: true,
+      role: 'administrador',
+      created_at: '2024-01-15T08:00:00Z',
+      updated_at: '2024-06-15T10:00:00Z',
+      last_login_at: '2024-06-15T09:30:00Z',
+      display_name: 'Dr. Manuel Costa',
+      full_name: 'Manuel António Costa',
       institution: 'Arquivo Nacional',
-      role: 'admin',
-      status: 'active',
-      joinDate: '15 Jan 2024',
-      lastActive: 'Hoje',
-      avatarInitials: 'MC',
-      avatarColor: '#6b0119'
+      province: 'Luanda',
+      avatar_url: null,
+      bio: 'Historiador económico com foco no período colonial.',
+      research_areas: ['História Económica', 'Economia Colonial', 'Arquivos'],
+      avatarColor: '#6b0119',
+      avatarInitials: 'MC'
     },
     {
-      id: 2,
-      name: 'Dra. Ana Silva',
+      id: '2',
       email: 'a.silva@uan.ao',
+      email_verified: true,
+      is_active: true,
+      role: 'curador',
+      created_at: '2024-02-22T10:00:00Z',
+      updated_at: '2024-06-14T14:00:00Z',
+      last_login_at: '2024-06-14T13:00:00Z',
+      display_name: 'Dra. Ana Silva',
+      full_name: 'Ana Maria Silva',
       institution: 'Universidade Agostinho Neto',
-      role: 'curator',
-      status: 'active',
-      joinDate: '22 Fev 2024',
-      lastActive: 'Ontem',
-      avatarInitials: 'AS',
-      avatarColor: '#1d4ed8'
+      province: 'Luanda',
+      avatar_url: null,
+      bio: 'Investigadora em sistemas monetários africanos.',
+      research_areas: ['Sistemas Monetários', 'Economia Política', 'História Fiscal'],
+      avatarColor: '#1d4ed8',
+      avatarInitials: 'AS'
     },
     {
-      id: 3,
-      name: 'Prof. Carlos Mendes',
+      id: '3',
       email: 'c.mendes@isced.ao',
+      email_verified: true,
+      is_active: true,
+      role: 'investigador',
+      created_at: '2024-03-10T09:00:00Z',
+      updated_at: '2024-06-12T16:00:00Z',
+      last_login_at: '2024-06-12T15:30:00Z',
+      display_name: 'Prof. Carlos Mendes',
+      full_name: 'Carlos Eduardo Mendes',
       institution: 'ISCED Huíla',
-      role: 'researcher',
-      status: 'active',
-      joinDate: '10 Mar 2024',
-      lastActive: 'Há 2 dias',
-      avatarInitials: 'CM',
-      avatarColor: '#0891b2'
+      province: 'Huíla',
+      avatar_url: null,
+      bio: 'Especialista em rotas comerciais e infraestruturas.',
+      research_areas: ['Rotas Comerciais', 'Infraestrutura', 'História do Comércio'],
+      avatarColor: '#0891b2',
+      avatarInitials: 'CM'
     },
     {
-      id: 4,
-      name: 'Maria João Santos',
+      id: '4',
       email: 'mj.santos@ucan.ao',
+      email_verified: false,
+      is_active: false,
+      role: 'estudante',
+      created_at: '2024-04-05T11:00:00Z',
+      updated_at: '2024-04-05T11:00:00Z',
+      last_login_at: null,
+      display_name: 'Maria João Santos',
+      full_name: 'Maria João Santos',
       institution: 'Universidade Católica',
-      role: 'student',
-      status: 'pending',
-      joinDate: '05 Abr 2024',
-      lastActive: 'Nunca',
-      avatarInitials: 'MS',
-      avatarColor: '#7c3aed'
+      province: 'Benguela',
+      avatar_url: null,
+      bio: null,
+      research_areas: null,
+      avatarColor: '#7c3aed',
+      avatarInitials: 'MS'
     },
     {
-      id: 5,
-      name: 'Dr. João Lopes',
+      id: '5',
       email: 'j.lopes@isptec.ao',
+      email_verified: true,
+      is_active: false,
+      role: 'investigador',
+      created_at: '2024-02-28T14:00:00Z',
+      updated_at: '2024-06-10T08:00:00Z',
+      last_login_at: '2024-06-10T07:30:00Z',
+      display_name: 'Dr. João Lopes',
+      full_name: 'João Pedro Lopes',
       institution: 'ISPTEC',
-      role: 'researcher',
-      status: 'blocked',
-      joinDate: '28 Fev 2024',
-      lastActive: 'Há 5 dias',
-      avatarInitials: 'JL',
-      avatarColor: '#dc2626'
+      province: 'Luanda',
+      avatar_url: null,
+      bio: 'Pesquisador em políticas públicas e desenvolvimento.',
+      research_areas: ['Políticas Públicas', 'Desenvolvimento Económico', 'Economia Social'],
+      avatarColor: '#dc2626',
+      avatarInitials: 'JL'
     }
   ];
 
   get filteredUsers(): User[] {
     return this.users.filter(user => {
       const matchSearch = this.searchQuery === '' ||
-        user.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        (user.display_name && user.display_name.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+        (user.full_name && user.full_name.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
         user.email.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        user.institution.toLowerCase().includes(this.searchQuery.toLowerCase());
+        (user.institution && user.institution.toLowerCase().includes(this.searchQuery.toLowerCase()));
       const matchRole = this.filterRole === 'todos' || user.role === this.filterRole;
-      const matchStatus = this.filterStatus === 'todos' || user.status === this.filterStatus;
+      const matchStatus = this.filterStatus === 'todos' || 
+        (this.filterStatus === 'active' ? user.is_active === true : 
+         this.filterStatus === 'pending' ? user.email_verified === false && user.is_active === false :
+         this.filterStatus === 'blocked' ? user.is_active === false && user.email_verified === true : true);
       return matchSearch && matchRole && matchStatus;
     });
   }
 
   getRoleLabel(role: string): string {
     const roles: Record<string, string> = {
-      admin: 'Administrador',
-      curator: 'Curador',
-      researcher: 'Investigador',
-      student: 'Estudante'
+      administrador: 'Administrador',
+      curador: 'Curador',
+      investigador: 'Investigador',
+      estudante: 'Estudante',
+      superadministrador: 'Super Administrador'
     };
     return roles[role] || role;
   }
 
-  getRoleBadgeClass(role: string): string {
-    const classes: Record<string, string> = {
-      admin: 'badge-admin',
-      curator: 'badge-curator',
-      researcher: 'badge-researcher',
-      student: 'badge-student'
+  getRoleIcon(role: string): string {
+    const icons: Record<string, string> = {
+      administrador: '👑',
+      curador: '📚',
+      investigador: '🔬',
+      estudante: '🎓',
+      superadministrador: '⭐'
     };
-    return classes[role] || 'badge-default';
+    return icons[role] || '👤';
   }
 
-  getStatusLabel(status: string): string {
-    const statuses: Record<string, string> = {
-      active: 'Ativo',
-      pending: 'Pendente',
-      blocked: 'Bloqueado'
-    };
-    return statuses[status] || status;
-  }
-
-  getStatusBadgeClass(status: string): string {
-    const classes: Record<string, string> = {
-      active: 'status-active',
-      pending: 'status-pending',
-      blocked: 'status-blocked'
-    };
-    return classes[status] || 'status-default';
+  getStatusLabel(isActive: boolean, emailVerified: boolean): string {
+    if (isActive && emailVerified) return 'Ativo';
+    if (!isActive && emailVerified) return 'Bloqueado';
+    if (!isActive && !emailVerified) return 'Pendente';
+    return 'Ativo';
   }
 
   getStats() {
     return {
       total: this.users.length,
-      active: this.users.filter(u => u.status === 'active').length,
-      pending: this.users.filter(u => u.status === 'pending').length,
-      blocked: this.users.filter(u => u.status === 'blocked').length
+      active: this.users.filter(u => u.is_active && u.email_verified).length,
+      pending: this.users.filter(u => !u.is_active && !u.email_verified).length,
+      blocked: this.users.filter(u => !u.is_active && u.email_verified).length
     };
   }
 
-  // Generate avatar initials from name
-  generateInitials(name: string): string {
+  getInitials(name: string): string {
+    if (!name) return '?';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   }
 
-  // Generate random avatar color
   getRandomColor(): string {
     const colors = ['#6b0119', '#1d4ed8', '#0891b2', '#7c3aed', '#15803d', '#b45309', '#dc2626'];
     return colors[Math.floor(Math.random() * colors.length)];
   }
 
-  // Open modal to add new user
+  // ============================================
+  // MÉTODOS DE AVATAR
+  // ============================================
+
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Tipo de arquivo não permitido. Use JPG, PNG ou WebP.');
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('Arquivo muito grande. Máximo 5MB.');
+      return;
+    }
+
+    this.avatarFile = file;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.avatarPreview = e.target.result;
+      this.userForm.avatar_url = this.avatarPreview;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeAvatar(): void {
+    this.avatarFile = null;
+    this.avatarPreview = null;
+    this.userForm.avatar_url = null;
+    
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (input) input.value = '';
+  }
+
+  // ============================================
+  // MÉTODOS DO MODAL
+  // ============================================
+
   openAddUserModal(): void {
     this.editingUser = null;
+    this.avatarFile = null;
+    this.avatarPreview = null;
     this.userForm = {
-      id: 0,
-      name: '',
+      id: '',
       email: '',
-      institution: '',
-      role: 'student',
-      status: 'pending',
-      joinDate: new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' }),
-      lastActive: 'Nunca',
-      avatarInitials: '',
-      avatarColor: this.getRandomColor()
+      email_verified: false,
+      is_active: true,
+      role: 'estudante',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      last_login_at: null,
+      display_name: '',
+      full_name: null,
+      institution: null,
+      province: null,
+      avatar_url: null,
+      bio: null,
+      research_areas: null,
+      research_areas_input: '',
+      avatarColor: this.getRandomColor(),
+      avatarInitials: ''
     };
     this.showUserModal = true;
   }
 
-  // Open modal to edit user
   openEditUserModal(user: User): void {
     this.editingUser = { ...user };
-    this.userForm = { ...user };
+    this.avatarFile = null;
+    this.avatarPreview = null;
+    this.userForm = {
+      ...user,
+      research_areas_input: user.research_areas ? user.research_areas.join(', ') : ''
+    };
     this.showUserModal = true;
   }
 
-  // Close modal
   closeUserModal(): void {
     this.showUserModal = false;
     this.editingUser = null;
+    this.avatarFile = null;
+    this.avatarPreview = null;
   }
 
-  // Save user (create or update)
+  // ============================================
+  // MÉTODOS CRUD
+  // ============================================
+
   saveUser(): void {
-    if (!this.userForm.name.trim()) {
-      alert('Por favor, insira o nome do utilizador');
+    if (!this.userForm.display_name?.trim()) {
+      alert('Por favor, insira o nome de exibição do utilizador');
       return;
     }
     
-    if (!this.userForm.email.trim()) {
+    if (!this.userForm.email?.trim()) {
       alert('Por favor, insira o email do utilizador');
       return;
     }
     
-    // Generate initials if not set
     if (!this.userForm.avatarInitials) {
-      this.userForm.avatarInitials = this.generateInitials(this.userForm.name);
+      this.userForm.avatarInitials = this.getInitials(this.userForm.display_name);
+    }
+    
+    if (this.userForm.research_areas_input?.trim()) {
+      this.userForm.research_areas = this.userForm.research_areas_input
+        .split(',')
+        .map(area => area.trim())
+        .filter(area => area.length > 0);
+    } else {
+      this.userForm.research_areas = null;
+    }
+    
+    if (this.avatarFile) {
+      // Em produção: upload para o servidor
+      this.userForm.avatar_url = this.avatarPreview;
     }
     
     if (this.editingUser) {
-      // Update existing user
       const index = this.users.findIndex(u => u.id === this.editingUser!.id);
       if (index !== -1) {
         this.users[index] = { ...this.userForm, id: this.editingUser.id };
       }
     } else {
-      // Create new user
-      const newId = Math.max(...this.users.map(u => u.id), 0) + 1;
-      this.userForm.id = newId;
+      this.userForm.id = Date.now().toString();
       this.users.push({ ...this.userForm });
     }
     
     this.closeUserModal();
   }
 
-  // Delete user
-  deleteUser(id: number): void {
+  deleteUser(id: string): void {
     if (confirm('Tem certeza que deseja eliminar este utilizador?')) {
       this.users = this.users.filter(u => u.id !== id);
     }
   }
 
-  // Block user
-  blockUser(id: number): void {
+  blockUser(id: string): void {
     const user = this.users.find(u => u.id === id);
     if (user) {
-      user.status = 'blocked';
+      user.is_active = false;
     }
   }
 
-  // Activate user
-  activateUser(id: number): void {
+  activateUser(id: string): void {
     const user = this.users.find(u => u.id === id);
     if (user) {
-      user.status = 'active';
+      user.is_active = true;
+      user.email_verified = true;
     }
   }
 
-  // Approve pending user
-  approveUser(id: number): void {
+  approveUser(id: string): void {
     const user = this.users.find(u => u.id === id);
-    if (user && user.status === 'pending') {
-      user.status = 'active';
+    if (user && !user.email_verified) {
+      user.email_verified = true;
+      user.is_active = true;
     }
-  }
-
-  // Get role icon
-  getRoleIcon(role: string): string {
-    const icons: Record<string, string> = {
-      admin: '👑',
-      curator: '📚',
-      researcher: '🔬',
-      student: '🎓'
-    };
-    return icons[role] || '👤';
   }
 }

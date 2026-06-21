@@ -99,19 +99,19 @@
       <div class="quiz-stats">
         <div class="stat-item">
           <span class="stat-icon-small">📊</span>
-          <span>{{ quiz.questions.length }} perguntas</span>
+          <span>{{ quiz.questions?.length || 0 }} perguntas</span>
         </div>
         <div class="stat-item">
           <span class="stat-icon-small">⭐</span>
-          <span>{{ quiz.totalPoints }} pontos</span>
+          <span>{{ quiz.base_points || 0 }} pontos base</span>
         </div>
         <div class="stat-item">
           <span class="stat-icon-small">👥</span>
-          <span>{{ quiz.completions }} participações</span>
+          <span>{{ quiz.completions_count || 0 }} participações</span>
         </div>
         <div class="stat-item">
           <span class="stat-icon-small">📈</span>
-          <span>{{ quiz.avgScore }}% acerto</span>
+          <span>{{ quiz.avg_score || 0 }}% acerto</span>
         </div>
       </div>
       
@@ -144,7 +144,7 @@
           📋 Informações Gerais
         </button>
         <button class="tab-btn" [class.active]="activeTab === 'questions'" (click)="activeTab = 'questions'">
-          📝 Perguntas ({{ newQuiz.questions.length }})
+          📝 Perguntas ({{ newQuiz.questions?.length || 0 }})
         </button>
       </div>
       
@@ -188,12 +188,46 @@
           
           <div class="form-row">
             <div class="form-group">
-              <label>Tempo limite (minutos)</label>
-              <input type="number" [(ngModel)]="newQuiz.timeLimit" class="form-input" min="0">
+              <label>Pontos Base</label>
+              <input type="number" [(ngModel)]="newQuiz.base_points" class="form-input" min="0" step="10">
+              <span class="form-hint">Pontos base atribuídos por completar o questionário</span>
             </div>
             <div class="form-group">
-              <label>Pontuação mínima para aprovação (%)</label>
-              <input type="number" [(ngModel)]="newQuiz.passingScore" class="form-input" min="0" max="100">
+              <label>Tempo limite (segundos)</label>
+              <input type="number" [(ngModel)]="newQuiz.time_limit_secs" class="form-input" min="0">
+              <span class="form-hint">0 = sem limite de tempo</span>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nível de Acesso</label>
+              <select [(ngModel)]="newQuiz.access_level_id" class="form-input">
+                <option value="public">🌐 Público</option>
+                <option value="jindungo">🔥 Jindungo</option>
+                <option value="restricted">🔒 Restrito</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Destaque</label>
+              <select [(ngModel)]="newQuiz.is_featured" class="form-input">
+                <option [value]="false">Não</option>
+                <option [value]="true">Sim</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Categoria</label>
+              <select [(ngModel)]="newQuiz.category_id" class="form-input">
+                <option [value]="null">Sem categoria</option>
+                <option *ngFor="let cat of categoriesList" [value]="cat.id">{{ cat.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>URL da Imagem de Capa</label>
+              <input type="text" [(ngModel)]="newQuiz.cover_image_url" class="form-input" placeholder="https://...">
             </div>
           </div>
           
@@ -201,7 +235,7 @@
             <div class="info-icon">ℹ️</div>
             <div class="info-text">
               <strong>Resumo do Questionário</strong><br>
-              <span>{{ newQuiz.questions.length }} perguntas • {{ newQuiz.totalPoints }} pontos totais</span>
+              <span>{{ newQuiz.questions?.length || 0 }} perguntas • {{ newQuiz.base_points || 0 }} pontos base</span>
             </div>
           </div>
         </div>
@@ -210,26 +244,27 @@
         <div *ngIf="activeTab === 'questions'" class="tab-content">
           
           <!-- Lista de Perguntas já Adicionadas -->
-          <div class="questions-list" *ngIf="newQuiz.questions.length > 0">
+          <div class="questions-list" *ngIf="newQuiz.questions && newQuiz.questions.length > 0">
             <h3 class="section-subtitle">Perguntas Adicionadas</h3>
             <div *ngFor="let question of newQuiz.questions; let i = index" class="question-item">
               <div class="question-header">
-                <div class="question-number">Pergunta {{ i + 1 }}</div>
+                <div class="question-number">Pergunta {{ question.question_order || i + 1 }}</div>
                 <div class="question-actions">
                   <button class="icon-btn" (click)="removeQuestion(i)">🗑️ Remover</button>
                 </div>
               </div>
-              <p class="question-text">{{ question.text }}</p>
+              <p class="question-text">{{ question.title }}</p>
               <div class="question-options-preview">
-                <div *ngFor="let opt of question.options" class="option-preview" [class.correct]="opt.isCorrect">
-                  <span class="option-marker">{{ getOptionLetter(opt.id) }}</span>
+                <div *ngFor="let opt of question.options" class="option-preview" [class.correct]="opt.is_correct">
+                  <span class="option-marker">{{ getOptionLetter(opt.option_key) }}</span>
                   <span class="option-text">{{ opt.text }}</span>
-                  <span *ngIf="opt.isCorrect" class="correct-badge">✓ Correta</span>
+                  <span *ngIf="opt.is_correct" class="correct-badge">✓ Correta</span>
                 </div>
               </div>
               <div class="question-meta">
-                <span>🎯 {{ question.points }} pontos</span>
+                <span>🎯 {{ question.points || 0 }} pontos</span>
                 <span *ngIf="question.explanation">💡 Com explicação</span>
+                <span *ngIf="question.question_type">📋 {{ question.question_type }}</span>
               </div>
             </div>
           </div>
@@ -255,32 +290,40 @@
                 
                 <div class="form-group">
                   <label>Texto da Pergunta <span class="required">*</span></label>
-                  <textarea [(ngModel)]="q.text" rows="2" class="form-input" placeholder="Digite o enunciado da pergunta..."></textarea>
+                  <textarea [(ngModel)]="q.title" rows="2" class="form-input" placeholder="Digite o enunciado da pergunta..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Tipo de Pergunta</label>
+                    <select [(ngModel)]="q.question_type" class="form-input">
+                      <option value="multiple_choice">Escolha Múltipla</option>
+                      <option value="true_false">Verdadeiro/Falso</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Pontuação</label>
+                    <input type="number" [(ngModel)]="q.points" class="form-input" min="1" max="50" step="5">
+                  </div>
                 </div>
                 
                 <div class="form-group">
                   <label>Opções de Resposta <span class="required">*</span></label>
                   <div class="options-container">
                     <div *ngFor="let opt of q.options" class="option-row">
-                      <div class="option-letter">{{ getOptionLetter(opt.id) }}</div>
-                      <input type="text" [(ngModel)]="opt.text" class="option-input" placeholder="Opção {{ getOptionLetter(opt.id) }}">
+                      <div class="option-letter">{{ getOptionLetter(opt.option_key) }}</div>
+                      <input type="text" [(ngModel)]="opt.text" class="option-input" placeholder="Opção {{ getOptionLetter(opt.option_key) }}">
                       <label class="correct-checkbox">
-                        <input type="checkbox" [checked]="opt.isCorrect" (change)="updateOptionCorrect(idx, opt.id, $event.target.checked)">
+                        <input type="checkbox" [checked]="opt.is_correct" (change)="updateOptionCorrect(idx, opt.option_key, $event.target.checked)">
                         <span>Correta</span>
                       </label>
                     </div>
                   </div>
                 </div>
                 
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>Pontuação</label>
-                    <input type="number" [(ngModel)]="q.points" class="form-input" min="1" max="50" step="5">
-                  </div>
-                  <div class="form-group">
-                    <label>Explicação (opcional)</label>
-                    <input type="text" [(ngModel)]="q.explanation" class="form-input" placeholder="Explique a resposta correta...">
-                  </div>
+                <div class="form-group">
+                  <label>Explicação (opcional)</label>
+                  <input type="text" [(ngModel)]="q.explanation" class="form-input" placeholder="Explique a resposta correta...">
                 </div>
               </div>
               
@@ -296,7 +339,7 @@
       
       <div class="modal-footer">
         <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveQuiz()" [disabled]="newQuiz.questions.length === 0">
+        <button class="btn-save" (click)="saveQuiz()" [disabled]="!(newQuiz.questions && newQuiz.questions.length > 0)">
           💾 Guardar Questionário
         </button>
       </div>

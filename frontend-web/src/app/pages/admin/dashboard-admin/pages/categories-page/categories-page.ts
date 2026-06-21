@@ -2,17 +2,24 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+// Interface alinhada com a tabela 'document_categories' da migration
 interface Category {
-  id: number;
-  name: string;
-  description: string;
-  type: 'public' | 'jindungo' | 'restricted';
-  documents: number;
-  topics: number;
-  members: number;
-  status: 'active' | 'inactive';
-  color: string;
-  icon?: string;
+  id: string;                                    // UUID
+  name: string;                                  // Nome da categoria
+  slug: string;                                  // Slug único
+  description: string;                           // Descrição
+  access_level_id: 'public' | 'jindungo' | 'restricted'; // Nível de acesso
+  color_bg: string | null;                       // Cor de fundo
+  color_text: string | null;                     // Cor do texto
+  icon: string | null;                           // Ícone (emoji)
+  parent_id: string | null;                      // Categoria parente
+  sort_order: number;                            // Ordem de exibição
+  is_active: boolean;                            // Status (ativo/inativo)
+  // Campos calculados (não estão na tabela, mas são úteis para exibição)
+  documents_count?: number;
+  topics_count?: number;
+  members_count?: number;
+  created_at?: string;
 }
 
 @Component({
@@ -33,90 +40,115 @@ export class CategoriesPageComponent {
   
   // Form data for new/edit category
   categoryForm: Category = {
-    id: 0,
+    id: '',
     name: '',
+    slug: '',
     description: '',
-    type: 'public',
-    documents: 0,
-    topics: 0,
-    members: 0,
-    status: 'active',
-    color: '#acf0e0',
-    icon: '📁'
+    access_level_id: 'public',
+    color_bg: '#acf0e0',
+    color_text: '#000000',
+    icon: '📁',
+    parent_id: null,
+    sort_order: 0,
+    is_active: true
   };
 
   categories: Category[] = [
     {
-      id: 1,
+      id: '1',
       name: 'Análise de Políticas',
+      slug: 'analise-de-politicas',
       description: 'Discussões sobre políticas económicas e fiscais angolanas.',
-      type: 'public',
-      documents: 234,
-      topics: 89,
-      members: 456,
-      status: 'active',
-      color: '#acf0e0',
-      icon: '📊'
+      access_level_id: 'public',
+      color_bg: '#acf0e0',
+      color_text: '#000000',
+      icon: '📊',
+      parent_id: null,
+      sort_order: 0,
+      is_active: true,
+      documents_count: 234,
+      topics_count: 89,
+      members_count: 456
     },
     {
-      id: 2,
+      id: '2',
       name: 'Jindungo',
+      slug: 'jindungo',
       description: 'Conteúdos exclusivos e análises aprofundadas para membros premium.',
-      type: 'jindungo',
-      documents: 156,
-      topics: 45,
-      members: 234,
-      status: 'active',
-      color: '#ffd6a5',
-      icon: '🔥'
+      access_level_id: 'jindungo',
+      color_bg: '#ffd6a5',
+      color_text: '#000000',
+      icon: '🔥',
+      parent_id: null,
+      sort_order: 1,
+      is_active: true,
+      documents_count: 156,
+      topics_count: 45,
+      members_count: 234
     },
     {
-      id: 3,
+      id: '3',
       name: 'Rotas Comerciais',
+      slug: 'rotas-comerciais',
       description: 'História do comércio e redes económicas na África Austral.',
-      type: 'public',
-      documents: 189,
-      topics: 67,
-      members: 345,
-      status: 'active',
-      color: '#ffd6a5',
-      icon: '🚢'
+      access_level_id: 'public',
+      color_bg: '#ffd6a5',
+      color_text: '#000000',
+      icon: '🚢',
+      parent_id: null,
+      sort_order: 2,
+      is_active: true,
+      documents_count: 189,
+      topics_count: 67,
+      members_count: 345
     },
     {
-      id: 4,
+      id: '4',
       name: 'Investigação Avançada',
+      slug: 'investigacao-avancada',
       description: 'Pesquisas de doutoramento e publicações científicas.',
-      type: 'restricted',
-      documents: 78,
-      topics: 23,
-      members: 89,
-      status: 'active',
-      color: '#ffb3ba',
-      icon: '🔬'
+      access_level_id: 'restricted',
+      color_bg: '#ffb3ba',
+      color_text: '#000000',
+      icon: '🔬',
+      parent_id: null,
+      sort_order: 3,
+      is_active: true,
+      documents_count: 78,
+      topics_count: 23,
+      members_count: 89
     },
     {
-      id: 5,
+      id: '5',
       name: 'História Fiscal',
+      slug: 'historia-fiscal',
       description: 'Sistemas fiscais coloniais e pós-coloniais.',
-      type: 'public',
-      documents: 201,
-      topics: 54,
-      members: 267,
-      status: 'inactive',
-      color: '#d4c5f9',
-      icon: '📜'
+      access_level_id: 'public',
+      color_bg: '#d4c5f9',
+      color_text: '#000000',
+      icon: '📜',
+      parent_id: null,
+      sort_order: 4,
+      is_active: false,
+      documents_count: 201,
+      topics_count: 54,
+      members_count: 267
     },
     {
-      id: 6,
+      id: '6',
       name: 'Sistema Monetário',
+      slug: 'sistema-monetario',
       description: 'Evolução das moedas e políticas monetárias angolanas.',
-      type: 'restricted',
-      documents: 112,
-      topics: 38,
-      members: 156,
-      status: 'active',
-      color: '#ffb3ba',
-      icon: '💰'
+      access_level_id: 'restricted',
+      color_bg: '#ffb3ba',
+      color_text: '#000000',
+      icon: '💰',
+      parent_id: null,
+      sort_order: 5,
+      is_active: true,
+      documents_count: 112,
+      topics_count: 38,
+      members_count: 156
     }
   ];
 
@@ -149,9 +181,10 @@ export class CategoriesPageComponent {
     return this.categories.filter(cat => {
       const matchSearch = this.searchQuery === '' ||
         cat.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        cat.description.toLowerCase().includes(this.searchQuery.toLowerCase());
-      const matchType = this.filterType === 'todos' || cat.type === this.filterType;
-      const matchStatus = this.filterStatus === 'todos' || cat.status === this.filterStatus;
+        (cat.description && cat.description.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      const matchType = this.filterType === 'todos' || cat.access_level_id === this.filterType;
+      const matchStatus = this.filterStatus === 'todos' || 
+        (this.filterStatus === 'active' ? cat.is_active === true : cat.is_active === false);
       return matchSearch && matchType && matchStatus;
     });
   }
@@ -165,29 +198,16 @@ export class CategoriesPageComponent {
     return types[type] || type;
   }
 
-  getTypeBadgeClass(type: string): string {
-    const classes: Record<string, string> = {
-      public: 'type-public',
-      jindungo: 'type-jindungo',
-      restricted: 'type-restricted'
-    };
-    return classes[type] || '';
-  }
-
-  getStatusLabel(status: string): string {
-    return status === 'active' ? 'Ativo' : 'Inativo';
-  }
-
-  getStatusBadgeClass(status: string): string {
-    return status === 'active' ? 'status-active' : 'status-inactive';
+  getStatusLabel(isActive: boolean): string {
+    return isActive ? 'Ativo' : 'Inativo';
   }
 
   getStats() {
     return {
       total: this.categories.length,
-      active: this.categories.filter(c => c.status === 'active').length,
-      public: this.categories.filter(c => c.type === 'public').length,
-      restricted: this.categories.filter(c => c.type !== 'public').length
+      active: this.categories.filter(c => c.is_active).length,
+      public: this.categories.filter(c => c.access_level_id === 'public').length,
+      restricted: this.categories.filter(c => c.access_level_id !== 'public').length
     };
   }
 
@@ -195,16 +215,17 @@ export class CategoriesPageComponent {
   openAddCategoryModal(): void {
     this.editingCategory = null;
     this.categoryForm = {
-      id: 0,
+      id: '',
       name: '',
+      slug: '',
       description: '',
-      type: 'public',
-      documents: 0,
-      topics: 0,
-      members: 0,
-      status: 'active',
-      color: '#acf0e0',
-      icon: '📁'
+      access_level_id: 'public',
+      color_bg: '#acf0e0',
+      color_text: '#000000',
+      icon: '📁',
+      parent_id: null,
+      sort_order: this.categories.length,
+      is_active: true
     };
     this.showCategoryModal = true;
   }
@@ -234,6 +255,11 @@ export class CategoriesPageComponent {
       return;
     }
     
+    // Gerar slug se estiver vazio
+    if (!this.categoryForm.slug) {
+      this.categoryForm.slug = this.generateSlug(this.categoryForm.name);
+    }
+    
     if (this.editingCategory) {
       // Update existing category
       const index = this.categories.findIndex(c => c.id === this.editingCategory!.id);
@@ -241,9 +267,8 @@ export class CategoriesPageComponent {
         this.categories[index] = { ...this.categoryForm, id: this.editingCategory.id };
       }
     } else {
-      // Create new category
-      const newId = Math.max(...this.categories.map(c => c.id), 0) + 1;
-      this.categoryForm.id = newId;
+      // Create new category (UUID seria gerado pelo backend)
+      this.categoryForm.id = Date.now().toString();
       this.categories.push({ ...this.categoryForm });
     }
     
@@ -251,17 +276,17 @@ export class CategoriesPageComponent {
   }
 
   // Delete category
-  deleteCategory(id: number): void {
+  deleteCategory(id: string): void {
     if (confirm('Tem certeza que deseja eliminar esta categoria? Esta ação irá remover todos os conteúdos associados.')) {
       this.categories = this.categories.filter(c => c.id !== id);
     }
   }
 
   // Toggle category status (active/inactive)
-  toggleCategoryStatus(id: number): void {
+  toggleCategoryStatus(id: string): void {
     const category = this.categories.find(c => c.id === id);
     if (category) {
-      category.status = category.status === 'active' ? 'inactive' : 'active';
+      category.is_active = !category.is_active;
     }
   }
 
@@ -273,5 +298,15 @@ export class CategoriesPageComponent {
       restricted: '🔒'
     };
     return icons[type] || '📁';
+  }
+
+  // Generate slug from name
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 }

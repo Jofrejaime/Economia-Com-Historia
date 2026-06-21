@@ -13,7 +13,8 @@ import { ProfileService } from '../../services/profile.service';
 })
 export class HeaderComponent implements OnInit {
   mobileMenuOpen = false;
-  avatarUrl = ''; // Will be loaded from backend
+  avatarUrl = '';
+  unreadCount = 0;
 
   constructor(
     private router: Router,
@@ -23,6 +24,7 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserAvatar();
+    this.loadUnreadCount();
   }
 
   private async loadUserAvatar(): Promise<void> {
@@ -30,14 +32,21 @@ export class HeaderComponent implements OnInit {
       const me = await this.profileService.getMe();
       if (me?.profile?.avatar_url) {
         this.avatarUrl = me.profile.avatar_url;
-      } else {
-        // Fallback: Use initials or default icon if no avatar
-        this.avatarUrl = '';
       }
     } catch (error) {
-      // Falhar silenciosamente, deixar vazio (mostrará ícone padrão)
       this.avatarUrl = '';
     }
+  }
+
+  private loadUnreadCount(): void {
+    // Em produção: buscar do backend
+    // Por enquanto, valor mock
+    this.unreadCount = 3;
+  }
+
+  // Navegar diretamente para a página de notificações
+  goToNotifications(): void {
+    this.router.navigate(['/notificacoes']);
   }
 
   toggleMobileMenu(): void {
@@ -60,4 +69,3 @@ export class HeaderComponent implements OnInit {
     }
   }
 }
-

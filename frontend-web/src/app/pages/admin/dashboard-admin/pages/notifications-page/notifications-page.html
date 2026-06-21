@@ -1,0 +1,137 @@
+<div class="notifications-container">
+  
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Notificações</h1>
+      <p class="page-subtitle">Histórico de notificações do sistema.</p>
+    </div>
+    <button class="btn-primary" (click)="openSendNotificationModal()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Nova Notificação
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">📨</span>
+      </div>
+      <div>
+        <p class="stat-label">TOTAL</p>
+        <p class="stat-number">{{ getStats().total }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">🔴</span>
+      </div>
+      <div>
+        <p class="stat-label">NÃO LIDAS</p>
+        <p class="stat-number">{{ getStats().unread }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">✓</span>
+      </div>
+      <div>
+        <p class="stat-label">LIDAS</p>
+        <p class="stat-number">{{ getStats().read }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar..." class="search-input">
+    </div>
+    <div class="filter-select">
+      <select [(ngModel)]="filterRead" class="select">
+        <option value="todos">Todos</option>
+        <option value="unread">Não lidas</option>
+        <option value="read">Lidas</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <table class="notifications-table">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Mensagem</th>
+          <th>Destinatário</th>
+          <th>Data</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="filteredNotifications.length === 0">
+          <td colspan="6" class="empty-row">Nenhuma notificação encontrada</td>
+        </tr>
+        <tr *ngFor="let notif of filteredNotifications">
+          <td>{{ notif.title }}</td>
+          <td>{{ notif.message | slice:0:60 }}{{ notif.message.length > 60 ? '...' : '' }}</td>
+          <td>{{ notif.user_name || 'Todos' }}</td>
+          <td>{{ notif.created_at | date:'dd MMM yyyy HH:mm' }}</td>
+          <td>
+            <span class="status-badge">{{ notif.is_read ? 'Lida' : 'Não lida' }}</span>
+          </td>
+          <td class="actions-cell">
+            <button *ngIf="!notif.is_read" class="action-btn" (click)="markAsRead(notif.id)" title="Marcar como lida">✓</button>
+            <button class="action-btn" (click)="deleteNotification(notif.id)" title="Eliminar">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" *ngIf="showSendModal" (click)="closeSendModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Nova Notificação</h2>
+        <button class="modal-close" (click)="closeSendModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Título <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="newNotification.title" class="form-input" placeholder="Título da notificação">
+        </div>
+        <div class="form-group">
+          <label>Mensagem <span class="required">*</span></label>
+          <textarea [(ngModel)]="newNotification.message" rows="3" class="form-input" placeholder="Conteúdo da notificação..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo</label>
+            <select [(ngModel)]="newNotification.type" class="form-input">
+              <option value="info">Informação</option>
+              <option value="success">Sucesso</option>
+              <option value="warning">Aviso</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Destinatário</label>
+            <select [(ngModel)]="newNotification.user_id" class="form-input">
+              <option value="">Todos os utilizadores</option>
+              <option *ngFor="let user of users" [value]="user.id">{{ user.name }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeSendModal()">Cancelar</button>
+        <button class="btn-save" (click)="sendNotification()">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -11,19 +11,47 @@ interface MediaFile {
   file?: File;
 }
 
+// Interface alinhada com a tabela 'documents' da migration
 interface ContentItem {
-  id: number;
-  title: string;
-  type: string;
-  category: string;
-  author: string;
-  date: string;
-  status: 'published' | 'draft' | 'review';
-  views: number;
-  description?: string;
+  id: string;                                    // UUID
+  title: string;                                 // Título
+  slug: string;                                  // Slug
+  author: string;                                // Autor
+  institution: string;                           // Instituição
+  category_id: string | null;                    // FK para document_categories
+  document_type: string;                         // Tipo de documento
+  academic_level: 'intro' | 'intermediate' | 'advanced'; // Nível académico
+  access_level_id: 'public' | 'jindungo' | 'restricted'; // Nível de acesso
+  publication_date: string | null;               // Data de publicação
+  period_start: number | null;                   // Período início
+  period_end: number | null;                     // Período fim
+  summary: string;                               // Resumo (obrigatório)
+  content: string;                               // Conteúdo completo
+  cover_image_url: string | null;                // Imagem de capa
+  pdf_url: string | null;                        // URL do PDF
+  unique_id: string | null;                      // ID único
+  physical_location: string | null;              // Localização física
+  record_type: string | null;                    // Tipo de registo
+  status: 'published' | 'draft' | 'review';      // Status
+  views_count: number;                           // Contagem de visualizações
+  likes_count: number;                           // Contagem de gostos
+  downloads_count: number;                       // Contagem de downloads
+  comments_count: number;                        // Contagem de comentários
+  created_by: string;                            // FK para users (criador)
+  published_at: string | null;                   // Data de publicação
+  created_at: string;                            // Data de criação
+  updated_at: string;                            // Data de atualização
+  // Campos calculados/não na tabela
   tags?: string[];
   mediaFiles?: MediaFile[];
-  featuredImage?: string;
+  category_name?: string;
+}
+
+// Interface para categorias (document_categories)
+interface DocumentCategory {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 @Component({
@@ -61,22 +89,40 @@ export class ContentsPageComponent {
   
   // Form data for new/edit content
   contentForm: ContentItem = {
-    id: 0,
+    id: '',
     title: '',
-    type: 'Artigo Académico',
-    category: 'Economia Colonial',
+    slug: '',
     author: '',
-    date: new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' }),
+    institution: '',
+    category_id: null,
+    document_type: 'Artigo Académico',
+    academic_level: 'intro',
+    access_level_id: 'public',
+    publication_date: null,
+    period_start: null,
+    period_end: null,
+    summary: '',
+    content: '',
+    cover_image_url: null,
+    pdf_url: null,
+    unique_id: null,
+    physical_location: null,
+    record_type: null,
     status: 'draft',
-    views: 0,
-    description: '',
+    views_count: 0,
+    likes_count: 0,
+    downloads_count: 0,
+    comments_count: 0,
+    created_by: '',
+    published_at: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     tags: [],
-    mediaFiles: [],
-    featuredImage: ''
+    mediaFiles: []
   };
   
-  // Available options
-  contentTypes = [
+  // Available document types (alinhado com migration)
+  documentTypes = [
     'Artigo Académico',
     'Documento Histórico',
     'Relatório',
@@ -86,20 +132,20 @@ export class ContentsPageComponent {
     'Mapa',
     'Correspondência',
     'Vídeo',
-    'Áudio'
+    'Áudio',
+    'Decreto',
+    'Carta',
+    'Livro'
   ];
   
-  categoriesList = [
-    'Economia Colonial',
-    'Sistema Monetário',
-    'Infraestrutura',
-    'Rotas Comerciais',
-    'História Fiscal',
-    'Política Económica',
-    'Agricultura',
-    'Mineração',
-    'Cultura',
-    'Educação'
+  // Categories list (from document_categories)
+  categoriesList: DocumentCategory[] = [
+    { id: '1', name: 'Economia Colonial', slug: 'economia-colonial' },
+    { id: '2', name: 'Sistema Monetário', slug: 'sistema-monetario' },
+    { id: '3', name: 'Infraestrutura', slug: 'infraestrutura' },
+    { id: '4', name: 'Rotas Comerciais', slug: 'rotas-comerciais' },
+    { id: '5', name: 'História Fiscal', slug: 'historia-fiscal' },
+    { id: '6', name: 'Política Económica', slug: 'politica-economica' }
   ];
   
   tagOptions = [
@@ -111,29 +157,70 @@ export class ContentsPageComponent {
 
   contents: ContentItem[] = [
     {
-      id: 1,
+      id: '1',
       title: 'O Ciclo do Café em Angola (1950-1975)',
-      type: 'Artigo Académico',
-      category: 'Economia Colonial',
+      slug: 'ciclo-cafe-angola-1950-1975',
       author: 'Dr. Manuel Costa',
-      date: '15 Mar 2024',
+      institution: 'Universidade Agostinho Neto',
+      category_id: '1',
+      document_type: 'Artigo Académico',
+      academic_level: 'advanced',
+      access_level_id: 'public',
+      publication_date: '2024-03-15',
+      period_start: 1950,
+      period_end: 1975,
+      summary: 'Análise detalhada da produção e exportação do café durante o período colonial.',
+      content: 'Conteúdo completo do artigo...',
+      cover_image_url: null,
+      pdf_url: null,
+      unique_id: 'DOC-2024-001',
+      physical_location: null,
+      record_type: null,
       status: 'published',
-      views: 1245,
-      description: 'Análise detalhada da produção e exportação do café durante o período colonial.',
+      views_count: 1245,
+      likes_count: 89,
+      downloads_count: 234,
+      comments_count: 12,
+      created_by: 'user-1',
+      published_at: '2024-03-15T10:00:00Z',
+      created_at: '2024-03-10T08:00:00Z',
+      updated_at: '2024-03-15T10:00:00Z',
       tags: ['Café', 'Agricultura', 'Colonial'],
-      mediaFiles: []
+      mediaFiles: [],
+      category_name: 'Economia Colonial'
     },
     {
-      id: 2,
+      id: '2',
       title: 'Análise da Reforma Monetária de 1976',
-      type: 'Documento Histórico',
-      category: 'Sistema Monetário',
+      slug: 'reforma-monetaria-1976',
       author: 'Dra. Ana Silva',
-      date: '10 Fev 2024',
+      institution: 'Universidade Católica de Angola',
+      category_id: '2',
+      document_type: 'Documento Histórico',
+      academic_level: 'intermediate',
+      access_level_id: 'restricted',
+      publication_date: '2024-02-10',
+      period_start: 1976,
+      period_end: 1976,
+      summary: 'Documentos oficiais sobre a transição do Escudo para o Kwanza.',
+      content: 'Conteúdo completo do documento...',
+      cover_image_url: null,
+      pdf_url: null,
+      unique_id: 'DOC-2024-002',
+      physical_location: 'Arquivo Central, Prateleira 3',
+      record_type: 'Decreto',
       status: 'published',
-      views: 892,
-      description: 'Documentos oficiais sobre a transição do Escudo para o Kwanza.',
-      tags: ['Moeda', 'Reforma', '1976']
+      views_count: 892,
+      likes_count: 56,
+      downloads_count: 178,
+      comments_count: 8,
+      created_by: 'user-2',
+      published_at: '2024-02-10T14:30:00Z',
+      created_at: '2024-02-05T09:00:00Z',
+      updated_at: '2024-02-10T14:30:00Z',
+      tags: ['Moeda', 'Reforma', '1976'],
+      mediaFiles: [],
+      category_name: 'Sistema Monetário'
     }
   ];
 
@@ -142,9 +229,9 @@ export class ContentsPageComponent {
       const matchSearch = this.searchQuery === '' ||
         content.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         content.author.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        (content.description && content.description.toLowerCase().includes(this.searchQuery.toLowerCase()));
+        (content.summary && content.summary.toLowerCase().includes(this.searchQuery.toLowerCase()));
       const matchStatus = this.filterStatus === 'todos' || content.status === this.filterStatus;
-      const matchCategory = this.filterCategory === 'todos' || content.category === this.filterCategory;
+      const matchCategory = this.filterCategory === 'todos' || content.category_id === this.filterCategory;
       return matchSearch && matchStatus && matchCategory;
     });
   }
@@ -156,15 +243,6 @@ export class ContentsPageComponent {
       review: 'Em Revisão'
     };
     return labels[status] || status;
-  }
-
-  getStatusBadgeClass(status: string): string {
-    const classes: Record<string, string> = {
-      published: 'status-published',
-      draft: 'status-draft',
-      review: 'status-review'
-    };
-    return classes[status] || '';
   }
 
   getStatusIcon(status: string): string {
@@ -181,13 +259,12 @@ export class ContentsPageComponent {
       total: this.contents.length,
       published: this.contents.filter(c => c.status === 'published').length,
       draft: this.contents.filter(c => c.status === 'draft').length,
-      review: this.contents.filter(c => c.status === 'review').length,
-      totalViews: this.contents.reduce((sum, c) => sum + c.views, 0)
+      review: this.contents.filter(c => c.status === 'review').length
     };
   }
 
   getCategories(): string[] {
-    return [...new Set(this.contents.map(c => c.category))];
+    return this.categoriesList.map(c => c.name);
   }
 
   // Handle file selection for upload
@@ -198,7 +275,6 @@ export class ContentsPageComponent {
       this.mediaFile = file;
       this.mediaName = file.name;
       
-      // Create preview URL
       if (this.mediaPreviewUrl) {
         URL.revokeObjectURL(this.mediaPreviewUrl);
       }
@@ -207,7 +283,6 @@ export class ContentsPageComponent {
     }
   }
 
-  // Trigger file input
   triggerFileInput(type: 'image' | 'audio' | 'video'): void {
     if (type === 'image') {
       this.fileImageInput?.nativeElement.click();
@@ -218,7 +293,6 @@ export class ContentsPageComponent {
     }
   }
 
-  // Media management
   openMediaModal(type: 'image' | 'audio' | 'video', index?: number): void {
     this.currentMediaType = type;
     this.editingMediaIndex = index ?? null;
@@ -260,7 +334,6 @@ export class ContentsPageComponent {
     
     let finalUrl = this.mediaUrl;
     
-    // If we have a file uploaded, use the preview URL (in production, you would upload to server)
     if (this.mediaFile) {
       finalUrl = this.mediaPreviewUrl || URL.createObjectURL(this.mediaFile);
     }
@@ -288,9 +361,8 @@ export class ContentsPageComponent {
       this.contentForm.mediaFiles.push(newMedia);
     }
     
-    // If it's an image and first media, set as featured image
-    if (this.currentMediaType === 'image' && !this.contentForm.featuredImage) {
-      this.contentForm.featuredImage = finalUrl;
+    if (this.currentMediaType === 'image' && !this.contentForm.cover_image_url) {
+      this.contentForm.cover_image_url = finalUrl;
     }
     
     this.closeMediaModal();
@@ -299,18 +371,17 @@ export class ContentsPageComponent {
   removeMedia(index: number): void {
     if (this.contentForm.mediaFiles) {
       const removed = this.contentForm.mediaFiles[index];
-      if (removed.url === this.contentForm.featuredImage) {
-        this.contentForm.featuredImage = '';
+      if (removed.url === this.contentForm.cover_image_url) {
+        this.contentForm.cover_image_url = null;
       }
       this.contentForm.mediaFiles.splice(index, 1);
     }
   }
 
   setFeaturedImage(url: string): void {
-    this.contentForm.featuredImage = url;
+    this.contentForm.cover_image_url = url;
   }
 
-  // Tag management
   addTag(): void {
     if (this.newTag.trim() && !this.contentForm.tags?.includes(this.newTag.trim())) {
       this.contentForm.tags = [...(this.contentForm.tags || []), this.newTag.trim()];
@@ -328,23 +399,40 @@ export class ContentsPageComponent {
     }
   }
 
-  // Content CRUD
   openAddContentModal(): void {
     this.editingContent = null;
     this.activeTab = 'info';
     this.contentForm = {
-      id: 0,
+      id: '',
       title: '',
-      type: 'Artigo Académico',
-      category: 'Economia Colonial',
+      slug: '',
       author: '',
-      date: new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' }),
+      institution: '',
+      category_id: null,
+      document_type: 'Artigo Académico',
+      academic_level: 'intro',
+      access_level_id: 'public',
+      publication_date: null,
+      period_start: null,
+      period_end: null,
+      summary: '',
+      content: '',
+      cover_image_url: null,
+      pdf_url: null,
+      unique_id: null,
+      physical_location: null,
+      record_type: null,
       status: 'draft',
-      views: 0,
-      description: '',
+      views_count: 0,
+      likes_count: 0,
+      downloads_count: 0,
+      comments_count: 0,
+      created_by: '',
+      published_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       tags: [],
-      mediaFiles: [],
-      featuredImage: ''
+      mediaFiles: []
     };
     this.newTag = '';
     this.showContentModal = true;
@@ -376,34 +464,44 @@ export class ContentsPageComponent {
       return;
     }
     
+    if (!this.contentForm.summary.trim()) {
+      alert('Por favor, insira o resumo do conteúdo');
+      return;
+    }
+    
+    // Gerar slug
+    if (!this.contentForm.slug) {
+      this.contentForm.slug = this.generateSlug(this.contentForm.title);
+    }
+    
     if (this.editingContent) {
       const index = this.contents.findIndex(c => c.id === this.editingContent!.id);
       if (index !== -1) {
         this.contents[index] = { ...this.contentForm, id: this.editingContent.id };
       }
     } else {
-      const newId = Math.max(...this.contents.map(c => c.id), 0) + 1;
-      this.contentForm.id = newId;
+      this.contentForm.id = Date.now().toString();
       this.contents.push({ ...this.contentForm });
     }
     
     this.closeContentModal();
   }
 
-  deleteContent(id: number): void {
+  deleteContent(id: string): void {
     if (confirm('Tem certeza que deseja eliminar este conteúdo? Esta ação não pode ser desfeita.')) {
       this.contents = this.contents.filter(c => c.id !== id);
     }
   }
 
-  publishContent(id: number): void {
+  publishContent(id: string): void {
     const content = this.contents.find(c => c.id === id);
     if (content) {
       content.status = 'published';
+      content.published_at = new Date().toISOString();
     }
   }
 
-  archiveContent(id: number): void {
+  archiveContent(id: string): void {
     const content = this.contents.find(c => c.id === id);
     if (content && content.status === 'published') {
       content.status = 'draft';
@@ -417,5 +515,14 @@ export class ContentsPageComponent {
       case 'video': return '🎬';
       default: return '📄';
     }
+  }
+
+  private generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 }

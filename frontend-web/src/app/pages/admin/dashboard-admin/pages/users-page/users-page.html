@@ -14,7 +14,7 @@
     </button>
   </div>
 
-  <!-- Stats Cards - TODOS COM ÍCONES BORDEAUX -->
+  <!-- Stats Cards -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">
@@ -63,18 +63,18 @@
     <div class="filter-select">
       <select [(ngModel)]="filterRole" class="select">
         <option value="todos">Todas as funções</option>
-        <option value="admin">Administrador</option>
-        <option value="curator">Curador</option>
-        <option value="researcher">Investigador</option>
-        <option value="student">Estudante</option>
+        <option value="administrador">👑 Administrador</option>
+        <option value="curador">📚 Curador</option>
+        <option value="investigador">🔬 Investigador</option>
+        <option value="estudante">🎓 Estudante</option>
       </select>
     </div>
     <div class="filter-select">
       <select [(ngModel)]="filterStatus" class="select">
         <option value="todos">Todos os status</option>
-        <option value="active">Ativo</option>
-        <option value="pending">Pendente</option>
-        <option value="blocked">Bloqueado</option>
+        <option value="active">✓ Ativo</option>
+        <option value="pending">⏳ Pendente</option>
+        <option value="blocked">🚫 Bloqueado</option>
       </select>
     </div>
   </div>
@@ -99,11 +99,11 @@
         </tr>
         <tr *ngFor="let user of filteredUsers">
           <td class="user-cell">
-            <div class="user-avatar" [style.background]="user.avatarColor">
-              {{ user.avatarInitials }}
+            <div class="user-avatar" [style.background]="user.avatarColor || '#8b1e2d'">
+              {{ user.avatarInitials || getInitials(user.display_name || '?') }}
             </div>
             <div>
-              <p class="user-name">{{ user.name }}</p>
+              <p class="user-name">{{ user.display_name || user.full_name || 'Utilizador' }}</p>
               <p class="user-email">{{ user.email }}</p>
             </div>
           </td>
@@ -112,19 +112,19 @@
               {{ getRoleIcon(user.role) }} {{ getRoleLabel(user.role) }}
             </span>
           </td>
-          <td class="user-institution">{{ user.institution }}</td>
+          <td class="user-institution">{{ user.institution || 'N/A' }}</td>
           <td>
             <span class="status-badge">
-              {{ getStatusLabel(user.status) }}
+              {{ getStatusLabel(user.is_active, user.email_verified) }}
             </span>
           </td>
-          <td class="user-date">{{ user.joinDate }}</td>
-          <td class="user-date">{{ user.lastActive }}</td>
+          <td class="user-date">{{ user.created_at | date:'dd MMM yyyy' }}</td>
+          <td class="user-date">{{ user.last_login_at ? (user.last_login_at | date:'dd MMM yyyy, HH:mm') : 'Nunca' }}</td>
           <td class="actions-cell">
             <button class="action-btn" (click)="openEditUserModal(user)" title="Editar">✏️</button>
-            <button *ngIf="user.status !== 'blocked'" class="action-btn" (click)="blockUser(user.id)" title="Bloquear">🔒</button>
-            <button *ngIf="user.status === 'blocked'" class="action-btn" (click)="activateUser(user.id)" title="Ativar">✅</button>
-            <button *ngIf="user.status === 'pending'" class="action-btn" (click)="approveUser(user.id)" title="Aprovar">✓</button>
+            <button *ngIf="user.is_active !== false" class="action-btn" (click)="blockUser(user.id)" title="Bloquear">🔒</button>
+            <button *ngIf="user.is_active === false" class="action-btn" (click)="activateUser(user.id)" title="Ativar">✅</button>
+            <button *ngIf="!user.email_verified" class="action-btn" (click)="approveUser(user.id)" title="Aprovar">✓</button>
             <button class="action-btn" (click)="deleteUser(user.id)" title="Eliminar">🗑️</button>
           </td>
         </tr>
@@ -141,58 +141,121 @@
       </div>
       
       <div class="modal-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nome Completo <span class="required">*</span></label>
-            <input type="text" [(ngModel)]="userForm.name" class="form-input" placeholder="Ex: Dr. Manuel Costa">
-          </div>
-          <div class="form-group">
-            <label>Email <span class="required">*</span></label>
-            <input type="email" [(ngModel)]="userForm.email" class="form-input" placeholder="email@instituicao.ao">
-          </div>
+        <!-- display_name - CAMPO REAL -->
+        <div class="form-group">
+          <label>Nome de Exibição <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="userForm.display_name" class="form-input" placeholder="Ex: Dr. Manuel Costa">
         </div>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label>Instituição</label>
-            <input type="text" [(ngModel)]="userForm.institution" class="form-input" placeholder="Ex: Universidade Agostinho Neto">
-          </div>
-          <div class="form-group">
-            <label>Função</label>
-            <select [(ngModel)]="userForm.role" class="form-input">
-              <option value="admin">👑 Administrador</option>
-              <option value="curator">📚 Curador</option>
-              <option value="researcher">🔬 Investigador</option>
-              <option value="student">🎓 Estudante</option>
-            </select>
-          </div>
+        <!-- full_name - CAMPO REAL -->
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input type="text" [(ngModel)]="userForm.full_name" class="form-input" placeholder="Ex: Manuel António Costa">
         </div>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label>Status</label>
-            <select [(ngModel)]="userForm.status" class="form-input">
-              <option value="active">✓ Ativo</option>
-              <option value="pending">⏳ Pendente</option>
-              <option value="blocked">🚫 Bloqueado</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Cor do Avatar</label>
-            <div class="color-preview">
-              <div class="avatar-preview" [style.background]="userForm.avatarColor">
-                {{ userForm.avatarInitials || 'AB' }}
-              </div>
-              <input type="color" [(ngModel)]="userForm.avatarColor" class="color-input">
+        <!-- email - CAMPO REAL -->
+        <div class="form-group">
+          <label>Email <span class="required">*</span></label>
+          <input type="email" [(ngModel)]="userForm.email" class="form-input" placeholder="email@instituicao.ao">
+        </div>
+        
+        <!-- institution - CAMPO REAL -->
+        <div class="form-group">
+          <label>Instituição</label>
+          <input type="text" [(ngModel)]="userForm.institution" class="form-input" placeholder="Ex: Universidade Agostinho Neto">
+        </div>
+        
+        <!-- province - CAMPO REAL -->
+        <div class="form-group">
+          <label>Província</label>
+          <select [(ngModel)]="userForm.province" class="form-input">
+            <option value="">Selecione uma província...</option>
+            <option *ngFor="let p of provinces" [value]="p">{{ p }}</option>
+          </select>
+        </div>
+        
+        <!-- role - CAMPO REAL -->
+        <div class="form-group">
+          <label>Função</label>
+          <select [(ngModel)]="userForm.role" class="form-input">
+            <option value="estudante">🎓 Estudante</option>
+            <option value="investigador">🔬 Investigador</option>
+            <option value="curador">📚 Curador</option>
+            <option value="administrador">👑 Administrador</option>
+            <option value="superadministrador">⭐ Super Administrador</option>
+          </select>
+        </div>
+        
+        <!-- is_active - CAMPO REAL -->
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="userForm.is_active" class="form-input">
+            <option [value]="true">✓ Ativo</option>
+            <option [value]="false">⏳ Inativo</option>
+          </select>
+        </div>
+        
+        <!-- email_verified - CAMPO REAL -->
+        <div class="form-group">
+          <label>Email Verificado</label>
+          <select [(ngModel)]="userForm.email_verified" class="form-input">
+            <option [value]="true">✓ Verificado</option>
+            <option [value]="false">⏳ Não verificado</option>
+          </select>
+        </div>
+        
+        <!-- bio - CAMPO REAL -->
+        <div class="form-group">
+          <label>Biografia</label>
+          <textarea [(ngModel)]="userForm.bio" rows="3" class="form-input" placeholder="Breve descrição académica..."></textarea>
+        </div>
+        
+        <!-- research_areas - CAMPO REAL (JSON) -->
+        <div class="form-group">
+          <label>Áreas de Pesquisa</label>
+          <input type="text" [(ngModel)]="userForm.research_areas_input" class="form-input" placeholder="Ex: História Económica, Análise de Dados (separar por vírgula)">
+        </div>
+        
+        <!-- ============================================ -->
+        <!-- UPLOAD DE IMAGEM (avatar_url) - CAMPO REAL -->
+        <!-- ============================================ -->
+        <div class="form-group">
+          <label>Imagem de Perfil</label>
+          <div class="avatar-upload">
+            <div class="avatar-preview-large" 
+                 [style.backgroundImage]="userForm.avatar_url ? 'url(' + userForm.avatar_url + ')' : 'none'">
+              <span *ngIf="!userForm.avatar_url">📷</span>
+            </div>
+            <div class="upload-actions">
+              <input #avatarInput type="file" accept="image/*" style="display: none" (change)="onAvatarSelected($event)">
+              <button type="button" class="btn-upload" (click)="avatarInput.click()">
+                📷 {{ userForm.avatar_url ? 'Alterar' : 'Carregar' }} Imagem
+              </button>
+              <button *ngIf="userForm.avatar_url" type="button" class="btn-remove-avatar" (click)="removeAvatar()">
+                ✕ Remover
+              </button>
+              <p class="form-hint">JPG, PNG ou WebP (máx 5MB)</p>
             </div>
           </div>
         </div>
+
+        <!-- ============================================ -->
+<!-- COR DO AVATAR (fallback) -->
+<!-- ============================================ -->
+<div class="form-group">
+  <label>Cor do Avatar</label>
+  <div class="color-picker-wrapper">
+    <input type="color" [(ngModel)]="userForm.avatarColor" class="color-input">
+    <div class="color-preview-square" [style.background]="userForm.avatarColor || '#8b1e2d'"></div>
+    <span class="color-label">Cor de fundo quando não há imagem</span>
+  </div>
+</div>
         
         <div class="info-box">
           <div class="info-icon">ℹ️</div>
           <div class="info-text">
             <strong>Informação</strong><br>
-            <span>As iniciais do avatar serão geradas automaticamente a partir do nome.</span>
+            <span>As iniciais do avatar são geradas automaticamente a partir do nome de exibição.</span>
           </div>
         </div>
       </div>
