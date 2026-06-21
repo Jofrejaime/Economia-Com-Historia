@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -24,19 +24,35 @@ export function PrivacyScreen() {
 
   const handleUpdatePassword = async () => {
     if (!isFromRecovery && !currentPassword) {
-      Alert.alert("Erro", "Por favor, insere a tua palavra-passe atual.");
+      if (Platform.OS === "web") {
+        window.alert("Por favor, insere a tua palavra-passe atual.");
+      } else {
+        Alert.alert("Erro", "Por favor, insere a tua palavra-passe atual.");
+      }
       return;
     }
     if (newPassword.length < 8) {
-      Alert.alert("Erro", "A nova palavra-passe deve ter pelo menos 8 caracteres.");
+      if (Platform.OS === "web") {
+        window.alert("A nova palavra-passe deve ter pelo menos 8 caracteres.");
+      } else {
+        Alert.alert("Erro", "A nova palavra-passe deve ter pelo menos 8 caracteres.");
+      }
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert("Erro", "A nova palavra-passe e a confirmação não coincidem.");
+      if (Platform.OS === "web") {
+        window.alert("A nova palavra-passe e a confirmação não coincidem.");
+      } else {
+        Alert.alert("Erro", "A nova palavra-passe e a confirmação não coincidem.");
+      }
       return;
     }
 
-    Alert.alert("Sucesso", "A sua palavra-passe foi atualizada com sucesso!");
+    if (Platform.OS === "web") {
+      window.alert("A sua palavra-passe foi atualizada com sucesso!");
+    } else {
+      Alert.alert("Sucesso", "A sua palavra-passe foi atualizada com sucesso!");
+    }
     
     if (isFromRecovery) {
       if (user) {

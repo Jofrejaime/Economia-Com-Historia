@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View, Modal, Alert } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, Modal, Alert, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -85,10 +85,14 @@ export function LoginScreen({ navigation }: Props) {
         setIsEmailVerified(true);
         // Automatically prefill verification code
         setRecoveryCode("123456");
-        Alert.alert(
-          "Código Enviado",
-          `Enviámos o código de verificação para o email ${trimmedEmail}.\n\n(Para efeitos de teste, o código é: 123456)`
-        );
+        if (Platform.OS === "web") {
+          window.alert(`Código Enviado\n\nEnviámos o código de verificação para o email ${trimmedEmail}.\n\n(Para efeitos de teste, o código é: 123456)`);
+        } else {
+          Alert.alert(
+            "Código Enviado",
+            `Enviámos o código de verificação para o email ${trimmedEmail}.\n\n(Para efeitos de teste, o código é: 123456)`
+          );
+        }
       } else {
         setRecoveryEmailError("Este email não está associado a nenhuma conta.");
       }

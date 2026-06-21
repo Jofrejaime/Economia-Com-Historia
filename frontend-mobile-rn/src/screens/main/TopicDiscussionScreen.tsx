@@ -67,6 +67,7 @@ export function TopicDiscussionScreen() {
   }
 
   const handleTopicLike = () => {
+    if (isTerminated) return;
     if (!isLoggedIn) {
       navigation.navigate("LoginPrompt", { type: "comment" });
       return;
@@ -76,6 +77,7 @@ export function TopicDiscussionScreen() {
   };
 
   const handleLike = (commentId: string) => {
+    if (isTerminated) return;
     if (!isLoggedIn) {
       navigation.navigate("LoginPrompt", { type: "comment" });
       return;
@@ -84,6 +86,7 @@ export function TopicDiscussionScreen() {
   };
 
   const handleReplyPress = (commentId: string) => {
+    if (isTerminated) return;
     if (!isLoggedIn) {
       navigation.navigate("LoginPrompt", { type: "comment" });
       return;
@@ -122,25 +125,38 @@ export function TopicDiscussionScreen() {
 
   const handleTerminateDiscussion = () => {
     if (!topic) return;
-    Alert.alert(
-      "Terminar Discussão",
-      "Esta ação é irreversível. Ao terminar a discussão, a sala de chat passará a funcionar apenas em modo de leitura (não será possível enviar novos comentários ou respostas).\n\nDeseja continuar?",
-      [
-        {
-          text: "Cancelar",
-          style: "cancel",
-        },
-        {
-          text: "Confirmar",
-          style: "destructive",
-          onPress: () => {
-            setIsTerminated(true);
-            updateTopic(topic.id, { isActive: false });
-            setShowManagementMenu(false);
+
+    const title = "Terminar Discussão";
+    const message = "Esta ação é irreversível. Ao terminar a discussão, a sala de chat passará a funcionar apenas em modo de leitura (não será possível enviar novos comentários ou respostas).\n\nDeseja continuar?";
+
+    if (Platform.OS === "web") {
+      const confirmClose = window.confirm(`${title}\n\n${message}`);
+      if (confirmClose) {
+        setIsTerminated(true);
+        updateTopic(topic.id, { isActive: false });
+        setShowManagementMenu(false);
+      }
+    } else {
+      Alert.alert(
+        title,
+        message,
+        [
+          {
+            text: "Cancelar",
+            style: "cancel",
           },
-        },
-      ]
-    );
+          {
+            text: "Confirmar",
+            style: "destructive",
+            onPress: () => {
+              setIsTerminated(true);
+              updateTopic(topic.id, { isActive: false });
+              setShowManagementMenu(false);
+            },
+          },
+        ]
+      );
+    }
   };
 
   const handleManageMembers = () => {
@@ -167,7 +183,7 @@ export function TopicDiscussionScreen() {
             <Feather name="arrow-left" size={20} color={appTheme.colors.primary} />
             <Text style={styles.headerTitle}>Discussão do Fórum</Text>
           </TouchableOpacity>
-          {isAuthor && (
+          {isAuthor && !isTerminated && (
             <TouchableOpacity 
               style={styles.moreButton}
               onPress={() => setShowManagementMenu(!showManagementMenu)}
@@ -267,7 +283,11 @@ export function TopicDiscussionScreen() {
                 <Feather name="message-circle" size={18} color={appTheme.colors.primary} />
                 <Text style={styles.commentCountText}>{topic.comments?.length || 0} COMENTÁRIOS</Text>
               </View>
-              <TouchableOpacity onPress={handleTopicLike} style={styles.likeStatsRow}>
+              <TouchableOpacity 
+                onPress={handleTopicLike} 
+                style={styles.likeStatsRow}
+                disabled={isTerminated}
+              >
                 <Feather
                   name="thumbs-up"
                   size={18}
@@ -283,7 +303,12 @@ export function TopicDiscussionScreen() {
             <View style={styles.topicActionsRow}>
               <TouchableOpacity
                 onPress={handleTopicLike}
-                style={[styles.topicActionBtn, topicLiked && styles.topicActionBtnActive]}
+                style={[
+                  styles.topicActionBtn, 
+                  topicLiked && styles.topicActionBtnActive,
+                  isTerminated && { opacity: 0.6 }
+                ]}
+                disabled={isTerminated}
               >
                 <Feather name="thumbs-up" size={14} color={topicLiked ? "white" : appTheme.colors.textSecondary} />
                 <Text style={[styles.topicActionBtnText, topicLiked && styles.topicActionBtnTextActive]}>
@@ -317,7 +342,11 @@ export function TopicDiscussionScreen() {
 
                 {/* Comment Actions */}
                 <View style={styles.commentActions}>
-                  <TouchableOpacity onPress={() => handleLike(comment.id)} style={styles.actionLink}>
+                  <TouchableOpacity 
+                    onPress={() => handleLike(comment.id)} 
+                    style={[styles.actionLink, isTerminated && { opacity: 0.7 }]}
+                    disabled={isTerminated}
+                  >
                     <Feather
                       name="thumbs-up"
                       size={14}
@@ -328,10 +357,12 @@ export function TopicDiscussionScreen() {
                     </Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={() => handleReplyPress(comment.id)} style={styles.actionLink}>
-                    <Feather name="message-square" size={14} color={appTheme.colors.textMuted} />
-                    <Text style={styles.actionLinkText}>Responder</Text>
-                  </TouchableOpacity>
+                  {!isTerminated && (
+                    <TouchableOpacity onPress={() => handleReplyPress(comment.id)} style={styles.actionLink}>
+                      <Feather name="message-square" size={14} color={appTheme.colors.textMuted} />
+                      <Text style={styles.actionLinkText}>Responder</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 {/* Reply Input Box */}

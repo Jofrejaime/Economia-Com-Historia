@@ -13,16 +13,22 @@ import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { contentData } from "../../data/contents";
 
 export function ArticleScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { type } = route.params as { type: "jindungo" | "micro" };
+  const { id, type } = route.params as { id?: string; type?: "jindungo" | "micro" };
   const { user } = useAuth();
 
   const [liked, setLiked] = useState<boolean | null>(null);
 
-  const isJindungo = type === "jindungo";
+  // Find dynamic content by ID, otherwise fallback by type, otherwise fallback to first item
+  const content = contentData.find(item => item.id === id) || 
+                  contentData.find(item => item.category === type) || 
+                  contentData[0];
+
+  const isJindungo = content.category === "jindungo";
 
   const handleStartQuiz = () => {
     if (user) {
@@ -35,10 +41,8 @@ export function ArticleScreen() {
   const handleDebate = () => {
     if (user) {
       navigation.navigate("CreateTopic", {
-        initialTitle: isJindungo
-          ? "A Riqueza do Subsolo Angolano: Do Café ao Crude"
-          : "O que foi o Acordo de Bicesse?",
-        initialCategory: isJindungo ? "Petróleo e Reforma" : "História Monetária",
+        initialTitle: content.jindungoDebate?.initialTitle || content.title,
+        initialCategory: content.jindungoDebate?.initialCategory || (isJindungo ? "Petróleo e Reforma" : "História Monetária"),
       });
     } else {
       navigation.navigate("LoginPrompt", { type: "create-topic" });
@@ -98,25 +102,23 @@ export function ArticleScreen() {
 
         {/* Title */}
         <Text style={styles.articleTitle}>
-          {isJindungo
-            ? "A Riqueza do Subsolo Angolano: Do Café ao Crude"
-            : "O que foi o Acordo de Bicesse?"}
+          {content.title}
         </Text>
 
         {/* Author Info */}
         <View style={styles.authorRow}>
           <Image
             source={{
-              uri: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=100&q=80",
+              uri: content.authorImage,
             }}
             style={styles.authorImage}
           />
           <View style={styles.authorInfo}>
             <Text style={styles.authorName}>
-              {isJindungo ? "Dr. Carlos Neto" : "Luís Ferreira"}
+              {content.author}
             </Text>
             <Text style={styles.authorMeta}>
-              {isJindungo ? "18 min de leitura" : "3 min de leitura"} • Há 3 dias
+              {content.duration} • {content.date}
             </Text>
           </View>
         </View>
@@ -124,74 +126,47 @@ export function ArticleScreen() {
         {/* Featured Image */}
         <Image
           source={{
-            uri: isJindungo
-              ? "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80"
-              : "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80",
+            uri: content.image,
           }}
           style={styles.featuredImage}
         />
 
         {/* Article Body */}
         <View style={styles.articleBody}>
-          {isJindungo ? (
-            <>
-              <Text style={styles.paragraph}>
-                A história do subsolo angolano é tão rica quanto controversa. Desde os tempos coloniais até aos dias de hoje, os recursos naturais moldaram profundamente a economia e a sociedade angolanas.
-              </Text>
-              <Text style={styles.paragraph}>
-                Esta narrativa de transformação, da economia cafeeira à dependência petrolífera, levanta questões fundamentais sobre o desenvolvimento económico sustentável.
-              </Text>
+          {content.body?.map((paragraph, index) => (
+            <Text key={index} style={styles.paragraph}>
+              {paragraph}
+            </Text>
+          ))}
 
-              <Text style={styles.heading2}>O Café: O Primeiro Ouro Negro</Text>
-              <Text style={styles.paragraph}>
-                Durante décadas, o café angolano era considerado um dos melhores do mundo. A economia colonial dependia fortemente desta exportação, que empregava milhares de trabalhadores nas regiões montanhosas.
+          {/* Academic Note */}
+          {content.academicNote && (
+            <View style={styles.academicNote}>
+              <Text style={styles.academicNoteTitle}>
+                Nota Académica: {content.academicNote.title}
               </Text>
-              <Text style={styles.paragraph}>
-                Com a independência em 1975, a produção cafeeira enfrentou desafios sem precedentes, incluindo a guerra civil e a falta de investimento.
+              <Text style={styles.academicNoteDesc}>
+                {content.academicNote.description}
               </Text>
-
-              {/* Academic Note */}
-              <View style={styles.academicNote}>
-                <Text style={styles.academicNoteTitle}>
-                  Nota Académica: A Relação Café-Petróleo
-                </Text>
-                <Text style={styles.academicNoteDesc}>
-                  A transição de uma economia agrícola (café) para uma economia extractiva (petróleo) representa um caso clássico da "maldição dos recursos naturais".
-                </Text>
+              {content.academicNote.sub && (
                 <Text style={styles.academicNoteSub}>
-                  Economistas argumentam que a dependência excessiva de um único recurso pode prejudicar o desenvolvimento de outros sectores produtivos.
+                  {content.academicNote.sub}
                 </Text>
-              </View>
+              )}
+            </View>
+          )}
 
-              {/* Vocabulary Section */}
-              <View style={styles.vocabularyCard}>
-                <Text style={styles.vocabularyLabel}>VOCABULÁRIO</Text>
-                <View style={styles.vocabularyItem}>
-                  <Text style={styles.vocabularyTerm}>Crude (Petróleo Bruto)</Text>
-                  <Text style={styles.vocabularyDef}>
-                    Petróleo não refinado, tal como é extraído do subsolo
-                  </Text>
+          {/* Vocabulary Section */}
+          {content.vocabulary && content.vocabulary.length > 0 && (
+            <View style={styles.vocabularyCard}>
+              <Text style={styles.vocabularyLabel}>VOCABULÁRIO</Text>
+              {content.vocabulary.map((vocab, index) => (
+                <View key={index} style={styles.vocabularyItem}>
+                  <Text style={styles.vocabularyTerm}>{vocab.term}</Text>
+                  <Text style={styles.vocabularyDef}>{vocab.definition}</Text>
                 </View>
-                <View style={styles.vocabularyItem}>
-                  <Text style={styles.vocabularyTerm}>Economia Extractiva</Text>
-                  <Text style={styles.vocabularyDef}>
-                    Sistema económico baseado na extração de recursos naturais
-                  </Text>
-                </View>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.paragraph}>
-                O Acordo de Bicesse foi um tratado de paz assinado em 31 de maio de 1991, em Estoril, Portugal, entre o governo angolano (MPLA) e a UNITA.
-              </Text>
-              <Text style={styles.paragraph}>
-                Este acordo pôs fim a 16 anos de guerra civil e estabeleceu as bases para as primeiras eleições multipartidárias em Angola.
-              </Text>
-              <Text style={styles.paragraph}>
-                Apesar das expectativas, o acordo falhou quando a UNITA rejeitou os resultados eleitorais de 1992, levando à retoma do conflito armado.
-              </Text>
-            </>
+              ))}
+            </View>
           )}
         </View>
 
