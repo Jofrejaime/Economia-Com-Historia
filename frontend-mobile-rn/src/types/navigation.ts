@@ -38,7 +38,7 @@ export interface CommunityTopic {
 // Tipos para as tabs principais
 export type MainTabParamList = {
   Home: undefined;
-  Content: undefined;
+  Content: { searchQuery?: string; category?: "all" | "jindungo" | "micro" | "series" | "podcast" | "video" } | undefined;
   Community: undefined;
   QuizList: undefined;
   Profile: undefined;
@@ -47,12 +47,12 @@ export type MainTabParamList = {
 // Tipos para o stack dentro do MainNavigator (novas telas)
 export type MainStackParamList = {
   Dashboard: undefined;
-  MainTabs: undefined;
+  MainTabs: { screen: keyof MainTabParamList; params?: any } | undefined;
   Login: undefined;
   Register: undefined;
   // Novas telas
   Podcast: undefined;
-  Article: { type: 'jindungo' | 'micro' };
+  Article: { id: string; type?: 'jindungo' | 'micro' };
   Quiz: undefined;
   QuizFeedback: { isCorrect: boolean; onNext?: () => void };
   QuizResult: undefined;

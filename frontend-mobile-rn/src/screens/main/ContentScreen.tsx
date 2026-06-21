@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,202 +9,38 @@ import {
   Image,
   FlatList,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { contentData, ContentItem } from "../../data/contents";
 
 type CategoryType = "all" | "jindungo" | "micro" | "series" | "podcast" | "video";
 type SortType = "recent" | "popular" | "trending";
 type ThemeType = "all" | "economia" | "historia" | "politica" | "desenvolvimento";
 
-interface ContentItem {
-  id: string;
-  title: string;
-  description: string;
-  category: CategoryType;
-  theme: ThemeType;
-  author: string;
-  authorImage: string;
-  duration: string;
-  image: string;
-  views?: number;
-  date: string;
-  isTrending?: boolean;
-}
-
-const contentData: ContentItem[] = [
-  {
-    id: "1",
-    title: "Dívida Externa: Angola pode sair da dependência do FMI?",
-    description: "Análise profunda sobre o endividamento externo e as relações com instituições financeiras internacionais",
-    category: "jindungo",
-    theme: "economia",
-    author: "Dr. Carlos Neto",
-    authorImage: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=100&q=80",
-    duration: "18 min de leitura",
-    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80",
-    views: 2847,
-    date: "2026-04-15",
-    isTrending: true,
-  },
-  {
-    id: "2",
-    title: "Privatizações: Benefício público ou transferência de riqueza?",
-    description: "Debate sobre o processo de privatizações de empresas estatais em Angola",
-    category: "jindungo",
-    theme: "economia",
-    author: "Prof. Ana Domingos",
-    authorImage: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=100&q=80",
-    duration: "22 min de leitura",
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80",
-    views: 3156,
-    date: "2026-04-12",
-    isTrending: true,
-  },
-  {
-    id: "3",
-    title: "O que foi o Acordo de Bicesse?",
-    description: "Contexto histórico e consequências do acordo de paz de 1991",
-    category: "micro",
-    theme: "historia",
-    author: "Luís Ferreira",
-    authorImage: "https://images.unsplash.com/photo-1623605931891-d5b95ee98459?w=100&q=80",
-    duration: "3 min de leitura",
-    image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80",
-    views: 1923,
-    date: "2026-04-18",
-  },
-  {
-    id: "4",
-    title: "Inflação no Kwanza: números actuais",
-    description: "Análise da inflação e poder de compra da moeda angolana",
-    category: "micro",
-    theme: "economia",
-    author: "Economia em Foco",
-    authorImage: "https://images.unsplash.com/photo-1531384370597-8590413be50a?w=100&q=80",
-    duration: "4 min de leitura",
-    image: "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80",
-    views: 2134,
-    date: "2026-04-17",
-  },
-  {
-    id: "5",
-    title: "História Económica de Angola: Podcast Completo",
-    description: "Série de 12 episódios sobre a evolução económica desde a independência",
-    category: "podcast",
-    theme: "historia",
-    author: "Vozes da História",
-    authorImage: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=100&q=80",
-    duration: "8 episódios · 6h total",
-    image: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800&q=80",
-    views: 5234,
-    date: "2026-04-10",
-    isTrending: true,
-  },
-  {
-    id: "6",
-    title: "A Era do Petróleo em Angola",
-    description: "Documentário sobre a descoberta e exploração petrolífera",
-    category: "video",
-    theme: "economia",
-    author: "História Visual",
-    authorImage: "https://images.unsplash.com/photo-1542345812-d98b5cd6cf98?w=100&q=80",
-    duration: "45 min",
-    image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80",
-    views: 8932,
-    date: "2026-04-08",
-    isTrending: true,
-  },
-  {
-    id: "7",
-    title: "Reformas Económicas dos Anos 90",
-    description: "As transformações estruturais após o fim da economia planificada",
-    category: "series",
-    theme: "economia",
-    author: "Prof. Manuel Santos",
-    authorImage: "https://images.unsplash.com/photo-1619194617062-5a83b8580c10?w=100&q=80",
-    duration: "5 artigos",
-    image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&q=80",
-    views: 1845,
-    date: "2026-04-14",
-  },
-  {
-    id: "8",
-    title: "Sonangol: Breve história da empresa estatal",
-    description: "Papel da Sonangol na economia angolana",
-    category: "micro",
-    theme: "economia",
-    author: "Economia em Foco",
-    authorImage: "https://images.unsplash.com/photo-1595956381979-9b3e843e5d4e?w=100&q=80",
-    duration: "5 min de leitura",
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
-    views: 2567,
-    date: "2026-04-16",
-  },
-  {
-    id: "9",
-    title: "Desenvolvimento Rural vs. Urbano: O desafio da equidade",
-    description: "Como equilibrar o desenvolvimento entre zonas urbanas e rurais",
-    category: "jindungo",
-    theme: "desenvolvimento",
-    author: "Dr. Carlos Neto",
-    authorImage: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=100&q=80",
-    duration: "16 min de leitura",
-    image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?w=800&q=80",
-    views: 1678,
-    date: "2026-04-11",
-  },
-  {
-    id: "10",
-    title: "Conversas sobre Economia Angolana",
-    description: "Entrevistas com economistas e académicos sobre temas actuais",
-    category: "podcast",
-    theme: "economia",
-    author: "Podcast EH",
-    authorImage: "https://images.unsplash.com/photo-1558222218-b7b54eede3f3?w=100&q=80",
-    duration: "15 episódios · 10h",
-    image: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&q=80",
-    views: 3421,
-    date: "2026-04-09",
-  },
-  {
-    id: "11",
-    title: "Política Monetária do BNA: Como funciona?",
-    description: "Explicação do papel do Banco Nacional de Angola",
-    category: "video",
-    theme: "economia",
-    author: "Economia Visual",
-    authorImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80",
-    duration: "28 min",
-    image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=80",
-    views: 2876,
-    date: "2026-04-13",
-  },
-  {
-    id: "12",
-    title: "Corrupção e Transparência: Análise do impacto económico",
-    description: "Como a corrupção afecta o desenvolvimento económico de Angola",
-    category: "jindungo",
-    theme: "politica",
-    author: "Prof. Ana Domingos",
-    authorImage: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=100&q=80",
-    duration: "20 min de leitura",
-    image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80",
-    views: 4123,
-    date: "2026-04-07",
-    isTrending: true,
-  },
-];
-
 export function ContentScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("all");
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>("all");
   const [sortBy, setSortBy] = useState<SortType>("recent");
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    if (route.params) {
+      if (route.params.searchQuery !== undefined) {
+        setSearchQuery(route.params.searchQuery);
+      }
+      if (route.params.category !== undefined) {
+        setSelectedCategory(route.params.category);
+        setShowFilters(true);
+      }
+      navigation.setParams({ searchQuery: undefined, category: undefined });
+    }
+  }, [route.params]);
 
   const getCategoryIcon = (category: CategoryType) => {
     switch (category) {
@@ -304,9 +140,9 @@ export function ContentScreen() {
     if (item.category === "podcast") {
       navigation.navigate("Podcast");
     } else if (item.category === "jindungo") {
-      navigation.navigate("Article", { type: "jindungo" });
+      navigation.navigate("Article", { id: item.id, type: "jindungo" });
     } else if (item.category === "micro") {
-      navigation.navigate("Article", { type: "micro" });
+      navigation.navigate("Article", { id: item.id, type: "micro" });
     }
   };
 
