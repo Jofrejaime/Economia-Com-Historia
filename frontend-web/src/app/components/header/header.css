@@ -1,70 +1,267 @@
-/* Classes específicas do header para evitar conflitos */
-*{
+/* ============================================
+   HEADER - ESTILOS CONSISTENTES
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+* {
   font-family: 'Poppins', sans-serif;
 }
 
+/* Header principal */
 .app-header {
-  backdrop-filter: blur(32px);
-  background-color: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.95);
   position: sticky;
   top: 0;
   width: 100%;
-  z-index: 50;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  z-index: 100;
+  border-bottom: 1px solid rgba(107, 1, 25, 0.1);
 }
 
 .app-header-container {
   max-width: 1536px;
   margin: 0 auto;
-  padding: 16px 48px;
+  padding: 16px 24px;
 }
 
 .app-header-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
+/* Logo */
 .app-header-logo {
-  font-weight: 700;
-  color: #7f1d1d;
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
 }
 
+.app-header-logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #8b1e2d, #6b0119);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-header-logo span {
+  color: #6b0119;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+/* Mobile Menu Button */
+.app-header-mobile-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.app-header-mobile-btn:hover {
+  background-color: rgba(128, 0, 32, 0.05);
+}
+
+/* Navigation Links */
 .app-header-links {
   display: flex;
   gap: 32px;
+  align-items: center;
 }
 
 .app-header-links a {
   text-decoration: none;
-  font-size: 14px !important;
-  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a4a4a;
   transition: color 0.2s;
+  cursor: pointer;
 }
 
 .app-header-links a:hover {
-  color: #8b1e2d;
+  color: #800020;
 }
 
 .app-header-links a.active {
-  color: #8b1e2d !important;
+  color: #800020 !important;
   font-weight: 600 !important;
+  position: relative;
 }
 
-.app-header-avatar {
-  background-color: #8b1e2d;
+.app-header-links a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #6b0119, #8b1e2d);
+  border-radius: 2px;
+}
+
+/* Right Icons */
+.app-header-icons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Notificações - botão simples */
+.app-header-notification-btn {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.app-header-notification-btn:hover {
+  background-color: rgba(139, 30, 45, 0.05);
+}
+
+.app-header-notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #dc2626;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* Avatar */
+.app-header-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #8b1e2d, #6b0119);
+  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.3s;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .app-header-avatar:hover {
   transform: scale(1.05);
+}
+
+.app-header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Logout */
+.app-header-logout {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid #800020;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.app-header-logout:hover {
+  background-color: #800020;
+  border-color: #800020;
+}
+
+.app-header-logout:hover svg {
+  stroke: white;
+}
+
+/* Mobile Menu */
+.app-header-mobile-menu {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.app-header-mobile-menu a {
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #4a4a4a;
+  transition: color 0.2s;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.app-header-mobile-menu a:hover {
+  color: #800020;
+}
+
+.app-header-mobile-menu a.active {
+  color: #800020 !important;
+  font-weight: 600 !important;
+}
+
+.app-header-mobile-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding-top: 8px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .app-header-links,
+  .app-header-icons {
+    display: none !important;
+  }
+  
+  .app-header-mobile-btn {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .app-header-links,
+  .app-header-icons {
+    display: flex !important;
+  }
+  
+  .app-header-mobile-btn {
+    display: none !important;
+  }
+  
+  .app-header-mobile-menu {
+    display: none !important;
+  }
 }

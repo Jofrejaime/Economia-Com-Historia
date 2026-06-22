@@ -57,9 +57,9 @@
     <div class="filter-select">
       <select [(ngModel)]="filterStatus" class="select">
         <option value="todos">Todos os status</option>
-        <option value="pending"> Pendentes</option>
-        <option value="resolved"> Resolvidos</option>
-        <option value="dismissed"> Arquivados</option>
+        <option value="pending">Pendentes</option>
+        <option value="resolved">Resolvidos</option>
+        <option value="dismissed">Arquivados</option>
       </select>
     </div>
   </div>
@@ -85,28 +85,28 @@
         </tr>
         <tr *ngFor="let report of filteredReports">
           <td class="comment-cell">
-            <div class="comment-text">"{{ report.commentText | slice:0:80 }}{{ report.commentText.length > 80 ? '...' : '' }}"</div>
-            <div class="comment-meta">ID: #{{ report.commentId }}</div>
+            <div class="comment-text">"{{ report.description | slice:0:80 }}{{ report.description.length > 80 ? '...' : '' }}"</div>
+            <div class="comment-meta">ID: #{{ report.content_id }}</div>
           </td>
           <td class="author-cell">
-            <div class="author-name">{{ report.author }}</div>
-            <div class="author-time">{{ report.reportedAt }}</div>
+            <div class="author-name">{{ report.author_name || 'Utilizador' }}</div>
+            <div class="author-time">{{ report.created_at | date:'dd MMM yyyy, HH:mm' }}</div>
           </td>
-          <td>{{ report.reportedBy }}</td>
+          <td>{{ report.reporter_name || 'Anónimo' }}</td>
           <td>
             <span class="reason-badge">
-              {{ getReasonIcon(report.reason) }} {{ report.reason }}
+              {{ getReasonLabel(report.reason) }}
             </span>
           </td>
-          <td class="discussion-title">{{ report.discussionTitle | slice:0:40 }}{{ report.discussionTitle.length > 40 ? '...' : '' }}</td>
+          <td class="discussion-title">{{ report.discussion_title || 'Discussão' | slice:0:40 }}{{ (report.discussion_title?.length || 0) > 40 ? '...' : '' }}</td>
           <td>
             <span class="status-badge">
-              {{ report.status === 'pending' ? '' : report.status === 'resolved' ? '' : '' }} {{ getStatusLabel(report.status) }}
+              {{ getStatusLabel(report.status) }}
             </span>
           </td>
-          <td>{{ report.date }}</td>
+          <td>{{ report.created_at | date:'dd MMM yyyy' }}</td>
           <td class="actions-cell">
-            <button class="action-btn" (click)="viewReport(report)" title="Ver detalhes">👁️ </button>
+            <button class="action-btn" (click)="viewReport(report)" title="Ver detalhes">👁️</button>
             <button *ngIf="report.status !== 'pending'" class="action-btn" (click)="reopenReport(report.id)" title="Reabrir">🔄 </button>
             <button class="action-btn" (click)="deleteReport(report.id)" title="Eliminar">🗑️ </button>
           </td>
@@ -124,20 +124,19 @@
       </div>
       
       <div class="modal-body" *ngIf="viewingReport">
-        <!-- Informações da Denúncia -->
         <div class="detail-section">
           <div class="detail-label">Comentário Denunciado</div>
-          <div class="detail-value comment-box">"{{ viewingReport.commentText }}"</div>
+          <div class="detail-value comment-box">"{{ viewingReport.description }}"</div>
         </div>
         
         <div class="detail-row">
           <div class="detail-section">
             <div class="detail-label">Autor do Comentário</div>
-            <div class="detail-value">{{ viewingReport.author }}</div>
+            <div class="detail-value">{{ viewingReport.author_name || 'Utilizador' }}</div>
           </div>
           <div class="detail-section">
             <div class="detail-label">Denunciado por</div>
-            <div class="detail-value">{{ viewingReport.reportedBy }}</div>
+            <div class="detail-value">{{ viewingReport.reporter_name || 'Anónimo' }}</div>
           </div>
         </div>
         
@@ -146,13 +145,13 @@
             <div class="detail-label">Motivo</div>
             <div class="detail-value">
               <span class="reason-badge">
-                {{ getReasonIcon(viewingReport.reason) }} {{ viewingReport.reason }}
+                {{ getReasonLabel(viewingReport.reason) }}
               </span>
             </div>
           </div>
           <div class="detail-section">
             <div class="detail-label">Discussão</div>
-            <div class="detail-value">{{ viewingReport.discussionTitle }}</div>
+            <div class="detail-value">{{ viewingReport.discussion_title || 'Discussão' }}</div>
           </div>
         </div>
         
@@ -161,11 +160,11 @@
           <textarea [(ngModel)]="actionNote" rows="3" class="form-input" placeholder="Descreva a ação tomada ou motivo da decisão..."></textarea>
         </div>
         
-        <div class="info-box" *ngIf="viewingReport.actionNote && viewingReport.status !== 'pending'">
+        <div class="info-box" *ngIf="viewingReport.action_taken && viewingReport.status !== 'pending'">
           <div class="info-icon">ℹ️</div>
           <div class="info-text">
             <strong>Ação anterior</strong><br>
-            <span>{{ viewingReport.actionNote }}</span>
+            <span>{{ viewingReport.action_taken }}</span>
           </div>
         </div>
       </div>
@@ -173,8 +172,8 @@
       <div class="modal-footer">
         <button class="btn-cancel" (click)="closeReportModal()">Fechar</button>
         <ng-container *ngIf="viewingReport?.status === 'pending'">
-          <button class="btn-dismiss" (click)="dismissReport(viewingReport!.id)"> Arquivar Denúncia</button>
-          <button class="btn-approve" (click)="approveReport(viewingReport!.id)"> Aprovar & Remover Comentário</button>
+          <button class="btn-dismiss" (click)="dismissReport(viewingReport!.id)">Arquivar Denúncia</button>
+          <button class="btn-approve" (click)="approveReport(viewingReport!.id)">Aprovar & Remover Comentário</button>
         </ng-container>
       </div>
     </div>

@@ -3,17 +3,20 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 interface Report {
-  id: number;
-  commentId: number;
-  commentText: string;
-  author: string;
-  reportedBy: string;
+  id: string;
+  reporter_id: string;
+  content_type: string;
+  content_id: string;
   reason: string;
+  description: string;
   status: 'pending' | 'resolved' | 'dismissed';
-  date: string;
-  discussionTitle: string;
-  reportedAt: string;
-  actionNote?: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  action_taken: string | null;
+  created_at: string;
+  reporter_name?: string;
+  author_name?: string;
+  discussion_title?: string;
 }
 
 @Component({
@@ -27,99 +30,100 @@ export class ReportsPageComponent {
   searchQuery = '';
   filterStatus = 'todos';
   
-  // Modal control
   showReportModal = false;
   viewingReport: Report | null = null;
   actionNote = '';
-  
-  // Form for editing report
-  editingReport: Report | null = null;
-  editForm: Report = {
-    id: 0,
-    commentId: 0,
-    commentText: '',
-    author: '',
-    reportedBy: '',
-    reason: '',
-    status: 'pending',
-    date: '',
-    discussionTitle: '',
-    reportedAt: '',
-    actionNote: ''
-  };
 
   reports: Report[] = [
     {
-      id: 1,
-      commentId: 101,
-      commentText: 'Este comentário contém informação incorreta sobre a reforma monetária. A data correta é 1976 e não 1975 como afirmado.',
-      author: 'Maria Silva',
-      reportedBy: 'Dr. João Santos',
+      id: '1',
+      reporter_id: 'user-1',
+      content_type: 'comment',
+      content_id: '101',
       reason: 'Informação incorreta',
+      description: 'Este comentário contém informação incorreta sobre a reforma monetária...',
       status: 'pending',
-      date: '02 Jun 2026',
-      discussionTitle: 'Análise da Reforma Monetária de 1976',
-      reportedAt: 'Há 2 horas'
+      reviewed_by: null,
+      reviewed_at: null,
+      action_taken: null,
+      created_at: '2026-06-02T10:30:00Z',
+      reporter_name: 'Dr. João Santos',
+      author_name: 'Maria Silva',
+      discussion_title: 'Análise da Reforma Monetária de 1976'
     },
     {
-      id: 2,
-      commentId: 102,
-      commentText: 'Comentário com linguagem inadequada e desrespeitosa dirigida a outros membros da comunidade.',
-      author: 'Carlos Mendes',
-      reportedBy: 'Dra. Ana Costa',
+      id: '2',
+      reporter_id: 'user-4',
+      content_type: 'comment',
+      content_id: '102',
       reason: 'Linguagem inadequada',
+      description: 'Comentário com linguagem inadequada e desrespeitosa...',
       status: 'pending',
-      date: '01 Jun 2026',
-      discussionTitle: 'Impacto do Café na Economia Colonial',
-      reportedAt: 'Há 1 dia'
+      reviewed_by: null,
+      reviewed_at: null,
+      action_taken: null,
+      created_at: '2026-06-01T14:20:00Z',
+      reporter_name: 'Dra. Ana Costa',
+      author_name: 'Carlos Mendes',
+      discussion_title: 'Impacto do Café na Economia Colonial'
     },
     {
-      id: 3,
-      commentId: 103,
-      commentText: 'Publicidade não relacionada ao tema da discussão. O usuário está promovendo um curso não autorizado.',
-      author: 'Pedro Alves',
-      reportedBy: 'Prof. Manuel Lima',
+      id: '3',
+      reporter_id: 'user-5',
+      content_type: 'comment',
+      content_id: '103',
       reason: 'Spam',
+      description: 'Publicidade não relacionada ao tema da discussão...',
       status: 'resolved',
-      date: '30 Mai 2026',
-      discussionTitle: 'Infraestruturas Coloniais',
-      reportedAt: 'Há 3 dias',
-      actionNote: 'Comentário removido e usuário advertido'
+      reviewed_by: 'user-1',
+      reviewed_at: '2026-05-31T09:00:00Z',
+      action_taken: 'Comentário removido e usuário advertido',
+      created_at: '2026-05-30T16:45:00Z',
+      reporter_name: 'Prof. Manuel Lima',
+      author_name: 'Pedro Alves',
+      discussion_title: 'Infraestruturas Coloniais'
     },
     {
-      id: 4,
-      commentId: 104,
-      commentText: 'Comentário com links suspeitos e potencialmente perigosos direcionando para sites externos não verificados.',
-      author: 'Joana Ferreira',
-      reportedBy: 'Dr. Ricardo Paulo',
+      id: '4',
+      reporter_id: 'user-2',
+      content_type: 'comment',
+      content_id: '104',
       reason: 'Links maliciosos',
+      description: 'Comentário com links suspeitos e potencialmente perigosos...',
       status: 'dismissed',
-      date: '28 Mai 2026',
-      discussionTitle: 'Sistema Monetário Angolano',
-      reportedAt: 'Há 5 dias',
-      actionNote: 'Denúncia considerada infundada'
+      reviewed_by: 'user-3',
+      reviewed_at: '2026-05-29T11:30:00Z',
+      action_taken: 'Denúncia considerada infundada',
+      created_at: '2026-05-28T08:15:00Z',
+      reporter_name: 'Maria Silva',
+      author_name: 'Joana Ferreira',
+      discussion_title: 'Sistema Monetário Angolano'
     },
     {
-      id: 5,
-      commentId: 105,
-      commentText: 'Usuário está a copiar conteúdo de outra fonte sem atribuição adequada.',
-      author: 'Ricardo Santos',
-      reportedBy: 'Dra. Filipa Costa',
+      id: '5',
+      reporter_id: 'user-6',
+      content_type: 'comment',
+      content_id: '105',
       reason: 'Plágio',
+      description: 'Usuário está a copiar conteúdo de outra fonte sem atribuição...',
       status: 'pending',
-      date: '03 Jun 2026',
-      discussionTitle: 'Rotas Comerciais do Século XIX',
-      reportedAt: 'Há 30 min'
+      reviewed_by: null,
+      reviewed_at: null,
+      action_taken: null,
+      created_at: '2026-06-03T09:00:00Z',
+      reporter_name: 'Pedro Alves',
+      author_name: 'Ricardo Santos',
+      discussion_title: 'Rotas Comerciais do Século XIX'
     }
   ];
 
   get filteredReports(): Report[] {
     return this.reports.filter(report => {
       const matchSearch = this.searchQuery === '' ||
-        report.commentText.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        report.author.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        report.reportedBy.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        report.discussionTitle.toLowerCase().includes(this.searchQuery.toLowerCase());
+        (report.description && report.description.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+        (report.author_name && report.author_name.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+        (report.reporter_name && report.reporter_name.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+        (report.discussion_title && report.discussion_title.toLowerCase().includes(this.searchQuery.toLowerCase()));
       const matchStatus = this.filterStatus === 'todos' || report.status === this.filterStatus;
       return matchSearch && matchStatus;
     });
@@ -134,24 +138,8 @@ export class ReportsPageComponent {
     return labels[status] || status;
   }
 
-  getStatusBadgeClass(status: string): string {
-    const classes: Record<string, string> = {
-      pending: 'status-pending',
-      resolved: 'status-resolved',
-      dismissed: 'status-dismissed'
-    };
-    return classes[status] || '';
-  }
-
-  getReasonIcon(reason: string): string {
-    const icons: Record<string, string> = {
-      'Informação incorreta': '',
-      'Linguagem inadequada': '',
-      'Spam': '',
-      'Links maliciosos': '',
-      'Plágio': ''
-    };
-    return icons[reason] || '';
+  getReasonLabel(reason: string): string {
+    return reason;
   }
 
   getStats() {
@@ -163,74 +151,53 @@ export class ReportsPageComponent {
     };
   }
 
-  // View report details
   viewReport(report: Report): void {
     this.viewingReport = { ...report };
-    this.actionNote = report.actionNote || '';
+    this.actionNote = report.action_taken || '';
     this.showReportModal = true;
   }
 
-  // Close view modal
   closeReportModal(): void {
     this.showReportModal = false;
     this.viewingReport = null;
     this.actionNote = '';
   }
 
-  // Approve report (resolve and remove comment)
-  approveReport(id: number): void {
+  approveReport(id: string): void {
     const report = this.reports.find(r => r.id === id);
     if (report) {
       report.status = 'resolved';
-      report.actionNote = this.actionNote || 'Comentário removido por violação das regras';
-      console.log(`Denúncia ${id} aprovada, comentário removido`);
+      report.reviewed_by = 'user-1';
+      report.reviewed_at = new Date().toISOString();
+      report.action_taken = this.actionNote || 'Comentário removido por violação das regras';
     }
     this.closeReportModal();
   }
 
-  // Dismiss report (reject the report)
-  dismissReport(id: number): void {
+  dismissReport(id: string): void {
     const report = this.reports.find(r => r.id === id);
     if (report) {
       report.status = 'dismissed';
-      report.actionNote = this.actionNote || 'Denúncia considerada infundada';
-      console.log(`Denúncia ${id} arquivada`);
+      report.reviewed_by = 'user-1';
+      report.reviewed_at = new Date().toISOString();
+      report.action_taken = this.actionNote || 'Denúncia considerada infundada';
     }
     this.closeReportModal();
   }
 
-  // Delete report
-  deleteReport(id: number): void {
-    if (confirm('Tem certeza que deseja eliminar esta denúncia? Esta ação não pode ser desfeita.')) {
+  deleteReport(id: string): void {
+    if (confirm('Tem certeza que deseja eliminar esta denúncia?')) {
       this.reports = this.reports.filter(r => r.id !== id);
     }
   }
 
-  // Reopen report (change status back to pending)
-  reopenReport(id: number): void {
+  reopenReport(id: string): void {
     const report = this.reports.find(r => r.id === id);
     if (report && (report.status === 'resolved' || report.status === 'dismissed')) {
       report.status = 'pending';
-      report.actionNote = undefined;
+      report.reviewed_by = null;
+      report.reviewed_at = null;
+      report.action_taken = null;
     }
-  }
-
-  // Open edit modal for report
-  openEditReportModal(report: Report): void {
-    this.editingReport = { ...report };
-    this.editForm = { ...report };
-    this.showReportModal = true;
-  }
-
-  // Save edited report
-  saveEditReport(): void {
-    if (this.editingReport) {
-      const index = this.reports.findIndex(r => r.id === this.editingReport!.id);
-      if (index !== -1) {
-        this.reports[index] = { ...this.editForm };
-      }
-      this.editingReport = null;
-    }
-    this.closeReportModal();
   }
 }

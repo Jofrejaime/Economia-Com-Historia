@@ -15,6 +15,7 @@ export class DashboardAdminComponent {
   currentRoute = '';
   pendingCount = 12;
   pendingReportsCount = 4;
+   unreadNotificationsCount = 0;
 
   constructor(
     private router: Router,

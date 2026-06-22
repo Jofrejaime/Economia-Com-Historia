@@ -1,0 +1,173 @@
+<div class="levels-container">
+  
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Níveis</h1>
+      <p class="page-subtitle">Gestão de níveis e pontuações dos utilizadores.</p>
+    </div>
+    <button class="btn-primary" (click)="refreshData()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M13 8C13 10.7614 10.7614 13 8 13C5.23858 13 3 10.7614 3 8C3 5.23858 5.23858 3 8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M13 3V8H8" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Atualizar
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon"><span class="stat-icon-emoji">📊</span></div>
+      <div>
+        <p class="stat-label">NÍVEIS</p>
+        <p class="stat-number">{{ levels.length }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span class="stat-icon-emoji">⭐</span></div>
+      <div>
+        <p class="stat-label">PONTOS TOTAIS</p>
+        <p class="stat-number">{{ totalPoints | number }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span class="stat-icon-emoji">👥</span></div>
+      <div>
+        <p class="stat-label">UTILIZADORES</p>
+        <p class="stat-number">{{ userLevels.length }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span class="stat-icon-emoji">📈</span></div>
+      <div>
+        <p class="stat-label">MÉDIA PONTOS</p>
+        <p class="stat-number">{{ avgPoints | number }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn" [class.active]="activeTab === 'levels'" (click)="activeTab = 'levels'">Níveis</button>
+    <button class="tab-btn" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Utilizadores</button>
+    <button class="tab-btn" [class.active]="activeTab === 'transactions'" (click)="activeTab = 'transactions'">Transações</button>
+  </div>
+
+  <!-- Tab: Níveis -->
+  <div *ngIf="activeTab === 'levels'" class="tab-content">
+    <div class="table-wrapper">
+      <table class="levels-table">
+        <thead>
+          <tr>
+            <th>Nível</th>
+            <th>Nome</th>
+            <th>Pontos Mínimos</th>
+            <th>Pontos Máximos</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let level of levels">
+            <td><span class="level-badge" [style.background]="level.color_hex || '#8b1e2d'">{{ level.level }}</span></td>
+            <td>{{ level.name }}</td>
+            <td>{{ level.min_points }}</td>
+            <td>{{ level.max_points || '∞' }}</td>
+            <td class="actions-cell">
+              <button class="action-btn" (click)="openEditLevelModal(level)" title="Editar">✏️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Utilizadores -->
+  <div *ngIf="activeTab === 'users'" class="tab-content">
+    <div class="table-wrapper">
+      <table class="levels-table">
+        <thead>
+          <tr>
+            <th>Utilizador</th>
+            <th>Nível</th>
+            <th>Pontos</th>
+            <th>Progresso</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of userLevels">
+            <td>{{ user.display_name }}</td>
+            <td><span class="level-badge" [style.background]="getLevelColor(user.current_level)">{{ user.current_level }}</span></td>
+            <td>{{ user.total_points | number }}</td>
+            <td>
+              <div class="progress-bar"><div class="progress-fill" [style.width]="getLevelProgress(user) + '%'"></div></div>
+              <span class="progress-text">{{ getLevelProgress(user) }}%</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Transações -->
+  <div *ngIf="activeTab === 'transactions'" class="tab-content">
+    <div class="table-wrapper">
+      <table class="transactions-table">
+        <thead>
+          <tr>
+            <th>Utilizador</th>
+            <th>Pontos</th>
+            <th>Motivo</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let transaction of transactions">
+            <td>{{ transaction.user_name }}</td>
+            <td [style.color]="transaction.points > 0 ? '#16a34a' : '#dc2626'">{{ transaction.points > 0 ? '+' : '' }}{{ transaction.points }}</td>
+            <td>{{ transaction.reason }}</td>
+            <td>{{ transaction.created_at | date:'dd MMM yyyy, HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal de Editar Nível -->
+  <div class="modal-overlay" *ngIf="showLevelModal && editingLevel" (click)="closeLevelModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Editar Nível {{ editingLevel.level }}</h2>
+        <button class="modal-close" (click)="closeLevelModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nome <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="editingLevel.name" class="form-input">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Pontos Mínimos <span class="required">*</span></label>
+            <input type="number" [(ngModel)]="editingLevel.min_points" class="form-input" min="0">
+          </div>
+          <div class="form-group">
+            <label>Pontos Máximos</label>
+            <input type="number" [(ngModel)]="editingLevel.max_points" class="form-input" min="0" placeholder="Deixar vazio para infinito">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Cor</label>
+          <input type="color" [(ngModel)]="editingLevel.color_hex" class="form-input" style="padding: 4px; height: 48px;">
+        </div>
+        <div class="form-group">
+          <label>Benefícios (separados por vírgula)</label>
+          <input type="text" [(ngModel)]="editingLevel.perks_input" class="form-input" placeholder="Ex: Acesso a conteúdos, Badge exclusivo">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeLevelModal()">Cancelar</button>
+        <button class="btn-save" (click)="saveLevel()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>

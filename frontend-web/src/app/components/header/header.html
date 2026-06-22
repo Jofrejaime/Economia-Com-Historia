@@ -1,23 +1,22 @@
 <!-- Header Modernizado - Versão Responsiva -->
-<div style="background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); position: sticky; top: 0; width: 100%; z-index: 100; border-bottom: 1px solid rgba(107,1,25,0.1);">
-  <div style="max-width: 1536px; margin: 0 auto; padding: 16px 24px;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+<header class="app-header">
+  <div class="app-header-container">
+    <div class="app-header-nav">
       
       <!-- Logo -->
-      <!-- Logo - igual ao login/register -->
-<!-- Logo - igual ao login/register com cores do header -->
-<div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" routerLink="/home">
-  <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-      <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
-      <path d="M2 17L12 22L22 17"/>
-      <path d="M2 12L12 17L22 12"/>
-    </svg>
-  </div>
-  <span style="color: #6b0119; font-size: 20px; font-weight: 600; letter-spacing: -0.3px;">Economia com História</span>
-</div>
+      <div class="app-header-logo" routerLink="/home">
+        <div class="app-header-logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+            <path d="M2 17L12 22L22 17"/>
+            <path d="M2 12L12 17L22 12"/>
+          </svg>
+        </div>
+        <span>Economia com História</span>
+      </div>
+
       <!-- Mobile Menu Button -->
-      <button (click)="toggleMobileMenu()" style="display: none; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 8px; transition: all 0.3s;" onmouseover="this.style.backgroundColor='rgba(128,0,32,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
+      <button class="app-header-mobile-btn" (click)="toggleMobileMenu()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2">
           <line x1="3" y1="12" x2="21" y2="12"/>
           <line x1="3" y1="6" x2="21" y2="6"/>
@@ -25,111 +24,70 @@
         </svg>
       </button>
       
-      <!-- Navigation Links - Desktop -->
-      <nav class="desktop-nav" style="display: flex; gap: 32px; align-items: center;">
-        <a routerLink="/home" routerLinkActive="active" style="text-decoration: none; font-size: 14px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Início</a>
-        <a routerLink="/contents" routerLinkActive="active" style="text-decoration: none; font-size: 14px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Conteúdos</a>
-        <a routerLink="/forum/community" routerLinkActive="active" style="text-decoration: none; font-size: 14px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Comunidade</a>
-        <a routerLink="/quiz" routerLinkActive="active" style="text-decoration: none; font-size: 14px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Quiz</a>
+      <!-- Navigation Links -->
+      <nav class="app-header-links">
+        <a routerLink="/home" routerLinkActive="active">Início</a>
+        <a routerLink="/contents" routerLinkActive="active">Conteúdos</a>
+        <a routerLink="/forum/community" routerLinkActive="active">Comunidade</a>
+        <a routerLink="/quiz" routerLinkActive="active">Quiz</a>
       </nav>
       
-      <!-- Right Icons: Perfil + Logout - Desktop -->
-      <div class="desktop-icons" style="display: flex; gap: 12px; align-items: center;">
-        <!-- Ícone do Perfil -->
-        <div routerLink="/auth/perfil" style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.3s; overflow: hidden; border: 2px solid rgba(255,255,255,0.3);" 
-             onmouseover="this.style.transform='scale(1.05)'" 
-             onmouseout="this.style.transform='scale(1)'">
-          <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Avatar do Perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
-          <svg *ngIf="!avatarUrl" width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <!-- Right Icons -->
+      <div class="app-header-icons">
+        
+        <!-- Notificações - vai diretamente para a página -->
+        <button class="app-header-notification-btn" (click)="goToNotifications()" title="Notificações">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="1.8">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="app-header-notification-badge" *ngIf="unreadCount > 0">
+            {{ unreadCount > 9 ? '9+' : unreadCount }}
+          </span>
+        </button>
+
+        <!-- Perfil -->
+        <div class="app-header-avatar" routerLink="/auth/perfil" title="Perfil">
+          <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Avatar" />
+          <svg *ngIf="!avatarUrl" width="20" height="20" viewBox="0 0 24 24" fill="white">
             <circle cx="12" cy="8" r="4"/>
             <path d="M 12 14 C 7.6 14 4 16.7 4 20 L 20 20 C 20 16.7 16.4 14 12 14 Z"/>
           </svg>
         </div>
         
-        <!-- Ícone de Sair (Logout) -->
-        <div (click)="logout()" style="width: 36px; height: 36px; background: transparent; border: 1px solid #800020; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" 
-             onmouseover="this.style.backgroundColor='#800020'; this.style.borderColor='#800020'"
-             onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='#800020'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2" 
-               onmouseover="this.style.stroke='white'"
-               onmouseout="this.style.stroke='#800020'">
+        <!-- Logout -->
+        <button class="app-header-logout" (click)="logout()" title="Terminar Sessão">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
-        </div>
+        </button>
       </div>
     </div>
     
-    <!-- Mobile Menu (aparece apenas em telas pequenas) -->
-    <div *ngIf="mobileMenuOpen" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.05);">
-      <div style="display: flex; flex-direction: column; gap: 16px;">
-        <a routerLink="/home" routerLinkActive="active" (click)="closeMobileMenu()" style="text-decoration: none; font-size: 16px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer; padding: 8px 0;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Início</a>
-        <a routerLink="/contents" routerLinkActive="active" (click)="closeMobileMenu()" style="text-decoration: none; font-size: 16px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer; padding: 8px 0;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Conteúdos</a>
-        <a routerLink="/forum/community" routerLinkActive="active" (click)="closeMobileMenu()" style="text-decoration: none; font-size: 16px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer; padding: 8px 0;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Comunidade</a>
-        <a routerLink="/quiz" routerLinkActive="active" (click)="closeMobileMenu()" style="text-decoration: none; font-size: 16px; font-weight: 500; color: #4a4a4a; transition: color 0.2s; cursor: pointer; padding: 8px 0;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#4a4a4a'">Quiz</a>
-        <div style="display: flex; gap: 16px; align-items: center; padding-top: 8px;">
-          <div routerLink="/auth/perfil" (click)="closeMobileMenu()" style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b1e2d, #6b0119); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid rgba(255,255,255,0.3);">
-            <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Avatar do Perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
-            <svg *ngIf="!avatarUrl" width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="8" r="4"/>
-              <path d="M 12 14 C 7.6 14 4 16.7 4 20 L 20 20 C 20 16.7 16.4 14 12 14 Z"/>
-            </svg>
-          </div>
-          <div (click)="logout()" style="width: 36px; height: 36px; background: transparent; border: 1px solid #800020; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-          </div>
+    <!-- Mobile Menu -->
+    <div class="app-header-mobile-menu" *ngIf="mobileMenuOpen">
+      <a routerLink="/home" routerLinkActive="active" (click)="closeMobileMenu()">Início</a>
+      <a routerLink="/contents" routerLinkActive="active" (click)="closeMobileMenu()">Conteúdos</a>
+      <a routerLink="/forum/community" routerLinkActive="active" (click)="closeMobileMenu()">Comunidade</a>
+      <a routerLink="/quiz" routerLinkActive="active" (click)="closeMobileMenu()">Quiz</a>
+      <div class="app-header-mobile-actions">
+        <div class="app-header-avatar" routerLink="/auth/perfil" (click)="closeMobileMenu()">
+          <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Avatar" />
+          <svg *ngIf="!avatarUrl" width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M 12 14 C 7.6 14 4 16.7 4 20 L 20 20 C 20 16.7 16.4 14 12 14 Z"/>
+          </svg>
         </div>
+        <button class="app-header-logout" (click)="logout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
-</div>
-
-<style>
-  a.active {
-    color: #800020 !important;
-    font-weight: 600 !important;
-    position: relative;
-  }
-  a.active::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(135deg, #6b0119, #8b1e2d);
-    border-radius: 2px;
-  }
-  a {
-    text-decoration: none;
-    font-size: 14px;
-    transition: color 0.2s;
-  }
-  a:hover {
-    color: #800020;
-  }
-  
-  /* Estilos responsivos */
-  @media (max-width: 768px) {
-    .desktop-nav, .desktop-icons {
-      display: none !important;
-    }
-    button[style*="display: none"] {
-      display: flex !important;
-    }
-  }
-  
-  @media (min-width: 769px) {
-    .desktop-nav, .desktop-icons {
-      display: flex !important;
-    }
-    button[style*="display: none"] {
-      display: none !important;
-    }
-  }
-</style>
+</header>
