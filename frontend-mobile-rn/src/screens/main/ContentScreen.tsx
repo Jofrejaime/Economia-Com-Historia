@@ -31,14 +31,19 @@ export function ContentScreen() {
 
   useEffect(() => {
     if (route.params) {
+      let hasUpdates = false;
       if (route.params.searchQuery !== undefined) {
         setSearchQuery(route.params.searchQuery);
+        hasUpdates = true;
       }
       if (route.params.category !== undefined) {
         setSelectedCategory(route.params.category);
         setShowFilters(true);
+        hasUpdates = true;
       }
-      navigation.setParams({ searchQuery: undefined, category: undefined });
+      if (hasUpdates) {
+        navigation.setParams({ searchQuery: undefined, category: undefined });
+      }
     }
   }, [route.params]);
 

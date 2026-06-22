@@ -242,9 +242,8 @@ export function DashboardScreen() {
 
   const handleSearchSubmit = () => {
     if (searchText.trim()) {
-      navigation.navigate("MainTabs", {
-        screen: "Content",
-        params: { searchQuery: searchText.trim() },
+      (navigation as any).navigate("Content", {
+        searchQuery: searchText.trim(),
       });
       setSearchText("");
     }
@@ -257,10 +256,7 @@ export function DashboardScreen() {
     else if (label === "Artigos") category = "micro";
     else if (label === "Séries") category = "series";
 
-    navigation.navigate("MainTabs", {
-      screen: "Content",
-      params: { category },
-    });
+    (navigation as any).navigate("Content", { category });
   };
 
   return (
@@ -273,12 +269,16 @@ export function DashboardScreen() {
             <Text style={styles.userName}>{user?.name || "Leitor"}</Text>
             <Text style={styles.date}>{getFormattedDate()}</Text>
           </View>
-          <View style={styles.notificationBell}>
+          <TouchableOpacity 
+            style={styles.notificationBell}
+            onPress={() => navigation.navigate('Notifications')}
+            activeOpacity={0.7}
+          >
             <Ionicons name="notifications-outline" size={24} color={appTheme.colors.textPrimary} />
             <View style={styles.notificationBadge}>
               <Text style={styles.badgeText}>3</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
@@ -387,7 +387,7 @@ export function DashboardScreen() {
               </TouchableOpacity>
             )}
           />
-          <TouchableOpacity style={styles.exploreButton} onPress={() => navigation.navigate("MainTabs", { screen: "Content", params: { category: "jindungo" } })}>
+          <TouchableOpacity style={styles.exploreButton} onPress={() => (navigation as any).navigate("Content", { category: "jindungo" })}>
             <Ionicons name="flame" size={16} color="white" style={{ marginRight: 6 }} />
             <Text style={styles.exploreButtonText}>Explorar mais Jindungo</Text>
           </TouchableOpacity>
@@ -438,7 +438,7 @@ export function DashboardScreen() {
               </TouchableOpacity>
             )}
           />
-          <TouchableOpacity style={styles.exploreMicroButton} onPress={() => navigation.navigate("MainTabs", { screen: "Content", params: { category: "micro" } })}>
+          <TouchableOpacity style={styles.exploreMicroButton} onPress={() => (navigation as any).navigate("Content", { category: "micro" })}>
             <Ionicons name="flash" size={16} color={appTheme.colors.textSecondary} style={{ marginRight: 6 }} />
             <Text style={styles.exploreMicroButtonText}>Ver todos os micro textos</Text>
           </TouchableOpacity>
@@ -475,7 +475,7 @@ export function DashboardScreen() {
         <View style={styles.section}>
           <View style={styles.recentArticlesHeader}>
             <Text style={styles.sectionTitle}>Artigos Recentes</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("MainTabs", { screen: "Content", params: { category: "micro" } })} style={styles.seeAllRow}>
+            <TouchableOpacity onPress={() => (navigation as any).navigate("Content", { category: "micro" })} style={styles.seeAllRow}>
               <Text style={styles.seeAllText}>Ver todos</Text>
               <Ionicons name="arrow-forward" size={14} color={appTheme.colors.primary} />
             </TouchableOpacity>
