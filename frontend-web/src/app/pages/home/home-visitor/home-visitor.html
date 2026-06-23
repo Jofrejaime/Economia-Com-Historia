@@ -1,8 +1,10 @@
 <div style="background-color: #F5F5F5; min-height: 100vh;">
 
-  <!-- Header -->
+  <!-- Header - Versão Visitor com Links -->
   <header class="home-header">
     <div class="home-header-container">
+      
+      <!-- Logo -->
       <div class="home-logo" routerLink="/home">
         <div class="home-logo-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
@@ -14,6 +16,15 @@
         <span class="home-logo-text">Economia com História</span>
       </div>
 
+      <!-- Navigation Links -->
+      <nav class="home-nav">
+        <a routerLink="/home" routerLinkActive="active" class="home-nav-link">Início</a>
+        <a routerLink="/contents" routerLinkActive="active" class="home-nav-link">Conteúdos</a>
+        <a routerLink="/forum/community" routerLinkActive="active" class="home-nav-link">Comunidade</a>
+        <a routerLink="/quiz" routerLinkActive="active" class="home-nav-link">Quiz</a>
+      </nav>
+
+      <!-- Login Button -->
       <button (click)="navigateTo('/auth/login')" class="btn-login">
         Entrar
       </button>
@@ -85,6 +96,36 @@
     </div>
   </section>
 
+  <!-- ===== NOVA SEÇÃO: CONTEÚDOS EM DESTAQUE ===== -->
+  <section class="home-featured-contents">
+    <div class="home-featured-contents-container">
+      <div class="home-section-header">
+        <div>
+          <h2 class="home-section-title">📚 Conteúdos em Destaque</h2>
+          <p class="home-section-subtitle">Explore os documentos mais recentes do arquivo</p>
+        </div>
+        <a (click)="navigateTo('/contents')" class="home-section-link">Ver todos →</a>
+      </div>
+
+      <div class="home-contents-grid">
+        <div *ngFor="let content of featuredContents" (click)="navigateTo('/contents/view/' + content.id)" class="home-content-card">
+          <div class="home-content-image">
+            <img [src]="content.image || 'assets/images/default-doc.jpg'" [alt]="content.title">
+            <span class="home-content-badge">{{ content.category }}</span>
+          </div>
+          <div class="home-content-body">
+            <h3 class="home-content-title">{{ content.title }}</h3>
+            <p class="home-content-description">{{ content.description }}</p>
+            <div class="home-content-footer">
+              <span class="home-content-date">{{ content.date }}</span>
+              <span class="home-content-views">👁️ {{ content.views }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Features Section -->
   <section class="home-features">
     <div class="home-features-container">
@@ -134,6 +175,42 @@
         <button (click)="navigateTo('/auth/criar-conta')" class="btn-outline">
           Criar Conta de Investigador
         </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== NOVA SEÇÃO: RANKING DE INVESTIGADORES ===== -->
+  <section class="home-ranking-section">
+    <div class="home-ranking-container">
+      <div class="home-section-header">
+        <div>
+          <h2 class="home-section-title">🏆 Ranking de Investigadores</h2>
+          <p class="home-section-subtitle">Conheça os investigadores mais ativos da plataforma</p>
+        </div>
+        <button (click)="navigateTo('/ranking')" class="home-section-link">Ver ranking completo →</button>
+      </div>
+
+      <div class="home-ranking-grid">
+        <div *ngFor="let rank of leaderboard; let i = index" class="home-ranking-card" [class.top-1]="i === 0" [class.top-2]="i === 1" [class.top-3]="i === 2">
+          <div class="home-ranking-position">
+            <span class="position-number">{{ i + 1 }}º</span>
+            <span *ngIf="i === 0" class="position-medal">🥇</span>
+            <span *ngIf="i === 1" class="position-medal">🥈</span>
+            <span *ngIf="i === 2" class="position-medal">🥉</span>
+          </div>
+          <div class="home-ranking-info">
+            <span class="ranking-name">{{ rank.name }}</span>
+            <span class="ranking-specialty">{{ rank.specialty }}</span>
+          </div>
+          <div class="home-ranking-points">
+            <span class="points-number">{{ rank.points }}</span>
+            <span class="points-label">pts</span>
+          </div>
+        </div>
+        <div class="home-ranking-cta">
+          <p class="ranking-cta-text">Faça login para participar do ranking!</p>
+          <button (click)="navigateTo('/auth/login')" class="btn-primary small">Entrar</button>
+        </div>
       </div>
     </div>
   </section>

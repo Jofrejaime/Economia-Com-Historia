@@ -1,5 +1,5 @@
 /* ============================================
-   HOME PAGE - DESIGN SYSTEM
+   HOME VISITOR - DESIGN SYSTEM COMPLETO
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
@@ -33,7 +33,7 @@ p, span, div, button, input, textarea, a {
 }
 
 /* ============================================
-   HEADER
+   HEADER - COM NAVEGAÇÃO
    ============================================ */
 
 .home-header {
@@ -49,17 +49,20 @@ p, span, div, button, input, textarea, a {
 .home-header-container {
   max-width: 1536px;
   margin: 0 auto;
-  padding: 20px 48px;
+  padding: 16px 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 24px;
 }
 
+/* Logo */
 .home-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .home-logo-icon {
@@ -80,6 +83,37 @@ p, span, div, button, input, textarea, a {
   font-family: 'IBM Plex Sans', sans-serif;
 }
 
+/* Navigation Links */
+.home-nav {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.home-nav-link {
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2937;
+  transition: color 0.2s;
+  cursor: pointer;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+}
+
+.home-nav-link:hover {
+  color: #8B1E2D;
+}
+
+.home-nav-link.active {
+  color: #8B1E2D !important;
+  font-weight: 600 !important;
+  border-bottom-color: #8B1E2D !important;
+}
+
+/* Botão de Login */
 .btn-login {
   background: #8B1E2D;
   border: none;
@@ -93,6 +127,7 @@ p, span, div, button, input, textarea, a {
   transition: all 0.3s;
   font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
+  flex-shrink: 0;
 }
 
 .btn-login:hover {
@@ -336,6 +371,155 @@ p, span, div, button, input, textarea, a {
 }
 
 /* ============================================
+   SEÇÃO: CONTEÚDOS EM DESTAQUE
+   ============================================ */
+
+.home-featured-contents {
+  background-color: #FFFFFF;
+  width: 100%;
+  padding: 80px 0;
+}
+
+.home-featured-contents-container {
+  max-width: 1536px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+/* Section Header */
+.home-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.home-section-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  color: #1F2937;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.home-section-subtitle {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 15px;
+  color: #1F2937;
+  margin: 4px 0 0 0;
+  line-height: 1.7;
+}
+
+.home-section-link {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #8B1E2D;
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1.7;
+  background: none;
+  border: none;
+}
+
+.home-section-link:hover {
+  color: #6B0119;
+}
+
+/* Conteúdos Grid */
+.home-contents-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.home-content-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.home-content-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border-color: rgba(139, 30, 45, 0.15);
+}
+
+.home-content-image {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+}
+
+.home-content-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.home-content-card:hover .home-content-image img {
+  transform: scale(1.03);
+}
+
+.home-content-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #8B1E2D;
+  color: #FFFFFF;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.home-content-body {
+  padding: 20px;
+}
+
+.home-content-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: #1F2937;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.home-content-description {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  color: #1F2937;
+  margin: 0 0 12px 0;
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-content-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 12px;
+  color: #9CA3AF;
+  line-height: 1.7;
+}
+
+/* ============================================
    FEATURES SECTION
    ============================================ */
 
@@ -460,6 +644,140 @@ p, span, div, button, input, textarea, a {
   background: #8B1E2D;
   color: #FFFFFF;
   border-color: transparent;
+}
+
+/* ============================================
+   SEÇÃO: RANKING DE INVESTIGADORES
+   ============================================ */
+
+.home-ranking-section {
+  background-color: #F5F5F5;
+  width: 100%;
+  padding: 80px 0;
+}
+
+.home-ranking-container {
+  max-width: 1536px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+.home-ranking-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.home-ranking-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #E5E7EB;
+  transition: all 0.3s;
+}
+
+.home-ranking-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.home-ranking-card.top-1 {
+  border-left: 4px solid #FBBF24;
+}
+
+.home-ranking-card.top-2 {
+  border-left: 4px solid #9CA3AF;
+}
+
+.home-ranking-card.top-3 {
+  border-left: 4px solid #D4A574;
+}
+
+.home-ranking-position {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+}
+
+.position-number {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: #1F2937;
+  line-height: 1.3;
+}
+
+.position-medal {
+  font-size: 16px;
+}
+
+.home-ranking-info {
+  flex: 1;
+}
+
+.ranking-name {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #1F2937;
+  display: block;
+  line-height: 1.3;
+}
+
+.ranking-specialty {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 12px;
+  color: #9CA3AF;
+  display: block;
+  line-height: 1.7;
+}
+
+.home-ranking-points {
+  text-align: right;
+}
+
+.points-number {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #8B1E2D;
+  display: block;
+  line-height: 1.3;
+}
+
+.points-label {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 11px;
+  color: #9CA3AF;
+  display: block;
+  line-height: 1.7;
+}
+
+.home-ranking-cta {
+  grid-column: span 3;
+  background: linear-gradient(135deg, #8B1E2D, #6B0119);
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  color: #FFFFFF;
+}
+
+.ranking-cta-text {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 16px;
+  margin: 0 0 16px 0;
+  color: #FFFFFF;
+  line-height: 1.7;
+}
+
+.btn-primary.small {
+  padding: 8px 24px;
+  font-size: 14px;
+  min-height: 36px;
 }
 
 /* ============================================
@@ -721,7 +1039,87 @@ p, span, div, button, input, textarea, a {
 }
 
 /* ============================================
-   RESPONSIVIDADE
+   RESPONSIVIDADE DO HEADER
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .home-header-container {
+    padding: 16px 24px;
+  }
+  
+  .home-nav {
+    gap: 20px;
+  }
+  
+  .home-nav-link {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-header-container {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+  
+  .home-nav {
+    order: 3;
+    width: 100%;
+    gap: 16px;
+    justify-content: center;
+    padding: 8px 0;
+    border-top: 1px solid rgba(107, 1, 25, 0.08);
+  }
+  
+  .home-nav-link {
+    font-size: 13px;
+  }
+  
+  .btn-login {
+    padding: 8px 20px;
+    font-size: 13px;
+    min-height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-header-container {
+    padding: 10px 12px;
+  }
+  
+  .home-logo-text {
+    font-size: 16px;
+  }
+  
+  .home-logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .home-logo-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .home-nav {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .home-nav-link {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+  
+  .btn-login {
+    padding: 6px 16px;
+    font-size: 12px;
+    min-height: 32px;
+  }
+}
+
+/* ============================================
+   RESPONSIVIDADE GERAL
    ============================================ */
 
 @media (max-width: 1024px) {
@@ -747,13 +1145,29 @@ p, span, div, button, input, textarea, a {
     left: 20px;
     bottom: 20px;
   }
+  
+  .home-featured-contents-container {
+    padding: 0 24px;
+  }
+  
+  .home-ranking-container {
+    padding: 0 24px;
+  }
+  
+  .home-contents-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .home-ranking-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .home-ranking-cta {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 768px) {
-  .home-header-container {
-    padding: 16px 24px;
-  }
-  
   .home-hero-container {
     padding: 48px 24px;
   }
@@ -810,17 +1224,45 @@ p, span, div, button, input, textarea, a {
     bottom: 0;
     margin-top: 16px;
   }
+  
+  .home-featured-contents {
+    padding: 48px 0;
+  }
+  
+  .home-ranking-section {
+    padding: 48px 0;
+  }
+  
+  .home-featured-contents-container {
+    padding: 0 16px;
+  }
+  
+  .home-ranking-container {
+    padding: 0 16px;
+  }
+  
+  .home-section-title {
+    font-size: 24px;
+  }
+  
+  .home-contents-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .home-ranking-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .home-ranking-cta {
+    grid-column: span 1;
+  }
+  
+  .home-content-image {
+    height: 120px;
+  }
 }
 
 @media (max-width: 480px) {
-  .home-header-container {
-    padding: 12px 16px;
-  }
-  
-  .home-logo-text {
-    font-size: 16px;
-  }
-  
   .home-hero-container {
     padding: 32px 16px;
   }
@@ -854,5 +1296,54 @@ p, span, div, button, input, textarea, a {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
+  }
+  
+  .home-featured-contents {
+    padding: 32px 0;
+  }
+  
+  .home-ranking-section {
+    padding: 32px 0;
+  }
+  
+  .home-featured-contents-container {
+    padding: 0 12px;
+  }
+  
+  .home-ranking-container {
+    padding: 0 12px;
+  }
+  
+  .home-section-title {
+    font-size: 20px;
+  }
+  
+  .home-contents-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .home-content-image {
+    height: 140px;
+  }
+  
+  .home-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .home-ranking-card {
+    padding: 16px;
+  }
+  
+  .position-number {
+    font-size: 16px;
+  }
+  
+  .ranking-name {
+    font-size: 14px;
+  }
+  
+  .points-number {
+    font-size: 16px;
   }
 }

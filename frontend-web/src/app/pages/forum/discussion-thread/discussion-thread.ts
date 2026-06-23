@@ -4,9 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
+import { MarkdownPipe } from '../../../pipes/markdown.pipe';
 
 interface Reply {
   id: number;
+  authorId: number;
   author: string;
   authorInitials: string;
   authorRole: string;
@@ -20,6 +22,7 @@ interface Reply {
 }
 
 interface RelatedTopic {
+  id: number;
   title: string;
   replies: number;
   views: number;
@@ -28,21 +31,43 @@ interface RelatedTopic {
 @Component({
   selector: 'app-discussion-thread',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, HeaderComponent, FooterComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    HeaderComponent,
+    FooterComponent,
+    MarkdownPipe
+  ],
   templateUrl: './discussion-thread.html',
   styleUrls: ['./discussion-thread.css']
 })
 export class DiscussionThreadComponent {
   replyText = '';
   showReplyForm = false;
+  
+  showReplyFormForReply: { [key: number]: boolean } = {};
+  replyReplyText: { [key: number]: string } = {};
+
+  // Controles para denúncia
+  showReportDiscussionModal = false;
+  showReportReplyModal = false;
+  reportDiscussionReason = '';
+  reportDiscussionDescription = '';
+  reportReplyReason = '';
+  reportReplyDescription = '';
+  selectedReplyIndex: number | null = null;
+  selectedReply: Reply | null = null;
 
   discussion = {
     id: 1,
+    authorId: 1,
     author: 'Jofre Jaime',
     authorInitials: 'JJ',
     authorRole: 'Investigador Sénior',
     authorPosts: 127,
     avatar: '#8b1e2d',
+    categoryId: 1,
     category: 'ANÁLISE DE POLÍTICAS',
     categoryColor: { bg: '#acf0e0', text: '#003a32' },
     timeAgo: 'há 2 horas',
@@ -72,6 +97,7 @@ Agradeço antecipadamente qualquer orientação ou referências bibliográficas.
   replies: Reply[] = [
     {
       id: 1,
+      authorId: 2,
       author: 'Ana Correia',
       authorInitials: 'AC',
       authorRole: 'Professora Associada',
@@ -95,6 +121,7 @@ Espero que ajude!`,
     },
     {
       id: 2,
+      authorId: 3,
       author: 'Manuel Santos',
       authorInitials: 'MS',
       authorRole: 'Estudante de Doutoramento',
@@ -112,6 +139,7 @@ Uma observação: muita da documentação de Moxico foi transferida para Luanda 
     },
     {
       id: 3,
+      authorId: 4,
       author: 'Isabel Fernandes',
       authorInitials: 'IF',
       authorRole: 'Investigadora Principal',
@@ -132,22 +160,152 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
   ];
 
   relatedTopics: RelatedTopic[] = [
-    { title: 'Documentos Fundadores do BNA', replies: 18, views: 612 },
-    { title: 'Política Fiscal no Período Pós-Colonial', replies: 24, views: 891 },
-    { title: 'Sistema Monetário Angolano (1975-1985)', replies: 15, views: 543 },
+    { id: 2, title: 'Documentos Fundadores do BNA', replies: 18, views: 612 },
+    { id: 3, title: 'Política Fiscal no Período Pós-Colonial', replies: 24, views: 891 },
+    { id: 4, title: 'Sistema Monetário Angolano (1975-1985)', replies: 15, views: 543 },
   ];
 
   constructor(private router: Router) {}
 
+  // ===== RESPOSTAS =====
   handleSubmitReply(event: Event): void {
     event.preventDefault();
     if (!this.replyText.trim()) return;
 
-    console.log('Nova resposta:', this.replyText);
+    const newReply: Reply = {
+      id: this.replies.length + 1,
+      authorId: 0,
+      author: 'Utilizador Atual',
+      authorInitials: 'UA',
+      authorRole: 'Membro da Comunidade',
+      authorPosts: 0,
+      avatar: '#8B1E2D',
+      timeAgo: 'agora mesmo',
+      date: new Date().toLocaleString(),
+      content: this.replyText,
+      likes: 0,
+      isLiked: false,
+    };
+
+    this.replies.unshift(newReply);
     this.replyText = '';
     this.showReplyForm = false;
   }
 
+  toggleReplyForm(index: number): void {
+    this.showReplyFormForReply[index] = !this.showReplyFormForReply[index];
+    if (this.showReplyFormForReply[index]) {
+      this.replyReplyText[index] = '';
+    }
+  }
+
+  handleReplyToReply(index: number, text: string): void {
+    if (!text || !text.trim()) return;
+
+    const newReply: Reply = {
+      id: this.replies.length + 1,
+      authorId: 0,
+      author: 'Utilizador Atual',
+      authorInitials: 'UA',
+      authorRole: 'Membro da Comunidade',
+      authorPosts: 0,
+      avatar: '#8B1E2D',
+      timeAgo: 'agora mesmo',
+      date: new Date().toLocaleString(),
+      content: `@${this.replies[index].author}: ${text}`,
+      likes: 0,
+      isLiked: false,
+    };
+
+    this.replies.splice(index + 1, 0, newReply);
+    this.showReplyFormForReply[index] = false;
+    this.replyReplyText[index] = '';
+  }
+
+  // ===== LIKES =====
+  toggleLikeDiscussion(): void {
+    this.discussion.isLiked = !this.discussion.isLiked;
+    this.discussion.likes += this.discussion.isLiked ? 1 : -1;
+  }
+
+  toggleLikeReply(index: number): void {
+    this.replies[index].isLiked = !this.replies[index].isLiked;
+    this.replies[index].likes += this.replies[index].isLiked ? 1 : -1;
+  }
+
+  // ===== AÇÕES =====
+  shareDiscussion(): void {
+    console.log('Partilhar discussão');
+  }
+
+  followDiscussion(): void {
+    console.log('Seguir tópico');
+  }
+
+  saveDiscussion(): void {
+    console.log('Guardar discussão');
+  }
+
+  // ===== DENÚNCIAS =====
+  openReportDiscussionModal(): void {
+    this.showReportDiscussionModal = true;
+    this.reportDiscussionReason = '';
+    this.reportDiscussionDescription = '';
+  }
+
+  closeReportDiscussionModal(): void {
+    this.showReportDiscussionModal = false;
+    this.reportDiscussionReason = '';
+    this.reportDiscussionDescription = '';
+  }
+
+  submitReportDiscussion(): void {
+    if (!this.reportDiscussionReason) return;
+    
+    console.log('Denúncia de Discussão:', {
+      discussionId: this.discussion.id,
+      title: this.discussion.title,
+      reason: this.reportDiscussionReason,
+      description: this.reportDiscussionDescription
+    });
+    
+    // Toast de sucesso
+    alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
+    this.closeReportDiscussionModal();
+  }
+
+  openReportReplyModal(index: number): void {
+    this.selectedReplyIndex = index;
+    this.selectedReply = this.replies[index];
+    this.showReportReplyModal = true;
+    this.reportReplyReason = '';
+    this.reportReplyDescription = '';
+  }
+
+  closeReportReplyModal(): void {
+    this.showReportReplyModal = false;
+    this.selectedReplyIndex = null;
+    this.selectedReply = null;
+    this.reportReplyReason = '';
+    this.reportReplyDescription = '';
+  }
+
+  submitReportReply(): void {
+    if (!this.reportReplyReason || this.selectedReplyIndex === null) return;
+    
+    console.log('Denúncia de Resposta:', {
+      replyId: this.selectedReply?.id,
+      author: this.selectedReply?.author,
+      content: this.selectedReply?.content,
+      reason: this.reportReplyReason,
+      description: this.reportReplyDescription
+    });
+    
+    alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
+    this.closeReportReplyModal();
+  }
+
+  // ===== NAVEGAÇÃO =====
   navigateTo(path: string): void {
     this.router.navigate([path]);
   }

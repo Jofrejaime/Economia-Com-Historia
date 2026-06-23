@@ -7,7 +7,12 @@
       
       <!-- Breadcrumb -->
       <nav class="discussion-breadcrumb">
-        <button (click)="navigateTo('/forum/community')" class="discussion-breadcrumb-btn">Comunidade</button>
+        <button (click)="navigateTo('/forum/community')" class="discussion-breadcrumb-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Comunidade
+        </button>
         <span class="discussion-breadcrumb-separator">/</span>
         <span class="discussion-breadcrumb-current">Análise de Políticas</span>
       </nav>
@@ -23,7 +28,7 @@
             
             <!-- Category & Meta -->
             <div class="discussion-meta">
-              <div class="discussion-category" [style.backgroundColor]="discussion.categoryColor.bg">
+              <div class="discussion-category" [style.backgroundColor]="discussion.categoryColor.bg" (click)="navigateTo('/forum/categoria/' + discussion.categoryId)">
                 <span class="discussion-category-text" [style.color]="discussion.categoryColor.text">{{ discussion.category }}</span>
               </div>
               <div *ngIf="discussion.isPinned" class="discussion-pinned">
@@ -36,7 +41,7 @@
             <h1 class="discussion-title">{{ discussion.title }}</h1>
 
             <!-- Author Info -->
-            <div class="discussion-author-info">
+            <div class="discussion-author-info" (click)="navigateTo('/auth/perfil/' + discussion.authorId)">
               <div class="discussion-avatar" [style.backgroundColor]="discussion.avatar">
                 <span class="discussion-avatar-text">{{ discussion.authorInitials }}</span>
               </div>
@@ -47,38 +52,64 @@
             </div>
 
             <!-- Content -->
-            <div class="discussion-content">
+            <div class="discussion-content" [innerHTML]="discussion.content | markdown">
               {{ discussion.content }}
             </div>
 
             <!-- Actions -->
             <div class="discussion-actions">
-              <button class="discussion-action-btn" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                <span class="discussion-action-text">{{ discussion.likes }}</span>
+              <button class="discussion-action-btn" (click)="toggleLikeDiscussion()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" [attr.stroke]="discussion.isLiked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <span class="discussion-action-text" [style.color]="discussion.isLiked ? '#8B1E2D' : '#9CA3AF'">{{ discussion.likes }}</span>
               </button>
-              <button (click)="showReplyForm = !showReplyForm" class="discussion-action-btn" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              
+              <button (click)="showReplyForm = !showReplyForm" class="discussion-action-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
                 <span class="discussion-action-text">Responder</span>
               </button>
-              <button class="discussion-action-btn" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v15"/></svg>
+              
+              <button class="discussion-action-btn" (click)="shareDiscussion()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v15"/>
+                </svg>
                 <span class="discussion-action-text">Partilhar</span>
               </button>
+
+              <button class="discussion-action-btn" (click)="openReportDiscussionModal()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                  <path d="M12 2L1 21h22L12 2z"/>
+                  <circle cx="12" cy="16" r="1.5"/>
+                  <path d="M12 9v4"/>
+                </svg>
+                <span class="discussion-action-text">Denunciar</span>
+              </button>
+              
               <div class="discussion-views">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
                 <span class="discussion-views-text">{{ discussion.views }} visualizações</span>
               </div>
             </div>
           </div>
 
-          <!-- Reply Form -->
+          <!-- Reply Form (principal) -->
           <div *ngIf="showReplyForm" class="reply-form">
             <h3 class="reply-form-title">Adicionar Resposta</h3>
             <form (ngSubmit)="handleSubmitReply($event)">
               <textarea [(ngModel)]="replyText" name="replyText" rows="5" placeholder="Partilhe a sua perspectiva, fontes ou sugestões..." class="reply-textarea"></textarea>
               <div class="reply-form-actions">
-                <button type="submit" class="btn-primary">Publicar Resposta</button>
+                <button type="submit" class="btn-primary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                  </svg>
+                  Publicar Resposta
+                </button>
                 <button type="button" (click)="showReplyForm = false" class="btn-secondary">Cancelar</button>
               </div>
             </form>
@@ -92,10 +123,11 @@
             </div>
 
             <div>
-              <div *ngFor="let reply of replies" class="reply-card">
+              <!-- Loop das respostas -->
+              <div *ngFor="let reply of replies; let i = index" class="reply-card">
                 
                 <!-- Reply Author -->
-                <div class="reply-author">
+                <div class="reply-author" (click)="navigateTo('/auth/perfil/' + reply.authorId)">
                   <div class="reply-avatar" [style.backgroundColor]="reply.avatar">
                     <span class="reply-avatar-text">{{ reply.authorInitials }}</span>
                   </div>
@@ -106,17 +138,49 @@
                 </div>
 
                 <!-- Reply Content -->
-                <div class="reply-content">
+                <div class="reply-content" [innerHTML]="reply.content | markdown">
                   {{ reply.content }}
                 </div>
 
                 <!-- Reply Actions -->
                 <div class="reply-actions">
-                  <button class="reply-action-btn" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="reply.isLiked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  <button class="reply-action-btn" (click)="toggleLikeReply(i)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="reply.isLiked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
                     <span class="reply-action-text" [class.liked]="reply.isLiked" [class.unliked]="!reply.isLiked">{{ reply.likes }}</span>
                   </button>
-                  <button class="reply-action-btn-secondary">Responder</button>
+                  
+                  <button class="reply-action-btn-secondary" (click)="toggleReplyForm(i)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Responder
+                  </button>
+                  
+                  <button class="reply-action-btn-secondary" (click)="openReportReplyModal(i)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                      <path d="M12 2L1 21h22L12 2z"/>
+                      <circle cx="12" cy="16" r="1.5"/>
+                      <path d="M12 9v4"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Formulário de resposta para esta reply específica -->
+                <div *ngIf="showReplyFormForReply[i]" class="reply-form nested-reply-form">
+                  <form (ngSubmit)="handleReplyToReply(i, replyReplyText[i])">
+                    <textarea [(ngModel)]="replyReplyText[i]" name="replyReplyText" rows="3" placeholder="Responder a {{ reply.author }}..." class="reply-textarea nested-textarea"></textarea>
+                    <div class="reply-form-actions nested-actions">
+                      <button type="submit" class="btn-primary btn-small">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
+                        Responder
+                      </button>
+                      <button type="button" class="btn-secondary btn-small" (click)="toggleReplyForm(i)">Cancelar</button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>
@@ -128,7 +192,7 @@
           <div class="discussion-sidebar">
             
             <!-- Author Card -->
-            <div class="sidebar-card">
+            <div class="sidebar-card" (click)="navigateTo('/auth/perfil/' + discussion.authorId)">
               <h3 class="sidebar-title">SOBRE O AUTOR</h3>
               <div class="author-card">
                 <div class="author-card-avatar" [style.backgroundColor]="discussion.avatar">
@@ -139,30 +203,37 @@
                   <div class="author-card-role">{{ discussion.authorRole }}</div>
                 </div>
               </div>
-              <div class="author-card-posts">📄 {{ discussion.authorPosts }} publicações</div>
+              <div class="author-card-posts">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                  <path d="M4 4h16v16H4z"/>
+                  <path d="M8 8h8M8 12h6"/>
+                </svg>
+                {{ discussion.authorPosts }} publicações
+              </div>
             </div>
 
             <!-- Related Topics -->
             <div class="sidebar-card">
               <h3 class="sidebar-title">TÓPICOS RELACIONADOS</h3>
               <div>
-                <button *ngFor="let topic of relatedTopics" (click)="navigateTo('/forum/community/discussao')" class="related-topic-btn">
+                <button *ngFor="let topic of relatedTopics" (click)="navigateTo('/forum/community/discussao/' + topic.id)" class="related-topic-btn">
                   <div class="related-topic-title">{{ topic.title }}</div>
                   <div class="related-topic-meta">
-                    <span>💬 {{ topic.replies }} respostas</span>
-                    <span>👁️ {{ topic.views }} visualizações</span>
+                    <span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      {{ topic.replies }} respostas
+                    </span>
+                    <span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                      {{ topic.views }} visualizações
+                    </span>
                   </div>
                 </button>
-              </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="quick-actions-card">
-              <h3 class="sidebar-title">ACÇÕES RÁPIDAS</h3>
-              <div>
-                <button class="quick-action-btn" onmouseover="this.style.backgroundColor='#FFFFFF'; this.style.color='#8B1E2D'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#1F2937'">🚩 Reportar Discussão</button>
-                <button class="quick-action-btn" onmouseover="this.style.backgroundColor='#FFFFFF'; this.style.color='#8B1E2D'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#1F2937'">⭐ Seguir Tópico</button>
-                <button class="quick-action-btn" onmouseover="this.style.backgroundColor='#FFFFFF'; this.style.color='#8B1E2D'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#1F2937'">🔖 Guardar para Ler</button>
               </div>
             </div>
           </div>
@@ -170,6 +241,232 @@
       </div>
     </div>
   </main>
+
+  
+
+  <!-- ===== MODAL DE DENÚNCIA DE REPLY ===== -->
+<div class="modal-overlay" *ngIf="showReportReplyModal" (click)="closeReportReplyModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    
+    <!-- Header com ícone SVG -->
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-header-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
+            <path d="M12 2L1 21h22L12 2z"/>
+            <circle cx="12" cy="16" r="1.5" fill="#DC2626"/>
+            <path d="M12 9v4"/>
+          </svg>
+        </div>
+        <div>
+          <h2>Denunciar Resposta</h2>
+          <p class="modal-subtitle">Ajude a manter a comunidade segura</p>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeReportReplyModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      
+      <!-- Informação da Resposta -->
+      <div class="report-info-card" *ngIf="selectedReply">
+        <div class="report-info-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <div class="report-info-content">
+          <div class="report-info-row">
+            <span class="report-info-label">Resposta de</span>
+            <span class="report-info-value">{{ selectedReply.author }}</span>
+          </div>
+          <div class="report-info-row">
+            <span class="report-info-label">Conteúdo</span>
+            <span class="report-info-value report-content-preview">{{ selectedReply.content | slice:0:100 }}{{ selectedReply.content.length > 100 ? '...' : '' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motivo -->
+      <div class="form-group">
+        <label class="form-label">
+          Motivo da Denúncia
+          <span class="required">*</span>
+        </label>
+        <div class="select-wrapper">
+          <select [(ngModel)]="reportReplyReason" class="form-input">
+            <option value="">Selecione um motivo...</option>
+            <option value="spam">Conteúdo de Spam</option>
+            <option value="offensive">Linguagem Ofensiva</option>
+            <option value="harassment">Assédio ou Intimidação</option>
+            <option value="misinformation">Desinformação</option>
+            <option value="copyright">Violação de Direitos de Autor</option>
+            <option value="inappropriate">Conteúdo Inapropriado</option>
+            <option value="other">Outro Motivo</option>
+          </select>
+          <div class="select-arrow">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Descrição -->
+      <div class="form-group">
+        <label class="form-label">Descrição Detalhada</label>
+        <textarea [(ngModel)]="reportReplyDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo da denúncia..."></textarea>
+        <span class="form-hint">{{ reportReplyDescription.length || 0 }}/500 caracteres</span>
+      </div>
+
+      <!-- Aviso -->
+      <div class="report-warning">
+        <div class="report-warning-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
+            <path d="M12 2L1 21h22L12 2z"/>
+            <circle cx="12" cy="16" r="1.5" fill="#DC2626"/>
+            <path d="M12 9v4"/>
+          </svg>
+        </div>
+        <div class="report-warning-content">
+          <span class="report-warning-title">Denúncia anónima e confidencial</span>
+          <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação. O denunciante permanecerá anónimo.</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeReportReplyModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+        Cancelar
+      </button>
+      <button class="btn-report" (click)="submitReportReply()" [disabled]="!reportReplyReason">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L1 21h22L12 2z"/>
+        </svg>
+        Enviar Denúncia
+      </button>
+    </div>
+  </div>
+</div>
+  <!-- ===== MODAL DE DENÚNCIA DA DISCUSSÃO ===== -->
+  <div class="modal-overlay" *ngIf="showReportDiscussionModal" (click)="closeReportDiscussionModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      
+      <!-- Header com ícone SVG -->
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-header-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
+              <path d="M12 2L1 21h22L12 2z"/>
+              <circle cx="12" cy="16" r="1.5" fill="#DC2626"/>
+              <path d="M12 9v4"/>
+            </svg>
+          </div>
+          <div>
+            <h2>Denunciar Discussão</h2>
+            <p class="modal-subtitle">Ajude a manter a comunidade segura</p>
+          </div>
+        </div>
+        <button class="modal-close" (click)="closeReportDiscussionModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        
+        <!-- Informação da Discussão -->
+        <div class="report-info-card">
+          <div class="report-info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+              <path d="M4 4h16v16H4z"/>
+              <path d="M8 8h8M8 12h6"/>
+            </svg>
+          </div>
+          <div class="report-info-content">
+            <div class="report-info-row">
+              <span class="report-info-label">Discussão</span>
+              <span class="report-info-value">{{ discussion.title }}</span>
+            </div>
+            <div class="report-info-row">
+              <span class="report-info-label">Autor</span>
+              <span class="report-info-value">{{ discussion.author }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motivo -->
+        <div class="form-group">
+          <label class="form-label">
+            Motivo da Denúncia
+            <span class="required">*</span>
+          </label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="reportDiscussionReason" class="form-input">
+              <option value="">Selecione um motivo...</option>
+              <option value="spam">Conteúdo de Spam</option>
+              <option value="offensive">Linguagem Ofensiva</option>
+              <option value="harassment">Assédio ou Intimidação</option>
+              <option value="misinformation">Desinformação</option>
+              <option value="copyright">Violação de Direitos de Autor</option>
+              <option value="inappropriate">Conteúdo Inapropriado</option>
+              <option value="other">Outro Motivo</option>
+            </select>
+            <div class="select-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <div class="form-group">
+          <label class="form-label">Descrição Detalhada</label>
+          <textarea [(ngModel)]="reportDiscussionDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo da denúncia..."></textarea>
+          <span class="form-hint">{{ reportDiscussionDescription.length || 0 }}/500 caracteres</span>
+        </div>
+
+        <!-- Aviso -->
+        <div class="report-warning">
+          <div class="report-warning-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
+              <path d="M12 2L1 21h22L12 2z"/>
+              <circle cx="12" cy="16" r="1.5" fill="#DC2626"/>
+              <path d="M12 9v4"/>
+            </svg>
+          </div>
+          <div class="report-warning-content">
+            <span class="report-warning-title">Denúncia anónima e confidencial</span>
+            <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação. O denunciante permanecerá anónimo.</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeReportDiscussionModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+          Cancelar
+        </button>
+        <button class="btn-report" (click)="submitReportDiscussion()" [disabled]="!reportDiscussionReason">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L1 21h22L12 2z"/>
+          </svg>
+          Enviar Denúncia
+        </button>
+      </div>
+    </div>
+  </div>
 
   <app-footer></app-footer>
 </div>
