@@ -319,7 +319,7 @@ class AuthController extends Controller
         $profile = DB::table('user_profiles')->where('user_id', $user->id)->first();
         $recipientName = $profile->display_name ?? $user->email;
 
-        $resetUrl = FrontendUrl::build('/auth/reset-password', ['token' => $resetToken]);
+        $resetUrl = FrontendUrl::build('/auth/reset-password',  ['token' => $resetToken]);
 
         try {
             Mail::to($user->email)->send(new PasswordResetMail(
@@ -370,7 +370,8 @@ class AuthController extends Controller
             VerificationTokenType::PASSWORD_RESET,
         );
 
-        if ($verification === null) {
+        if ($verification === null)
+        {
             return response()->json(['message' => 'Invalid or expired token.'], 422);
         }
 
