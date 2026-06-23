@@ -1,22 +1,26 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from '../../../components/header/header'; // ajuste o caminho
-import { FooterComponent } from '../../../components/footer/footer'; // quando tiver o footer
+import { Router } from '@angular/router';
+import { HeaderComponent } from '../../../components/header/header';
+import { FooterComponent } from '../../../components/footer/footer';
 
 @Component({
   selector: 'app-home-user',
-  standalone: true,  // se for standalone component
+  standalone: true,
   imports: [
     CommonModule,
-    HeaderComponent,  // importa o header aqui
-    FooterComponent  // quando tiver o footer
+    HeaderComponent,
+    FooterComponent
   ],
-  templateUrl: './home-user.html',  // ou template inline
+  templateUrl: './home-user.html',
   styleUrls: ['./home-user.css']
 })
 export class HomeUser {
+  @ViewChild('scrollContainer') scrollContainer!: ElementRef;
+
   categories = [
     {
+      id: 1,
       name: 'Período Colonial',
       description: 'Documentos e análises do período colonial e das estruturas económicas.',
       documentCount: 47,
@@ -25,6 +29,7 @@ export class HomeUser {
       isExclusive: false
     },
     {
+      id: 2,
       name: 'Economia Moderna',
       description: 'Análises pós-independência e desafios económicos contemporâneos.',
       documentCount: 38,
@@ -33,6 +38,7 @@ export class HomeUser {
       isExclusive: false
     },
     {
+      id: 3,
       name: 'Documentos Exclusivos',
       description: 'Arquivos restritos disponíveis para investigadores credenciados.',
       documentCount: 23,
@@ -43,14 +49,41 @@ export class HomeUser {
   ];
 
   discussions = [
-    { title: 'O impacto da descolonização na economia angolana', author: 'Dra. Maria Santos', replies: '24 respostas' },
-    { title: 'Reparação histórica e desenvolvimento', author: 'Prof. João Mendes', replies: '18 respostas' },
-    { title: 'Fontes primárias do período 1975-1992', author: 'Dr. Carlos Ferreira', replies: '12 respostas' }
+    { id: 1, title: 'O impacto da descolonização na economia angolana', author: 'Dra. Maria Santos', replies: '24 respostas' },
+    { id: 2, title: 'Reparação histórica e desenvolvimento', author: 'Prof. João Mendes', replies: '18 respostas' },
+    { id: 3, title: 'Fontes primárias do período 1975-1992', author: 'Dr. Carlos Ferreira', replies: '12 respostas' }
   ];
 
   scholars = [
-    { rank: '1º', name: 'Prof. Ana Oliveira', specialty: 'História Económica', points: '2,847' },
-    { rank: '2º', name: 'Dr. Miguel Santos', specialty: 'Economia Colonial', points: '2,421' },
-    { rank: '3º', name: 'Profa. Carla Lima', specialty: 'Políticas Públicas', points: '2,156' }
+    { id: 1, rank: '1º', name: 'Prof. Ana Oliveira', specialty: 'História Económica', points: '2,847' },
+    { id: 2, rank: '2º', name: 'Dr. Miguel Santos', specialty: 'Economia Colonial', points: '2,421' },
+    { id: 3, rank: '3º', name: 'Profa. Carla Lima', specialty: 'Políticas Públicas', points: '2,156' }
   ];
+
+  constructor(private router: Router) {}
+
+  // Navega para a página de visualização de conteúdo
+  navigateToContent(contentId: number): void {
+    this.router.navigate(['/contents/view', contentId]);
+  }
+
+  // Navega para a página de categorias
+  navigateToCategory(categoryId: number): void {
+    this.router.navigate(['/forum/categoria', categoryId]);
+  }
+
+  // Navega para a página de discussão
+  navigateToDiscussion(discussionId: number): void {
+    this.router.navigate(['/forum/community/discussao', discussionId]);
+  }
+
+  // Navega para o perfil do investigador
+  navigateToScholar(scholarId: number): void {
+    this.router.navigate(['/auth/perfil', scholarId]);
+  }
+
+  // Navegação genérica
+  navigateTo(path: string): void {
+    this.router.navigate([path]);
+  }
 }
