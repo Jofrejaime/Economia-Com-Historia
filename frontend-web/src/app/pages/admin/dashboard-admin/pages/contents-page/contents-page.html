@@ -14,11 +14,11 @@
     </button>
   </div>
 
-  <!-- Stats Cards -->
+  <!-- Stats Cards - TODOS BORDEAUX -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
-        <span class="stat-value" style="color: #3b82f6;">📄</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">📄</span>
       </div>
       <div>
         <p class="stat-label">TOTAL</p>
@@ -26,8 +26,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">
-        <span class="stat-value" style="color: #22c55e;">✓</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">✓</span>
       </div>
       <div>
         <p class="stat-label">PUBLICADOS</p>
@@ -35,8 +35,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-        <span class="stat-value" style="color: #f59e0b;">📝</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">📝</span>
       </div>
       <div>
         <p class="stat-label">RASCUNHOS</p>
@@ -44,8 +44,8 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #fee2e2, #fecaca);">
-        <span class="stat-value" style="color: #ef4444;">🔄</span>
+      <div class="stat-icon">
+        <span class="stat-icon-emoji">🔄</span>
       </div>
       <div>
         <p class="stat-label">EM REVISÃO</p>
@@ -101,7 +101,7 @@
             <div class="title-content">
               <div class="title-row">
                 <span class="title-text">{{ content.title }}</span>
-                <div *ngIf="content.featuredImage" class="has-media-badge">📷</div>
+                <div *ngIf="content.cover_image_url" class="has-media-badge">📷</div>
               </div>
               <div class="title-tags" *ngIf="content.tags && content.tags.length">
                 <span *ngFor="let tag of content.tags.slice(0,2)" class="tag-badge">{{ tag }}</span>
@@ -109,7 +109,7 @@
               </div>
             </div>
           </td>
-          <td class="type-cell">{{ content.type }}</td>
+          <td class="type-cell">{{ content.document_type }}</td>
           <td class="media-cell">
             <div class="media-icons">
               <span *ngIf="content.mediaFiles?.some(m => m.type === 'image')" class="media-icon" title="Imagens">🖼️</span>
@@ -118,20 +118,20 @@
               <span *ngIf="!content.mediaFiles?.length" class="media-icon empty">—</span>
             </div>
           </td>
-          <td class="category-cell">{{ content.category }}</td>
+          <td class="category-cell">{{ content.category_name || content.category_id }}</td>
           <td class="author-cell">{{ content.author }}</td>
-          <td class="date-cell">{{ content.date }}</td>
-          <td class="status-cell">
-            <span class="status-badge" [class]="getStatusBadgeClass(content.status)">
+          <td class="date-cell">{{ content.publication_date || content.created_at | date:'dd MMM yyyy' }}</td>
+          <td>
+            <span class="status-badge">
               {{ getStatusIcon(content.status) }} {{ getStatusLabel(content.status) }}
             </span>
           </td>
-          <td class="views-cell">{{ content.views | number }}</td>
+          <td class="views-cell">{{ content.views_count | number }}</td>
           <td class="actions-cell">
-            <button class="action-btn edit" (click)="openEditContentModal(content)" title="Editar">✏️</button>
-            <button *ngIf="content.status !== 'published'" class="action-btn publish" (click)="publishContent(content.id)" title="Publicar">📤</button>
-            <button *ngIf="content.status === 'published'" class="action-btn archive" (click)="archiveContent(content.id)" title="Arquivar">📥</button>
-            <button class="action-btn delete" (click)="deleteContent(content.id)" title="Eliminar">🗑️</button>
+            <button class="action-btn" (click)="openEditContentModal(content)" title="Editar">✏️</button>
+            <button *ngIf="content.status !== 'published'" class="action-btn" (click)="publishContent(content.id)" title="Publicar">📤</button>
+            <button *ngIf="content.status === 'published'" class="action-btn" (click)="archiveContent(content.id)" title="Arquivar">📥</button>
+            <button class="action-btn" (click)="deleteContent(content.id)" title="Eliminar">🗑️</button>
           </td>
         </tr>
       </tbody>
@@ -147,7 +147,7 @@
       </div>
       
       <div class="modal-body">
-        <!-- Tabs - Usando *ngIf em vez de JavaScript -->
+        <!-- Tabs -->
         <div class="form-tabs">
           <button class="form-tab" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">📝 Informações</button>
           <button class="form-tab" [class.active]="activeTab === 'media'" (click)="activeTab = 'media'">🖼️ Multimédia ({{ contentForm.mediaFiles?.length || 0 }})</button>
@@ -163,14 +163,15 @@
           <div class="form-row">
             <div class="form-group">
               <label>Tipo de Conteúdo</label>
-              <select [(ngModel)]="contentForm.type" class="form-input">
-                <option *ngFor="let type of contentTypes" [value]="type">{{ type }}</option>
+              <select [(ngModel)]="contentForm.document_type" class="form-input">
+                <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
               </select>
             </div>
             <div class="form-group">
               <label>Categoria</label>
-              <select [(ngModel)]="contentForm.category" class="form-input">
-                <option *ngFor="let cat of categoriesList" [value]="cat">{{ cat }}</option>
+              <select [(ngModel)]="contentForm.category_id" class="form-input">
+                <option [value]="null">Sem categoria</option>
+                <option *ngFor="let cat of categoriesList" [value]="cat.id">{{ cat.name }}</option>
               </select>
             </div>
           </div>
@@ -181,8 +182,34 @@
               <input type="text" [(ngModel)]="contentForm.author" class="form-input" placeholder="Nome do autor">
             </div>
             <div class="form-group">
-              <label>Data</label>
-              <input type="text" [(ngModel)]="contentForm.date" class="form-input" placeholder="DD MMM YYYY">
+              <label>Instituição</label>
+              <input type="text" [(ngModel)]="contentForm.institution" class="form-input" placeholder="Instituição do autor">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Data de Publicação</label>
+              <input type="date" [(ngModel)]="contentForm.publication_date" class="form-input">
+            </div>
+            <div class="form-group">
+              <label>Nível Académico</label>
+              <select [(ngModel)]="contentForm.academic_level" class="form-input">
+                <option value="intro">Introdução</option>
+                <option value="intermediate">Intermédio</option>
+                <option value="advanced">Avançado</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Período (início)</label>
+              <input type="number" [(ngModel)]="contentForm.period_start" class="form-input" placeholder="Ano início">
+            </div>
+            <div class="form-group">
+              <label>Período (fim)</label>
+              <input type="number" [(ngModel)]="contentForm.period_end" class="form-input" placeholder="Ano fim">
             </div>
           </div>
           
@@ -196,14 +223,45 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Visualizações iniciais</label>
-              <input type="number" [(ngModel)]="contentForm.views" class="form-input" min="0">
+              <label>Nível de Acesso</label>
+              <select [(ngModel)]="contentForm.access_level_id" class="form-input">
+                <option value="public">🌐 Público</option>
+                <option value="jindungo">🔥 Jindungo</option>
+                <option value="restricted">🔒 Restrito</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>URL do PDF</label>
+              <input type="text" [(ngModel)]="contentForm.pdf_url" class="form-input" placeholder="https://...">
+            </div>
+            <div class="form-group">
+              <label>Localização Física</label>
+              <input type="text" [(ngModel)]="contentForm.physical_location" class="form-input" placeholder="Arquivo Central, Prateleira 3">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>ID Único</label>
+              <input type="text" [(ngModel)]="contentForm.unique_id" class="form-input" placeholder="Ex: DOC-2024-001">
+            </div>
+            <div class="form-group">
+              <label>Tipo de Registo</label>
+              <input type="text" [(ngModel)]="contentForm.record_type" class="form-input" placeholder="Ex: Carta, Relatório, Decreto">
             </div>
           </div>
           
           <div class="form-group">
-            <label>Descrição</label>
-            <textarea [(ngModel)]="contentForm.description" rows="3" class="form-input" placeholder="Descrição detalhada do conteúdo..."></textarea>
+            <label>Resumo <span class="required">*</span></label>
+            <textarea [(ngModel)]="contentForm.summary" rows="3" class="form-input" placeholder="Resumo do conteúdo..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Conteúdo Completo</label>
+            <textarea [(ngModel)]="contentForm.content" rows="5" class="form-input" placeholder="Texto completo do documento..."></textarea>
           </div>
           
           <div class="form-group">
@@ -248,9 +306,9 @@
                   <span class="media-type">{{ getMediaIcon(media.type) }}</span>
                 </div>
                 <div class="media-actions">
-                  <button class="media-btn featured" (click)="setFeaturedImage(media.url)" title="Definir como imagem destacada">⭐</button>
-                  <button class="media-btn edit" (click)="openMediaModal(media.type, i)" title="Editar">✏️</button>
-                  <button class="media-btn delete" (click)="removeMedia(i)" title="Remover">🗑️</button>
+                  <button class="media-btn" (click)="setFeaturedImage(media.url)" title="Definir como imagem destacada">⭐</button>
+                  <button class="media-btn" (click)="openMediaModal(media.type, i)" title="Editar">✏️</button>
+                  <button class="media-btn" (click)="removeMedia(i)" title="Remover">🗑️</button>
                 </div>
               </div>
             </div>
@@ -260,20 +318,19 @@
           <div class="add-media-section">
             <div class="media-section-title">Adicionar Multimédia</div>
             <div class="add-media-buttons">
-              <!-- Inputs de ficheiro escondidos -->
               <input #fileImageInput type="file" id="file-input-image" accept="image/*" style="display: none" (change)="onFileSelected($event, 'image')">
               <input #fileAudioInput type="file" id="file-input-audio" accept="audio/*" style="display: none" (change)="onFileSelected($event, 'audio')">
               <input #fileVideoInput type="file" id="file-input-video" accept="video/*" style="display: none" (change)="onFileSelected($event, 'video')">
               
-              <button type="button" class="add-media-btn image" (click)="triggerFileInput('image')">
+              <button type="button" class="add-media-btn" (click)="triggerFileInput('image')">
                 <span class="media-icon-large">🖼️</span>
                 <span>Carregar Imagem</span>
               </button>
-              <button type="button" class="add-media-btn audio" (click)="triggerFileInput('audio')">
+              <button type="button" class="add-media-btn" (click)="triggerFileInput('audio')">
                 <span class="media-icon-large">🎵</span>
                 <span>Carregar Áudio</span>
               </button>
-              <button type="button" class="add-media-btn video" (click)="triggerFileInput('video')">
+              <button type="button" class="add-media-btn" (click)="triggerFileInput('video')">
                 <span class="media-icon-large">🎬</span>
                 <span>Carregar Vídeo</span>
               </button>
@@ -284,11 +341,11 @@
           </div>
           
           <!-- Featured Image Preview -->
-          <div class="featured-image-section" *ngIf="contentForm.featuredImage">
-            <div class="media-section-title">Imagem Destacada</div>
+          <div class="featured-image-section" *ngIf="contentForm.cover_image_url">
+            <div class="media-section-title">Imagem de Capa</div>
             <div class="featured-preview">
-              <img [src]="contentForm.featuredImage" class="featured-img">
-              <button class="remove-featured" (click)="contentForm.featuredImage = ''">✕ Remover</button>
+              <img [src]="contentForm.cover_image_url" class="featured-img">
+              <button class="remove-featured" (click)="contentForm.cover_image_url = ''">✕ Remover</button>
             </div>
           </div>
         </div>
@@ -318,7 +375,6 @@
       </div>
       
       <div class="modal-body">
-        <!-- Upload area -->
         <div class="upload-area" (click)="triggerFileInput(currentMediaType)">
           <div class="upload-icon">{{ currentMediaType === 'image' ? '🖼️' : currentMediaType === 'audio' ? '🎵' : '🎬' }}</div>
           <div class="upload-text">Clique para selecionar ficheiro</div>

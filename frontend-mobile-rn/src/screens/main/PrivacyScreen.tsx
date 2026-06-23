@@ -1,34 +1,67 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { FormInput } from "../../components/FormInput";
 import { appTheme } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../hooks/useAuth";
+import { MainStackParamList } from "../../types/navigation";
+
+type PrivacyScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, "Privacy">;
 
 export function PrivacyScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<PrivacyScreenNavigationProp>();
+  const route = useRoute<RouteProp<MainStackParamList, "Privacy">>();
+  const { signOut, user } = useAuth();
+
+  const { isFromRecovery } = route.params || {};
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleUpdatePassword = () => {
-    if (!currentPassword) {
-      Alert.alert("Erro", "Por favor, insere a tua palavra-passe atual.");
+  const handleUpdatePassword = async () => {
+    if (!isFromRecovery && !currentPassword) {
+      if (Platform.OS === "web") {
+        window.alert("Por favor, insere a tua palavra-passe atual.");
+      } else {
+        Alert.alert("Erro", "Por favor, insere a tua palavra-passe atual.");
+      }
       return;
     }
     if (newPassword.length < 8) {
-      Alert.alert("Erro", "A nova palavra-passe deve ter pelo menos 8 caracteres.");
+      if (Platform.OS === "web") {
+        window.alert("A nova palavra-passe deve ter pelo menos 8 caracteres.");
+      } else {
+        Alert.alert("Erro", "A nova palavra-passe deve ter pelo menos 8 caracteres.");
+      }
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert("Erro", "A nova palavra-passe e a confirmação não coincidem.");
+      if (Platform.OS === "web") {
+        window.alert("A nova palavra-passe e a confirmação não coincidem.");
+      } else {
+        Alert.alert("Erro", "A nova palavra-passe e a confirmação não coincidem.");
+      }
       return;
     }
 
-    Alert.alert("Sucesso", "A sua palavra-passe foi atualizada com sucesso!");
-    navigation.goBack();
+    if (Platform.OS === "web") {
+      window.alert("A sua palavra-passe foi atualizada com sucesso!");
+    } else {
+      Alert.alert("Sucesso", "A sua palavra-passe foi atualizada com sucesso!");
+    }
+    
+    if (isFromRecovery) {
+      if (user) {
+        await signOut();
+      }
+      navigation.navigate("Login");
+    } else {
+      navigation.goBack();
+    }
   };
 
   return (
@@ -49,13 +82,15 @@ export function PrivacyScreen() {
         <Text style={styles.subtitle}>Alterar palavra-passe e acessos</Text>
 
         <View style={styles.card}>
-          <FormInput
-            label="Palavra-passe Atual"
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-            placeholder="••••••••"
-            secureTextEntry
-          />
+          {!isFromRecovery && (
+            <FormInput
+              label="Palavra-passe Atual"
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              placeholder="••••••••"
+              secureTextEntry
+            />
+          )}
 
           <FormInput
             label="Nova Palavra-passe"

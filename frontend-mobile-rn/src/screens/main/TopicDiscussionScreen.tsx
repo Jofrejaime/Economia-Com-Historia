@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,61 +10,64 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Switch,
+  Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
+import { useCommunity } from "../../hooks/useCommunity";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { MainStackParamList } from "../../types/navigation";
 
-interface Comment {
-  id: string;
-  author: string;
-  authorAvatar: string;
-  time: string;
-  content: string;
-  likes: number;
-  replies: number;
-  isLiked?: boolean;
-}
+type TopicDiscussionRouteProp = RouteProp<MainStackParamList, "TopicDiscussion">;
 
 export function TopicDiscussionScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<TopicDiscussionRouteProp>();
   const { user } = useAuth();
+  const { getTopicById, addComment, toggleCommentLike, addReply, updateTopic } = useCommunity();
   const isLoggedIn = user !== null;
+  const topic = getTopicById(route.params.id);
 
-  const [showCommentBox, setShowCommentBox] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [topicLiked, setTopicLiked] = useState(false);
-  const [topicLikes, setTopicLikes] = useState(448);
+  const [topicLikes, setTopicLikes] = useState(topic?.replies ?? 0);
   const [newCommentText, setNewCommentText] = useState("");
   const [newReplyText, setNewReplyText] = useState("");
+  const [composerFocused, setComposerFocused] = useState(false);
+  const [comments, setComments] = useState(topic?.comments ?? []);
+  const [isPrivate, setIsPrivate] = useState(topic?.isPrivate ?? false);
+  const [isTerminated, setIsTerminated] = useState(topic?.isActive === false);
+  const [showManagementMenu, setShowManagementMenu] = useState(false);
+  const isAuthor = user?.id === topic?.author || user?.name === topic?.author;
 
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: "1",
-      author: "Dr. Ricardo Marto",
-      authorAvatar: "RM",
-      time: "há 2 horas",
-      content:
-        "Excelente análise! A ferrovia de Benguela foi e ainda é peça-chave da infraestrutura logística de Angola. As obras de reabilitação podem transformar significativamente a região.",
-      likes: 12,
-      replies: 3,
-      isLiked: true,
-    },
-    {
-      id: "2",
-      author: "Ana Paula Santos",
-      authorAvatar: "AS",
-      time: "há 5 horas",
-      content:
-        "Concordo plenamente. É importante também analisar o impacto social desta obra. A ferrovia não traz apenas benefícios económicos, mas pode transformar comunidades inteiras ao longo do trajeto. A economia local, o acesso a mercados e a integração regional são fatores-chave para avaliarmos o verdadeiro impacto social.",
-      likes: 8,
-      replies: 1,
-    },
-  ]);
+  useEffect(() => {
+    if (topic) {
+      setComments(topic.comments);
+      setTopicLikes(topic.replies);
+      setIsPrivate(topic.isPrivate ?? false);
+      setIsTerminated(topic.isActive === false);
+    }
+  }, [topic?.id, topic?.comments, topic?.replies, topic?.isPrivate, topic?.isActive]);
+
+  if (!topic) {
+    return (
+      <ScreenContainer style={styles.container}>
+        <View style={styles.notFoundContainer}>
+          <Text style={styles.notFoundTitle}>Discussão não encontrada</Text>
+          <Text style={styles.notFoundText}>O tópico solicitado não existe ou foi removido.</Text>
+          <TouchableOpacity style={styles.backHomeButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backHomeButtonText}>Voltar</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   const handleTopicLike = () => {
+    if (isTerminated) return;
     if (!isLoggedIn) {
       navigation.navigate("LoginPrompt", { type: "comment" });
       return;
@@ -74,25 +77,16 @@ export function TopicDiscussionScreen() {
   };
 
   const handleLike = (commentId: string) => {
+    if (isTerminated) return;
     if (!isLoggedIn) {
       navigation.navigate("LoginPrompt", { type: "comment" });
       return;
     }
-    setComments(
-      comments.map((comment) => {
-        if (comment.id === commentId) {
-          return {
-            ...comment,
-            isLiked: !comment.isLiked,
-            likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
-          };
-        }
-        return comment;
-      }),
-    );
+    toggleCommentLike(route.params.id, commentId);
   };
 
   const handleReplyPress = (commentId: string) => {
+    if (isTerminated) return;
     if (!isLoggedIn) {
       navigation.navigate("LoginPrompt", { type: "comment" });
       return;
@@ -102,9 +96,9 @@ export function TopicDiscussionScreen() {
   };
 
   const handlePublishComment = () => {
-    if (!newCommentText.trim()) return;
-    const newComment: Comment = {
-      id: String(comments.length + 1),
+    if (!newCommentText.trim() || !topic || isTerminated) return;
+    const newComment: any = {
+      id: String(Date.now()),
       author: user?.name || "Eu",
       authorAvatar: (user?.name || "Eu").substring(0, 2).toUpperCase(),
       time: "Agora mesmo",
@@ -112,33 +106,65 @@ export function TopicDiscussionScreen() {
       likes: 0,
       replies: 0,
     };
-    setComments([...comments, newComment]);
+    addComment(topic.id, newComment);
     setNewCommentText("");
-    setShowCommentBox(false);
   };
 
   const handlePublishReply = (commentId: string) => {
-    if (!newReplyText.trim()) return;
-    // Simulate updating replies count
-    setComments(
-      comments.map((c) => {
-        if (c.id === commentId) {
-          return { ...c, replies: c.replies + 1 };
-        }
-        return c;
-      }),
-    );
+    if (!newReplyText.trim() || !topic || isTerminated) return;
+    addReply(topic.id, commentId);
     setNewReplyText("");
     setReplyingTo(null);
   };
 
-  const handleFloatingAction = () => {
-    if (!isLoggedIn) {
-      navigation.navigate("LoginPrompt", { type: "comment" });
+  const handleTogglePrivacy = (value: boolean) => {
+    if (!topic) return;
+    setIsPrivate(value);
+    updateTopic(topic.id, { isPrivate: value });
+  };
+
+  const handleTerminateDiscussion = () => {
+    if (!topic) return;
+
+    const title = "Terminar Discussão";
+    const message = "Esta ação é irreversível. Ao terminar a discussão, a sala de chat passará a funcionar apenas em modo de leitura (não será possível enviar novos comentários ou respostas).\n\nDeseja continuar?";
+
+    if (Platform.OS === "web") {
+      const confirmClose = window.confirm(`${title}\n\n${message}`);
+      if (confirmClose) {
+        setIsTerminated(true);
+        updateTopic(topic.id, { isActive: false });
+        setShowManagementMenu(false);
+      }
     } else {
-      setShowCommentBox(!showCommentBox);
+      Alert.alert(
+        title,
+        message,
+        [
+          {
+            text: "Cancelar",
+            style: "cancel",
+          },
+          {
+            text: "Confirmar",
+            style: "destructive",
+            onPress: () => {
+              setIsTerminated(true);
+              updateTopic(topic.id, { isActive: false });
+              setShowManagementMenu(false);
+            },
+          },
+        ]
+      );
     }
   };
+
+  const handleManageMembers = () => {
+    if (!topic) return;
+    setShowManagementMenu(false);
+    navigation.navigate("ManageMembers", { topicId: topic.id });
+  };
+
 
   return (
     <KeyboardAvoidingView
@@ -147,7 +173,7 @@ export function TopicDiscussionScreen() {
     >
       <ScreenContainer style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="white" />
-        
+
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -157,21 +183,78 @@ export function TopicDiscussionScreen() {
             <Feather name="arrow-left" size={20} color={appTheme.colors.primary} />
             <Text style={styles.headerTitle}>Discussão do Fórum</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.moreButton}>
-            <Feather name="more-vertical" size={20} color={appTheme.colors.textSecondary} />
-          </TouchableOpacity>
+          {isAuthor && !isTerminated && (
+            <TouchableOpacity 
+              style={styles.moreButton}
+              onPress={() => setShowManagementMenu(!showManagementMenu)}
+            >
+              <Feather name="more-vertical" size={20} color={appTheme.colors.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
 
-        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Management Menu */}
+        {isAuthor && showManagementMenu && (
+          <View style={styles.managementMenu}>
+            <View style={styles.menuItemSwitchRow}>
+              <View style={styles.menuItemSwitchLabelContainer}>
+                <Ionicons 
+                  name={isPrivate ? "lock-closed" : "globe"} 
+                  size={18} 
+                  color={appTheme.colors.primary} 
+                />
+                <Text style={styles.menuItemText}>Privado ({isPrivate ? "Activo" : "Desactivado"})</Text>
+              </View>
+              <Switch
+                value={isPrivate}
+                onValueChange={handleTogglePrivacy}
+                trackColor={{ false: "#E5E7EB", true: "#D1D5DB" }}
+                thumbColor={isPrivate ? appTheme.colors.primary : "#3B82F6"}
+              />
+            </View>
+            
+            {isPrivate && (
+              <TouchableOpacity style={styles.menuItem} onPress={handleManageMembers}>
+                <Ionicons name="people" size={18} color={appTheme.colors.primary} />
+                <Text style={styles.menuItemText}>Gestão de Membros</Text>
+              </TouchableOpacity>
+            )}
+            
+            <TouchableOpacity 
+              style={[styles.menuItem, styles.menuItemDanger]} 
+              onPress={handleTerminateDiscussion}
+              disabled={isTerminated}
+            >
+              <Ionicons name="stop-circle" size={18} color={isTerminated ? "#9CA3AF" : "#DC2626"} />
+              <Text style={[styles.menuItemText, { color: isTerminated ? "#9CA3AF" : "#DC2626" }]}>
+                {isTerminated ? "Discussão Terminada" : "Terminar Discussão"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Discussion Terminated Banner */}
+        {isTerminated && (
+          <View style={styles.terminatedBanner}>
+            <Ionicons name="lock-closed" size={18} color="white" />
+            <Text style={styles.terminatedBannerText}>Esta discussão foi encerrada. Apenas leitura permitida.</Text>
+          </View>
+        )}
+
+        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* Topic Detail Header */}
           <View style={styles.topicHeaderCard}>
-            <Text style={styles.topicCategory}>COMUNIDADE E CULTURA</Text>
-            <Text style={styles.topicTitle}>O Impacto da Ferrovia de Benguela</Text>
+            <Text style={styles.topicCategory}>{topic.category}</Text>
+            <Text style={styles.topicTitle}>{topic.title}</Text>
 
             {/* Featured Image */}
             <View style={styles.imageWrap}>
               <Image
-                source={{ uri: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=800&q=80" }}
+                source={{
+                  uri:
+                    topic.image ||
+                    "https://images.unsplash.com/photo-1500534623283-312aade485b7?w=800&q=80",
+                }}
                 style={styles.featuredImage}
               />
               <View style={styles.imageOverlay} />
@@ -181,28 +264,30 @@ export function TopicDiscussionScreen() {
             {/* Author */}
             <View style={styles.authorRow}>
               <View style={styles.authorAvatar}>
-                <Text style={styles.authorAvatarText}>JD</Text>
+                <Text style={styles.authorAvatarText}>{topic.author?.substring(0, 2).toUpperCase()}</Text>
               </View>
               <View style={styles.authorInfo}>
-                <Text style={styles.authorName}>João Diogo</Text>
-                <Text style={styles.authorMeta}>Publicado há 3 dias</Text>
+                <Text style={styles.authorName}>{topic.author}</Text>
+                <Text style={styles.authorMeta}>Publicado {topic.time || "há pouco"}</Text>
               </View>
             </View>
 
             {/* Blockquote Quote */}
             <View style={styles.blockquote}>
-              <Text style={styles.blockquoteText}>
-                "A ferrovia não foi apenas um trilho de aço, foi a espinha dorsal de uma economia nascente. Conectou mercados, uniu povos e alimentou esperanças. Agora, a questão é: podemos revitalizar não apenas os trilhos, mas também o impacto social?"
-              </Text>
+              <Text style={styles.blockquoteText}>{topic.quote ?? topic.description}</Text>
             </View>
 
             {/* Stats and Like trigger */}
             <View style={styles.statsBar}>
               <View style={styles.statsLeft}>
                 <Feather name="message-circle" size={18} color={appTheme.colors.primary} />
-                <Text style={styles.commentCountText}>24 COMENTÁRIOS</Text>
+                <Text style={styles.commentCountText}>{topic.comments?.length || 0} COMENTÁRIOS</Text>
               </View>
-              <TouchableOpacity onPress={handleTopicLike} style={styles.likeStatsRow}>
+              <TouchableOpacity 
+                onPress={handleTopicLike} 
+                style={styles.likeStatsRow}
+                disabled={isTerminated}
+              >
                 <Feather
                   name="thumbs-up"
                   size={18}
@@ -218,7 +303,12 @@ export function TopicDiscussionScreen() {
             <View style={styles.topicActionsRow}>
               <TouchableOpacity
                 onPress={handleTopicLike}
-                style={[styles.topicActionBtn, topicLiked && styles.topicActionBtnActive]}
+                style={[
+                  styles.topicActionBtn, 
+                  topicLiked && styles.topicActionBtnActive,
+                  isTerminated && { opacity: 0.6 }
+                ]}
+                disabled={isTerminated}
               >
                 <Feather name="thumbs-up" size={14} color={topicLiked ? "white" : appTheme.colors.textSecondary} />
                 <Text style={[styles.topicActionBtnText, topicLiked && styles.topicActionBtnTextActive]}>
@@ -252,7 +342,11 @@ export function TopicDiscussionScreen() {
 
                 {/* Comment Actions */}
                 <View style={styles.commentActions}>
-                  <TouchableOpacity onPress={() => handleLike(comment.id)} style={styles.actionLink}>
+                  <TouchableOpacity 
+                    onPress={() => handleLike(comment.id)} 
+                    style={[styles.actionLink, isTerminated && { opacity: 0.7 }]}
+                    disabled={isTerminated}
+                  >
                     <Feather
                       name="thumbs-up"
                       size={14}
@@ -263,10 +357,12 @@ export function TopicDiscussionScreen() {
                     </Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={() => handleReplyPress(comment.id)} style={styles.actionLink}>
-                    <Feather name="message-square" size={14} color={appTheme.colors.textMuted} />
-                    <Text style={styles.actionLinkText}>Responder</Text>
-                  </TouchableOpacity>
+                  {!isTerminated && (
+                    <TouchableOpacity onPress={() => handleReplyPress(comment.id)} style={styles.actionLink}>
+                      <Feather name="message-square" size={14} color={appTheme.colors.textMuted} />
+                      <Text style={styles.actionLinkText}>Responder</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 {/* Reply Input Box */}
@@ -300,39 +396,48 @@ export function TopicDiscussionScreen() {
           </View>
         </ScrollView>
 
-        {/* Floating Action Button */}
-        <TouchableOpacity
-          onPress={handleFloatingAction}
-          style={styles.floatingActionBtn}
-        >
-          <Feather name="message-circle" size={24} color="white" />
-        </TouchableOpacity>
+        {!isTerminated && (
+          <View style={[styles.composerWrapper, composerFocused && styles.composerWrapperFocused]}>
+            <View style={styles.composerInner}>
+              <View style={styles.composerAvatar}>
+                <Text style={styles.composerAvatarText}>
+                  {user?.name
+                    ? user.name
+                      .split(" ")
+                      .map((part) => part[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()
+                    : "EU"}
+                </Text>
+              </View>
 
-        {/* Comment Input drawer (visible when toggled) */}
-        {showCommentBox && (
-          <View style={styles.commentInputDrawer}>
-            <View style={styles.drawerRow}>
-              <View style={styles.commentAvatar}>
-                <Text style={styles.commentAvatarText}>EU</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <TextInput
-                  placeholder="Adicionar um comentário..."
-                  placeholderTextColor={appTheme.colors.textMuted}
-                  value={newCommentText}
-                  onChangeText={setNewCommentText}
-                  multiline
-                  style={styles.commentTextInput}
-                />
-                <View style={styles.drawerActions}>
-                  <TouchableOpacity onPress={() => setShowCommentBox(false)} style={styles.cancelBtn}>
-                    <Text style={styles.cancelBtnText}>Cancelar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handlePublishComment} style={styles.publishBtn}>
-                    <Text style={styles.publishBtnText}>Publicar</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+              <TextInput
+                placeholder="Escreva um comentário..."
+                placeholderTextColor="#9CA3AF"
+                value={newCommentText}
+                onChangeText={setNewCommentText}
+                multiline
+                style={[
+                  styles.composerInput,
+                  composerFocused && {
+                    outlineStyle: "none",
+                    outlineWidth: 0,
+                  } as any,
+                ]}
+                onFocus={() => setComposerFocused(true)}
+                onBlur={() => setComposerFocused(false)}
+                underlineColorAndroid="transparent"
+                textAlignVertical="top"
+              />
+
+              <TouchableOpacity
+                style={[styles.sendButton, !newCommentText.trim() && styles.sendButtonDisabled]}
+                onPress={handlePublishComment}
+                disabled={!newCommentText.trim()}
+              >
+                <Ionicons name="send" size={20} color="white" />
+              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -372,11 +477,61 @@ const styles = StyleSheet.create({
   moreButton: {
     padding: 4,
   },
+  managementMenu: {
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: appTheme.colors.border,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  menuItemDanger: {
+    borderBottomWidth: 0,
+  },
+  menuItemText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: appTheme.colors.textPrimary,
+  },
+  menuItemSwitchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  menuItemSwitchLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  terminatedBanner: {
+    backgroundColor: "#DC2626",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: "center",
+  },
+  terminatedBannerText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
+  },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 120, // Drawer & FAB buffer
+    paddingBottom: 180,
   },
   topicHeaderCard: {
     backgroundColor: "white",
@@ -679,41 +834,100 @@ const styles = StyleSheet.create({
     elevation: 5,
     zIndex: 100,
   },
-  commentInputDrawer: {
+  composerWrapper: {
     position: "absolute",
-    bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "white",
-    borderTopWidth: 1,
-    borderTopColor: appTheme.colors.border,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 10,
-    zIndex: 101,
-  },
-  drawerRow: {
-    flexDirection: "row",
-    gap: 12,
-    alignItems: "flex-start",
-  },
-  commentTextInput: {
-    backgroundColor: "#F5F5F5",
-    borderWidth: 1,
-    borderColor: appTheme.colors.border,
-    borderRadius: 8,
+    bottom: 0,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: appTheme.colors.textPrimary,
-    minHeight: 72,
-    marginBottom: 8,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === "ios" ? 24 : 16,
+    backgroundColor: "transparent",
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
   },
-  drawerActions: {
+  composerWrapperFocused: {
+    backgroundColor: "transparent",
+  },
+  composerInner: {
     flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
+    alignItems: "flex-end",
+    backgroundColor: "white",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    minHeight: 52,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  composerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E8EFF8",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  composerAvatarText: {
+    color: "#8B1E2D",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  composerInput: {
+    flex: 1,
+    minHeight: 52,
+    maxHeight: 112,
+    paddingVertical: 10,
+    color: appTheme.colors.textPrimary,
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#8B1E2D",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
+  },
+  sendButtonDisabled: {
+    opacity: 0.45,
+  },
+  notFoundContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  notFoundTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: appTheme.colors.primary,
+    marginBottom: 12,
+  },
+  notFoundText: {
+    fontSize: 15,
+    color: appTheme.colors.textSecondary,
+    textAlign: "center",
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  backHomeButton: {
+    backgroundColor: appTheme.colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  backHomeButtonText: {
+    color: "white",
+    fontWeight: "700",
+    fontSize: 14,
   },
 });

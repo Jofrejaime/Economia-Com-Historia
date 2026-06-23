@@ -26,6 +26,10 @@ import { CommunityPageComponent } from './pages/admin/dashboard-admin/pages/comm
 import { SettingsPageComponent } from './pages/admin/dashboard-admin/pages/settings-page/settings-page';
 import { ReportsPageComponent } from './pages/admin/dashboard-admin/pages/reports-page/reports-page';
 import { QuizzesManagerPageComponent } from './pages/admin/dashboard-admin/pages/quizzes-manager-page/quizzes-manager-page';
+import { LevelsPageComponent } from './pages/admin/dashboard-admin/pages/levels-page/levels-page';
+import { BadgesPageComponent } from './pages/admin/dashboard-admin/pages/badges-page/badges-page';
+import { NotificationsPageComponent } from './pages/admin/dashboard-admin/pages/notifications-page/notifications-page';
+import { UserNotificationsComponent } from './pages/user-notifications/user-notifications';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -46,6 +50,8 @@ export const routes: Routes = [
   { path: 'landing', component: HomeVisitorComponent },
   { path: 'forum/categorias', canActivate: [authGuard], component: CategoryViewComponent },
   { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },
+  // app.routes.ts
+{ path: 'notificacoes', canActivate: [authGuard], component: UserNotificationsComponent },
   
   // Admin Routes (com rotas aninhadas)
   {
@@ -61,7 +67,11 @@ export const routes: Routes = [
       { path: 'comunidade', component: CommunityPageComponent },
       { path: 'configuracoes', component: SettingsPageComponent },
       { path: 'denuncias', component: ReportsPageComponent },
-      { path: 'quizzes', component: QuizzesManagerPageComponent }
+      { path: 'quizzes', component: QuizzesManagerPageComponent },
+      // ===== NOVAS ROTAS =====
+      { path: 'niveis', component: LevelsPageComponent },
+      { path: 'badges', component: BadgesPageComponent },
+      { path: 'notificacoes', component: NotificationsPageComponent }
     ]
   },
   

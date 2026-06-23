@@ -8,6 +8,7 @@ import {
   Image,
   FlatList,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useAuth } from "../../hooks/useAuth";
@@ -199,6 +200,7 @@ export function DashboardScreen() {
   const { user, signOut } = useAuth();
   const navigation = useNavigation<NavigationProp>();
   const [activeTab, setActiveTab] = useState<"home" | "content" | "community" | "quiz">("home");
+  const [searchText, setSearchText] = useState("");
 
   const getFormattedDate = () => {
     const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -234,6 +236,29 @@ export function DashboardScreen() {
     navigation.navigate("MainTabs");
   };
 
+  const handleOpenDiscussion = (id: string) => {
+    navigation.navigate("TopicDiscussion", { id });
+  };
+
+  const handleSearchSubmit = () => {
+    if (searchText.trim()) {
+      (navigation as any).navigate("Content", {
+        searchQuery: searchText.trim(),
+      });
+      setSearchText("");
+    }
+  };
+
+  const handleFormatPress = (label: string) => {
+    let category: "video" | "podcast" | "micro" | "series" = "video";
+    if (label === "Vídeos") category = "video";
+    else if (label === "Áudio") category = "podcast";
+    else if (label === "Artigos") category = "micro";
+    else if (label === "Séries") category = "series";
+
+    (navigation as any).navigate("Content", { category });
+  };
+
   return (
     <ScreenContainer>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -244,18 +269,32 @@ export function DashboardScreen() {
             <Text style={styles.userName}>{user?.name || "Leitor"}</Text>
             <Text style={styles.date}>{getFormattedDate()}</Text>
           </View>
-          <View style={styles.notificationBell}>
+          <TouchableOpacity 
+            style={styles.notificationBell}
+            onPress={() => navigation.navigate('Notifications')}
+            activeOpacity={0.7}
+          >
             <Ionicons name="notifications-outline" size={24} color={appTheme.colors.textPrimary} />
             <View style={styles.notificationBadge}>
               <Text style={styles.badgeText}>3</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color={appTheme.colors.primary} style={styles.searchIcon} />
-          <Text style={styles.searchPlaceholder}>Procurar conteúdo...</Text>
+          <TouchableOpacity onPress={handleSearchSubmit}>
+            <Ionicons name="search" size={20} color={appTheme.colors.primary} style={styles.searchIcon} />
+          </TouchableOpacity>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Procurar conteúdo..."
+            placeholderTextColor={appTheme.colors.textMuted}
+            value={searchText}
+            onChangeText={setSearchText}
+            onSubmitEditing={handleSearchSubmit}
+            returnKeyType="search"
+          />
         </View>
 
         {/* Continue Learning */}
@@ -266,7 +305,7 @@ export function DashboardScreen() {
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.continueCard} onPress={handleGoToTabs}>
+              <TouchableOpacity style={styles.continueCard} onPress={() => navigation.navigate("Article", { id: "continue_1" })}>
                 <Image source={{ uri: item.image }} style={styles.continueImage} />
                 <View style={styles.continueOverlay} />
                 <View style={styles.continueContent}>
@@ -280,7 +319,7 @@ export function DashboardScreen() {
                     </View>
                   </View>
                   <Text style={styles.continueProgressText}>{item.chapter}</Text>
-                  <TouchableOpacity style={styles.continueResumeBtn} onPress={handleGoToTabs}>
+                  <TouchableOpacity style={styles.continueResumeBtn} onPress={() => navigation.navigate("Article", { id: "continue_1" })}>
                     <Text style={styles.continueResumeBtnText}>Retomar leitura</Text>
                     <Ionicons name="arrow-forward" size={14} color={appTheme.colors.primary} />
                   </TouchableOpacity>
@@ -309,7 +348,7 @@ export function DashboardScreen() {
                     borderColor: item.borderColor,
                   },
                 ]}
-                onPress={handleGoToTabs}
+                onPress={() => navigation.navigate("Article", { id: "jindungo_" + item.id })}
               >
                 <Image source={{ uri: item.image }} style={styles.jindungoBgImage} />
                 <View style={styles.jindungoOverlay} />
@@ -348,7 +387,7 @@ export function DashboardScreen() {
               </TouchableOpacity>
             )}
           />
-          <TouchableOpacity style={styles.exploreButton} onPress={handleGoToTabs}>
+          <TouchableOpacity style={styles.exploreButton} onPress={() => (navigation as any).navigate("Content", { category: "jindungo" })}>
             <Ionicons name="flame" size={16} color="white" style={{ marginRight: 6 }} />
             <Text style={styles.exploreButtonText}>Explorar mais Jindungo</Text>
           </TouchableOpacity>
@@ -366,7 +405,7 @@ export function DashboardScreen() {
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.microCard} onPress={handleGoToTabs}>
+              <TouchableOpacity style={styles.microCard} onPress={() => navigation.navigate("Article", { id: "micro_" + item.id })}>
                 <Image source={{ uri: item.image }} style={styles.microBgImage} />
                 <View style={styles.microOverlay} />
                 <View style={styles.microCardContent}>
@@ -399,7 +438,7 @@ export function DashboardScreen() {
               </TouchableOpacity>
             )}
           />
-          <TouchableOpacity style={styles.exploreMicroButton} onPress={handleGoToTabs}>
+          <TouchableOpacity style={styles.exploreMicroButton} onPress={() => (navigation as any).navigate("Content", { category: "micro" })}>
             <Ionicons name="flash" size={16} color={appTheme.colors.textSecondary} style={{ marginRight: 6 }} />
             <Text style={styles.exploreMicroButtonText}>Ver todos os micro textos</Text>
           </TouchableOpacity>
@@ -419,7 +458,7 @@ export function DashboardScreen() {
                     backgroundColor: format.bgColor,
                   },
                 ]}
-                onPress={handleGoToTabs}
+                onPress={() => handleFormatPress(format.label)}
               >
                 <Feather name={format.icon as any} size={28} color={format.borderColor} style={styles.formatCardIcon} />
                 <Text style={styles.formatLabel}>{format.label}</Text>
@@ -436,7 +475,7 @@ export function DashboardScreen() {
         <View style={styles.section}>
           <View style={styles.recentArticlesHeader}>
             <Text style={styles.sectionTitle}>Artigos Recentes</Text>
-            <TouchableOpacity onPress={handleGoToTabs} style={styles.seeAllRow}>
+            <TouchableOpacity onPress={() => (navigation as any).navigate("Content", { category: "micro" })} style={styles.seeAllRow}>
               <Text style={styles.seeAllText}>Ver todos</Text>
               <Ionicons name="arrow-forward" size={14} color={appTheme.colors.primary} />
             </TouchableOpacity>
@@ -446,7 +485,7 @@ export function DashboardScreen() {
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.articleCard} onPress={handleGoToTabs}>
+              <TouchableOpacity style={styles.articleCard} onPress={() => navigation.navigate("Article", { id: "recent_" + item.id })}>
                 <Image source={{ uri: item.image }} style={styles.articleImage} />
                 <View style={styles.articleContent}>
                   <View style={styles.articleTagsRow}>
@@ -492,7 +531,7 @@ export function DashboardScreen() {
                     backgroundColor: item.isHighlight ? "#FDF3F4" : "#F5F5F5",
                   },
                 ]}
-                onPress={handleGoToTabs}
+                onPress={() => handleOpenDiscussion(item.id)}
               >
                 <Text style={styles.debateTitle}>{item.title}</Text>
                 <View style={styles.debateMetaRow}>
@@ -658,8 +697,6 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
     borderRadius: 24,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: appTheme.colors.border,
   },
   searchIcon: {
     marginRight: 12,
@@ -667,6 +704,12 @@ const styles = StyleSheet.create({
   searchPlaceholder: {
     fontSize: 16,
     color: appTheme.colors.textMuted,
+  },
+  searchInput: {
+    flex: 1,
+    height: "100%",
+    fontSize: 16,
+    color: appTheme.colors.textPrimary,
   },
   section: {
     marginBottom: 24,

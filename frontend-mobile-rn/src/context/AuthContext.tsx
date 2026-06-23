@@ -50,6 +50,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: email.split("@")[0], // nome baseado no email
       email,
     };
+    try {
+      const registeredEmailsRaw = await AsyncStorage.getItem("@registered_emails");
+      const registeredEmails = registeredEmailsRaw ? JSON.parse(registeredEmailsRaw) : [];
+      if (!registeredEmails.includes(email.toLowerCase())) {
+        registeredEmails.push(email.toLowerCase());
+        await AsyncStorage.setItem("@registered_emails", JSON.stringify(registeredEmails));
+      }
+    } catch (error) {
+      console.warn("Erro ao salvar email registrado", error);
+    }
     await AsyncStorage.setItem("@auth_token", mockToken);
     await AsyncStorage.setItem("@auth_user", JSON.stringify(mockUser));
     // Mantém token em memória para o interceptor HTTP
@@ -65,6 +75,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: fullName,
       email,
     };
+    try {
+      const registeredEmailsRaw = await AsyncStorage.getItem("@registered_emails");
+      const registeredEmails = registeredEmailsRaw ? JSON.parse(registeredEmailsRaw) : [];
+      if (!registeredEmails.includes(email.toLowerCase())) {
+        registeredEmails.push(email.toLowerCase());
+        await AsyncStorage.setItem("@registered_emails", JSON.stringify(registeredEmails));
+      }
+    } catch (error) {
+      console.warn("Erro ao salvar email registrado", error);
+    }
     await AsyncStorage.setItem("@auth_token", mockToken);
     await AsyncStorage.setItem("@auth_user", JSON.stringify(mockUser));
     setAuthToken(mockToken);

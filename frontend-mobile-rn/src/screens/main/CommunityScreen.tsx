@@ -8,72 +8,26 @@ import {
   TouchableOpacity,
   Pressable,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { AppButton } from "../../components/AppButton";
+import { CommunityTopic } from "../../types/navigation";
+import { useCommunity } from "../../hooks/useCommunity";
 
 type FilterType = "all" | "monetary" | "agribusiness" | "oil" | "infrastructure";
 
-interface Discussion {
-  id: string;
-  author: string;
-  authorInitials: string;
-  time: string;
-  title: string;
-  description: string;
-  replies: number;
-  views: string;
-  isPinned?: boolean;
-  isPrivate?: boolean;
-  isActive?: boolean;
-}
+const sortDiscussionsByDate = (items: CommunityTopic[]) =>
+  [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-const discussions: Discussion[] = [
-  {
-    id: "1",
-    author: "Artur Mendes",
-    authorInitials: "AM",
-    time: "2h atrás",
-    title: "O impacto da desvalorização do Kwanza nas rotas comerciais transfronteiriças",
-    description: "Análise profunda sobre como as recentes flutuações cambiais estão redefinindo o…",
-    replies: 42,
-    views: "1.2k",
-    isPinned: true,
-    isPrivate: false,
-    isActive: true,
-  },
-  {
-    id: "2",
-    author: "Catarina Neto",
-    authorInitials: "CN",
-    time: "Ontem",
-    title: "Revisitando o sistema económico do Reino do Kongo: Lições para hoje?",
-    description:
-      "Poderia a centralização comercial do antigo reino oferecer insights sobre a diversificação económica que Angola procura atualmente? Debate aberto sobre modelos históricos.",
-    replies: 128,
-    views: "3.5k",
-    isPrivate: false,
-    isActive: true,
-  },
-  {
-    id: "3",
-    author: "João Diogo",
-    authorInitials: "JD",
-    time: "3 dias atrás",
-    title: "A ferrovia de Benguela: Um corredor de esperança ou apenas história?",
-    description: "Discutindo a viabilidade económica da revitalização do Corredor do Lobito e seu pap…",
-    replies: 18,
-    views: "890",
-    isPrivate: true,
-    isActive: false,
-  },
-];
-
-export function CommunityScreen({ navigation }: any) {
+export function CommunityScreen() {
+  const navigation = useNavigation<any>();
+  const { topics } = useCommunity();
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("all");
   const [showSearch, setShowSearch] = useState(false);
   const scrollRef = useRef<ScrollView | null>(null);
+  const discussions = sortDiscussionsByDate(topics);
 
   const renderFilter = (label: string, type: FilterType) => {
     const selected = selectedFilter === type;
@@ -88,7 +42,7 @@ export function CommunityScreen({ navigation }: any) {
     );
   };
 
-  const renderDiscussion = ({ item }: { item: Discussion }) => (
+  const renderDiscussion = ({ item }: { item: CommunityTopic }) => (
     <Pressable style={styles.card} onPress={() => navigation?.navigate("TopicDiscussion", { id: item.id })}>
       <View style={styles.row}>
         <View style={[styles.avatar, item.isPinned ? styles.avatarPinned : styles.avatarDefault]}>
@@ -100,12 +54,16 @@ export function CommunityScreen({ navigation }: any) {
           <View style={styles.metaRow}>
             {item.isPinned && (
               <View style={[styles.badge, styles.badgePinned]}>
-                <Text style={styles.badgeText}>DESTAQUE</Text>
+                <Text style={[styles.badgeText, styles.badgeTextPinned]}>DESTAQUE</Text>
               </View>
             )}
-            {item.isActive && (
+            {item.isActive ? (
               <View style={[styles.badge, styles.badgeActive]}>
-                <Text style={styles.badgeText}>A DECORRER</Text>
+                <Text style={[styles.badgeText, styles.badgeTextActive]}>A DECORRER</Text>
+              </View>
+            ) : (
+              <View style={[styles.badge, styles.badgeTerminated]}>
+                <Text style={[styles.badgeText, styles.badgeTextTerminated]}>TERMINADO</Text>
               </View>
             )}
             <View style={styles.privacyPill}>
@@ -339,10 +297,21 @@ const styles = StyleSheet.create({
   badgeActive: {
     backgroundColor: "rgba(4,120,87,0.08)",
   },
+  badgeTerminated: {
+    backgroundColor: "rgba(107,114,128,0.08)",
+  },
   badgeText: {
-    color: appTheme.colors.primary,
     fontWeight: "700",
     fontSize: 12,
+  },
+  badgeTextPinned: {
+    color: appTheme.colors.primary,
+  },
+  badgeTextActive: {
+    color: "#047857",
+  },
+  badgeTextTerminated: {
+    color: "#6B7280",
   },
   privacyPill: {
     flexDirection: "row",

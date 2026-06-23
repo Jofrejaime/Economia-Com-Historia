@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, Modal, Alert, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { FormInput } from "../../components/FormInput";
@@ -20,6 +21,15 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // States for Password Recovery
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [recoveryEmailError, setRecoveryEmailError] = useState("");
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [recoveryCodeError, setRecoveryCodeError] = useState("");
+  const [isRecoverySubmitting, setIsRecoverySubmitting] = useState(false);
 
   const canSubmit = useMemo(
     () => Boolean(email.trim()) && Boolean(password.trim()) && !emailError,
@@ -53,6 +63,84 @@ export function LoginScreen({ navigation }: Props) {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Recovery methods
+  const handleSendRecoveryCode = async () => {
+    const trimmedEmail = recoveryEmail.trim();
+    if (!trimmedEmail || !trimmedEmail.includes("@")) {
+      setRecoveryEmailError("Email inválido");
+      return;
+    }
+    setIsRecoverySubmitting(true);
+    setRecoveryEmailError("");
+    try {
+      // simulated verification delay
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const registeredEmailsRaw = await AsyncStorage.getItem("@registered_emails");
+      const registered = registeredEmailsRaw ? JSON.parse(registeredEmailsRaw) : ["user@demo.com", "luis@demo.com"];
+
+      if (registered.includes(trimmedEmail.toLowerCase())) {
+        setIsEmailVerified(true);
+        // Automatically prefill verification code
+        setRecoveryCode("123456");
+        if (Platform.OS === "web") {
+          window.alert(`Código Enviado\n\nEnviámos o código de verificação para o email ${trimmedEmail}.\n\n(Para efeitos de teste, o código é: 123456)`);
+        } else {
+          Alert.alert(
+            "Código Enviado",
+            `Enviámos o código de verificação para o email ${trimmedEmail}.\n\n(Para efeitos de teste, o código é: 123456)`
+          );
+        }
+      } else {
+        setRecoveryEmailError("Este email não está associado a nenhuma conta.");
+      }
+    } catch (error) {
+      console.error(error);
+      setRecoveryEmailError("Ocorreu um erro. Tente novamente.");
+    } finally {
+      setIsRecoverySubmitting(false);
+    }
+  };
+
+  const handleVerifyRecoveryCode = async () => {
+    if (recoveryCode !== "123456") {
+      setRecoveryCodeError("Código incorreto");
+      return;
+    }
+    setIsRecoverySubmitting(true);
+    setRecoveryCodeError("");
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      
+      // Reset recovery modal state and close
+      const targetEmail = recoveryEmail.trim();
+      setIsModalVisible(false);
+      setIsEmailVerified(false);
+      setRecoveryEmail("");
+      setRecoveryCode("");
+
+      // Log in as recovery user
+      await signIn({ email: targetEmail, password: "" });
+
+      // Navigate to security/privacy screen
+      navigation.navigate("Privacy", { isFromRecovery: true });
+    } catch (error) {
+      console.error(error);
+      setRecoveryCodeError("Erro ao redirecionar. Tente novamente.");
+    } finally {
+      setIsRecoverySubmitting(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setRecoveryEmail("");
+    setRecoveryEmailError("");
+    setIsEmailVerified(false);
+    setRecoveryCode("");
+    setRecoveryCodeError("");
   };
 
   return (
@@ -105,7 +193,7 @@ export function LoginScreen({ navigation }: Props) {
         />
 
         <View style={styles.forgotRow}>
-          <Pressable>
+          <Pressable onPress={() => setIsModalVisible(true)}>
             <Text style={styles.forgotText}>Esqueci a palavra-passe</Text>
           </Pressable>
         </View>
@@ -136,6 +224,104 @@ export function LoginScreen({ navigation }: Props) {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* Password Recovery Modal */}
+      <Modal
+        visible={isModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCloseModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Recuperar Palavra-passe</Text>
+              <Pressable onPress={handleCloseModal} style={styles.modalCloseButton}>
+                <Ionicons name="close" size={24} color={appTheme.colors.textSecondary} />
+              </Pressable>
+            </View>
+
+            {/* Modal Body */}
+            {!isEmailVerified ? (
+              <View style={styles.modalBody}>
+                <Text style={styles.modalDescription}>
+                  Introduz o email com o qual fizeste a abertura de conta para receberes um código de verificação.
+                </Text>
+                
+                <FormInput
+                  label="Email da Conta"
+                  value={recoveryEmail}
+                  onChangeText={(text) => {
+                    setRecoveryEmail(text);
+                    if (recoveryEmailError) setRecoveryEmailError("");
+                  }}
+                  placeholder="o.teu@email.com"
+                  error={recoveryEmailError}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+
+                <Pressable
+                  onPress={() => void handleSendRecoveryCode()}
+                  disabled={isRecoverySubmitting}
+                  style={({ pressed }) => [
+                    styles.modalSubmitButton,
+                    isRecoverySubmitting && styles.submitButtonDisabled,
+                    pressed && !isRecoverySubmitting && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.modalSubmitLabel}>
+                    {isRecoverySubmitting ? "A enviar..." : "Enviar código"}
+                  </Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.modalBody}>
+                <Text style={styles.modalDescription}>
+                  Enviámos um código para <Text style={styles.boldText}>{recoveryEmail}</Text>. Introduz o código abaixo para prosseguir.
+                </Text>
+
+                <FormInput
+                  label="Código de Verificação"
+                  value={recoveryCode}
+                  onChangeText={(text) => {
+                    if (text.length <= 6) {
+                      setRecoveryCode(text);
+                    }
+                    if (recoveryCodeError) setRecoveryCodeError("");
+                  }}
+                  placeholder="Introduza o código de 6 dígitos"
+                  error={recoveryCodeError}
+                  keyboardType="numeric"
+                />
+
+                <Pressable
+                  onPress={() => void handleVerifyRecoveryCode()}
+                  disabled={isRecoverySubmitting}
+                  style={({ pressed }) => [
+                    styles.modalSubmitButton,
+                    isRecoverySubmitting && styles.submitButtonDisabled,
+                    pressed && !isRecoverySubmitting && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.modalSubmitLabel}>
+                    {isRecoverySubmitting ? "A verificar..." : "Verificar Código"}
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => setIsEmailVerified(false)}
+                  disabled={isRecoverySubmitting}
+                  style={styles.modalSecondaryButton}
+                >
+                  <Text style={styles.modalSecondaryLabel}>Alterar Email</Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -224,5 +410,79 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.9,
+  },
+  // Password Recovery Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: appTheme.colors.surface,
+    borderRadius: appTheme.radius.lg,
+    width: "100%",
+    maxWidth: 400,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: appTheme.colors.border,
+    paddingBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalBody: {
+    gap: 16,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: appTheme.colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  modalSubmitButton: {
+    minHeight: 48,
+    borderRadius: appTheme.radius.md,
+    backgroundColor: appTheme.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+  },
+  modalSubmitLabel: {
+    color: appTheme.colors.surface,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  modalSecondaryButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    marginTop: 4,
+  },
+  modalSecondaryLabel: {
+    color: appTheme.colors.textSecondary,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  boldText: {
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
   },
 });
