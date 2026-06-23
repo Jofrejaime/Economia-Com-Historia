@@ -58,7 +58,7 @@ p, span, div, button, input {
 
 .contents-header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 }
 
 .contents-header-badge {
@@ -95,23 +95,31 @@ p, span, div, button, input {
 }
 
 /* ============================================
-   SEARCH BAR - DESIGN SYSTEM
+   FILTERS CARD - Pesquisa + Filtros no mesmo card
    ============================================ */
 
+.contents-filters-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 24px 28px;
+  margin-bottom: 32px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* Search */
 .contents-search-wrapper {
-  display: flex;
-  justify-content: center;
+  margin-bottom: 16px;
 }
 
 .contents-search-container {
   position: relative;
   width: 100%;
-  max-width: 480px;
 }
 
 .contents-search-icon {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   width: 18px;
@@ -121,7 +129,7 @@ p, span, div, button, input {
 
 .contents-search-input {
   width: 100%;
-  padding: 12px 16px 12px 44px;
+  padding: 10px 16px 10px 42px;
   background: #F5F5F5;
   border: 1px solid #E5E7EB;
   border-radius: 4px;
@@ -142,82 +150,33 @@ p, span, div, button, input {
   color: #9CA3AF;
 }
 
-/* ============================================
-   MAIN GRID
-   ============================================ */
-
-.contents-grid {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 32px;
-}
-
-/* ============================================
-   FILTERS SIDEBAR - DESIGN SYSTEM
-   ============================================ */
-
-.contents-filters {
-  background: #FFFFFF;
-  border-radius: 8px;
-  padding: 24px;
-  border: 1px solid #E5E7EB;
-}
-
-.contents-filters-header {
+/* Filters Row */
+.contents-filters-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #E5E7EB;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px 24px;
 }
 
-.contents-filters-title {
-  color: #8B1E2D;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  margin: 0;
-  font-family: 'IBM Plex Sans', sans-serif;
-  line-height: 1.3;
-}
-
-.contents-filters-clear {
-  background: none;
-  border: none;
-  color: #9CA3AF;
-  font-size: 11px;
-  cursor: pointer;
-  transition: color 0.2s;
-  font-family: 'Source Sans 3', sans-serif;
-  line-height: 1.7;
-}
-
-.contents-filters-clear:hover {
-  color: #8B1E2D;
-}
-
-/* Filter Group */
 .contents-filter-group {
-  margin-bottom: 24px;
-}
-
-.contents-filter-group:last-child {
-  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+  flex: 1;
+  max-width: 200px;
 }
 
 .contents-filter-label {
-  display: block;
-  font-weight: 600;
-  color: #1F2937;
-  font-size: 14px;
-  margin-bottom: 8px;
   font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   line-height: 1.7;
 }
 
-/* Filter Dropdown */
 .contents-filter-dropdown {
   position: relative;
 }
@@ -227,17 +186,19 @@ p, span, div, button, input {
   background: #F5F5F5;
   border: 1px solid #E5E7EB;
   border-radius: 4px;
-  padding: 12px 14px;
+  padding: 8px 12px;
   text-align: left;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 16px;
-  color: #1F2937;
-  transition: all 0.3s;
+  gap: 8px;
   font-family: 'Source Sans 3', sans-serif;
+  font-size: 14px;
+  color: #1F2937;
   line-height: 1.7;
+  transition: all 0.2s;
+  min-height: 38px;
 }
 
 .contents-filter-btn:hover {
@@ -252,38 +213,45 @@ p, span, div, button, input {
 
 .contents-filter-btn svg {
   transition: transform 0.2s;
+  flex-shrink: 0;
 }
 
 .contents-filter-btn svg.rotated {
   transform: rotate(180deg);
 }
 
+.contents-filter-btn span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .contents-filter-dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
   border-radius: 4px;
-  margin-top: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   z-index: 10;
   overflow: hidden;
+  min-width: 180px;
 }
 
 .contents-filter-option {
   width: 100%;
-  padding: 12px 14px;
+  padding: 10px 14px;
   text-align: left;
   cursor: pointer;
   background: none;
   border: none;
-  font-size: 14px;
-  transition: background 0.2s;
   font-family: 'Source Sans 3', sans-serif;
-  line-height: 1.7;
+  font-size: 14px;
   color: #1F2937;
+  line-height: 1.7;
+  transition: background 0.2s;
 }
 
 .contents-filter-option:hover {
@@ -296,91 +264,31 @@ p, span, div, button, input {
   font-weight: 500;
 }
 
-/* Theme Checkboxes */
-.contents-theme-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.contents-theme-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* Clear Filters */
+.contents-filters-clear {
+  background: none;
+  border: none;
   cursor: pointer;
+  color: #9CA3AF;
   font-family: 'Source Sans 3', sans-serif;
-}
-
-.contents-theme-checkbox {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: 2px solid #E5E7EB;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  flex-shrink: 0;
-  background: #FFFFFF;
-}
-
-.contents-theme-checkbox.checked {
-  background: #8B1E2D;
-  border-color: #8B1E2D;
-}
-
-.contents-theme-checkbox.checked svg {
-  display: block;
-}
-
-.contents-theme-checkbox svg {
-  display: none;
-  width: 12px;
-  height: 12px;
-  stroke: #FFFFFF;
-  stroke-width: 3;
-}
-
-.contents-theme-label {
-  color: #1F2937;
   font-size: 13px;
-  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 500;
   line-height: 1.7;
-}
-
-/* Level Buttons */
-.contents-level-list {
+  padding: 8px 12px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+  min-height: 38px;
+  flex-shrink: 0;
 }
 
-.contents-level-btn {
-  padding: 6px 16px;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid #E5E7EB;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: 'Source Sans 3', sans-serif;
-  line-height: 1.7;
-  background: #FFFFFF;
-  color: #1F2937;
-}
-
-.contents-level-btn.selected {
-  background: #8B1E2D;
-  border-color: #8B1E2D;
-  color: #FFFFFF;
-}
-
-.contents-level-btn:hover:not(.selected) {
-  border-color: #8B1E2D;
+.contents-filters-clear:hover {
+  color: #8B1E2D;
 }
 
 /* ============================================
-   DOCUMENTS GRID - DESIGN SYSTEM
+   DOCUMENTS GRID
    ============================================ */
 
 .contents-documents-header {
@@ -404,10 +312,9 @@ p, span, div, button, input {
   width: 80px;
 }
 
-/* Document Cards Grid */
 .contents-documents-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 24px;
 }
 
@@ -419,6 +326,10 @@ p, span, div, button, input {
   transition: all 0.3s;
   border: 1px solid #E5E7EB;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: row;
+  height: 260px;
+  width: 100%;
 }
 
 .contents-doc-card:hover {
@@ -428,9 +339,11 @@ p, span, div, button, input {
 }
 
 .contents-doc-image {
-  height: 150px;
+  width: 260px;
+  height: 100%;
   overflow: hidden;
   background: #F5F5F5;
+  flex-shrink: 0;
 }
 
 .contents-doc-image img {
@@ -445,14 +358,18 @@ p, span, div, button, input {
 }
 
 .contents-doc-body {
-  padding: 18px 20px 20px 20px;
+  padding: 24px 28px 24px 28px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .contents-doc-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .contents-doc-type {
@@ -475,8 +392,8 @@ p, span, div, button, input {
 .contents-doc-title {
   font-weight: 700;
   color: #1F2937;
-  font-size: 17px;
-  margin: 0 0 8px 0;
+  font-size: 22px;
+  margin: 0 0 12px 0;
   line-height: 1.4;
   font-family: 'IBM Plex Sans', sans-serif;
   letter-spacing: -0.02em;
@@ -484,14 +401,14 @@ p, span, div, button, input {
 
 .contents-doc-description {
   color: #1F2937;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.7;
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
+  font-family: 'Source Sans 3', sans-serif;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-family: 'Source Sans 3', sans-serif;
 }
 
 .contents-doc-access {
@@ -505,7 +422,48 @@ p, span, div, button, input {
 }
 
 /* ============================================
-   EMPTY STATE - DESIGN SYSTEM
+   INFINITE SCROLL
+   ============================================ */
+
+.contents-loading {
+  text-align: center;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #9CA3AF;
+}
+
+.contents-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #F5F5F5;
+  border-top-color: #8B1E2D;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.contents-scroll-anchor {
+  height: 1px;
+  visibility: hidden;
+}
+
+.contents-end {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9CA3AF;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ============================================
+   EMPTY STATE
    ============================================ */
 
 .contents-empty {
@@ -540,37 +498,17 @@ p, span, div, button, input {
 }
 
 /* ============================================
-   RESPONSIVIDADE - DESIGN SYSTEM
+   RESPONSIVIDADE
    ============================================ */
-
-@media (max-width: 1200px) {
-  .contents-documents-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 
 @media (max-width: 1024px) {
   .contents-container {
     padding: 32px 24px;
   }
   
-  .contents-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-  
-  .contents-filters {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-  
-  .contents-filters-header {
-    grid-column: span 2;
-  }
-  
-  .contents-documents-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .contents-filter-group {
+    min-width: 120px;
+    max-width: 160px;
   }
 }
 
@@ -583,21 +521,52 @@ p, span, div, button, input {
     font-size: 28px;
   }
   
-  .contents-documents-grid {
-    grid-template-columns: 1fr;
+  .contents-filters-card {
+    padding: 16px 18px;
   }
   
-  .contents-filters {
-    grid-template-columns: 1fr;
+  .contents-filters-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
   }
   
-  .contents-filters-header {
-    grid-column: span 1;
+  .contents-filter-group {
+    min-width: auto;
+    max-width: 100%;
+  }
+  
+  .contents-filter-btn {
+    min-height: 34px;
+    font-size: 13px;
+  }
+  
+  .contents-filters-clear {
+    justify-content: center;
+    padding: 6px 12px;
   }
   
   .contents-doc-card {
-    max-width: 400px;
-    margin: 0 auto;
+    flex-direction: column;
+    height: auto;
+    min-height: 380px;
+  }
+  
+  .contents-doc-image {
+    width: 100%;
+    height: 180px;
+  }
+  
+  .contents-doc-body {
+    padding: 18px 20px 20px 20px;
+  }
+  
+  .contents-doc-title {
+    font-size: 18px;
+  }
+  
+  .contents-doc-description {
+    font-size: 14px;
   }
   
   .contents-search-container {
@@ -618,9 +587,26 @@ p, span, div, button, input {
     font-size: 14px;
   }
   
-  .contents-search-input {
-    font-size: 14px;
-    padding: 10px 12px 10px 38px;
+  .contents-filters-card {
+    padding: 12px 14px;
+  }
+  
+  .contents-filter-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .contents-filter-option {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  
+  .contents-doc-card {
+    min-height: 320px;
+  }
+  
+  .contents-doc-image {
+    height: 140px;
   }
   
   .contents-doc-body {
@@ -628,10 +614,15 @@ p, span, div, button, input {
   }
   
   .contents-doc-title {
-    font-size: 15px;
+    font-size: 16px;
   }
   
-  .contents-filter-group {
-    margin-bottom: 16px;
+  .contents-doc-description {
+    font-size: 13px;
+  }
+  
+  .contents-search-input {
+    font-size: 14px;
+    padding: 10px 12px 10px 38px;
   }
 }

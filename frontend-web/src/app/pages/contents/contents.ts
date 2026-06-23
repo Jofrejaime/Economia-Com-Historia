@@ -1,10 +1,9 @@
-import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FooterComponent } from '../../components/footer/footer';
 import { HeaderComponent } from '../../components/header/header';
-
 
 type Theme = string;
 type Level = 'intro' | 'advanced' | 'doctorate';
@@ -36,16 +35,27 @@ interface Document {
   templateUrl: './contents.html',
   styleUrls: ['./contents.css']
 })
-export class ContentsComponent {
+export class ContentsComponent implements OnInit, OnDestroy {
   @ViewChild('dropdownRef') dropdownRef!: ElementRef;
+  @ViewChild('scrollAnchor') scrollAnchor!: ElementRef;
 
   searchQuery = '';
-  selectedThemes: Theme[] = ['Café e Agricultura'];
-  selectedLevel: Level = 'advanced';
-  selectedFormats: Format[] = ['Revistas Estatísticas'];
+  selectedThemes: Theme[] = [];
+  selectedLevel: Level | null = null;
+  selectedFormats: Format[] = [];
   selectedAccessCategory: AccessCategory = 'all';
+  
   showAccessDropdown = false;
-  showFormatDropdown = false;  // ← Novo
+  showThemeDropdown = false;
+  showLevelDropdown = false;
+  showFormatDropdown = false;
+
+  // ===== INFINITE SCROLL =====
+  displayedDocuments: Document[] = [];
+  currentPage = 0;
+  pageSize = 4;
+  hasMore = true;
+  private observer: IntersectionObserver | null = null;
 
   themes: Theme[] = [
     'Infraestrutura Colonial',
@@ -74,7 +84,7 @@ export class ContentsComponent {
     { id: 'restricted', label: 'Conteúdos Restritos', badge: 'Privado', badgeColor: '#ffb3ba', badgeTextColor: '#5c0011' }
   ];
 
-  documents: Document[] = [
+  allDocuments: Document[] = [
     {
       id: 1,
       title: 'O Ciclo do Café em Angola (1950-1975)',
@@ -133,10 +143,80 @@ export class ContentsComponent {
 
   constructor(private router: Router) {}
 
-  navigateToDocument(docId: number): void {
-    this.router.navigate(['/contents/view', docId]);
+  ngOnInit(): void {
+    this.loadMoreDocuments();
+    setTimeout(() => {
+      this.setupInfiniteScroll();
+    }, 500);
   }
 
+  ngOnDestroy(): void {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+  }
+
+  // ===== INFINITE SCROLL =====
+  setupInfiniteScroll(): void {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && this.hasMore) {
+          this.loadMoreDocuments();
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px 100px 0px' }
+    );
+
+    if (this.scrollAnchor) {
+      this.observer?.observe(this.scrollAnchor.nativeElement);
+    }
+  }
+
+  getFilteredDocuments(): Document[] {
+    return this.allDocuments.filter(doc => {
+      if (this.searchQuery && !doc.title.toLowerCase().includes(this.searchQuery.toLowerCase()) &&
+          !doc.description.toLowerCase().includes(this.searchQuery.toLowerCase())) {
+        return false;
+      }
+      if (this.selectedAccessCategory === 'public' && doc.accessLevel !== 'public') return false;
+      if (this.selectedAccessCategory === 'jindungo' && doc.accessLevel !== 'jindungo') return false;
+      if (this.selectedAccessCategory === 'restricted' && doc.accessLevel !== 'restricted') return false;
+      if (this.selectedThemes.length > 0 && !this.selectedThemes.some(t => 
+          doc.title.includes(t) || doc.description.includes(t))) {
+        return false;
+      }
+      if (this.selectedFormats.length > 0 && !this.selectedFormats.includes(doc.type)) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  loadMoreDocuments(): void {
+    if (!this.hasMore) return;
+
+    const filtered = this.getFilteredDocuments();
+    const start = this.currentPage * this.pageSize;
+    const end = start + this.pageSize;
+    const newDocs = filtered.slice(start, end);
+
+    if (newDocs.length > 0) {
+      this.displayedDocuments = [...this.displayedDocuments, ...newDocs];
+      this.currentPage++;
+      this.hasMore = end < filtered.length;
+    } else {
+      this.hasMore = false;
+    }
+  }
+
+  resetAndReload(): void {
+    this.displayedDocuments = [];
+    this.currentPage = 0;
+    this.hasMore = true;
+    this.loadMoreDocuments();
+  }
+
+  // ===== FILTROS =====
   getAccessCategoryLabel(): string {
     const option = this.accessOptions.find(opt => opt.id === this.selectedAccessCategory);
     return option ? option.label : 'Todos os Documentos';
@@ -145,38 +225,70 @@ export class ContentsComponent {
   selectAccessCategory(category: AccessCategory): void {
     this.selectedAccessCategory = category;
     this.showAccessDropdown = false;
+    this.resetAndReload();
   }
 
   toggleAccessDropdown(): void {
     this.showAccessDropdown = !this.showAccessDropdown;
   }
 
+  getSelectedThemeLabel(): string {
+    return this.selectedThemes.length > 0 ? this.selectedThemes[0] : 'Todos os Temas';
+  }
+
+  selectTheme(theme: Theme): void {
+    if (this.selectedThemes.includes(theme)) {
+      this.selectedThemes = [];
+    } else {
+      this.selectedThemes = [theme];
+    }
+    this.showThemeDropdown = false;
+    this.resetAndReload();
+  }
+
+  toggleThemeDropdown(): void {
+    this.showThemeDropdown = !this.showThemeDropdown;
+  }
+
   isThemeSelected(theme: Theme): boolean {
     return this.selectedThemes.includes(theme);
   }
 
-  toggleTheme(theme: Theme): void {
-    if (this.selectedThemes.includes(theme)) {
-      this.selectedThemes = this.selectedThemes.filter(t => t !== theme);
-    } else {
-      this.selectedThemes = [...this.selectedThemes, theme];
-    }
+  getSelectedLevelLabel(): string {
+    const level = this.levels.find(l => l.id === this.selectedLevel);
+    return level ? level.label : 'Todos os Níveis';
   }
 
-  setSelectedLevel(level: Level): void {
-    this.selectedLevel = level;
+  selectLevel(level: Level): void {
+    this.selectedLevel = this.selectedLevel === level ? null : level;
+    this.showLevelDropdown = false;
+    this.resetAndReload();
+  }
+
+  toggleLevelDropdown(): void {
+    this.showLevelDropdown = !this.showLevelDropdown;
+  }
+
+  getSelectedFormatLabel(): string {
+    return this.selectedFormats.length > 0 ? this.selectedFormats[0] : 'Todos os Formatos';
+  }
+
+  selectFormat(format: Format): void {
+    if (this.selectedFormats.includes(format)) {
+      this.selectedFormats = [];
+    } else {
+      this.selectedFormats = [format];
+    }
+    this.showFormatDropdown = false;
+    this.resetAndReload();
+  }
+
+  toggleFormatDropdown(): void {
+    this.showFormatDropdown = !this.showFormatDropdown;
   }
 
   isFormatSelected(format: Format): boolean {
     return this.selectedFormats.includes(format);
-  }
-
-  toggleFormat(format: Format): void {
-    if (this.selectedFormats.includes(format)) {
-      this.selectedFormats = this.selectedFormats.filter(f => f !== format);
-    } else {
-      this.selectedFormats = [format];
-    }
   }
 
   getAccessLabel(accessLevel: string): string {
@@ -187,31 +299,6 @@ export class ContentsComponent {
     }
   }
 
-// Novo método para limpar filtros
-  clearFilters(): void {
-    this.selectedThemes = [];
-    this.selectedLevel = 'advanced';
-    this.selectedFormats = [];
-    this.selectedAccessCategory = 'all';
-    this.searchQuery = '';
-  }
-
-  // Novo método para toggle do formato
-  toggleFormatDropdown(): void {
-    this.showFormatDropdown = !this.showFormatDropdown;
-  }
-
-  // Novo método para selecionar formato
-  selectFormat(format: Format): void {
-    this.selectedFormats = [format];
-    this.showFormatDropdown = false;
-  }
-
-  // Novo método para obter label do formato selecionado
-  getSelectedFormatLabel(): string {
-    return this.selectedFormats.length > 0 ? this.selectedFormats[0] : 'Selecionar formato';
-  }
-
   getAccessBadgeStyle(accessLevel: string): { bg: string; text: string } {
     switch(accessLevel) {
       case 'jindungo': return { bg: '#ffd6a5', text: '#4a2c00' };
@@ -220,23 +307,27 @@ export class ContentsComponent {
     }
   }
 
-  filterDocuments(): Document[] {
-    return this.documents.filter(doc => {
-      if (this.searchQuery && !doc.title.toLowerCase().includes(this.searchQuery.toLowerCase()) &&
-          !doc.description.toLowerCase().includes(this.searchQuery.toLowerCase())) {
-        return false;
-      }
-      if (this.selectedAccessCategory === 'public' && doc.accessLevel !== 'public') return false;
-      if (this.selectedAccessCategory === 'jindungo' && doc.accessLevel !== 'jindungo') return false;
-      if (this.selectedAccessCategory === 'restricted' && doc.accessLevel !== 'restricted') return false;
-      return true;
-    });
+  clearFilters(): void {
+    this.selectedThemes = [];
+    this.selectedLevel = null;
+    this.selectedFormats = [];
+    this.selectedAccessCategory = 'all';
+    this.searchQuery = '';
+    this.resetAndReload();
+  }
+
+  navigateToDocument(docId: number): void {
+    this.router.navigate(['/contents/view', docId]);
   }
 
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: Event): void {
-    if (this.dropdownRef && !this.dropdownRef.nativeElement.contains(event.target)) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.contents-filter-dropdown')) {
       this.showAccessDropdown = false;
+      this.showThemeDropdown = false;
+      this.showLevelDropdown = false;
+      this.showFormatDropdown = false;
     }
   }
 }
