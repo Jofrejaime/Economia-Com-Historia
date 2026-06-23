@@ -1,10 +1,696 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+/* ============================================
+   CATEGORY DETAIL (COMUNIDADE) - DESIGN SYSTEM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+/* ============================================
+   RESET E BASE
+   ============================================ */
 
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Source Sans 3', sans-serif;
 }
 
-button {
-  transition: all 0.3s ease;
+body {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  color: #1F2937;
+}
+
+p, span, div, button {
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+  color: #1F2937;
+}
+
+/* ============================================
+   PAGE CONTAINER
+   ============================================ */
+
+.category-detail-page {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+}
+
+.category-detail-main {
+  flex: 1;
+  width: 100%;
+}
+
+.category-detail-container {
+  max-width: 1536px;
+  margin: 0 auto;
+  padding: 48px 48px;
+}
+
+/* ============================================
+   BREADCRUMB
+   ============================================ */
+
+.category-detail-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.category-detail-breadcrumb-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9CA3AF;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.category-detail-breadcrumb-btn:hover {
+  color: #8B1E2D;
+}
+
+.category-detail-breadcrumb-separator {
+  color: #9CA3AF;
+}
+
+.category-detail-breadcrumb-current {
+  color: #8B1E2D;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+/* ============================================
+   MAIN GRID
+   ============================================ */
+
+.category-detail-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 48px;
+}
+
+/* ============================================
+   LEFT COLUMN - MAIN CONTENT
+   ============================================ */
+
+.category-detail-header {
+  margin-bottom: 32px;
+}
+
+.category-detail-header-badge {
+  background: rgba(139, 30, 45, 0.1);
+  color: #8B1E2D;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  display: inline-block;
+  letter-spacing: 0.5px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.category-detail-header-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1F2937;
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.category-detail-header-description {
+  color: #1F2937;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 700px;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   NEW DISCUSSION BUTTON
+   ============================================ */
+
+.category-detail-new-discussion {
+  margin-bottom: 32px;
+}
+
+.btn-primary {
+  background: #8B1E2D;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 28px;
+  min-height: 44px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.btn-primary:hover {
+  background: #6B0119;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
+}
+
+/* ============================================
+   RECENT DISCUSSIONS
+   ============================================ */
+
+.category-detail-discussions {
+  margin-bottom: 48px;
+}
+
+.category-detail-discussions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 20px;
+}
+
+.category-detail-discussions-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1F2937;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.category-detail-discussions-divider {
+  height: 2px;
+  background: linear-gradient(90deg, #8B1E2D, transparent);
+  width: 80px;
+}
+
+/* Discussion Card */
+.category-detail-discussion-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #E5E7EB;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 16px;
+}
+
+.category-detail-discussion-card:hover {
+  border-color: rgba(139, 30, 45, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.category-detail-discussion-card:last-child {
+  margin-bottom: 0;
+}
+
+.category-detail-discussion-inner {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.category-detail-discussion-avatar {
+  width: 48px;
+  height: 48px;
+  background: rgba(139, 30, 45, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.category-detail-discussion-avatar span {
+  font-weight: 700;
+  color: #8B1E2D;
+  font-size: 16px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.3;
+}
+
+.category-detail-discussion-body {
+  flex: 1;
+}
+
+.category-detail-discussion-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.category-detail-discussion-tag {
+  background: #F5F5F5;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8B1E2D;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.category-detail-discussion-tag-sub {
+  color: #9CA3AF;
+  font-size: 11px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.category-detail-discussion-title {
+  font-weight: 700;
+  color: #1F2937;
+  font-size: 18px;
+  margin: 0 0 8px 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.category-detail-discussion-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.category-detail-discussion-meta-left {
+  display: flex;
+  gap: 16px;
+}
+
+.category-detail-discussion-meta-text {
+  color: #9CA3AF;
+  font-size: 12px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.category-detail-discussion-meta-right {
+  display: flex;
+  gap: 16px;
+}
+
+.category-detail-discussion-meta-icon {
+  color: #9CA3AF;
+  font-size: 12px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+
+.category-detail-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.category-detail-sidebar-sticky {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  position: sticky;
+  top: 100px;
+}
+
+/* ============================================
+   CURATOR CARD
+   ============================================ */
+
+.category-detail-curator {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #E5E7EB;
+}
+
+.category-detail-curator-title {
+  color: #8B1E2D;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin: 0 0 16px 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.3;
+}
+
+.category-detail-curator-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.category-detail-curator-avatar {
+  width: 56px;
+  height: 56px;
+  background: #8B1E2D;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.category-detail-curator-avatar span {
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 20px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.3;
+}
+
+.category-detail-curator-name {
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+  font-size: 16px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.category-detail-curator-role {
+  color: #9CA3AF;
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.category-detail-curator-quote {
+  color: #1F2937;
+  font-size: 13px;
+  line-height: 1.7;
+  font-style: italic;
+  margin: 0 0 16px 0;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.btn-secondary {
+  width: 100%;
+  background: transparent;
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  padding: 10px;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #8B1E2D;
+  font-size: 13px;
+  transition: all 0.3s;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.btn-secondary:hover {
+  border-color: #8B1E2D;
+  background: rgba(139, 30, 45, 0.02);
+}
+
+/* ============================================
+   REFERENCE DOCUMENTS
+   ============================================ */
+
+.category-detail-reference {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #E5E7EB;
+}
+
+.category-detail-reference-title {
+  color: #8B1E2D;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin: 0 0 16px 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.3;
+}
+
+.category-detail-reference-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.category-detail-reference-item {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E5E7EB;
+  cursor: pointer;
+}
+
+.category-detail-reference-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.category-detail-reference-item-title {
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.category-detail-reference-item-format {
+  color: #9CA3AF;
+  font-size: 11px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+/* ============================================
+   STATS CARD
+   ============================================ */
+
+.category-detail-stats {
+  background: linear-gradient(135deg, #8B1E2D, #6B0119);
+  border-radius: 8px;
+  padding: 28px;
+  text-align: center;
+}
+
+.category-detail-stats-inner {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+
+.category-detail-stats-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #FFFFFF;
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.category-detail-stats-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.5px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+/* ============================================
+   QUICK ACTIONS
+   ============================================ */
+
+.category-detail-actions {
+  background: #F5F5F5;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #E5E7EB;
+}
+
+.category-detail-actions-title {
+  color: #8B1E2D;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin: 0 0 16px 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.3;
+}
+
+.category-detail-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.category-detail-actions-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  min-height: 40px;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #1F2937;
+  font-size: 13px;
+  transition: all 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.category-detail-actions-btn:hover {
+  background: #FFFFFF;
+  color: #8B1E2D;
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .category-detail-container {
+    padding: 32px 24px;
+  }
+  
+  .category-detail-grid {
+    gap: 32px;
+  }
+  
+  .category-detail-header-title {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .category-detail-container {
+    padding: 24px 16px;
+  }
+  
+  .category-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .category-detail-header-title {
+    font-size: 24px;
+  }
+  
+  .category-detail-header-description {
+    font-size: 14px;
+  }
+  
+  .category-detail-discussion-title {
+    font-size: 16px;
+  }
+  
+  .category-detail-discussion-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .category-detail-discussion-meta-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .category-detail-sidebar-sticky {
+    position: static;
+  }
+  
+  .category-detail-breadcrumb-btn {
+    font-size: 12px;
+  }
+  
+  .category-detail-breadcrumb-current {
+    font-size: 12px;
+  }
+  
+  .category-detail-stats-inner {
+    gap: 24px;
+  }
+  
+  .category-detail-stats-number {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 480px) {
+  .category-detail-container {
+    padding: 16px 12px;
+  }
+  
+  .category-detail-header-title {
+    font-size: 20px;
+  }
+  
+  .category-detail-discussion-card {
+    padding: 16px;
+  }
+  
+  .category-detail-discussion-inner {
+    flex-direction: column;
+  }
+  
+  .category-detail-discussion-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .category-detail-discussion-avatar span {
+    font-size: 14px;
+  }
+  
+  .category-detail-discussion-title {
+    font-size: 15px;
+  }
+  
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .category-detail-curator-profile {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .category-detail-stats-inner {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .category-detail-breadcrumb {
+    flex-wrap: wrap;
+  }
 }

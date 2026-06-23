@@ -1,3 +1,17 @@
-*{
-  font-family: 'Poppins', sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+* {
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+body {
+  line-height: 1.7;
+}
+
+p, span, div, button, input, textarea {
+  line-height: 1.7;
 }

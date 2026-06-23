@@ -1,14 +1,748 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+/* ============================================
+   DISCUSSION PAGE - DESIGN SYSTEM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+/* ============================================
+   RESET E BASE
+   ============================================ */
 
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Source Sans 3', sans-serif;
 }
 
-button {
-  transition: all 0.3s ease;
+body {
+  background-color: #F5F5F5;
+  min-height: 100vh;
 }
 
-textarea {
-  font-family: 'Poppins', sans-serif;
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  color: #1F2937;
+}
+
+p, span, div, button, input, textarea {
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+  color: #1F2937;
+}
+
+/* ============================================
+   PAGE CONTAINER
+   ============================================ */
+
+.discussion-page {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+}
+
+.discussion-main {
+  flex: 1;
+  width: 100%;
+}
+
+.discussion-container {
+  max-width: 1536px;
+  margin: 0 auto;
+  padding: 48px 48px;
+}
+
+/* ============================================
+   BREADCRUMB
+   ============================================ */
+
+.discussion-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.discussion-breadcrumb-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9CA3AF;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.discussion-breadcrumb-btn:hover {
+  color: #8B1E2D;
+}
+
+.discussion-breadcrumb-separator {
+  color: #9CA3AF;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.discussion-breadcrumb-current {
+  color: #8B1E2D;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+/* ============================================
+   MAIN GRID
+   ============================================ */
+
+.discussion-grid {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 48px;
+}
+
+/* ============================================
+   DISCUSSION HEADER
+   ============================================ */
+
+.discussion-header {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 32px;
+  margin-bottom: 24px;
+  border: 1px solid #E5E7EB;
+}
+
+.discussion-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.discussion-category {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 9999px;
+}
+
+.discussion-category-text {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  line-height: 1.7;
+}
+
+.discussion-pinned {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.discussion-pinned-text {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+  color: #8B1E2D;
+  font-size: 11px;
+  text-transform: uppercase;
+  line-height: 1.7;
+}
+
+.discussion-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1F2937;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.discussion-author-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #E5E7EB;
+  margin-bottom: 28px;
+}
+
+.discussion-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.discussion-avatar-text {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.discussion-author-name {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  color: #1F2937;
+  font-size: 16px;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.discussion-author-meta {
+  font-family: 'Source Sans 3', sans-serif;
+  color: #9CA3AF;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.discussion-content {
+  font-family: 'Source Sans 3', sans-serif;
+  color: #1F2937;
+  font-size: 16px;
+  line-height: 1.7;
+  margin-bottom: 32px;
+  white-space: pre-line;
+}
+
+/* ============================================
+   DISCUSSION ACTIONS
+   ============================================ */
+
+.discussion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  padding-top: 8px;
+}
+
+.discussion-action-btn {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+  min-height: 44px;
+  padding: 0;
+}
+
+.discussion-action-btn:hover {
+  transform: scale(1.02);
+}
+
+.discussion-action-text {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 500;
+  color: #9CA3AF;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.discussion-views {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-left: auto;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.discussion-views-text {
+  font-family: 'Source Sans 3', sans-serif;
+  color: #9CA3AF;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* ============================================
+   REPLY FORM
+   ============================================ */
+
+.reply-form {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 28px;
+  margin-bottom: 24px;
+  border: 1px solid #E5E7EB;
+}
+
+.reply-form-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  color: #1F2937;
+  font-size: 18px;
+  margin: 0 0 20px 0;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.reply-textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 14px 16px;
+  background: #F5F5F5;
+  border-radius: 4px;
+  border: 1px solid #E5E7EB;
+  font-size: 16px;
+  line-height: 1.7;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: all 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+  color: #1F2937;
+}
+
+.reply-textarea:focus {
+  border-color: #8B1E2D;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(139, 30, 45, 0.1);
+}
+
+.reply-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-primary {
+  background: #8B1E2D;
+  padding: 10px 28px;
+  min-height: 44px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.btn-primary:hover {
+  background: #6B0119;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  padding: 10px 28px;
+  min-height: 44px;
+  border-radius: 4px;
+  border: 1px solid #E5E7EB;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 500;
+  color: #1F2937;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.btn-secondary:hover {
+  border-color: #8B1E2D;
+  color: #8B1E2D;
+}
+
+/* ============================================
+   REPLIES SECTION
+   ============================================ */
+
+.replies-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.replies-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1F2937;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.replies-divider {
+  height: 2px;
+  background: linear-gradient(90deg, #8B1E2D, transparent);
+  flex: 1;
+}
+
+.reply-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s;
+  margin-bottom: 20px;
+}
+
+.reply-card:last-child {
+  margin-bottom: 0;
+}
+
+.reply-card:hover {
+  border-color: rgba(139, 30, 45, 0.15);
+}
+
+.reply-author {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.reply-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reply-avatar-text {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.reply-author-name {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  color: #1F2937;
+  font-size: 15px;
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.reply-author-meta {
+  font-family: 'Source Sans 3', sans-serif;
+  color: #9CA3AF;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.reply-content {
+  font-family: 'Source Sans 3', sans-serif;
+  color: #1F2937;
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 18px;
+  white-space: pre-line;
+  padding-left: 58px;
+}
+
+.reply-actions {
+  display: flex;
+  gap: 20px;
+  padding-left: 58px;
+}
+
+.reply-action-btn {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+  min-height: 44px;
+  padding: 0;
+}
+
+.reply-action-btn:hover {
+  transform: scale(1.02);
+}
+
+.reply-action-text {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.reply-action-text.liked {
+  color: #8B1E2D;
+}
+
+.reply-action-text.unliked {
+  color: #9CA3AF;
+}
+
+.reply-action-btn-secondary {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Source Sans 3', sans-serif;
+  color: #9CA3AF;
+  font-weight: 500;
+  font-size: 13px;
+  transition: color 0.2s;
+  line-height: 1.7;
+  min-height: 44px;
+  padding: 0;
+}
+
+.reply-action-btn-secondary:hover {
+  color: #8B1E2D;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+
+.discussion-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 100px;
+}
+
+.sidebar-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #E5E7EB;
+}
+
+.sidebar-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #8B1E2D;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+  line-height: 1.3;
+}
+
+/* Author Card */
+.author-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.author-card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.author-card-avatar-text {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.author-card-name {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  color: #1F2937;
+  font-size: 15px;
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.author-card-role {
+  font-family: 'Source Sans 3', sans-serif;
+  color: #9CA3AF;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.author-card-posts {
+  font-family: 'Source Sans 3', sans-serif;
+  color: #9CA3AF;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* Related Topics */
+.related-topic-btn {
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+  min-height: 44px;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.related-topic-btn:last-child {
+  margin-bottom: 0;
+}
+
+.related-topic-btn:hover {
+  transform: translateX(4px);
+}
+
+.related-topic-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  color: #1F2937;
+  font-size: 14px;
+  margin-bottom: 6px;
+  transition: color 0.2s;
+  line-height: 1.3;
+}
+
+.related-topic-btn:hover .related-topic-title {
+  color: #8B1E2D;
+}
+
+.related-topic-meta {
+  display: flex;
+  gap: 12px;
+  color: #9CA3AF;
+  font-size: 11px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+/* Quick Actions */
+.quick-actions-card {
+  background: #F5F5F5;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #E5E7EB;
+}
+
+.quick-action-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 500;
+  color: #1F2937;
+  font-size: 13px;
+  transition: all 0.2s;
+  line-height: 1.7;
+  min-height: 44px;
+}
+
+.quick-action-btn:hover {
+  background: #FFFFFF;
+  color: #8B1E2D;
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .discussion-container {
+    padding: 32px 24px;
+  }
+  
+  .discussion-grid {
+    gap: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .discussion-container {
+    padding: 24px 16px;
+  }
+  
+  .discussion-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .discussion-sidebar {
+    position: static;
+  }
+  
+  .discussion-title {
+    font-size: 24px;
+  }
+  
+  .discussion-header {
+    padding: 24px;
+  }
+  
+  .discussion-actions {
+    gap: 12px;
+  }
+  
+  .discussion-views {
+    margin-left: 0;
+  }
+  
+  .reply-content {
+    padding-left: 0;
+  }
+  
+  .reply-actions {
+    padding-left: 0;
+  }
+  
+  .reply-form-actions {
+    flex-direction: column;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .discussion-container {
+    padding: 16px 12px;
+  }
+  
+  .discussion-title {
+    font-size: 20px;
+  }
+  
+  .discussion-header {
+    padding: 16px;
+  }
+  
+  .discussion-author-info {
+    flex-wrap: wrap;
+  }
+  
+  .reply-card {
+    padding: 16px;
+  }
 }

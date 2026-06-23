@@ -1,4 +1,3 @@
-<!-- Header Modernizado - Versão Responsiva -->
 <header class="app-header">
   <div class="app-header-container">
     <div class="app-header-nav">
@@ -12,12 +11,12 @@
             <path d="M2 12L12 17L22 12"/>
           </svg>
         </div>
-        <span>Economia com História</span>
+        <span class="app-header-logo-text">Economia com História</span>
       </div>
 
       <!-- Mobile Menu Button -->
-      <button class="app-header-mobile-btn" (click)="toggleMobileMenu()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2">
+      <button class="app-header-mobile-btn" (click)="toggleMobileMenu()" aria-label="Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
           <line x1="3" y1="12" x2="21" y2="12"/>
           <line x1="3" y1="6" x2="21" y2="6"/>
           <line x1="3" y1="18" x2="21" y2="18"/>
@@ -25,19 +24,41 @@
       </button>
       
       <!-- Navigation Links -->
-      <nav class="app-header-links">
-        <a routerLink="/home" routerLinkActive="active">Início</a>
-        <a routerLink="/contents" routerLinkActive="active">Conteúdos</a>
-        <a routerLink="/forum/community" routerLinkActive="active">Comunidade</a>
-        <a routerLink="/quiz" routerLinkActive="active">Quiz</a>
+      <nav class="app-header-links" [class.mobile-open]="mobileMenuOpen">
+        <a routerLink="/home" routerLinkActive="active" (click)="closeMobileMenu()">Início</a>
+        <a routerLink="/contents" routerLinkActive="active" (click)="closeMobileMenu()">Conteúdos</a>
+        <a routerLink="/forum/community" routerLinkActive="active" (click)="closeMobileMenu()">Comunidade</a>
+        <a routerLink="/quiz" routerLinkActive="active" (click)="closeMobileMenu()">Quiz</a>
+        
+        <!-- Mobile: Links extras -->
+        <div class="app-header-mobile-extra" *ngIf="mobileMenuOpen">
+          <div class="app-header-mobile-actions">
+            <div class="app-header-avatar-mobile" routerLink="/auth/perfil" (click)="closeMobileMenu()">
+              <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Avatar" />
+              <svg *ngIf="!avatarUrl" width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M 12 14 C 7.6 14 4 16.7 4 20 L 20 20 C 20 16.7 16.4 14 12 14 Z"/>
+              </svg>
+              <span>Perfil</span>
+            </div>
+            <button class="app-header-logout-mobile" (click)="logout()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              <span>Sair</span>
+            </button>
+          </div>
+        </div>
       </nav>
       
-      <!-- Right Icons -->
+      <!-- Right Icons - Desktop -->
       <div class="app-header-icons">
         
-        <!-- Notificações - vai diretamente para a página -->
-        <button class="app-header-notification-btn" (click)="goToNotifications()" title="Notificações">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="1.8">
+        <!-- Notificações -->
+        <button class="app-header-notification-btn" (click)="goToNotifications()" title="Notificações" aria-label="Notificações">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="1.8">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
@@ -56,32 +77,8 @@
         </div>
         
         <!-- Logout -->
-        <button class="app-header-logout" (click)="logout()" title="Terminar Sessão">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Mobile Menu -->
-    <div class="app-header-mobile-menu" *ngIf="mobileMenuOpen">
-      <a routerLink="/home" routerLinkActive="active" (click)="closeMobileMenu()">Início</a>
-      <a routerLink="/contents" routerLinkActive="active" (click)="closeMobileMenu()">Conteúdos</a>
-      <a routerLink="/forum/community" routerLinkActive="active" (click)="closeMobileMenu()">Comunidade</a>
-      <a routerLink="/quiz" routerLinkActive="active" (click)="closeMobileMenu()">Quiz</a>
-      <div class="app-header-mobile-actions">
-        <div class="app-header-avatar" routerLink="/auth/perfil" (click)="closeMobileMenu()">
-          <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Avatar" />
-          <svg *ngIf="!avatarUrl" width="20" height="20" viewBox="0 0 24 24" fill="white">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M 12 14 C 7.6 14 4 16.7 4 20 L 20 20 C 20 16.7 16.4 14 12 14 Z"/>
-          </svg>
-        </div>
-        <button class="app-header-logout" (click)="logout()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2">
+        <button class="app-header-logout" (click)="logout()" title="Terminar Sessão" aria-label="Logout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>

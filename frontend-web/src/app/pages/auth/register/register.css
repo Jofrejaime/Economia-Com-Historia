@@ -1,25 +1,586 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+/* ============================================
+   REGISTER - DESIGN SYSTEM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 
 * {
+  font-family: 'Source Sans 3', sans-serif;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Poppins', sans-serif;
 }
 
-body {
-  font-family: 'Poppins', sans-serif;
+/* Container principal */
+.register-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #F5F5F5;
 }
 
-button {
-  transition: all 0.3s ease;
+/* ============================================
+   SIDEBAR ESQUERDA - BRANDING
+   ============================================ */
+
+.register-sidebar {
+  flex: 1;
+  background: linear-gradient(135deg, #6B0119, #8B1E2D);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+  min-height: 100vh;
+}
+
+/* Decorações de fundo */
+.register-decoration-top {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 300px;
+  background: rgba(139, 30, 45, 0.08);
+  border-radius: 50%;
+}
+
+.register-decoration-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
+  background: rgba(139, 30, 45, 0.05);
+  border-radius: 50%;
+}
+
+/* Logo */
+.register-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.register-logo-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-logo-text {
+  color: #F0E6E8;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+/* Content */
+.register-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 36px;
+}
+
+.register-badge {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  display: inline-block;
+  letter-spacing: 0.5px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.register-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #FFFFFF;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.register-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.register-divider {
+  width: 40px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+/* Stats */
+.register-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.register-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.register-stat-icon {
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.register-stat-value {
+  color: #FFFFFF;
+  font-weight: 600;
+  margin: 0;
+  font-size: 13px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.3;
+}
+
+.register-stat-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  margin: 2px 0 0 0;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+/* Quote */
+.register-quote {
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+  padding-left: 16px;
+}
+
+.register-quote-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* Footer da sidebar */
+.register-sidebar-footer {
+  position: relative;
+  z-index: 2;
+}
+
+.register-sidebar-footer-text {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 11px;
+  text-align: left;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+/* ============================================
+   SIDEBAR DIREITA - FORMULÁRIO
+   ============================================ */
+
+.register-form-wrapper {
+  flex: 1;
+  background-color: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+.register-form-container {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Form Header */
+.register-form-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.register-form-badge {
+  background: rgba(139, 30, 45, 0.1);
+  color: #8B1E2D;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  display: inline-block;
+  letter-spacing: 0.5px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.register-form-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1F2937;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.register-form-subtitle {
+  color: #1F2937;
+  font-size: 15px;
+  margin: 0;
+  line-height: 1.7;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* Form Card */
+.register-form-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 32px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Error Message */
+.register-error {
+  margin-bottom: 16px;
+  background: rgba(185, 28, 28, 0.08);
+  color: #7F1D1D;
+  padding: 14px 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(185, 28, 28, 0.15);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.register-error-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(185, 28, 28, 0.12);
+  color: #991B1B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.register-error-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.3;
+}
+
+.register-error-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #991B1B;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* Success Message */
+.register-success {
+  margin-bottom: 16px;
+  background: rgba(22, 163, 74, 0.08);
+  color: #14532D;
+  padding: 14px 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.register-success-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.register-success-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.3;
+}
+
+.register-success-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #14532D;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* Form Group */
+.register-form-group {
+  margin-bottom: 20px;
+}
+
+.register-form-label {
+  display: block;
+  font-weight: 600;
+  color: #1F2937;
+  font-size: 14px;
+  margin-bottom: 8px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.register-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: #F5F5F5;
+  border-radius: 4px;
+  border: 1px solid #E5E7EB;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s;
+  box-sizing: border-box;
+  font-family: 'Source Sans 3', sans-serif;
+  color: #1F2937;
+}
+
+.register-input:focus {
+  border-color: #8B1E2D;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(139, 30, 45, 0.1);
+}
+
+.register-input::placeholder {
+  color: #9CA3AF;
+}
+
+/* Submit Button */
+.register-btn {
+  width: 100%;
+  background: #8B1E2D;
+  padding: 12px;
+  min-height: 44px;
+  border-radius: 4px;
+  border: none;
   cursor: pointer;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 14px;
+  transition: all 0.3s;
+  margin-bottom: 24px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
 }
 
-button:focus {
-  outline: none;
+.register-btn:hover:not(:disabled) {
+  background: #6B0119;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
 }
 
-input:focus {
-  outline: none;
+.register-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Divider */
+.register-divider-form {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.register-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #E5E7EB;
+}
+
+.register-divider-text {
+  color: #9CA3AF;
+  font-size: 13px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+/* Secondary Button */
+.register-secondary-btn {
+  width: 100%;
+  background: transparent;
+  padding: 12px;
+  min-height: 44px;
+  border-radius: 4px;
+  border: 2px solid #8B1E2D;
+  cursor: pointer;
+  font-weight: 600;
+  color: #8B1E2D;
+  font-size: 14px;
+  transition: all 0.3s;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.register-secondary-btn:hover {
+  background: #8B1E2D;
+  color: #FFFFFF;
+  border-color: #8B1E2D;
+}
+
+/* Footer Notice */
+.register-footer-notice {
+  color: #9CA3AF;
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.7;
+  margin-top: 24px;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   RESPONSIVO
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .register-sidebar {
+    padding: 32px;
+  }
+  
+  .register-title {
+    font-size: 28px;
+  }
+  
+  .register-form-card {
+    padding: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .register-container {
+    flex-direction: column;
+  }
+  
+  .register-sidebar {
+    padding: 32px 24px;
+    min-height: 280px;
+  }
+  
+  .register-content {
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .register-title {
+    font-size: 24px;
+  }
+  
+  .register-decoration-top {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .register-decoration-bottom {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .register-form-wrapper {
+    padding: 24px 16px;
+    min-height: 60vh;
+  }
+  
+  .register-form-title {
+    font-size: 28px;
+  }
+  
+  .register-form-card {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-sidebar {
+    padding: 24px 16px;
+    min-height: 200px;
+  }
+  
+  .register-logo-text {
+    font-size: 16px;
+  }
+  
+  .register-title {
+    font-size: 20px;
+  }
+  
+  .register-description {
+    font-size: 13px;
+  }
+  
+  .register-form-wrapper {
+    padding: 16px 12px;
+  }
+  
+  .register-form-title {
+    font-size: 24px;
+  }
+  
+  .register-form-subtitle {
+    font-size: 14px;
+  }
+  
+  .register-form-card {
+    padding: 16px;
+  }
+  
+  .register-input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .register-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+  
+  .register-secondary-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
 }
