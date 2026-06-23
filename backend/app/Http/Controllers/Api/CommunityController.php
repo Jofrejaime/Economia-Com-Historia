@@ -28,6 +28,27 @@ class CommunityController extends Controller
 
     // ─── CATEGORIES ────────────────────────────────────────────────────────
 
+    /**
+     * @OA\Get(
+     *      path="/community/categories",
+     *      operationId="communityCategories",
+     *      tags={"Community"},
+     *      summary="Listar categorias da comunidade",
+     *      description="Lista todas as categorias do fórum da comunidade.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Categorias obtidas com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      )
+     * )
+     */
     public function categories(): JsonResponse
     {
         $categories = CommunityCategory::where('is_active', true)
@@ -37,6 +58,50 @@ class CommunityController extends Controller
         return response()->json(['data' => $categories]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/community/categories",
+     *      operationId="storeCommunityCategory",
+     *      tags={"Community"},
+     *      summary="Criar categoria de comunidade (Apenas Admin)",
+     *      description="Cria uma nova categoria no fórum.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"slug", "name"},
+     *              @OA\Property(property="slug", type="string", maxLength=100, example="discussao-geral"),
+     *              @OA\Property(property="name", type="string", maxLength=255, example="Discussão Geral"),
+     *              @OA\Property(property="description", type="string", maxLength=500, nullable=true, example="Tópicos gerais..."),
+     *              @OA\Property(property="access_level_id", type="string", example="public"),
+     *              @OA\Property(property="color_bg", type="string", example="#800020"),
+     *              @OA\Property(property="color_text", type="string", example="#FFFFFF"),
+     *              @OA\Property(property="cover_image_url", type="string", format="url", maxLength=500, nullable=true),
+     *              @OA\Property(property="sort_order", type="integer", minimum=0, default=0)
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="Categoria criada com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Category created successfully."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido (Requer admin)"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Erros de validação"
+     *      )
+     * )
+     */
     public function storeCategory(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -74,6 +139,27 @@ class CommunityController extends Controller
 
     // ─── TOPICS ────────────────────────────────────────────────────────────
 
+    /**
+     * @OA\Get(
+     *      path="/topics",
+     *      operationId="indexTopics",
+     *      tags={"Community"},
+     *      summary="Listar tópicos recentes",
+     *      description="Lista os tópicos de discussão publicados recentemente.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Tópicos obtidos com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      )
+     * )
+     */
     public function indexTopics(): JsonResponse
     {
         $topics = DiscussionTopic::with(['author', 'category'])
@@ -85,6 +171,45 @@ class CommunityController extends Controller
         return response()->json(['data' => $topics]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/topics",
+     *      operationId="storeTopic",
+     *      tags={"Community"},
+     *      summary="Criar novo tópico",
+     *      description="Cria um novo tópico numa categoria de comunidade se o utilizador tiver permissões.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"category_id", "title", "content"},
+     *              @OA\Property(property="category_id", type="string", format="uuid", example="category-uuid"),
+     *              @OA\Property(property="title", type="string", maxLength=255, example="Dúvida sobre o comércio colonial"),
+     *              @OA\Property(property="content", type="string", maxLength=5000, example="Gostaria de saber quais eram os principais portos...")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="Tópico criado com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Topic created successfully."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido à categoria"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Erro de validação"
+     *      )
+     * )
+     */
     public function storeTopic(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -144,6 +269,38 @@ class CommunityController extends Controller
         ], 201);
     }
 
+    /**
+     * @OA\Get(
+     *      path="/topics/{id}",
+     *      operationId="showTopic",
+     *      tags={"Community"},
+     *      summary="Visualizar detalhes de um tópico",
+     *      description="Obtém detalhes do tópico e incrementa a contagem de visualizações.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Detalhes obtidos com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Tópico não encontrado"
+     *      )
+     * )
+     */
     public function showTopic(string $id): JsonResponse
     {
         $topic = DiscussionTopic::with(['author', 'category'])->findOrFail($id);
@@ -154,6 +311,52 @@ class CommunityController extends Controller
         return response()->json(['data' => $topic]);
     }
 
+    /**
+     * @OA\Patch(
+     *      path="/topics/{id}",
+     *      operationId="updateTopic",
+     *      tags={"Community"},
+     *      summary="Atualizar um tópico",
+     *      description="Permite ao autor ou ao administrador atualizar o título e o conteúdo de um tópico.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"title", "content"},
+     *              @OA\Property(property="title", type="string", maxLength=255),
+     *              @OA\Property(property="content", type="string", maxLength=5000),
+     *              @OA\Property(property="status", type="string", enum={"published", "draft", "archived"})
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Tópico atualizado",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Topic updated successfully."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido (não é autor nem admin)"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Tópico não encontrado"
+     *      )
+     * )
+     */
     public function updateTopic(string $id, Request $request): JsonResponse
     {
         $topic = DiscussionTopic::findOrFail($id);
@@ -182,6 +385,42 @@ class CommunityController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Delete(
+     *      path="/topics/{id}",
+     *      operationId="destroyTopic",
+     *      tags={"Community"},
+     *      summary="Eliminar um tópico",
+     *      description="Elimina o tópico e todos os likes/seguidores/respostas associados.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Tópico eliminado",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Topic deleted successfully.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Tópico não encontrado"
+     *      )
+     * )
+     */
     public function destroyTopic(string $id, Request $request): JsonResponse
     {
         $topic = DiscussionTopic::findOrFail($id);
@@ -210,6 +449,42 @@ class CommunityController extends Controller
 
     // ─── TOPIC LIKES ────────────────────────────────────────────────────────
 
+    /**
+     * @OA\Post(
+     *      path="/topics/{id}/like",
+     *      operationId="likeTopic",
+     *      tags={"Community"},
+     *      summary="Gostar de um tópico",
+     *      description="Regista um 'like' no tópico.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="Gosto registado",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Topic liked.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Tópico não encontrado"
+     *      ),
+     *      @OA\Response(
+     *          response=409,
+     *          description="Já gostou anteriormente"
+     *      )
+     * )
+     */
     public function likeTopic(string $id, Request $request): JsonResponse
     {
         $topic = DiscussionTopic::findOrFail($id);
@@ -236,6 +511,38 @@ class CommunityController extends Controller
         return response()->json(['message' => 'Topic liked.'], 201);
     }
 
+    /**
+     * @OA\Delete(
+     *      path="/topics/{id}/like",
+     *      operationId="unlikeTopic",
+     *      tags={"Community"},
+     *      summary="Remover gosto de um tópico",
+     *      description="Remove o 'like' previamente dado a um tópico.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Gosto removido",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Topic unliked.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Tópico ou gosto não encontrado"
+     *      )
+     * )
+     */
     public function unlikeTopic(string $id, Request $request): JsonResponse
     {
         $topic = DiscussionTopic::findOrFail($id);
@@ -254,6 +561,42 @@ class CommunityController extends Controller
 
     // ─── TOPIC FOLLOWERS ────────────────────────────────────────────────────
 
+    /**
+     * @OA\Post(
+     *      path="/topics/{id}/follow",
+     *      operationId="followTopic",
+     *      tags={"Community"},
+     *      summary="Seguir um tópico",
+     *      description="Passa a seguir as atualizações do tópico.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="A seguir",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Topic followed.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Tópico não encontrado"
+     *      ),
+     *      @OA\Response(
+     *          response=409,
+     *          description="Já segue anteriormente"
+     *      )
+     * )
+     */
     public function followTopic(string $id, Request $request): JsonResponse
     {
         $topic = DiscussionTopic::findOrFail($id);
@@ -280,6 +623,38 @@ class CommunityController extends Controller
         return response()->json(['message' => 'Topic followed.'], 201);
     }
 
+    /**
+     * @OA\Delete(
+     *      path="/topics/{id}/follow",
+     *      operationId="unfollowTopic",
+     *      tags={"Community"},
+     *      summary="Deixar de seguir tópico",
+     *      description="Remove o utilizador da lista de seguidores do tópico.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Deixou de seguir",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Topic unfollowed.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Tópico ou seguidor não encontrado"
+     *      )
+     * )
+     */
     public function unfollowTopic(string $id, Request $request): JsonResponse
     {
         $topic = DiscussionTopic::findOrFail($id);
@@ -298,6 +673,38 @@ class CommunityController extends Controller
 
     // ─── REPLIES ────────────────────────────────────────────────────────────
 
+    /**
+     * @OA\Get(
+     *      path="/topics/{id}/replies",
+     *      operationId="topicReplies",
+     *      tags={"Community"},
+     *      summary="Listar respostas de um tópico",
+     *      description="Lista as respostas dadas no tópico em ordem cronológica.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Respostas obtidas",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Tópico não encontrado"
+     *      )
+     * )
+     */
     public function topicReplies(string $id): JsonResponse
     {
         $topic = DiscussionTopic::findOrFail($id);
@@ -310,6 +717,51 @@ class CommunityController extends Controller
         return response()->json(['data' => $replies]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/topics/{id}/replies",
+     *      operationId="storeReply",
+     *      tags={"Community"},
+     *      summary="Responder a um tópico",
+     *      description="Adiciona uma nova resposta a um tópico, opcionalmente referenciando outra resposta.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"content"},
+     *              @OA\Property(property="content", type="string", maxLength=3000, example="Excelente reflexão! Concordo plenamente."),
+     *              @OA\Property(property="parent_reply_id", type="string", format="uuid", nullable=true)
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="Resposta registada",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Reply created successfully."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Tópico não encontrado"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Erro de validação"
+     *      )
+     * )
+     */
     public function storeReply(string $id, Request $request): JsonResponse
     {
         $topic = DiscussionTopic::findOrFail($id);
@@ -371,6 +823,50 @@ class CommunityController extends Controller
         ], 201);
     }
 
+    /**
+     * @OA\Patch(
+     *      path="/replies/{id}",
+     *      operationId="updateReply",
+     *      tags={"Community"},
+     *      summary="Editar resposta",
+     *      description="Permite ao autor ou admin editar o conteúdo de uma resposta.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID da resposta",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"content"},
+     *              @OA\Property(property="content", type="string", maxLength=3000)
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Resposta editada",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Reply updated successfully."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Resposta não encontrada"
+     *      )
+     * )
+     */
     public function updateReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);
@@ -395,6 +891,42 @@ class CommunityController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Delete(
+     *      path="/replies/{id}",
+     *      operationId="destroyReply",
+     *      tags={"Community"},
+     *      summary="Eliminar uma resposta",
+     *      description="Elimina a resposta e quaisquer respostas filhas recursivamente.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID da resposta",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Resposta eliminada",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Reply deleted successfully.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Resposta não encontrada"
+     *      )
+     * )
+     */
     public function destroyReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);
@@ -434,6 +966,42 @@ class CommunityController extends Controller
 
     // ─── REPLY LIKES ────────────────────────────────────────────────────────
 
+    /**
+     * @OA\Post(
+     *      path="/replies/{id}/like",
+     *      operationId="likeReply",
+     *      tags={"Community"},
+     *      summary="Gostar de uma resposta",
+     *      description="Regista gosto numa resposta.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID da resposta",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="Gosto registado",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Reply liked.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Resposta não encontrada"
+     *      ),
+     *      @OA\Response(
+     *          response=409,
+     *          description="Já gostou anteriormente"
+     *      )
+     * )
+     */
     public function likeReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);
@@ -460,6 +1028,38 @@ class CommunityController extends Controller
         return response()->json(['message' => 'Reply liked.'], 201);
     }
 
+    /**
+     * @OA\Delete(
+     *      path="/replies/{id}/like",
+     *      operationId="unlikeReply",
+     *      tags={"Community"},
+     *      summary="Remover gosto de resposta",
+     *      description="Remove gosto anteriormente registado em resposta.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID da resposta",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Gosto removido",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Reply unliked.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Gosto ou resposta não encontrados"
+     *      )
+     * )
+     */
     public function unlikeReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);
@@ -478,6 +1078,47 @@ class CommunityController extends Controller
 
     // ─── REPLY ACCEPTED ─────────────────────────────────────────────────────
 
+    /**
+     * @OA\Post(
+     *      path="/replies/{id}/accept",
+     *      operationId="acceptReply",
+     *      tags={"Community"},
+     *      summary="Aceitar resposta como solução",
+     *      description="Marca uma resposta como a solução aceite para o tópico. Apenas o autor do tópico ou o admin o podem fazer.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID da resposta",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Marcado como aceite",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Reply marked as accepted."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido (não é o autor do tópico)"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Resposta não encontrada"
+     *      ),
+     *      @OA\Response(
+     *          response=409,
+     *          description="A resposta já está aceite"
+     *      )
+     * )
+     */
     public function acceptReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);

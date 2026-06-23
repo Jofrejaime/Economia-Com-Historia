@@ -15,6 +15,31 @@ use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
+    /**
+     * @OA\Get(
+     *      path="/profile",
+     *      operationId="showProfile",
+     *      tags={"Profile"},
+     *      summary="Visualizar perfil",
+     *      description="Retorna os detalhes do perfil do utilizador autenticado.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Perfil obtido com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="profile", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Perfil não encontrado"
+     *      )
+     * )
+     */
     public function show(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
@@ -29,6 +54,44 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Put(
+     *      path="/profile",
+     *      operationId="updateProfile",
+     *      tags={"Profile"},
+     *      summary="Atualizar perfil",
+     *      description="Atualiza as informações do perfil do utilizador autenticado.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              @OA\Property(property="display_name", type="string", maxLength=100, example="João Silva"),
+     *              @OA\Property(property="full_name", type="string", maxLength=255, nullable=true, example="João Maria Silva"),
+     *              @OA\Property(property="institution", type="string", maxLength=255, nullable=true, example="ISPTEC"),
+     *              @OA\Property(property="province", type="string", nullable=true, example="Luanda"),
+     *              @OA\Property(property="bio", type="string", maxLength=2000, nullable=true, example="Estudante de engenharia..."),
+     *              @OA\Property(property="website_url", type="string", format="url", maxLength=500, nullable=true, example="https://exemplo.com"),
+     *              @OA\Property(property="research_areas", type="array", @OA\Items(type="string"), nullable=true, example={"História Monetária", "Caminho de Ferro de Benguela"})
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Perfil atualizado com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Profile updated successfully."),
+     *              @OA\Property(property="profile", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Erro de validação de dados"
+     *      )
+     * )
+     */
     public function update(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -75,6 +138,47 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/profile/avatar",
+     *      operationId="updateAvatar",
+     *      tags={"Profile"},
+     *      summary="Atualizar foto de perfil (avatar)",
+     *      description="Permite carregar uma nova imagem de perfil.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\MediaType(
+     *              mediaType="multipart/form-data",
+     *              @OA\Schema(
+     *                  required={"avatar"},
+     *                  @OA\Property(
+     *                      property="avatar",
+     *                      description="Ficheiro de imagem (jpeg, png, gif, webp, máx 5MB)",
+     *                      type="string",
+     *                      format="binary"
+     *                  )
+     *              )
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Avatar atualizado com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Avatar uploaded successfully."),
+     *              @OA\Property(property="avatar_url", type="string", format="url", example="http://localhost:8000/storage/avatars/...webp")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Erro de validação (tamanho, formato ou dimensões inválidas)"
+     *      )
+     * )
+     */
     public function updateAvatar(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -113,6 +217,40 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Put(
+     *      path="/profile/password",
+     *      operationId="updatePassword",
+     *      tags={"Profile"},
+     *      summary="Alterar senha do perfil",
+     *      description="Permite ao utilizador alterar a sua senha de acesso, revogando todas as outras sessões ativas.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"current_password", "password", "password_confirmation"},
+     *              @OA\Property(property="current_password", type="string", format="password", example="OldPassword123!"),
+     *              @OA\Property(property="password", type="string", format="password", example="NewPassword123!"),
+     *              @OA\Property(property="password_confirmation", type="string", format="password", example="NewPassword123!")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Senha alterada com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Password changed successfully. Other sessions have been revoked.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Validação incorreta de senhas"
+     *      )
+     * )
+     */
     public function updatePassword(Request $request): JsonResponse
     {
         $validated = $request->validate([

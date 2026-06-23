@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use OpenApi\Annotations as OA;
+
 use App\Mail\EmailVerificationMail;
 use App\Mail\PasswordResetMail;
 use App\Models\User;
@@ -23,6 +25,42 @@ class AuthController extends Controller
 {
     private const REGISTERABLE_ROLES = ['estudante', 'investigador', 'professor'];
 
+    /**
+     * @OA\Post(
+     *      path="/auth/register",
+     *      operationId="register",
+     *      tags={"Authentication"},
+     *      summary="Registar um novo utilizador",
+     *      description="Regista um novo utilizador no sistema com perfil e níveis iniciais, e envia email de verificação.",
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"email", "password", "password_confirmation", "display_name"},
+     *              @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *              @OA\Property(property="password", type="string", format="password", example="Password123!"),
+     *              @OA\Property(property="password_confirmation", type="string", format="password", example="Password123!"),
+     *              @OA\Property(property="display_name", type="string", maxLength=100, example="João Silva"),
+     *              @OA\Property(property="full_name", type="string", maxLength=255, nullable=true, example="João Maria Silva"),
+     *              @OA\Property(property="institution", type="string", maxLength=255, nullable=true, example="ISPTEC"),
+     *              @OA\Property(property="province", type="string", nullable=true, example="Luanda"),
+     *              @OA\Property(property="role", type="string", enum={"estudante", "investigador", "professor"}, nullable=true, example="estudante")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="Registo efetuado com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Registered successfully. Please verify your email."),
+     *              @OA\Property(property="token", type="string", example="session_token_example"),
+     *              @OA\Property(property="user", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Dados de validação inválidos"
+     *      )
+     * )
+     */
     public function register(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -112,6 +150,41 @@ class AuthController extends Controller
         return response()->json($response, 201);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/auth/login",
+     *      operationId="login",
+     *      tags={"Authentication"},
+     *      summary="Efetuar login",
+     *      description="Autentica um utilizador com as suas credenciais e retorna um token de sessão.",
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"email", "password"},
+     *              @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *              @OA\Property(property="password", type="string", format="password", example="Password123!")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Login efetuado com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Login successful."),
+     *              @OA\Property(property="token", type="string", example="session_token_example"),
+     *              @OA\Property(property="user", type="object"),
+     *              @OA\Property(property="profile", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Conta desativada ou email não verificado"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Credenciais inválidas"
+     *      )
+     * )
+     */
     public function login(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -148,6 +221,32 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/auth/refresh",
+     *      operationId="refresh",
+     *      tags={"Authentication"},
+     *      summary="Renovar token de sessão",
+     *      description="Gera um novo token de sessão substituindo o atual.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Token renovado com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Token refreshed."),
+     *              @OA\Property(property="token", type="string", example="new_session_token_example")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Sessão expirada"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Token inválido ou ausente"
+     *      )
+     * )
+     */
     public function refresh(Request $request): JsonResponse
     {
         $token = $this->extractBearerOrSessionToken($request);
@@ -177,6 +276,23 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/auth/logout",
+     *      operationId="logout",
+     *      tags={"Authentication"},
+     *      summary="Terminar sessão",
+     *      description="Invalida o token de sessão ativo.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Terminou sessão com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Logged out.")
+     *          )
+     *      )
+     * )
+     */
     public function logout(Request $request): JsonResponse
     {
         $token = $this->extractBearerOrSessionToken($request);
@@ -188,6 +304,32 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out.']);
     }
 
+    /**
+     * @OA\Get(
+     *      path="/me",
+     *      operationId="me",
+     *      tags={"Authentication"},
+     *      summary="Obter dados do utilizador autenticado",
+     *      description="Retorna o perfil do utilizador autenticado, as permissões de acesso, o nível atual e as medalhas (badges).",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Detalhes do perfil obtidos com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="user", type="object"),
+     *              @OA\Property(property="profile", type="object"),
+     *              @OA\Property(property="access_grants", type="array", @OA\Items(type="object")),
+     *              @OA\Property(property="user_level", type="object"),
+     *              @OA\Property(property="level_definition", type="object"),
+     *              @OA\Property(property="badges", type="array", @OA\Items(type="object"))
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      )
+     * )
+     */
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -243,6 +385,34 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *      path="/auth/sessions",
+     *      operationId="sessions",
+     *      tags={"Authentication"},
+     *      summary="Listar sessões ativas",
+     *      description="Obtém uma lista de todas as sessões ativas do utilizador autenticado.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Lista de sessões obtida com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="array", @OA\Items(
+     *                  @OA\Property(property="id", type="string", format="uuid", example="uuid-string"),
+     *                  @OA\Property(property="ip_address", type="string", format="ipv4", example="127.0.0.1"),
+     *                  @OA\Property(property="user_agent", type="string", example="Mozilla/5.0..."),
+     *                  @OA\Property(property="expires_at", type="string", format="date-time", example="2026-07-23T14:32:06Z"),
+     *                  @OA\Property(property="created_at", type="string", format="date-time", example="2026-06-23T14:32:06Z"),
+     *                  @OA\Property(property="is_current", type="boolean", example=true)
+     *              ))
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      )
+     * )
+     */
     public function sessions(Request $request): JsonResponse
     {
         $currentToken = $this->extractBearerOrSessionToken($request);
@@ -265,6 +435,39 @@ class AuthController extends Controller
         return response()->json(['data' => $sessions]);
     }
 
+    /**
+     * @OA\Delete(
+     *      path="/auth/sessions/{id}",
+     *      operationId="destroySession",
+     *      tags={"Authentication"},
+     *      summary="Revogar uma sessão ativa",
+     *      description="Encerra uma sessão específica do utilizador.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID da sessão a revogar",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Sessão revogada com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Session revoked."),
+     *              @OA\Property(property="id", type="string", example="session-id")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Sessão não encontrada"
+     *      )
+     * )
+     */
     public function destroySession(Request $request, string $id): JsonResponse
     {
         $session = DB::table('user_sessions')
@@ -281,6 +484,28 @@ class AuthController extends Controller
         return response()->json(['message' => 'Session revoked.', 'id' => $id]);
     }
 
+    /**
+     * @OA\Delete(
+     *      path="/auth/sessions/others",
+     *      operationId="destroyOtherSessions",
+     *      tags={"Authentication"},
+     *      summary="Revogar outras sessões ativas",
+     *      description="Encerra todas as outras sessões ativas do utilizador, mantendo apenas a atual.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Outras sessões revogadas com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Other sessions revoked."),
+     *              @OA\Property(property="revoked_count", type="integer", example=2)
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      )
+     * )
+     */
     public function destroyOtherSessions(Request $request): JsonResponse
     {
         $currentToken = $this->extractBearerOrSessionToken($request);
@@ -299,6 +524,37 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/auth/forgot-password",
+     *      operationId="forgotPassword",
+     *      tags={"Authentication"},
+     *      summary="Solicitar recuperação de senha",
+     *      description="Envia um link de recuperação para o email indicado se este existir.",
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"email"},
+     *              @OA\Property(property="email", type="string", format="email", example="user@example.com")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Solicitação efetuada (mensagem de sucesso padrão por segurança)",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="If this email exists, a reset link has been sent.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Erro de validação"
+     *      ),
+     *      @OA\Response(
+     *          response=500,
+     *          description="Erro de envio de email"
+     *      )
+     * )
+     */
     public function forgotPassword(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -350,6 +606,35 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/auth/reset-password",
+     *      operationId="resetPassword",
+     *      tags={"Authentication"},
+     *      summary="Redefinir senha",
+     *      description="Altera a senha do utilizador utilizando o token recebido por email.",
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"token", "password", "password_confirmation"},
+     *              @OA\Property(property="token", type="string", example="reset_token_here"),
+     *              @OA\Property(property="password", type="string", format="password", example="NewPassword123!"),
+     *              @OA\Property(property="password_confirmation", type="string", format="password", example="NewPassword123!")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Senha redefinida com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Password reset successfully.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Token inválido, expirado ou erro de validação"
+     *      )
+     * )
+     */
     public function resetPassword(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -389,6 +674,33 @@ class AuthController extends Controller
         return response()->json(['message' => 'Password reset successfully.']);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/auth/verify-email",
+     *      operationId="verifyEmail",
+     *      tags={"Authentication"},
+     *      summary="Confirmar endereço de email",
+     *      description="Valida a conta de utilizador através do token recebido.",
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"token"},
+     *              @OA\Property(property="token", type="string", example="verification_token_here")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Email verificado com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Email verified successfully.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Token inválido ou expirado"
+     *      )
+     * )
+     */
     public function verifyEmail(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -418,6 +730,29 @@ class AuthController extends Controller
         return response()->json(['message' => 'Email verified successfully.']);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/auth/resend-verification",
+     *      operationId="resendVerification",
+     *      tags={"Authentication"},
+     *      summary="Reenviar email de verificação",
+     *      description="Solicita novo email de validação de conta.",
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"email"},
+     *              @OA\Property(property="email", type="string", format="email", example="user@example.com")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Email enviado",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="If the account exists, a verification email was sent.")
+     *          )
+     *      )
+     * )
+     */
     public function resendVerification(Request $request): JsonResponse
     {
         $validated = $request->validate([
