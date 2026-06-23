@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <!-- Categorias -->
+    <!-- Categorias - CARROSSEL INFINITO -->
     <div class="contents-categories">
       <div class="contents-section-header">
         <h2 class="contents-section-title">Explorar por Categoria</h2>
@@ -27,22 +27,42 @@
         <p class="contents-section-subtitle">Navegue através das principais áreas de investigação do arquivo</p>
       </div>
 
-      <div class="contents-categories-grid">
-        <div *ngFor="let cat of categories" class="contents-category-card">
-          <div>
-            <div class="contents-category-icon" [style.background]="cat.color + '20'">
-              <svg width="28" height="28" viewBox="0 0 24 24" [attr.fill]="cat.color"><path [attr.d]="cat.icon"/></svg>
+      <div class="contents-categories-wrapper">
+        <div class="contents-categories-track">
+          <!-- Primeira cópia dos cards -->
+          <div *ngFor="let cat of categories" class="contents-category-card">
+            <div>
+              <div class="contents-category-icon" [style.background]="cat.color + '20'">
+                <svg width="28" height="28" viewBox="0 0 24 24" [attr.fill]="cat.color"><path [attr.d]="cat.icon"/></svg>
+              </div>
+              <h3 class="contents-category-name">{{ cat.name }}</h3>
+              <p class="contents-category-description">{{ cat.description }}</p>
             </div>
-            <h3 class="contents-category-name">{{ cat.name }}</h3>
-            <p class="contents-category-description">{{ cat.description }}</p>
+            <div class="contents-category-footer">
+              <span class="contents-category-count">{{ cat.documentCount }} documentos</span>
+              <span class="contents-category-link" [style.color]="cat.color">
+                {{ cat.isExclusive ? 'Pedir Acesso →' : 'Explorar →' }}
+              </span>
+            </div>
+            <div *ngIf="cat.isExclusive" class="contents-category-badge">EXCLUSIVO</div>
           </div>
-          <div class="contents-category-footer">
-            <span class="contents-category-count">{{ cat.documentCount }} documentos</span>
-            <span class="contents-category-link" [style.color]="cat.color">
-              {{ cat.isExclusive ? 'Pedir Acesso →' : 'Explorar →' }}
-            </span>
+          <!-- Duplicação para efeito infinito -->
+          <div *ngFor="let cat of categories" class="contents-category-card">
+            <div>
+              <div class="contents-category-icon" [style.background]="cat.color + '20'">
+                <svg width="28" height="28" viewBox="0 0 24 24" [attr.fill]="cat.color"><path [attr.d]="cat.icon"/></svg>
+              </div>
+              <h3 class="contents-category-name">{{ cat.name }}</h3>
+              <p class="contents-category-description">{{ cat.description }}</p>
+            </div>
+            <div class="contents-category-footer">
+              <span class="contents-category-count">{{ cat.documentCount }} documentos</span>
+              <span class="contents-category-link" [style.color]="cat.color">
+                {{ cat.isExclusive ? 'Pedir Acesso →' : 'Explorar →' }}
+              </span>
+            </div>
+            <div *ngIf="cat.isExclusive" class="contents-category-badge">EXCLUSIVO</div>
           </div>
-          <div *ngIf="cat.isExclusive" class="contents-category-badge">EXCLUSIVO</div>
         </div>
       </div>
     </div>

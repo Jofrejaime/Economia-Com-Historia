@@ -166,11 +166,12 @@ p, span, div, button, input, textarea, a {
 }
 
 /* ============================================
-   CATEGORIES SECTION
+   CATEGORIES - CARROSSEL INFINITO
    ============================================ */
 
 .contents-categories {
   margin-bottom: 96px;
+  overflow: hidden;
 }
 
 .contents-section-header {
@@ -201,10 +202,21 @@ p, span, div, button, input, textarea, a {
   line-height: 1.7;
 }
 
-.contents-categories-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.contents-categories-wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.contents-categories-track {
+  display: flex;
   gap: 28px;
+  width: max-content;
+  animation: scrollCategories 30s linear infinite;
+}
+
+.contents-categories-wrapper:hover .contents-categories-track {
+  animation-play-state: paused;
 }
 
 .contents-category-card {
@@ -219,12 +231,46 @@ p, span, div, button, input, textarea, a {
   justify-content: space-between;
   padding: 32px;
   background: #FFFFFF;
+  flex: 0 0 320px;
+  min-width: 280px;
   transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .contents-category-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(139, 30, 45, 0.1);
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(139, 30, 45, 0.15);
+  z-index: 2;
+}
+
+@keyframes scrollCategories {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.contents-categories-wrapper::before,
+.contents-categories-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.contents-categories-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, #F5F5F5, transparent);
+}
+
+.contents-categories-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, #F5F5F5, transparent);
 }
 
 .contents-category-icon {
@@ -349,7 +395,6 @@ p, span, div, button, input, textarea, a {
   color: #6B0119;
 }
 
-/* Lista de documentos estilo G1 - 100% width */
 .contents-docs-list {
   display: flex;
   flex-direction: column;
@@ -458,7 +503,6 @@ p, span, div, button, input, textarea, a {
   gap: 32px;
 }
 
-/* Discussions Widget */
 .contents-widget-discussions {
   background: #eff4ff;
   border-radius: 8px;
@@ -526,7 +570,6 @@ p, span, div, button, input, textarea, a {
   color: #FFFFFF;
 }
 
-/* Scholars Widget */
 .contents-widget-scholars {
   background: #8B1E2D;
   border-radius: 8px;
@@ -619,7 +662,6 @@ p, span, div, button, input, textarea, a {
   line-height: 1.7;
 }
 
-/* Quote Widget */
 .contents-widget-quote {
   background: #eff4ff;
   border-radius: 8px;
@@ -646,7 +688,7 @@ p, span, div, button, input, textarea, a {
 }
 
 /* ============================================
-   RESPONSIVIDADE
+   RESPONSIVIDADE - CARROSSEL INFINITO
    ============================================ */
 
 @media (max-width: 1024px) {
@@ -662,8 +704,10 @@ p, span, div, button, input, textarea, a {
     font-size: 40px;
   }
   
-  .contents-categories-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .contents-category-card {
+    flex: 0 0 280px;
+    min-width: 240px;
+    padding: 24px;
   }
   
   .contents-doc-item-image {
@@ -697,8 +741,15 @@ p, span, div, button, input, textarea, a {
     gap: 40px;
   }
   
-  .contents-categories-grid {
-    grid-template-columns: 1fr;
+  .contents-category-card {
+    flex: 0 0 260px;
+    min-width: 220px;
+    padding: 20px;
+  }
+  
+  .contents-categories-wrapper::before,
+  .contents-categories-wrapper::after {
+    width: 30px;
   }
   
   .contents-hero-actions {
@@ -756,7 +807,22 @@ p, span, div, button, input, textarea, a {
   }
   
   .contents-category-card {
-    padding: 24px;
+    flex: 0 0 240px;
+    min-width: 200px;
+    padding: 16px;
+  }
+  
+  .contents-category-name {
+    font-size: 16px;
+  }
+  
+  .contents-category-description {
+    font-size: 12px;
+  }
+  
+  .contents-categories-wrapper::before,
+  .contents-categories-wrapper::after {
+    width: 20px;
   }
   
   .contents-doc-item-image {
