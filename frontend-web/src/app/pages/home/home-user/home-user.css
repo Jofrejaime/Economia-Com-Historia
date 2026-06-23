@@ -738,3 +738,14 @@ p, span, div, button, input, textarea, a {
     padding: 24px;
   }
 }
+
+/* ============================================
+   STICKY HEADER - CORREÇÃO
+   ============================================ */
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
