@@ -39,8 +39,8 @@ export function HomeScreen() {
               <View style={styles.featuredBody}>
                 <Text style={styles.featuredTag}>JINDUNGO</Text>
                 <Text style={styles.featuredTitle}>A Economia do Petróleo em Angola: Riqueza, Dependência e Perspectivas</Text>
-                <TouchableOpacity style={styles.featuredButton} onPress={() => navigation.navigate('Content')}>
-                  <Text style={styles.featuredButtonText}>Ler</Text>
+                <TouchableOpacity style={styles.featuredButton} onPress={() => navigation.navigate('Content', { category: 'jindungo' })}>
+                  <Text style={styles.featuredButtonText}>Explorar mais Jindungo</Text>
                 </TouchableOpacity>
               </View>
             </ImageBackground>
@@ -72,6 +72,81 @@ export function HomeScreen() {
               <Text style={styles.cardTitle}>Kwanza: História e Desafios da Moeda Nacional</Text>
               <Text style={styles.cardMeta}>14 min · áudio disponível</Text>
             </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Explore by Format Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitleSmall}>Explorar por Formato</Text>
+          
+          <TouchableOpacity 
+            style={styles.formatCard} 
+            onPress={() => navigation.navigate('Content', { category: 'jindungo' })}
+          >
+            <View style={[styles.formatIcon, { backgroundColor: '#FF6B6B' }]}>
+              <Ionicons name="flame" size={24} color="white" />
+            </View>
+            <View style={styles.formatBody}>
+              <Text style={styles.formatTitle}>Jindungo</Text>
+              <Text style={styles.formatDesc}>Análises profundas</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={appTheme.colors.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.formatCard} 
+            onPress={() => navigation.navigate('Content', { category: 'micro' })}
+          >
+            <View style={[styles.formatIcon, { backgroundColor: '#FFD93D' }]}>
+              <Ionicons name="flash" size={24} color="white" />
+            </View>
+            <View style={styles.formatBody}>
+              <Text style={styles.formatTitle}>Micro Textos</Text>
+              <Text style={styles.formatDesc}>Leitura rápida</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={appTheme.colors.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.formatCard} 
+            onPress={() => navigation.navigate('Content', { category: 'podcast' })}
+          >
+            <View style={[styles.formatIcon, { backgroundColor: '#6BCB77' }]}>
+              <Ionicons name="headset" size={24} color="white" />
+            </View>
+            <View style={styles.formatBody}>
+              <Text style={styles.formatTitle}>Podcasts</Text>
+              <Text style={styles.formatDesc}>Aprende ouvindo</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={appTheme.colors.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.formatCard} 
+            onPress={() => navigation.navigate('Content', { category: 'video' })}
+          >
+            <View style={[styles.formatIcon, { backgroundColor: '#4D96FF' }]}>
+              <Ionicons name="videocam" size={24} color="white" />
+            </View>
+            <View style={styles.formatBody}>
+              <Text style={styles.formatTitle}>Vídeos</Text>
+              <Text style={styles.formatDesc}>Conteúdo em vídeo</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={appTheme.colors.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.formatCard} 
+            onPress={() => navigation.navigate('Content', { category: 'series' })}
+          >
+            <View style={[styles.formatIcon, { backgroundColor: '#A78BFA' }]}>
+              <Ionicons name="book" size={24} color="white" />
+            </View>
+            <View style={styles.formatBody}>
+              <Text style={styles.formatTitle}>Séries</Text>
+              <Text style={styles.formatDesc}>Conteúdo em série</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={appTheme.colors.textMuted} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -217,6 +292,37 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   cardMeta: {
+    color: appTheme.colors.textMuted,
+    fontSize: 12,
+  },
+  formatCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: appTheme.colors.surface,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+  },
+  formatIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  formatBody: {
+    flex: 1,
+  },
+  formatTitle: {
+    color: appTheme.colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  formatDesc: {
     color: appTheme.colors.textMuted,
     fontSize: 12,
   }
