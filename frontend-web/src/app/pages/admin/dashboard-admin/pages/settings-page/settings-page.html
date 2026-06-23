@@ -32,9 +32,9 @@
     <div class="settings-section">
       <h2 class="section-title">Segurança</h2>
       <div class="form-group toggle">
-        <div>
-          <label>Autenticação de Dois Factores</label>
-          <p class="form-hint">Requerer código adicional no login</p>
+        <div class="toggle-label">
+          <span class="toggle-title">Autenticação de Dois Factores</span>
+          <span class="toggle-desc">Requerer código adicional no login</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" [(ngModel)]="twoFactorAuth">
@@ -43,11 +43,11 @@
       </div>
       <div class="form-group">
         <label>Tempo de Sessão (minutos)</label>
-        <input type="number" [(ngModel)]="sessionTimeout" class="form-input" style="width: 120px;">
+        <input type="number" [(ngModel)]="sessionTimeout" class="form-input form-input-sm">
       </div>
       <div class="form-group">
         <label>Tentativas de Login máximas</label>
-        <input type="number" [(ngModel)]="maxLoginAttempts" class="form-input" style="width: 120px;">
+        <input type="number" [(ngModel)]="maxLoginAttempts" class="form-input form-input-sm">
       </div>
     </div>
 
@@ -55,9 +55,9 @@
     <div class="settings-section">
       <h2 class="section-title">Notificações</h2>
       <div class="form-group toggle">
-        <div>
-          <label>Notificações por Email</label>
-          <p class="form-hint">Receber alertas por email</p>
+        <div class="toggle-label">
+          <span class="toggle-title">Notificações por Email</span>
+          <span class="toggle-desc">Receber alertas por email</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" [(ngModel)]="emailNotifications">
@@ -65,9 +65,9 @@
         </label>
       </div>
       <div class="form-group toggle">
-        <div>
-          <label>Alertas do Sistema</label>
-          <p class="form-hint">Notificações sobre atividades do sistema</p>
+        <div class="toggle-label">
+          <span class="toggle-title">Alertas do Sistema</span>
+          <span class="toggle-desc">Notificações sobre atividades do sistema</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" [(ngModel)]="systemAlerts">
@@ -75,9 +75,9 @@
         </label>
       </div>
       <div class="form-group toggle">
-        <div>
-          <label>Resumo Semanal</label>
-          <p class="form-hint">Receber resumo de atividades semanais</p>
+        <div class="toggle-label">
+          <span class="toggle-title">Resumo Semanal</span>
+          <span class="toggle-desc">Receber resumo de atividades semanais</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" [(ngModel)]="weeklyDigest">
@@ -90,9 +90,9 @@
     <div class="settings-section">
       <h2 class="section-title">Conteúdos</h2>
       <div class="form-group toggle">
-        <div>
-          <label>Aprovação Automática</label>
-          <p class="form-hint">Publicar conteúdos sem revisão</p>
+        <div class="toggle-label">
+          <span class="toggle-title">Aprovação Automática</span>
+          <span class="toggle-desc">Publicar conteúdos sem revisão</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" [(ngModel)]="autoApproveContent">
@@ -100,9 +100,9 @@
         </label>
       </div>
       <div class="form-group toggle">
-        <div>
-          <label>Revisão por Pares</label>
-          <p class="form-hint">Requerer revisão antes da publicação</p>
+        <div class="toggle-label">
+          <span class="toggle-title">Revisão por Pares</span>
+          <span class="toggle-desc">Requerer revisão antes da publicação</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" [(ngModel)]="requirePeerReview">
@@ -111,7 +111,7 @@
       </div>
       <div class="form-group">
         <label>Tamanho máximo de ficheiro (MB)</label>
-        <input type="number" [(ngModel)]="maxFileSize" class="form-input" style="width: 120px;">
+        <input type="number" [(ngModel)]="maxFileSize" class="form-input form-input-sm">
       </div>
       <div class="form-group">
         <label>Tipos de ficheiro permitidos</label>

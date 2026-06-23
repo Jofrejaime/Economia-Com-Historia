@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -15,7 +15,10 @@ export class DashboardAdminComponent {
   currentRoute = '';
   pendingCount = 12;
   pendingReportsCount = 4;
-   unreadNotificationsCount = 0;
+  unreadNotificationsCount = 0;
+  
+  // Propriedade para sidebar
+  isSidebarCollapsed: boolean = false;
 
   constructor(
     private router: Router,
@@ -34,22 +37,39 @@ export class DashboardAdminComponent {
 
   navigateTo(path: string): void {
     this.router.navigate([path]);
+    // Fecha a sidebar no mobile após navegar
+    if (window.innerWidth <= 768) {
+      this.isSidebarCollapsed = true;
+    }
   }
 
-  // ===== LOGOUT CORRIGIDO =====
+  // Método para alternar sidebar
+  toggleSidebar(): void {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  // ===== LOGOUT =====
   async logout(): Promise<void> {
     try {
-      // Se o AuthService tiver um método logout que retorna Promise
       await this.authService.logout();
       this.router.navigate(['/landing']);
     } catch (error) {
-      // Fallback: logout local mesmo se o serviço falhar
       console.warn('Logout com fallback local:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('refresh_token');
-      // Limpar outros dados de sessão se necessário
       sessionStorage.clear();
       this.router.navigate(['/landing']);
+    }
+  }
+
+  // ===== FECHA SIDEBAR AUTOMATICAMENTE EM TELAS PEQUENAS (CORRIGIDO) =====
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (window.innerWidth > 768 && this.isSidebarCollapsed) {
+      this.isSidebarCollapsed = false;
+    }
+    if (window.innerWidth <= 768 && !this.isSidebarCollapsed) {
+      this.isSidebarCollapsed = true;
     }
   }
 }

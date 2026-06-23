@@ -1,21 +1,53 @@
-/* Reset e Fontes */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+/* ============================================
+   DASHBOARD ADMIN - DESIGN SYSTEM (RESPONSIVO)
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+/* ============================================
+   RESET E BASE - DESIGN SYSTEM
+   ============================================ */
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Source Sans 3', sans-serif;
 }
 
+body {
+  background-color: #F5F5F5;
+  line-height: 1.7;
+  color: #1F2937;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  color: #1F2937;
+}
+
+p, span, div, button, input, textarea, a {
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+  color: #1F2937;
+}
+
+/* ============================================
+   DASHBOARD CONTAINER
+   ============================================ */
+
 .dashboard-container {
-  background: linear-gradient(90deg, #f5f5f5 0%, #f5f5f5 100%);
+  background: #F5F5F5;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* Main Layout */
+/* ============================================
+   MAIN LAYOUT
+   ============================================ */
+
 .main-layout {
   display: flex;
   isolation: isolate;
@@ -24,22 +56,43 @@
 }
 
 /* ============================================
-   SIDEBAR - REGRAS GLOBAIS
+   SIDEBAR - DESIGN SYSTEM (RESPONSIVO)
    ============================================ */
+
 .sidebar {
   width: 288px;
-  background: white;
+  background: #FFFFFF;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-right: 1px solid #f1f5f9;
+  border-right: 1px solid #E5E7EB;
   position: sticky;
   top: 0;
   z-index: 2;
   flex-shrink: 0;
   height: 100vh;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, transform 0.3s ease;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Sidebar Toggle - Mobile */
+.sidebar-toggle {
+  display: none;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  color: #8B1E2D;
+  z-index: 3;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(139, 30, 45, 0.05);
 }
 
 .sidebar::-webkit-scrollbar {
@@ -47,39 +100,42 @@
 }
 
 .sidebar::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #F5F5F5;
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #E5E7EB;
   border-radius: 4px;
 }
 
+/* Sidebar Header */
 .sidebar-header {
   padding: 40px 32px;
   flex-shrink: 0;
 }
 
 .logo-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 700;
-  color: #8b1e2d;
+  color: #8B1E2D;
   font-size: 24px;
-  letter-spacing: -1.2px;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
 }
 
 .logo-line1, .logo-line2, .logo-line3 {
-  line-height: 32px;
+  line-height: 1.3;
 }
 
 .subtitle-text {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Source Sans 3', sans-serif;
   font-weight: 600;
-  color: #94a3b8;
+  color: #9CA3AF;
   font-size: 10px;
   letter-spacing: 2px;
-  line-height: 15px;
+  line-height: 1.7;
   margin-top: 8px;
+  text-transform: uppercase;
 }
 
 /* Navigation */
@@ -104,21 +160,21 @@
 }
 
 .nav-item.active {
-  background: #6b0119;
-  box-shadow: 0px 1px 1px rgba(0,0,0,0.05);
+  background: #8B1E2D;
+  box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .nav-item.active .nav-text {
-  color: white;
+  color: #FFFFFF;
 }
 
 .nav-item.active .nav-icon svg path,
 .nav-item.active .nav-icon svg circle {
-  stroke: white;
+  stroke: #FFFFFF;
 }
 
 .nav-item:not(.active):hover {
-  background: rgba(107,1,25,0.05);
+  background: rgba(139, 30, 45, 0.05);
 }
 
 .nav-link {
@@ -129,33 +185,35 @@
 }
 
 .nav-text {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Source Sans 3', sans-serif;
   font-weight: 500;
   font-size: 14px;
-  color: #475569;
+  color: #1F2937;
   white-space: nowrap;
+  line-height: 1.7;
 }
 
 .nav-badge {
-  background: #6b0119;
+  background: #8B1E2D;
   padding: 2px 8px;
-  border-radius: 12px;
-  font-family: 'Poppins', sans-serif;
+  border-radius: 9999px;
+  font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 700;
   font-size: 10px;
-  color: white;
+  color: #FFFFFF;
   flex-shrink: 0;
+  line-height: 1.7;
 }
 
-/* Sidebar Footer - SEMPRE VISÍVEL */
+/* Sidebar Footer */
 .sidebar-footer {
   flex-shrink: 0;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid #E5E7EB;
   padding: 24px;
 }
 
 .profile-card {
-  background: #eff4ff;
+  background: #F5F5F5;
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -166,8 +224,8 @@
 .profile-icon {
   width: 40px;
   height: 40px;
-  background: #6b0119;
-  border-radius: 12px;
+  background: #8B1E2D;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,45 +233,49 @@
 }
 
 .profile-name {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 700;
   font-size: 12px;
-  color: #121c2a;
+  color: #1F2937;
+  line-height: 1.3;
 }
 
 .profile-role {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Source Sans 3', sans-serif;
   font-weight: 400;
   font-size: 10px;
-  color: #64748b;
+  color: #9CA3AF;
+  line-height: 1.7;
 }
 
 /* ============================================
-   BOTÃO DE LOGOUT - FUNDO BORDEAUX
+   LOGOUT BUTTON - DESIGN SYSTEM
    ============================================ */
+
 .logout-button {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
   margin-top: 12px;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid rgba(139,30,45,0.3);
-  background: #6b0119;
-  color: white;
-  font-family: 'Poppins', sans-serif;
+  border: 1px solid rgba(139, 30, 45, 0.3);
+  background: #8B1E2D;
+  color: #FFFFFF;
+  font-family: 'Source Sans 3', sans-serif;
   font-weight: 600;
   font-size: 14px;
   width: 100%;
+  line-height: 1.7;
 }
 
 .logout-button:hover {
-  background: #8b1e2d;
-  border-color: #6b0119;
+  background: #6B0119;
+  border-color: #6B0119;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139,30,45,0.3);
+  box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
 }
 
 .logout-button:active {
@@ -223,14 +285,14 @@
 
 .logout-button svg {
   flex-shrink: 0;
-  stroke: white;
+  stroke: #FFFFFF;
   transition: stroke 0.3s ease;
   width: 18px;
   height: 18px;
 }
 
 .logout-button:hover svg {
-  stroke: #f0f0f0;
+  stroke: #F0F0F0;
 }
 
 .logout-button span {
@@ -238,78 +300,10 @@
   text-align: left;
 }
 
-/* Responsivo para tablets e mobile */
-@media (max-width: 992px) {
-  .logout-button {
-    padding: 10px 14px;
-    font-size: 13px;
-    gap: 10px;
-    justify-content: center;
-  }
-  
-  .logout-button svg {
-    width: 16px;
-    height: 16px;
-  }
-}
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
 
-@media (max-width: 768px) {
-  .logout-button {
-    padding: 12px 16px;
-    font-size: 14px;
-    gap: 12px;
-    justify-content: flex-start;
-  }
-  
-  .logout-button svg {
-    width: 18px;
-    height: 18px;
-  }
-}
-
-@media (max-width: 480px) {
-  .logout-button {
-    padding: 10px 12px;
-    font-size: 12px;
-    gap: 10px;
-    border-radius: 6px;
-  }
-  
-  .logout-button svg {
-    width: 15px;
-    height: 15px;
-  }
-}
-
-/* Sidebar colapsada (apenas ícone) */
-@media (max-width: 992px) {
-  .sidebar:not(:hover) .logout-button span {
-    display: none;
-  }
-  
-  .sidebar:not(:hover) .logout-button {
-    justify-content: center;
-    padding: 10px;
-    gap: 0;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    margin: 8px auto 0;
-    background: #8b1e2d;
-  }
-  
-  .sidebar:not(:hover) .logout-button svg {
-    width: 20px;
-    height: 20px;
-    margin: 0;
-  }
-  
-  .sidebar:not(:hover) .logout-button:hover {
-    background: #6b0119;
-  }
-}
-
-/* Main Content */
 .main-content {
   flex: 1;
   max-width: 1600px;
@@ -324,822 +318,109 @@
 }
 
 /* ============================================
-   FOOTER - ESTILOS CONSISTENTES COM A HOME
-   ============================================ */
-.admin-footer {
-  background: #f8f9ff;
-  width: 100%;
-  border-top: 1px solid rgba(222,191,191,0.2);
-  margin-top: auto;
-}
-
-.footer-content {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 65px 48px 64px;
-}
-
-.footer-links {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 48px;
-  padding-bottom: 64px;
-}
-
-.footer-title {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  color: #6b0119;
-  margin-bottom: 24px;
-}
-
-.footer-text {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-  font-size: 14px;
-  color: #574142;
-  line-height: 1.6;
-  max-width: 320px;
-}
-
-.footer-heading {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 1.1px;
-  color: #6b0119;
-  margin-bottom: 24px;
-}
-
-.footer-link {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-  font-size: 14px;
-  color: #574142;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.footer-link:hover {
-  color: #8b1e2d;
-}
-
-.footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 33px;
-  border-top: 1px solid rgba(222,191,191,0.2);
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.copyright {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-  font-size: 11px;
-  letter-spacing: 1.1px;
-  color: #94a3b8;
-}
-
-.social-icons {
-  display: flex;
-  gap: 24px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.social-icons svg {
-  transition: opacity 0.3s ease;
-}
-
-.social-icons svg:hover {
-  opacity: 0.7;
-}
-
-/* ============================================
-   HEADER SECTION
-   ============================================ */
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding-bottom: 40px;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.page-title {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 36px;
-  color: #6b0119;
-  letter-spacing: -0.72px;
-}
-
-.page-subtitle {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-  font-size: 16px;
-  color: #574142;
-  margin-top: 4px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.date-picker {
-  background: white;
-  padding: 10px 20px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  color: #334155;
-  border: 1px solid rgba(222,191,191,0.1);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.date-picker:hover {
-  border-color: rgba(222,191,191,0.2);
-}
-
-.btn-primary {
-  background: #8b1e2d;
-  padding: 10px 24px;
-  border-radius: 6px;
-  border: none;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.btn-primary:hover {
-  background: #6b0119;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139,30,45,0.3);
-}
-
-/* ============================================
-   KPI GRID
-   ============================================ */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 24px;
-  padding-bottom: 40px;
-}
-
-.kpi-card {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border: 1px solid rgba(222,191,191,0.1);
-  min-height: 120px;
-  transition: all 0.2s ease;
-}
-
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-}
-
-.kpi-card.bordered {
-  border-left: 4px solid #8b1e2d;
-}
-
-.kpi-label {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 10px;
-  letter-spacing: 1px;
-  color: #94a3b8;
-}
-
-.kpi-value {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 24px;
-  color: #121c2a;
-  margin-top: 4px;
-}
-
-.kpi-value-large {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 24px;
-  color: #121c2a;
-}
-
-.kpi-value-sub {
-  font-family: 'Poppins', sans-serif;
-  font-size: 12px;
-  color: #94a3b8;
-  margin-left: 8px;
-}
-
-.kpi-footer {
-  margin-top: 16px;
-}
-
-.trend-badge {
-  display: inline-block;
-  background: rgba(34,197,94,0.1);
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 10px;
-  color: #22c55e;
-}
-
-.trend-text {
-  font-family: 'Poppins', sans-serif;
-  font-size: 10px;
-  color: #94a3b8;
-  margin-top: 4px;
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  background: #8b1e2d;
-  border-radius: 50%;
-}
-
-.status-indicator span {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 10px;
-  color: #8b1e2d;
-}
-
-.progress-bar {
-  background: #f1f5f9;
-  height: 6px;
-  border-radius: 12px;
-  margin-top: 16px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  background: #8b1e2d;
-  height: 100%;
-  border-radius: 12px;
-}
-
-.avatar-stack {
-  display: flex;
-  align-items: center;
-  margin-top: 16px;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.avatar {
-  width: 24px;
-  height: 24px;
-  background: #cbd5e1;
-  border-radius: 12px;
-  border: 2px solid white;
-}
-
-.avatar.active {
-  background: #6b0119;
-}
-
-.today-label {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  font-size: 10px;
-  color: #64748b;
-  margin-top: 16px;
-}
-
-/* ============================================
-   CHARTS GRID
-   ============================================ */
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
-  padding-bottom: 32px;
-}
-
-.chart-card {
-  grid-column: span 2;
-  background: white;
-  border-radius: 8px;
-  padding: 32px;
-  border: 1px solid rgba(222,191,191,0.1);
-  overflow: hidden;
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.chart-header h3 {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  color: #6b0119;
-}
-
-.legend {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-}
-
-.legend-item span {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 10px;
-  letter-spacing: 1px;
-  color: #64748b;
-}
-
-.chart-bars {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  height: 256px;
-  padding: 0 16px;
-  gap: 8px;
-}
-
-.bar-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  padding-top: 16px;
-  height: 100%;
-}
-
-.bar {
-  width: 70%;
-  background: #8b1e2d;
-  border-radius: 4px 4px 2px 2px;
-  transition: height 0.3s ease;
-}
-
-.bar:hover {
-  opacity: 0.8;
-}
-
-.bar-label {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 9px;
-  text-align: center;
-  color: #94a3b8;
-  margin-top: 8px;
-}
-
-/* ============================================
-   GOALS CARD
-   ============================================ */
-.goals-card {
-  background: white;
-  border-radius: 8px;
-  padding: 32px;
-  border: 1px solid rgba(222,191,191,0.1);
-}
-
-.goals-card h3 {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  color: #6b0119;
-  margin-bottom: 24px;
-}
-
-.goal-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.goal-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.goal-label {
-  display: flex;
-  justify-content: space-between;
-}
-
-.goal-label span:first-child {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  font-size: 12px;
-  color: #574142;
-}
-
-.goal-percent {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 12px;
-  color: #8b1e2d;
-}
-
-.goal-progress {
-  background: #f1f5f9;
-  height: 8px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.goal-fill {
-  background: #8b1e2d;
-  height: 100%;
-  border-radius: 12px;
-}
-
-.badge-card {
-  background: #f8fafc;
-  border-radius: 6px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 32px;
-}
-
-.badge-icon {
-  width: 48px;
-  height: 48px;
-  background: rgba(251,191,36,0.1);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.badge-title {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  color: #121c2a;
-}
-
-.badge-subtitle {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  font-size: 10px;
-  letter-spacing: -0.5px;
-  color: #64748b;
-}
-
-/* ============================================
-   ACTIVITY FEED
-   ============================================ */
-.activity-feed {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(222,191,191,0.1);
-}
-
-.feed-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 32px;
-  border-bottom: 1px solid rgba(222,191,191,0.1);
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.feed-header h3 {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  color: #6b0119;
-}
-
-.filter-btn {
-  background: none;
-  border: none;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 12px;
-  color: #8b1e2d;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.filter-btn:hover {
-  opacity: 0.7;
-}
-
-.feed-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 32px;
-  border-bottom: 1px solid rgba(222,191,191,0.1);
-  gap: 16px;
-  flex-wrap: wrap;
-  transition: background 0.2s;
-}
-
-.feed-item:hover {
-  background: rgba(139,30,45,0.03);
-}
-
-.feed-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 1;
-  min-width: 200px;
-}
-
-.feed-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.icon-bordeaux {
-  background: rgba(107,1,25,0.1);
-}
-
-.icon-success {
-  background: rgba(34,197,94,0.1);
-}
-
-.icon-warning {
-  background: rgba(251,191,36,0.1);
-}
-
-.icon-neutral {
-  background: #f1f5f9;
-}
-
-.feed-title {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  color: #121c2a;
-  margin-bottom: 4px;
-}
-
-.feed-description {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-  font-size: 12px;
-  color: #574142;
-}
-
-.feed-right {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-.feed-time {
-  font-family: 'Poppins', sans-serif;
-  font-style: italic;
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-.feed-btn {
-  background: #8b1e2d;
-  padding: 6px 16px;
-  border-radius: 6px;
-  border: none;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 11px;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.feed-btn:hover {
-  background: #6b0119;
-}
-
-.feed-btn-outline {
-  background: none;
-  padding: 6px 17px;
-  border-radius: 6px;
-  border: 1px solid rgba(107,1,25,0.2);
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 11px;
-  color: #6b0119;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.feed-btn-outline:hover {
-  background: rgba(107,1,25,0.05);
-  border-color: #6b0119;
-}
-
-.feed-badge {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 10px;
-}
-
-.feed-badge.success {
-  color: #22c55e;
-}
-
-.feed-badge.neutral {
-  color: #94a3b8;
-}
-
-.load-more {
-  width: 100%;
-  background: #f8fafc;
-  padding: 15px 16px;
-  border: none;
-  border-top: 1px solid rgba(222,191,191,0.1);
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 1.1px;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.load-more:hover {
-  background: #f1f5f9;
-  color: #6b0119;
-}
-
-/* ============================================
-   RESPONSIVIDADE
+   RESPONSIVO - DESIGN SYSTEM (COMPLETO)
    ============================================ */
 
-/* Tablets e telas médias */
+/* Desktop Médio */
 @media (max-width: 1200px) {
-  .kpi-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-  }
-  
-  .charts-grid {
-    gap: 24px;
-  }
-  
   .content-container {
     padding: 24px 32px;
   }
-  
-  .footer-content {
-    padding: 48px 32px;
-  }
-  
-  .footer-links {
-    gap: 32px;
-  }
 }
 
+/* Tablet Grande / Desktop Pequeno */
 @media (max-width: 992px) {
-  .sidebar {
+  .sidebar:not(.collapsed) {
     width: 80px;
-    transition: width 0.3s ease;
   }
   
-  .sidebar:hover {
-    width: 280px;
-  }
-  
-  .sidebar-header {
+  .sidebar:not(.collapsed) .sidebar-header {
     padding: 24px 16px;
   }
   
-  .logo-title {
+  .sidebar:not(.collapsed) .logo-title {
     font-size: 20px;
   }
   
-  .sidebar:not(:hover) .logo-line1,
-  .sidebar:not(:hover) .logo-line2,
-  .sidebar:not(:hover) .logo-line3,
-  .sidebar:not(:hover) .subtitle-text,
-  .sidebar:not(:hover) .nav-text,
-  .sidebar:not(:hover) .nav-badge,
-  .sidebar:not(:hover) .profile-name,
-  .sidebar:not(:hover) .profile-role {
+  .sidebar:not(.collapsed) .logo-line1,
+  .sidebar:not(.collapsed) .logo-line2,
+  .sidebar:not(.collapsed) .logo-line3,
+  .sidebar:not(.collapsed) .subtitle-text,
+  .sidebar:not(.collapsed) .nav-text,
+  .sidebar:not(.collapsed) .nav-badge,
+  .sidebar:not(.collapsed) .profile-name,
+  .sidebar:not(.collapsed) .profile-role {
     display: none;
   }
   
-  .sidebar:not(:hover) .nav-item {
+  .sidebar:not(.collapsed) .nav-item {
     justify-content: center;
     padding: 12px;
   }
   
-  .sidebar:not(:hover) .nav-link {
+  .sidebar:not(.collapsed) .nav-link {
     justify-content: center;
   }
   
-  .sidebar:not(:hover) .profile-card {
+  .sidebar:not(.collapsed) .profile-card {
     justify-content: center;
     padding: 12px;
   }
   
-  .sidebar:not(:hover) .profile-icon {
+  .sidebar:not(.collapsed) .profile-icon {
     margin: 0;
   }
   
-  .sidebar:not(:hover) .sidebar-footer {
+  .sidebar:not(.collapsed) .sidebar-footer {
     padding: 12px;
   }
   
-  .kpi-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .sidebar:not(.collapsed) .logout-button span {
+    display: none;
   }
   
-  .charts-grid {
-    grid-template-columns: 1fr 1fr;
+  .sidebar:not(.collapsed) .logout-button {
+    justify-content: center;
+    padding: 12px;
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    margin: 8px auto 0;
   }
   
-  .chart-card {
-    grid-column: span 1;
+  .sidebar:not(.collapsed) .logout-button svg {
+    margin: 0;
   }
   
-  .chart-bars {
-    height: 200px;
-    padding: 0 8px;
+  .content-container {
+    padding: 20px 24px;
   }
 }
 
-/* Tablets pequenos e mobile grande */
+/* Tablet */
 @media (max-width: 768px) {
   .main-layout {
     flex-direction: column;
   }
   
+  .sidebar-toggle {
+    display: flex !important;
+  }
+  
   .sidebar {
-    width: 100%;
     position: sticky;
     top: 0;
+    width: 100% !important;
     border-right: none;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #E5E7EB;
     max-height: 80vh;
     height: auto;
     transition: none;
+  }
+  
+  .sidebar.collapsed {
+    max-height: 60px;
+    overflow: hidden;
   }
   
   .sidebar .logo-line1,
@@ -1171,8 +452,22 @@
     padding: 24px;
   }
   
+  .sidebar .logout-button span {
+    display: inline;
+  }
+  
+  .sidebar .logout-button {
+    justify-content: flex-start;
+    padding: 12px 16px;
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 12px 0 0 0;
+  }
+  
   .sidebar-header {
     padding: 24px 20px;
+    padding-right: 56px;
   }
   
   .sidebar-nav {
@@ -1182,136 +477,17 @@
   .content-container {
     padding: 16px 20px;
   }
-  
-  .header-section {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding-bottom: 24px;
-  }
-  
-  .page-title {
-    font-size: 28px;
-  }
-  
-  .action-buttons {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-  
-  .date-picker,
-  .btn-primary {
-    flex: 1;
-    min-width: 140px;
-    justify-content: center;
-  }
-  
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    padding-bottom: 24px;
-  }
-  
-  .kpi-card {
-    padding: 16px;
-    min-height: 100px;
-  }
-  
-  .kpi-value,
-  .kpi-value-large {
-    font-size: 20px;
-  }
-  
-  .charts-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding-bottom: 24px;
-  }
-  
-  .chart-card {
-    grid-column: span 1;
-    padding: 20px;
-  }
-  
-  .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  
-  .chart-header h3 {
-    font-size: 16px;
-  }
-  
-  .chart-bars {
-    height: 160px;
-    padding: 0 4px;
-    gap: 4px;
-  }
-  
-  .bar-label {
-    font-size: 8px;
-  }
-  
-  .goals-card {
-    padding: 20px;
-  }
-  
-  .feed-header {
-    padding: 20px;
-  }
-  
-  .feed-header h3 {
-    font-size: 16px;
-  }
-  
-  .feed-item {
-    padding: 16px 20px;
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .feed-left {
-    min-width: auto;
-  }
-  
-  .feed-right {
-    justify-content: space-between;
-    width: 100%;
-  }
-  
-  .footer-content {
-    padding: 40px 20px 32px;
-  }
-  
-  .footer-links {
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    padding-bottom: 40px;
-  }
-  
-  .footer-title {
-    font-size: 16px;
-  }
-  
-  .footer-text {
-    max-width: 100%;
-  }
-  
-  .footer-bottom {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 12px;
-    padding-top: 24px;
-  }
 }
 
-/* Mobile pequeno */
-@media (max-width: 480px) {
+/* Mobile Grande */
+@media (max-width: 576px) {
+  .content-container {
+    padding: 12px 16px;
+  }
+  
   .sidebar-header {
     padding: 16px 16px;
+    padding-right: 48px;
   }
   
   .logo-title {
@@ -1323,35 +499,136 @@
     letter-spacing: 1.5px;
   }
   
+  .sidebar.collapsed {
+    max-height: 52px;
+  }
+  
+  .sidebar-toggle {
+    top: 10px;
+    right: 8px;
+    padding: 6px;
+  }
+  
+  .sidebar-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Mobile Pequeno */
+@media (max-width: 400px) {
+  .sidebar-header {
+    padding: 12px 12px;
+    padding-right: 40px;
+  }
+  
+  .logo-title {
+    font-size: 17px;
+  }
+  
+  .subtitle-text {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  
+  .sidebar.collapsed {
+    max-height: 44px;
+  }
+  
+  .sidebar-toggle {
+    top: 8px;
+    right: 6px;
+    padding: 4px;
+  }
+  
+  .sidebar-toggle svg {
+    width: 18px;
+    height: 18px;
+  }
+  
   .content-container {
-    padding: 12px 16px;
+    padding: 10px 12px;
+  }
+}
+
+/* ============================================
+   HEADER SECTION - DESIGN SYSTEM
+   ============================================ */
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 40px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 36px;
+  color: #8B1E2D;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.page-subtitle {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: #1F2937;
+  margin-top: 4px;
+  line-height: 1.7;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   RESPONSIVO DO HEADER
+   ============================================ */
+
+@media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 24px;
   }
   
   .page-title {
-    font-size: 24px;
+    font-size: 28px;
   }
   
   .page-subtitle {
     font-size: 14px;
   }
   
-  .kpi-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  .action-buttons {
+    width: 100%;
+    flex-wrap: wrap;
   }
   
-  .kpi-card {
-    padding: 14px;
-    min-height: 80px;
+  .action-buttons .date-picker,
+  .action-buttons .btn-primary {
+    flex: 1;
+    min-width: 140px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-title {
+    font-size: 24px;
   }
   
-  .kpi-value,
-  .kpi-value-large {
-    font-size: 18px;
-  }
-  
-  .kpi-label {
-    font-size: 8px;
+  .page-subtitle {
+    font-size: 13px;
   }
   
   .action-buttons {
@@ -1359,114 +636,16 @@
     width: 100%;
   }
   
-  .date-picker,
-  .btn-primary {
+  .action-buttons .date-picker,
+  .action-buttons .btn-primary {
     width: 100%;
     justify-content: center;
-  }
-  
-  .chart-card {
-    padding: 16px;
-  }
-  
-  .chart-bars {
-    height: 120px;
-    padding: 0 2px;
-    gap: 2px;
-  }
-  
-  .legend {
-    gap: 8px;
-  }
-  
-  .legend-item span {
-    font-size: 8px;
-  }
-  
-  .feed-item {
-    padding: 12px 16px;
-  }
-  
-  .feed-left {
-    gap: 12px;
-  }
-  
-  .feed-icon {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .feed-title {
-    font-size: 13px;
-  }
-  
-  .feed-right {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .feed-btn,
-  .feed-btn-outline {
-    padding: 4px 12px;
-    font-size: 10px;
-  }
-  
-  .footer-content {
-    padding: 32px 16px 24px;
-  }
-  
-  .footer-links {
-    grid-template-columns: 1fr;
-    gap: 24px;
-    padding-bottom: 32px;
-  }
-  
-  .footer-title {
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-  
-  .footer-heading {
-    font-size: 10px;
-    margin-bottom: 16px;
-  }
-  
-  .footer-link {
-    font-size: 13px;
-    margin-bottom: 8px;
-  }
-  
-  .copyright {
-    font-size: 10px;
-    letter-spacing: 0.8px;
-  }
-  
-  .social-icons {
-    gap: 16px;
-  }
-  
-  .social-icons svg {
-    width: 14px;
-    height: 14px;
-  }
-  
-  .badge-card {
-    flex-direction: column;
-    text-align: center;
-    padding: 16px;
-  }
-  
-  .profile-card {
-    padding: 12px;
-  }
-  
-  .profile-icon {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .profile-name {
-    font-size: 11px;
+    min-width: auto;
   }
 }
 
+@media (max-width: 400px) {
+  .page-title {
+    font-size: 20px;
+  }
+}

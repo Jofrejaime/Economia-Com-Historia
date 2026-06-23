@@ -64,7 +64,7 @@
         </tr>
         <tr *ngFor="let badge of badges">
           <td>
-            <span class="badge-color" [style.background]="badge.color_hex || '#8b1e2d'"></span>
+            <span class="badge-color" [style.background]="badge.color_hex || '#8B1E2D'"></span>
             {{ badge.name }}
           </td>
           <td>{{ badge.description }}</td>
@@ -78,7 +78,7 @@
             <button class="action-btn" (click)="toggleBadgeStatus(badge.id)" title="Alternar status">
               {{ badge.is_active ? 'Desativar' : 'Ativar' }}
             </button>
-            <button class="action-btn" (click)="deleteBadge(badge.id)" title="Eliminar">🗑️</button>
+            <button class="action-btn action-btn-danger" (click)="deleteBadge(badge.id)" title="Eliminar">🗑️</button>
           </td>
         </tr>
       </tbody>
