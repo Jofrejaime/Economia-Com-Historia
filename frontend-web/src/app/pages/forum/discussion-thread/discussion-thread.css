@@ -61,6 +61,7 @@ p, span, div, button, input, textarea {
   align-items: center;
   gap: 8px;
   margin-bottom: 32px;
+  text-transform: uppercase;
 }
 
 .discussion-breadcrumb-btn {
@@ -73,6 +74,7 @@ p, span, div, button, input, textarea {
   transition: color 0.2s;
   font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
   gap: 6px;

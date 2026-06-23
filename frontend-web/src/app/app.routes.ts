@@ -46,7 +46,7 @@ export const routes: Routes = [
   { path: 'auth/reset-password', component: ResetPasswordComponent },
   { path: 'contents/view/:id', canActivate: [authGuard], component: ContentsViewComponent },
   { path: 'forum/comunidade/criar-topico', canActivate: [authGuard], component: CreateTopicComponent },
-  { path: 'forum/community/discussao', canActivate: [authGuard], component: DiscussionThreadComponent },
+  { path: 'forum/community/discussao/:id', canActivate: [authGuard], component: DiscussionThreadComponent },
   { path: 'landing', component: HomeVisitorComponent },
   { path: 'forum/categorias', canActivate: [authGuard], component: CategoryViewComponent },
   { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },

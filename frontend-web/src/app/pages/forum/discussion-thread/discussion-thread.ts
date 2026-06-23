@@ -160,12 +160,17 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
   ];
 
   relatedTopics: RelatedTopic[] = [
-    { id: 2, title: 'Documentos Fundadores do BNA', replies: 18, views: 612 },
-    { id: 3, title: 'Política Fiscal no Período Pós-Colonial', replies: 24, views: 891 },
-    { id: 4, title: 'Sistema Monetário Angolano (1975-1985)', replies: 15, views: 543 },
+    { id: 2, title: 'Documentos Fundadores do BNA e Política Fiscal Inicial', replies: 18, views: 612 },
+    { id: 3, title: 'Política Fiscal no Período Pós-Colonial (1975-1985)', replies: 24, views: 891 },
+    { id: 4, title: 'Sistema Monetário Angolano (1975-1985): Desafios e Reformas', replies: 15, views: 543 },
   ];
 
   constructor(private router: Router) {}
+
+  // ===== NAVEGAÇÃO PARA TÓPICOS RELACIONADOS =====
+  navigateToDiscussion(topicId: number): void {
+    this.router.navigate(['/forum/community/discussao', topicId]);
+  }
 
   // ===== RESPOSTAS =====
   handleSubmitReply(event: Event): void {
@@ -236,14 +241,7 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
   // ===== AÇÕES =====
   shareDiscussion(): void {
     console.log('Partilhar discussão');
-  }
-
-  followDiscussion(): void {
-    console.log('Seguir tópico');
-  }
-
-  saveDiscussion(): void {
-    console.log('Guardar discussão');
+    // Implementar lógica de partilha
   }
 
   // ===== DENÚNCIAS =====
@@ -269,7 +267,6 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
       description: this.reportDiscussionDescription
     });
     
-    // Toast de sucesso
     alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
     this.closeReportDiscussionModal();
   }
@@ -305,7 +302,7 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
     this.closeReportReplyModal();
   }
 
-  // ===== NAVEGAÇÃO =====
+  // ===== NAVEGAÇÃO GERAL =====
   navigateTo(path: string): void {
     this.router.navigate([path]);
   }

@@ -96,7 +96,7 @@
 
           <!-- Discussions List -->
           <div style="display: flex; flex-direction: column; gap: 20px;">
-            <div *ngFor="let discussion of filteredDiscussions" (click)="navigateTo('/forum/community/discussao')" 
+            <div *ngFor="let discussion of filteredDiscussions" (click)="navigateTo('/forum/community/discussao/:id')" 
                  style="background: #FFFFFF; border-radius: 8px; padding: 24px; cursor: pointer; transition: all 0.3s; border: 1px solid #E5E7EB; font-family: 'Source Sans 3', sans-serif;"
                  onmouseover="this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02)'; this.style.borderColor='#E5E7EB'" 
                  onmouseout="this.style.boxShadow='none'; this.style.borderColor='#E5E7EB'">
