@@ -1,46 +1,42 @@
-<div style="display: flex; min-height: 100vh;">
+<div class="register-container">
   
   <!-- Left Side - Bordeaux com informações institucionais -->
-  <div style="flex: 1; background: linear-gradient(135deg, #6b0119, #8b1e2d); position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 48px;">
+  <div class="register-sidebar">
     
     <!-- Elementos decorativos sutis -->
-    <div style="position: absolute; top: 0; right: 0; width: 300px; height: 300px; background: rgba(139,30,45,0.08); border-radius: 50%;"></div>
-    <div style="position: absolute; bottom: 0; left: 0; width: 200px; height: 200px; background: rgba(139,30,45,0.05); border-radius: 50%;"></div>
+    <div class="register-decoration-top"></div>
+    <div class="register-decoration-bottom"></div>
     
     <!-- Logo -->
-    <div style="position: relative; z-index: 2;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#d4a0a8">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
-            <path d="M2 17L12 22L22 17"/>
-            <path d="M2 12L12 17L22 12"/>
-          </svg>
-        </div>
-        <span style="color: #f0e6e8; font-size: 20px; font-weight: 600; letter-spacing: -0.3px;">Economia com História</span>
+    <div class="register-logo">
+      <div class="register-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#d4a0a8">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+          <path d="M2 17L12 22L22 17"/>
+          <path d="M2 12L12 17L22 12"/>
+        </svg>
       </div>
+      <span class="register-logo-text">Economia com História</span>
     </div>
 
     <!-- Conteúdo central -->
-    <div style="position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 36px;">
+    <div class="register-content">
       
       <div>
         <div style="margin-bottom: 16px;">
-          <span style="background: rgba(255,255,255,0.15); color: white; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; display: inline-block;">SOLICITAR ACESSO</span>
+          <span class="register-badge">SOLICITAR ACESSO</span>
         </div>
-        <h2 style="font-family: 'IBM Plex Sans', sans-serif; color: white; font-size: 32px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px;">
-          Criar Conta
-        </h2>
-        <p style="color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.5; margin: 0;">
+        <h2 class="register-title">Criar Conta</h2>
+        <p class="register-description">
           Registo reservado a instituições de ensino e investigação.
         </p>
       </div>
 
-      <div style="width: 40px; height: 1px; background: rgba(255,255,255,0.3); border-radius: 2px;"></div>
+      <div class="register-divider"></div>
 
-      <div style="display: flex; flex-direction: column; gap: 16px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 28px; height: 28px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+      <div class="register-stats">
+        <div class="register-stat-item">
+          <div class="register-stat-icon">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
               <rect x="2" y="3" width="20" height="18" rx="2"/>
               <line x1="8" y1="9" x2="16" y2="9"/>
@@ -48,142 +44,132 @@
             </svg>
           </div>
           <div>
-            <p style="color: white; font-weight: 600; margin: 0; font-size: 13px;">Documentos históricos</p>
-            <p style="color: rgba(255,255,255,0.6); font-size: 12px; margin: 2px 0 0 0;">Acesso a fontes primárias digitalizadas</p>
+            <p class="register-stat-value">Documentos históricos</p>
+            <p class="register-stat-label">Acesso a fontes primárias digitalizadas</p>
           </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 28px; height: 28px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+        <div class="register-stat-item">
+          <div class="register-stat-icon">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
           </div>
           <div>
-            <p style="color: white; font-weight: 600; margin: 0; font-size: 13px;">Rede de investigadores</p>
-            <p style="color: rgba(255,255,255,0.6); font-size: 12px; margin: 2px 0 0 0;">Colaboração em projectos académicos</p>
+            <p class="register-stat-value">Rede de investigadores</p>
+            <p class="register-stat-label">Colaboração em projectos académicos</p>
           </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 28px; height: 28px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+        <div class="register-stat-item">
+          <div class="register-stat-icon">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
               <path d="M4 4h16v16H4z"/>
               <circle cx="12" cy="12" r="3"/>
             </svg>
           </div>
           <div>
-            <p style="color: white; font-weight: 600; margin: 0; font-size: 13px;">Acesso institucional</p>
-            <p style="color: rgba(255,255,255,0.6); font-size: 12px; margin: 2px 0 0 0;">Redes de investigação parceiras</p>
+            <p class="register-stat-value">Acesso institucional</p>
+            <p class="register-stat-label">Redes de investigação parceiras</p>
           </div>
         </div>
       </div>
 
-      <div style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 16px;">
-        <p style="color: rgba(255,255,255,0.6); font-style: italic; font-size: 12px; line-height: 1.5; margin: 0;">
+      <div class="register-quote">
+        <p class="register-quote-text">
           O acesso é concedido mediante validação institucional.
         </p>
       </div>
     </div>
 
-    <div style="position: relative; z-index: 2;">
-      <p style="color: rgba(255,255,255,0.3); font-size: 11px; text-align: left;">Arquivo Digital do Pensamento Económico de Angola</p>
+    <div class="register-sidebar-footer">
+      <p class="register-sidebar-footer-text">Arquivo Digital do Pensamento Económico de Angola</p>
     </div>
   </div>
 
   <!-- Right Side - Register Form -->
-  <div style="flex: 1; background-color: #f8f9ff; display: flex; align-items: center; justify-content: center; padding: 48px; overflow-y: auto;">
+  <div class="register-form-wrapper">
     
-    <div style="width: 100%; max-width: 440px;">
+    <div class="register-form-container">
       
       <!-- Header -->
-      <div style="margin-bottom: 32px; text-align: center;">
+      <div class="register-form-header">
         <div style="margin-bottom: 12px;">
-          <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #8b1e2d; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 30px; display: inline-block; letter-spacing: 0.5px;">JUNTE-SE A NÓS</span>
+          <span class="register-form-badge">JUNTE-SE A NÓS</span>
         </div>
-        <h1 style="font-family: 'IBM Plex Sans', sans-serif; color: #121c2a; font-size: 32px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -1px;">Criar conta</h1>
-        <p style="color: #64748b; font-size: 15px; margin: 0;">Preencha os dados para solicitar acesso</p>
+        <h1 class="register-form-title">Criar conta</h1>
+        <p class="register-form-subtitle">Preencha os dados para solicitar acesso</p>
       </div>
 
       <!-- Register Card -->
-      <div style="background: white; border-radius: 24px; padding: 32px; border: 1px solid rgba(222,191,191,0.2); box-shadow: 0 8px 24px rgba(0,0,0,0.04);">
+      <div class="register-form-card">
         
         <form (ngSubmit)="handleSubmit($event)">
           
-          <div *ngIf="errorMessage" style="margin-bottom:16px; background: linear-gradient(135deg, rgba(185,28,28,0.1), rgba(153,27,27,0.06)); color:#7f1d1d; padding:14px 16px; border-radius:14px; border:1px solid rgba(185,28,28,0.15); box-shadow: 0 6px 16px rgba(185,28,28,0.08); display:flex; gap:12px; align-items:flex-start;">
-            <div style="width:28px; height:28px; border-radius:50%; background: rgba(185,28,28,0.12); color:#991b1b; display:flex; align-items:center; justify-content:center; font-weight:700; flex: 0 0 auto;">!</div>
-            <div style="min-width:0;">
-              <div style="font-weight:700; font-size:14px; margin-bottom:4px;">Pedido não enviado</div>
-              <div style="font-size:13px; line-height:1.4; color:#991b1b;">{{ errorMessage }}</div>
+          <!-- Error -->
+          <div *ngIf="errorMessage" class="register-error">
+            <div class="register-error-icon">!</div>
+            <div>
+              <div class="register-error-title">Pedido não enviado</div>
+              <div class="register-error-text">{{ errorMessage }}</div>
             </div>
           </div>
 
-          <div *ngIf="successMessage" style="margin-bottom:16px; background: linear-gradient(135deg, rgba(22,163,74,0.1), rgba(34,197,94,0.08)); color:#14532d; padding:14px 16px; border-radius:14px; border:1px solid rgba(34,197,94,0.18); box-shadow: 0 6px 16px rgba(34,197,94,0.08); display:flex; gap:12px; align-items:flex-start;">
-            <div style="width:28px; height:28px; border-radius:50%; background: rgba(34,197,94,0.12); color:#166534; display:flex; align-items:center; justify-content:center; font-weight:700; flex: 0 0 auto;">✓</div>
-            <div style="min-width:0;">
-              <div style="font-weight:700; font-size:14px; margin-bottom:4px;">Conta criada</div>
-              <div style="font-size:13px; line-height:1.4; color:#14532d;">{{ successMessage }}</div>
+          <!-- Success -->
+          <div *ngIf="successMessage" class="register-success">
+            <div class="register-success-icon">✓</div>
+            <div>
+              <div class="register-success-title">Conta criada</div>
+              <div class="register-success-text">{{ successMessage }}</div>
             </div>
           </div>
           
           <!-- Name Field -->
-          <div style="margin-bottom: 20px;">
-            <label style="display: block; font-weight: 600; color: #121c2a; font-size: 14px; margin-bottom: 8px;">Nome completo</label>
+          <div class="register-form-group">
+            <label class="register-form-label">Nome completo</label>
             <input type="text" [(ngModel)]="formData.name" name="name" placeholder="José António Silva" required
-              style="width: 100%; padding: 12px 14px; background: #f8f9ff; border-radius: 12px; border: 1px solid rgba(222,191,191,0.3); font-size: 14px; outline: none; transition: all 0.3s; box-sizing: border-box;"
-              onfocus="this.style.borderColor='#6b0119'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 2px rgba(107,1,25,0.1)'"
-              onblur="this.style.borderColor='rgba(222,191,191,0.3)'; this.style.backgroundColor='#f8f9ff'; this.style.boxShadow='none'"/>
+                   class="register-input">
           </div>
 
           <!-- Email Field -->
-          <div style="margin-bottom: 20px;">
-            <label style="display: block; font-weight: 600; color: #121c2a; font-size: 14px; margin-bottom: 8px;">Email institucional</label>
+          <div class="register-form-group">
+            <label class="register-form-label">Email institucional</label>
             <input type="email" [(ngModel)]="formData.email" name="email" placeholder="nome@instituicao.edu" required
-              style="width: 100%; padding: 12px 14px; background: #f8f9ff; border-radius: 12px; border: 1px solid rgba(222,191,191,0.3); font-size: 14px; outline: none; transition: all 0.3s; box-sizing: border-box;"
-              onfocus="this.style.borderColor='#6b0119'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 2px rgba(107,1,25,0.1)'"
-              onblur="this.style.borderColor='rgba(222,191,191,0.3)'; this.style.backgroundColor='#f8f9ff'; this.style.boxShadow='none'"/>
+                   class="register-input">
           </div>
 
           <!-- Password Field -->
-          <div style="margin-bottom: 20px;">
-            <label style="display: block; font-weight: 600; color: #121c2a; font-size: 14px; margin-bottom: 8px;">Palavra-passe</label>
+          <div class="register-form-group">
+            <label class="register-form-label">Palavra-passe</label>
             <input type="password" [(ngModel)]="formData.password" name="password" placeholder="••••••••" required
-              style="width: 100%; padding: 12px 14px; background: #f8f9ff; border-radius: 12px; border: 1px solid rgba(222,191,191,0.3); font-size: 14px; outline: none; transition: all 0.3s; box-sizing: border-box;"
-              onfocus="this.style.borderColor='#6b0119'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 2px rgba(107,1,25,0.1)'"
-              onblur="this.style.borderColor='rgba(222,191,191,0.3)'; this.style.backgroundColor='#f8f9ff'; this.style.boxShadow='none'"/>
+                   class="register-input">
           </div>
 
           <!-- Confirm Password Field -->
-          <div style="margin-bottom: 24px;">
-            <label style="display: block; font-weight: 600; color: #121c2a; font-size: 14px; margin-bottom: 8px;">Confirmar palavra-passe</label>
+          <div class="register-form-group">
+            <label class="register-form-label">Confirmar palavra-passe</label>
             <input type="password" [(ngModel)]="formData.confirmPassword" name="confirmPassword" placeholder="••••••••" required
-              style="width: 100%; padding: 12px 14px; background: #f8f9ff; border-radius: 12px; border: 1px solid rgba(222,191,191,0.3); font-size: 14px; outline: none; transition: all 0.3s; box-sizing: border-box;"
-              onfocus="this.style.borderColor='#6b0119'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 2px rgba(107,1,25,0.1)'"
-              onblur="this.style.borderColor='rgba(222,191,191,0.3)'; this.style.backgroundColor='#f8f9ff'; this.style.boxShadow='none'"/>
+                   class="register-input">
           </div>
 
           <!-- Submit Button -->
-          <button type="submit" [disabled]="loading" style="width: 100%; background: linear-gradient(135deg, #8b1e2d, #6b0119); padding: 12px; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; color: white; font-size: 14px; transition: all 0.3s; margin-bottom: 24px; opacity: 1;"
-                  onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(107,1,25,0.3)'"
-                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+          <button type="submit" [disabled]="loading" class="register-btn">
             <span *ngIf="!loading">Solicitar criação de conta</span>
             <span *ngIf="loading">A criar conta...</span>
           </button>
         </form>
 
         <!-- Divider -->
-        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
-          <div style="flex: 1; height: 1px; background: rgba(222,191,191,0.3);"></div>
-          <span style="color: #94a3b8; font-size: 13px;">ou</span>
-          <div style="flex: 1; height: 1px; background: rgba(222,191,191,0.3);"></div>
+        <div class="register-divider-form">
+          <div class="register-divider-line"></div>
+          <span class="register-divider-text">ou</span>
+          <div class="register-divider-line"></div>
         </div>
 
         <!-- Secondary Action -->
         <div style="text-align: center;">
-          <p style="color: #64748b; font-size: 14px; margin-bottom: 16px;">Já possui credenciais de acesso?</p>
+          <p style="color: #64748b; font-size: 14px; margin-bottom: 16px; font-family: 'Source Sans 3', sans-serif;">Já possui credenciais de acesso?</p>
           <a routerLink="/auth/login">
-            <button type="button" style="width: 100%; background: transparent; padding: 12px; border-radius: 40px; border: 2px solid #8b1e2d; cursor: pointer; font-weight: 600; color: #8b1e2d; font-size: 14px; transition: all 0.3s;"
-                    onmouseover="this.style.background='linear-gradient(135deg, #8b1e2d, #6b0119)'; this.style.color='white'; this.style.borderColor='transparent'"
-                    onmouseout="this.style.background='transparent'; this.style.color='#8b1e2d'; this.style.borderColor='#8b1e2d'">
+            <button type="button" class="register-secondary-btn">
               Aceder à conta existente
             </button>
           </a>
@@ -191,7 +177,7 @@
       </div>
 
       <!-- Footer Notice -->
-      <p style="color: #94a3b8; font-size: 12px; text-align: center; line-height: 1.5; margin-top: 24px;">
+      <p class="register-footer-notice">
         As solicitações de conta são revisadas pela nossa equipa académica.<br />
         Receberá uma notificação por email após a aprovação.
       </p>

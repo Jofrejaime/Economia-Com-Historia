@@ -1,319 +1,223 @@
-<div style="background-color: #f8f9ff; min-height: 100vh;">
+<div class="profile-page">
   
   <app-header></app-header>
 
-  <main style="flex: 1; width: 100%;">
-    <div style="max-width: 1536px; margin: 0 auto; padding: 40px 48px;">
+  <main class="profile-main">
+    
+    <!-- Loading -->
+    <div *ngIf="state.isLoadingProfile" class="profile-loading">
+      <div class="profile-spinner"></div>
+      <p style="margin-top: 16px; color: #9CA3AF;">Carregando...</p>
+    </div>
+
+    <!-- Perfil -->
+    <div [style.display]="state.isLoadingProfile ? 'none' : 'block'">
       
-      <!-- Loading State -->
-      <div *ngIf="state.isLoadingProfile" style="text-align: center; padding: 60px 20px;">
-        <div style="font-size: 18px; color: #6a6a6a;">
-          <p style="margin: 0 0 20px 0; font-weight: 500;">Carregando seu perfil...</p>
-          <div style="display: inline-block; width: 50px; height: 50px; border: 4px solid #eef2f6; border-top: 4px solid #800020; border-radius: 50%; animation: spinnerRotate 1s linear infinite;"></div>
+      <!-- Header -->
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <img [src]="profileAvatarUrl || 'assets/default-avatar.png'" alt="Avatar">
         </div>
-      </div>
-
-      <!-- Conteúdo do Perfil -->
-      <div [style.display]="state.isLoadingProfile ? 'none' : 'block'">
-      
-      <!-- Profile Header -->
-      <div style="display: flex; gap: 48px; margin-bottom: 48px; flex-wrap: wrap;">
-        <div style="background: linear-gradient(135deg, #dee9fc, #f1f5f9); border-radius: 12px; overflow: hidden; width: 280px; height: 280px; border: 1px solid rgba(222,191,191,0.1);">
-          <img alt="Profile Avatar" [src]="profileAvatarUrl || 'assets/default-avatar.png'" style="width: 100%; height: 100%; object-fit: cover;" />
-        </div>
-        <div style="flex: 1;">
-          <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-            <span style="background: rgba(139,30,45,0.1); color: #8b1e2d; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 9999px; display: inline-block;">ESTATUTO ACADÉMICO</span>
-            <span *ngIf="profileRole === 'superadministrador' || profileRole === 'administrador'" 
-                  style="background: #8b1e2d; color: white; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 9999px; display: inline-block;">
-              {{ profileRole === 'superadministrador' ? 'SUPER ADMIN' : 'ADMIN' }}
-            </span>
-          </div>
-          <h1 style="color: #6b0119; font-size: 42px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: -0.72px;">{{ profileName }}</h1>
-          <p style="color: #574142; font-size: 16px; line-height: 1.5; margin: 0;">{{ profileStatus }}</p>
-          <p *ngFor="let line of profileBio" style="color: #574142; font-size: 16px; line-height: 1.5; margin: 8px 0 0 0;">{{ line }}</p>
-          <div style="display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap;">
-            <button (click)="openEditProfileModal()" style="background: #8b1e2d; padding: 10px 28px; border-radius: 8px; border: none; cursor: pointer; color: white; font-weight: 600; font-size: 14px; transition: all 0.3s; border: 1px solid rgba(222,191,191,0.1);">Editar Perfil</button>
-            <button (click)="downloadPortfolio()" style="background: transparent; padding: 10px 28px; border-radius: 8px; border: 1px solid rgba(222,191,191,0.2); cursor: pointer; color: #8b1e2d; font-weight: 600; font-size: 14px; transition: all 0.3s;">Descarregar Portfólio</button>
+        <div class="profile-info">
+          <h1 class="profile-name">{{ profileName }}</h1>
+          <p class="profile-role">{{ profileStatus }}</p>
+          <p class="profile-bio">{{ profileBio[0] || 'Investigador em História Económica de Angola' }}</p>
+          <div class="profile-actions">
+            <button (click)="openEditProfileModal()" class="btn-primary">Editar Perfil</button>
+            <button (click)="downloadPortfolio()" class="btn-secondary">Portfólio</button>
           </div>
         </div>
       </div>
 
-      <!-- Stats Académicas -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 48px;">
-        <div style="background: #eff4ff; border-radius: 8px; padding: 24px; border: 1px solid rgba(222,191,191,0.1);">
-          <p style="font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 10px; text-transform: uppercase; color: #6b0119; letter-spacing: 1px; margin: 0 0 12px 0; opacity: 0.8;">Pontuação Total</p>
-          <div>
-            <p style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 36px; color: #121c2a; letter-spacing: -0.72px; margin: 0;">{{ getStatValue('totalPoints') || '14.850' }}</p>
-            <p style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #574142; margin: 4px 0 0 0;">+12% este mês</p>
-          </div>
+      <!-- Stats -->
+      <div class="profile-stats">
+        <div class="stat-card">
+          <p class="stat-number">{{ getStatValue('totalPoints') || '14.850' }}</p>
+          <p class="stat-label">Pontos</p>
         </div>
-
-        <div style="background: #8b1e2d; border-radius: 8px; padding: 24px; border: 1px solid rgba(222,191,191,0.1);">
-          <p style="font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 10px; text-transform: uppercase; color: white; letter-spacing: 1px; margin: 0 0 12px 0; opacity: 0.9;">Quizzes Concluídos</p>
-          <div>
-            <p style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 36px; color: white; letter-spacing: -0.72px; margin: 0 0 12px 0;">{{ getStatValue('quizzesCompleted') || '42' }}</p>
-            <div style="background: rgba(255,255,255,0.2); height: 6px; border-radius: 12px; overflow: hidden;">
-              <div style="background: white; height: 100%; width: 84%; border-radius: 12px;"></div>
-            </div>
-          </div>
+        <div class="stat-card stat-card-primary">
+          <p class="stat-number">{{ getStatValue('quizzesCompleted') || '42' }}</p>
+          <p class="stat-label">Quizzes</p>
         </div>
-
-        <div style="background: #eff4ff; border-radius: 8px; padding: 24px; border: 1px solid rgba(222,191,191,0.1);">
-          <p style="font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 10px; text-transform: uppercase; color: #6b0119; letter-spacing: 1px; margin: 0 0 12px 0; opacity: 0.8;">Posição Global</p>
-          <div>
-            <p style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 36px; color: #121c2a; letter-spacing: -0.72px; margin: 0;">#{{ getStatValue('globalRank') || '12' }}</p>
-            <p style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #574142; margin: 4px 0 0 0;">Top 5% de Historiadores</p>
-          </div>
+        <div class="stat-card">
+          <p class="stat-number">#{{ getStatValue('globalRank') || '12' }}</p>
+          <p class="stat-label">Ranking</p>
         </div>
-
-        <div style="background: #eff4ff; border-radius: 8px; padding: 24px; border: 1px solid rgba(222,191,191,0.1);">
-          <p style="font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 10px; text-transform: uppercase; color: #6b0119; letter-spacing: 1px; margin: 0 0 12px 0; opacity: 0.8;">Documentos Lidos</p>
-          <div>
-            <p style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 36px; color: #121c2a; letter-spacing: -0.72px; margin: 0;">{{ getStatValue('documentsRead') || '1.247' }}</p>
-            <p style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #574142; margin: 4px 0 0 0;">{{ getStatValue('documentsProgress') || '75' }}% de meta anual</p>
-          </div>
+        <div class="stat-card">
+          <p class="stat-number">{{ getStatValue('documentsRead') || '1.247' }}</p>
+          <p class="stat-label">Documentos</p>
         </div>
       </div>
 
-      <!-- ===== CONFIGURAÇÕES RÁPIDAS (2 colunas bem distribuídas) ===== -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 48px;">
-        
-        <!-- Preferências -->
-        <div (click)="openNotificationPreferences()" style="background: white; border-radius: 8px; padding: 24px; border: 1px solid rgba(222,191,191,0.1); cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 16px;"
-             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(0,0,0,0.04)'"
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-          <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(139,30,45,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b1e2d" stroke-width="1.8">
+      <!-- Configurações -->
+      <div class="profile-settings-grid">
+        <div (click)="openNotificationPreferences()" class="settings-card">
+          <div class="settings-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="1.8">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <circle cx="8" cy="10" r="2" fill="#8b1e2d"/>
+              <circle cx="8" cy="10" r="2" fill="#8B1E2D"/>
             </svg>
           </div>
-          <div style="flex: 1;">
-            <h3 style="font-weight: 700; font-size: 16px; color: #121c2a; margin: 0 0 4px 0;">Preferências</h3>
-            <p style="font-size: 12px; color: #574142; margin: 0;">Gerir alertas e notificações</p>
+          <div class="settings-content">
+            <p class="settings-title">Preferências</p>
+            <p class="settings-sub">Notificações e alertas</p>
           </div>
-          <svg width="8" height="12" viewBox="0 0 8 12" fill="none" stroke="#DEBFBF" stroke-width="1.5">
-            <path d="M1 1L6 6L1 11" stroke-linecap="round"/>
-          </svg>
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="#9CA3AF"><path d="M1 1l4 4-4 4"/></svg>
         </div>
 
-        <!-- Suporte -->
-        <div (click)="openSupport()" style="background: white; border-radius: 8px; padding: 24px; border: 1px solid rgba(222,191,191,0.1); cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 16px;"
-             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(0,0,0,0.04)'"
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-          <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(139,30,45,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b1e2d" stroke-width="1.8">
+        <div (click)="openSupport()" class="settings-card">
+          <div class="settings-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="1.8">
               <circle cx="12" cy="12" r="10"/>
               <path d="M12 8v4M12 16h.01"/>
             </svg>
           </div>
-          <div style="flex: 1;">
-            <h3 style="font-weight: 700; font-size: 16px; color: #121c2a; margin: 0 0 4px 0;">Suporte</h3>
-            <p style="font-size: 12px; color: #574142; margin: 0;">Contactar a equipa editorial</p>
+          <div class="settings-content">
+            <p class="settings-title">Suporte</p>
+            <p class="settings-sub">Ajuda e contacto</p>
           </div>
-          <svg width="8" height="12" viewBox="0 0 8 12" fill="none" stroke="#DEBFBF" stroke-width="1.5">
-            <path d="M1 1L6 6L1 11" stroke-linecap="round"/>
-          </svg>
-        </div>
-
-      </div>
-
-      <!-- ===== SECÇÃO DE SEGURANÇA (cards maiores) ===== -->
-      <div style="margin-bottom: 48px;">
-        <h2 style="color: #6b0119; font-size: 22px; font-weight: 700; margin: 0 0 20px 0; letter-spacing: -0.72px;">Segurança</h2>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
-          
-          <!-- Privacidade -->
-          <div (click)="openPrivacy()" style="background: white; border-radius: 8px; padding: 20px; border: 1px solid rgba(222,191,191,0.1); cursor: pointer; display: flex; align-items: center; gap: 16px; transition: all 0.3s;"
-               onmouseover="this.style.borderColor='rgba(139,30,45,0.3)'"
-               onmouseout="this.style.borderColor='rgba(222,191,191,0.1)'">
-            <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(139,30,45,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b1e2d" stroke-width="1.8">
-                <rect x="3" y="11" width="18" height="11" rx="2" stroke-width="1.5"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke-width="1.5"/>
-              </svg>
-            </div>
-            <div style="flex: 1;">
-              <p style="font-weight: 600; font-size: 14px; color: #121c2a; margin: 0;">Privacidade e Segurança</p>
-              <p style="font-size: 12px; color: #574142; margin: 2px 0 0 0;">Alterar palavra-passe e acessos</p>
-            </div>
-            <svg width="8" height="12" viewBox="0 0 8 12" fill="none" stroke="#DEBFBF" stroke-width="1.5">
-              <path d="M1 1L6 6L1 11" stroke-linecap="round"/>
-            </svg>
-          </div>
-
-          <!-- Desativar Conta -->
-          <div (click)="deactivateAccount()" style="background: white; border-radius: 8px; padding: 20px; border: 1px solid rgba(220,38,38,0.15); cursor: pointer; display: flex; align-items: center; gap: 16px; transition: all 0.3s;"
-               onmouseover="this.style.borderColor='rgba(220,38,38,0.4)'"
-               onmouseout="this.style.borderColor='rgba(220,38,38,0.15)'">
-            <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(220,38,38,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.8">
-                <path d="M18 6L6 18M6 6l12 12" stroke-width="1.5"/>
-              </svg>
-            </div>
-            <div style="flex: 1;">
-              <p style="font-weight: 600; font-size: 14px; color: #dc2626; margin: 0;">Eliminar Conta</p>
-              <p style="font-size: 12px; color: #94a3b8; margin: 2px 0 0 0;">Esta ação é irreversível</p>
-            </div>
-            <svg width="8" height="12" viewBox="0 0 8 12" fill="none" stroke="#DEBFBF" stroke-width="1.5">
-              <path d="M1 1L6 6L1 11" stroke-linecap="round"/>
-            </svg>
-          </div>
-
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="#9CA3AF"><path d="M1 1l4 4-4 4"/></svg>
         </div>
       </div>
 
-      <!-- Méritos e Distinções -->
-      <div style="margin-bottom: 48px;" *ngIf="merits.length > 0">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
-          <h2 style="color: #6b0119; font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.72px;">Méritos e Distinções</h2>
-          <button style="color: #8b1e2d; font-size: 14px; font-weight: 600; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif;">Ver Todos →</button>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-          <div *ngFor="let merit of merits" 
-               style="background: #f8f9ff; border-radius: 8px; padding: 20px; display: flex; gap: 16px; border: 1px solid rgba(222,191,191,0.1);"
-               [style.opacity]="merit.isActive ? '1' : '0.6'">
-            <div style="background: white; border-radius: 8px; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(222,191,191,0.1); flex-shrink: 0;">
-              <svg width="32" height="32" [attr.viewBox]="merit.iconViewBox || '0 0 32 32'" fill="none">
-                <path [attr.d]="merit.iconPath" [style.fill]="merit.isActive ? '#8b1e2d' : '#cbd5e1'"/>
+      <!-- Segurança -->
+      <div class="profile-security">
+        <h2 class="section-title">Segurança</h2>
+        <div class="security-grid">
+          <div (click)="openPrivacy()" class="security-card">
+            <div class="security-icon security-icon-normal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="1.8">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
-            <div style="flex: 1;">
-              <h3 style="font-weight: 700; font-size: 17px; margin: 0 0 6px 0; font-family: 'Poppins', sans-serif;" [style.color]="merit.isActive ? '#121c2a' : '#94a3b8'">{{ merit.title }}</h3>
-              <p *ngFor="let line of merit.description" style="font-size: 13px; margin: 0; line-height: 1.4; font-family: 'Poppins', sans-serif;" [style.color]="merit.isActive ? '#574142' : '#94a3b8'">{{ line }}</p>
-              <p style="color: #94a3b8; font-size: 10px; margin-top: 8px; font-weight: 500; font-family: 'Poppins', sans-serif; text-transform: uppercase;">{{ merit.id || merit.progress }}</p>
+            <div class="security-text">
+              <p class="security-text-title">Privacidade</p>
+              <p class="security-text-sub">Palavra-passe e acessos</p>
+            </div>
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="#9CA3AF"><path d="M1 1l4 4-4 4"/></svg>
+          </div>
+
+          <div (click)="deactivateAccount()" class="security-card security-card-danger">
+            <div class="security-icon security-icon-danger">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="1.8">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </div>
+            <div class="security-text">
+              <p class="security-text-title security-text-title-danger">Eliminar Conta</p>
+              <p class="security-text-sub">Irreversível</p>
+            </div>
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="#9CA3AF"><path d="M1 1l4 4-4 4"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Méritos -->
+      <div class="profile-merits" *ngIf="merits.length > 0">
+        <div class="merits-header">
+          <h2 class="section-title">Méritos</h2>
+          <button style="background:none;border:none;color:#8B1E2D;font-weight:600;font-size:14px;cursor:pointer;">Ver todos →</button>
+        </div>
+        <div class="merits-grid">
+          <div *ngFor="let merit of merits" class="merit-card" [class.merit-card-inactive]="!merit.isActive">
+            <div class="merit-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="1.8">
+                <path d="M12 2L15 8.5L22 9.5L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9.5L9 8.5L12 2Z"/>
+              </svg>
+            </div>
+            <div class="merit-content">
+              <p class="merit-title">{{ merit.title }}</p>
+              <p class="merit-desc">{{ merit.description[0] }}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Conteúdos Criados -->
-      <div *ngIf="userContents.length > 0" style="margin-bottom: 48px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-          <h2 style="color: #6b0119; font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.72px;">Conteúdos Criados</h2>
-          <span style="color: #94a3b8; font-size: 14px; background: #f1f5f9; padding: 6px 14px; border-radius: 30px; font-family: 'Poppins', sans-serif;">{{ userContents.length }} publicações</span>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <div *ngFor="let content of userContents" style="background: white; border-radius: 8px; padding: 24px; border: 1px solid rgba(222,191,191,0.1); cursor: pointer;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-              <span style="background: rgba(139,30,45,0.1); padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 600; color: #8b1e2d; font-family: 'Poppins', sans-serif;">{{ content.type }}</span>
-              <span style="color: #94a3b8; font-size: 12px; font-family: 'Poppins', sans-serif;">{{ content.date }}</span>
+      <!-- Conteúdos -->
+      <div class="profile-contents" *ngIf="userContents.length > 0">
+        <h2 class="section-title">Conteúdos ({{ userContents.length }})</h2>
+        <div class="contents-list">
+          <div *ngFor="let content of userContents" class="content-item">
+            <div class="content-item-header">
+              <span class="content-item-type">{{ content.type }}</span>
+              <span class="content-item-date">{{ content.date }}</span>
             </div>
-            <h3 style="color: #121c2a; font-size: 18px; font-weight: 700; margin: 0 0 12px 0; font-family: 'Poppins', sans-serif;">{{ content.title }}</h3>
-            <p style="color: #574142; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0; font-family: 'Poppins', sans-serif;">{{ content.description }}</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-              <div style="display: flex; gap: 16px;">
-                <span style="color: #94a3b8; font-size: 12px; font-family: 'Poppins', sans-serif;">{{ content.category }}</span>
-                <span style="color: #94a3b8; font-size: 12px; font-family: 'Poppins', sans-serif;">{{ content.views }} visualizações</span>
+            <p class="content-item-title">{{ content.title }}</p>
+            <p class="content-item-desc">{{ content.description }}</p>
+            <div class="content-item-footer">
+              <div class="content-item-meta">
+                <span>{{ content.category }}</span>
+                <span>{{ content.views }} visualizações</span>
               </div>
-              <span style="color: #8b1e2d; font-size: 13px; font-weight: 600; font-family: 'Poppins', sans-serif;">Ler mais →</span>
+              <span class="content-item-link">Ler →</span>
             </div>
           </div>
         </div>
       </div>
 
-      </div>
     </div>
 
-    <!-- MODAL DE EDITAR PERFIL -->
-    <div *ngIf="state.isEditingProfile" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px;">
-      <div style="background: white; border-radius: 12px; padding: 32px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-        
-        <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-          <h2 style="color: #6b0119; font-size: 24px; font-weight: 700; margin: 0;">Editar Perfil</h2>
-          <button (click)="closeEditProfileModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #94a3b8; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">✕</button>
+    <!-- MODAL -->
+    <div *ngIf="state.isEditingProfile" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">Editar Perfil</h2>
+          <button (click)="closeEditProfileModal()" class="modal-close">✕</button>
         </div>
 
-        <!-- Formulário -->
-        <form [formGroup]="editForm" style="display: flex; flex-direction: column; gap: 20px;">
-          
-          <!-- AVATAR -->
-          <div>
-            <label style="display: block; color: #121c2a; font-weight: 600; font-size: 14px; margin-bottom: 12px;">Foto de Perfil</label>
-            
-            <input #avatarInput type="file" accept="image/jpeg,image/png,image/webp" (change)="onAvatarSelected($event)" style="display: none;">
-            <input type="hidden" formControlName="avatar_url">
-            
-            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-              <div style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(139,30,45,0.2); flex-shrink: 0; background-size: cover; background-position: center; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center;"
-                   [style.backgroundImage]="avatarPreview ? 'url(' + avatarPreview + ')' : (profileAvatarUrl ? 'url(' + profileAvatarUrl + ')' : 'none')">
-                <span *ngIf="!avatarPreview && !profileAvatarUrl" style="font-size: 36px; font-weight: 700; color: #94a3b8;">📷</span>
+        <form [formGroup]="editForm">
+          <!-- Avatar -->
+          <div class="form-group">
+            <label class="form-label">Foto</label>
+            <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" style="display:none;">
+            <div class="avatar-upload">
+              <div class="avatar-preview" [style.backgroundImage]="avatarPreview ? 'url('+avatarPreview+')' : (profileAvatarUrl ? 'url('+profileAvatarUrl+')' : 'none')">
+                <span *ngIf="!avatarPreview && !profileAvatarUrl" style="font-size:28px;color:#9CA3AF;">📷</span>
               </div>
-              
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button type="button" (click)="avatarInput.click()" style="background: #8b1e2d; color: white; padding: 8px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">
-                  📷 {{ avatarPreview || profileAvatarUrl ? 'Alterar' : 'Carregar' }} Imagem
+              <div class="avatar-actions">
+                <button type="button" (click)="avatarInput.click()" class="btn-primary" style="padding:6px 16px;font-size:13px;">
+                  {{ avatarPreview || profileAvatarUrl ? 'Alterar' : 'Carregar' }}
                 </button>
-                <button *ngIf="avatarPreview || profileAvatarUrl" type="button" (click)="removeAvatar()" style="background: rgba(220,38,38,0.08); color: #dc2626; padding: 6px 16px; border: 1px solid rgba(220,38,38,0.15); border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 12px;">
-                  ✕ Remover
-                </button>
-                <p style="font-size: 11px; color: #94a3b8; margin: 0;">JPG, PNG ou WebP (máx 5MB)</p>
+                <button *ngIf="avatarPreview || profileAvatarUrl" type="button" (click)="removeAvatar()" class="btn-secondary" style="padding:4px 12px;font-size:12px;">Remover</button>
               </div>
             </div>
-            <p *ngIf="avatarError" style="color: #dc2626; font-size: 12px; margin-top: 8px;">{{ avatarError }}</p>
           </div>
 
-          <!-- display_name -->
-          <div>
-            <label style="display: block; color: #121c2a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Nome de Exibição <span style="color: #dc2626;">*</span></label>
-            <input formControlName="display_name" type="text" placeholder="Ex: Dr. Manuel Costa" style="width: 100%; padding: 12px; border: 1px solid rgba(222,191,191,0.2); border-radius: 8px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-            <p *ngIf="editForm.get('display_name')?.hasError('required') && editForm.get('display_name')?.touched" style="color: #dc2626; font-size: 12px; margin-top: 4px;">Campo obrigatório</p>
-            <p *ngIf="editForm.get('display_name')?.hasError('maxlength') && editForm.get('display_name')?.touched" style="color: #dc2626; font-size: 12px; margin-top: 4px;">Máximo 100 caracteres</p>
+          <!-- Nome -->
+          <div class="form-group">
+            <label class="form-label">Nome *</label>
+            <input formControlName="display_name" class="form-input" placeholder="Seu nome">
           </div>
 
-          <!-- full_name -->
-          <div>
-            <label style="display: block; color: #121c2a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Nome Completo</label>
-            <input formControlName="full_name" type="text" placeholder="Ex: Manuel António Costa" style="width: 100%; padding: 12px; border: 1px solid rgba(222,191,191,0.2); border-radius: 8px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+          <!-- Instituição -->
+          <div class="form-group">
+            <label class="form-label">Instituição</label>
+            <input formControlName="institution" class="form-input" placeholder="Universidade">
           </div>
 
-          <!-- institution -->
-          <div>
-            <label style="display: block; color: #121c2a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Instituição</label>
-            <input formControlName="institution" type="text" placeholder="Ex: Universidade Agostinho Neto" style="width: 100%; padding: 12px; border: 1px solid rgba(222,191,191,0.2); border-radius: 8px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-          </div>
-
-          <!-- province -->
-          <div>
-            <label style="display: block; color: #121c2a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Província</label>
-            <select formControlName="province" style="width: 100%; padding: 12px; border: 1px solid rgba(222,191,191,0.2); border-radius: 8px; font-size: 14px; font-family: 'Poppins', sans-serif; background: white; cursor: pointer;">
-              <option value="">Selecione uma província...</option>
+          <!-- Província -->
+          <div class="form-group">
+            <label class="form-label">Província</label>
+            <select formControlName="province" class="form-select">
+              <option value="">Selecione...</option>
               <option *ngFor="let p of angolasProvinces" [value]="p">{{ p }}</option>
             </select>
           </div>
 
-          <!-- bio -->
-          <div>
-            <label style="display: block; color: #121c2a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">
-              Biografia 
-              <span style="color: #94a3b8; font-weight: 400;">({{ editForm.get('bio')?.value?.length || 0 }}/2000)</span>
-            </label>
-            <textarea formControlName="bio" rows="3" placeholder="Descreva sua área de pesquisa e interesses académicos..." style="width: 100%; padding: 12px; border: 1px solid rgba(222,191,191,0.2); border-radius: 8px; font-size: 14px; font-family: 'Poppins', sans-serif; resize: vertical; min-height: 80px;"></textarea>
-            <p *ngIf="editForm.get('bio')?.hasError('maxlength') && editForm.get('bio')?.touched" style="color: #dc2626; font-size: 12px; margin-top: 4px;">Máximo 2000 caracteres</p>
+          <!-- Bio -->
+          <div class="form-group">
+            <label class="form-label">Biografia</label>
+            <textarea formControlName="bio" class="form-textarea" rows="3" placeholder="Sua área de pesquisa..."></textarea>
           </div>
 
-          <!-- research_areas -->
-          <div>
-            <label style="display: block; color: #121c2a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">
-              Áreas de Pesquisa
-              <span style="color: #94a3b8; font-weight: 400; font-size: 12px;">(máximo 10)</span>
-            </label>
-            <input formControlName="research_areas" type="text" placeholder="Ex: História Económica, Análise de Dados (separar por vírgula)" style="width: 100%; padding: 12px; border: 1px solid rgba(222,191,191,0.2); border-radius: 8px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-            <p style="color: #94a3b8; font-size: 11px; margin-top: 4px;">Máx 2000 caracteres</p>
-          </div>
-
-          <!-- Botões -->
-          <div style="display: flex; gap: 12px; margin-top: 8px; padding-top: 20px; border-top: 1px solid rgba(222,191,191,0.1);">
-            <button type="button" (click)="discardChanges()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #121c2a; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;">
-              Descartar
-            </button>
-            <button type="button" (click)="saveProfileChanges()" [disabled]="!editForm.valid || state.isLoadingStats" style="flex: 1; padding: 12px; background: #8b1e2d; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;" [style.opacity]="!editForm.valid || state.isLoadingStats ? '0.6' : '1'">
-              {{ state.isLoadingStats ? 'Salvando...' : 'Salvar Mudanças' }}
+          <!-- Ações -->
+          <div class="form-actions">
+            <button type="button" (click)="discardChanges()" class="btn-discard">Descartar</button>
+            <button type="button" (click)="saveProfileChanges()" [disabled]="!editForm.valid || state.isLoadingStats" class="btn-save">
+              {{ state.isLoadingStats ? 'Salvando...' : 'Salvar' }}
             </button>
           </div>
-
         </form>
       </div>
     </div>

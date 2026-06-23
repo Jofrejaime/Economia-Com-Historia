@@ -1,123 +1,124 @@
-<div style="background-color: #f8f9ff; min-height: 100vh;">
+<div class="category-view-page">
   
   <app-header></app-header>
 
-  <main style="flex: 1; width: 100%;">
-    <div style="max-width: 1536px; margin: 0 auto; padding: 48px 48px;">
+  <main class="category-view-main">
+    <div class="category-view-container">
       
-      <!-- Breadcrumb -->
-      <button (click)="navigateTo('/forum/community')" style="display: flex; align-items: center; gap: 8px; margin-bottom: 32px; background: none; border: none; cursor: pointer; font-weight: 500; color: #800020; font-size: 14px; transition: gap 0.3s;" onmouseover="this.style.gap='12px'" onmouseout="this.style.gap='8px'">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#800020" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      <!-- Back Button -->
+      <button (click)="navigateTo('/forum/community')" class="category-view-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
         Voltar para Comunidade
       </button>
 
       <!-- Header -->
-      <div style="margin-bottom: 40px;">
-        <div style="margin-bottom: 16px;">
-          <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #800020; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; display: inline-block;">ACESSO À COMUNIDADE</span>
-        </div>
-        <h1 style="color: #1a1a1a; font-size: 42px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: -0.5px;">Categorias de Acesso</h1>
-        <p style="color: #64748b; font-size: 17px; line-height: 1.5; max-width: 800px; margin: 0;">
+      <div class="category-view-header">
+        <div class="category-view-header-badge">ACESSO À COMUNIDADE</div>
+        <h1 class="category-view-header-title">Categorias de Acesso</h1>
+        <p class="category-view-header-description">
           Solicite acesso às categorias para participar em discussões especializadas. As categorias públicas concedem acesso imediato, enquanto as privadas requerem aprovação da equipa.
         </p>
       </div>
 
-      <!-- Info Cards Modernizados -->
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 48px;">
+      <!-- Info Cards -->
+      <div class="category-view-info-grid">
         
         <!-- Public Card -->
-        <div style="background: linear-gradient(135deg, #acf0e020, #acf0e008); border: 1px solid #acf0e0; border-radius: 16px; padding: 24px; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-          <div style="width: 40px; height: 40px; background: #acf0e0; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003a32" stroke-width="2"><path d="M20 12v8H4v-8M12 2v12m-4-4l4 4 4-4"/></svg>
+        <div class="category-view-info-card category-view-info-card-public">
+          <div class="category-view-info-icon category-view-info-icon-public">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003a32" stroke-width="2">
+              <path d="M20 12v8H4v-8M12 2v12m-4-4l4 4 4-4"/>
+            </svg>
           </div>
-          <h3 style="font-weight: 700; color: #003a32; font-size: 18px; margin-bottom: 8px;">Públicas</h3>
-          <p style="color: #4a6a5a; font-size: 14px; line-height: 1.5;">Acesso automático ao solicitar. Perfeitas para começar.</p>
+          <h3 class="category-view-info-title category-view-info-title-public">Públicas</h3>
+          <p class="category-view-info-text category-view-info-text-public">Acesso automático ao solicitar. Perfeitas para começar.</p>
         </div>
 
         <!-- Jindungo Card -->
-        <div style="background: linear-gradient(135deg, #ffd6a520, #ffd6a508); border: 1px solid #ffd6a5; border-radius: 16px; padding: 24px; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-          <div style="width: 40px; height: 40px; background: #ffd6a5; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4a2c00" stroke-width="2"><path d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+        <div class="category-view-info-card category-view-info-card-jindungo">
+          <div class="category-view-info-icon category-view-info-icon-jindungo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4a2c00" stroke-width="2">
+              <path d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+            </svg>
           </div>
-          <h3 style="font-weight: 700; color: #4a2c00; font-size: 18px; margin-bottom: 8px;">Jindungo</h3>
-          <p style="color: #6a4a2a; font-size: 14px; line-height: 1.5;">Conteúdo premium. Requer aprovação manual.</p>
+          <h3 class="category-view-info-title category-view-info-title-jindungo">Jindungo</h3>
+          <p class="category-view-info-text category-view-info-text-jindungo">Conteúdo premium. Requer aprovação manual.</p>
         </div>
 
         <!-- Restricted Card -->
-        <div style="background: linear-gradient(135deg, #ffb3ba20, #ffb3ba08); border: 1px solid #ffb3ba; border-radius: 16px; padding: 24px; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-          <div style="width: 40px; height: 40px; background: #ffb3ba; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5c0011" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <div class="category-view-info-card category-view-info-card-restricted">
+          <div class="category-view-info-icon category-view-info-icon-restricted">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5c0011" stroke-width="2">
+              <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
           </div>
-          <h3 style="font-weight: 700; color: #5c0011; font-size: 18px; margin-bottom: 8px;">Restritas</h3>
-          <p style="color: #6a2a3a; font-size: 14px; line-height: 1.5;">Para investigadores. Validação necessária.</p>
+          <h3 class="category-view-info-title category-view-info-title-restricted">Restritas</h3>
+          <p class="category-view-info-text category-view-info-text-restricted">Para investigadores. Validação necessária.</p>
         </div>
       </div>
 
-      <!-- Categories Grid Modernizado -->
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;">
-        <div *ngFor="let category of categories" style="display: flex; flex-direction: column; gap: 16px;">
+      <!-- Categories Grid -->
+      <div class="category-view-categories-grid">
+        <div *ngFor="let category of categories" class="category-view-category-card">
           
           <!-- Category Card -->
           <div (click)="navigateTo('/forum/categoria/' + category.id)" 
-               style="background: white; border-radius: 20px; overflow: hidden; cursor: pointer; transition: all 0.3s; border: 1px solid #eef2f6; box-shadow: 0 2px 8px rgba(0,0,0,0.02);"
-               [style.cursor]="canNavigate(category) ? 'pointer' : 'default'"
-               onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.08)'; this.style.borderColor='rgba(128,0,32,0.15)'"
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.02)'; this.style.borderColor='#eef2f6'">
+               class="category-view-category-item"
+               [class.category-view-category-item-disabled]="!canNavigate(category)">
             
             <!-- Card Image -->
-            <div style="height: 140px; overflow: hidden; position: relative;">
-              <img [src]="category.backgroundImage" alt="" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-              <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);"></div>
+            <div class="category-view-category-image">
+              <img [src]="category.backgroundImage" alt="">
+              <div class="category-view-category-image-overlay"></div>
             </div>
             
             <!-- Card Content -->
-            <div style="padding: 20px;">
+            <div class="category-view-category-body">
               <!-- Header with Badge -->
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div style="display: inline-block; padding: 4px 10px; border-radius: 20px;" [style.backgroundColor]="category.color.bg">
-                  <span style="font-weight: 600; font-size: 11px; text-transform: uppercase;" [style.color]="category.color.text">{{ category.name }}</span>
+              <div class="category-view-category-header">
+                <div class="category-view-category-type" [style.backgroundColor]="category.color.bg">
+                  <span [style.color]="category.color.text">{{ category.name }}</span>
                 </div>
-                <div style="display: inline-block; padding: 4px 10px; border-radius: 20px;" [style.backgroundColor]="getAccessBadge(category.accessType).bg">
-                  <span style="font-weight: 600; font-size: 10px; text-transform: uppercase;" [style.color]="getAccessBadge(category.accessType).text">{{ getAccessBadge(category.accessType).label }}</span>
+                <div class="category-view-category-access" [style.backgroundColor]="getAccessBadge(category.accessType).bg">
+                  <span [style.color]="getAccessBadge(category.accessType).text">{{ getAccessBadge(category.accessType).label }}</span>
                 </div>
               </div>
               
               <!-- Title -->
-              <h3 style="font-weight: 700; color: #1a1a1a; font-size: 18px; margin: 0 0 8px 0;">{{ category.name }}</h3>
+              <h3 class="category-view-category-name">{{ category.name }}</h3>
               
               <!-- Description -->
-              <p style="color: #6a6a6a; font-size: 13px; line-height: 1.5; margin: 0 0 16px 0;">{{ category.description }}</p>
+              <p class="category-view-category-description">{{ category.description }}</p>
               
               <!-- Stats -->
-              <div style="display: flex; gap: 16px; font-size: 12px; color: #8a8a8a;">
+              <div class="category-view-category-stats">
                 <span>👥 {{ category.members }} membros</span>
                 <span>💬 {{ category.topics }} tópicos</span>
               </div>
             </div>
           </div>
 
-          <!-- Action Button Modernizado -->
+          <!-- Action Button -->
           <div *ngIf="category.requestStatus === 'none'">
-            <button (click)="handleRequestAccess(category.id, category.accessType)" 
-                    style="width: 100%; background: linear-gradient(135deg, #800020, #6b0119); padding: 12px 24px; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; color: white; font-size: 14px; transition: all 0.3s;"
-                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(128,0,32,0.3)'" 
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+            <button (click)="handleRequestAccess(category.id, category.accessType)" class="btn-primary">
               Solicitar Acesso
             </button>
           </div>
 
-          <!-- Pending Status Modernizado -->
-          <div *ngIf="category.requestStatus === 'pending'"
-               style="width: 100%; background: rgba(255,214,165,0.15); border: 1px solid #ffd6a5; border-radius: 40px; padding: 12px 24px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <div style="width: 8px; height: 8px; background: #ff9800; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
-            <span style="font-weight: 500; color: #4a2c00; font-size: 14px;">Aguardando Aprovação</span>
+          <!-- Pending Status -->
+          <div *ngIf="category.requestStatus === 'pending'" class="category-view-status-pending">
+            <div class="category-view-status-pending-dot"></div>
+            <span class="category-view-status-pending-text">Aguardando Aprovação</span>
           </div>
 
-          <!-- Approved Status Modernizado -->
-          <div *ngIf="category.requestStatus === 'approved'"
-               style="width: 100%; background: rgba(172,240,224,0.15); border: 1px solid #acf0e0; border-radius: 40px; padding: 12px 24px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            <span style="font-weight: 500; color: #065f46; font-size: 14px;">Acesso Concedido</span>
+          <!-- Approved Status -->
+          <div *ngIf="category.requestStatus === 'approved'" class="category-view-status-approved">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span class="category-view-status-approved-text">Acesso Concedido</span>
           </div>
         </div>
       </div>
@@ -126,10 +127,3 @@
 
   <app-footer></app-footer>
 </div>
-
-<style>
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-</style>

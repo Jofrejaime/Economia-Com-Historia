@@ -1,161 +1,154 @@
-<div style="background-color: #f8f9ff; min-height: 100vh;">
+<div class="discussion-page">
   
   <app-header></app-header>
 
-  <main style="flex: 1; width: 100%;">
-    <div style="max-width: 1536px; margin: 0 auto; padding: 40px 48px;">
+  <main class="discussion-main">
+    <div class="discussion-container">
       
-      <!-- Breadcrumb Modernizado -->
-      <nav style="display: flex; align-items: center; gap: 8px; margin-bottom: 32px;">
-        <button (click)="navigateTo('/forum/community')" style="background: none; border: none; cursor: pointer; color: #8a8a8a; font-size: 14px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#8a8a8a'">Comunidade</button>
-        <span style="color: #8a8a8a;">/</span>
-        <span style="color: #800020; font-size: 14px; font-weight: 600;">Análise de Políticas</span>
+      <!-- Breadcrumb -->
+      <nav class="discussion-breadcrumb">
+        <button (click)="navigateTo('/forum/community')" class="discussion-breadcrumb-btn">Comunidade</button>
+        <span class="discussion-breadcrumb-separator">/</span>
+        <span class="discussion-breadcrumb-current">Análise de Políticas</span>
       </nav>
 
       <!-- Main Content Grid -->
-      <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 48px;">
+      <div class="discussion-grid">
         
         <!-- Main Thread Content -->
         <div>
           
-          <!-- Discussion Header Modernizado -->
-          <div style="background: white; border-radius: 20px; padding: 32px; margin-bottom: 24px; border: 1px solid #eef2f6;">
+          <!-- Discussion Header -->
+          <div class="discussion-header">
             
             <!-- Category & Meta -->
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 20px;">
-              <div style="display: inline-block; padding: 4px 12px; border-radius: 20px;" [style.backgroundColor]="discussion.categoryColor.bg">
-                <span style="font-weight: 600; font-size: 11px; text-transform: uppercase;" [style.color]="discussion.categoryColor.text">{{ discussion.category }}</span>
+            <div class="discussion-meta">
+              <div class="discussion-category" [style.backgroundColor]="discussion.categoryColor.bg">
+                <span class="discussion-category-text" [style.color]="discussion.categoryColor.text">{{ discussion.category }}</span>
               </div>
-              <div *ngIf="discussion.isPinned" style="display: flex; align-items: center; gap: 6px;">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="#800020"><path d="M9 2L10 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L6 5L7 2H9Z"/></svg>
-                <span style="font-weight: 600; color: #800020; font-size: 11px; text-transform: uppercase;">Fixado</span>
+              <div *ngIf="discussion.isPinned" class="discussion-pinned">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="#8B1E2D"><path d="M9 2L10 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L6 5L7 2H9Z"/></svg>
+                <span class="discussion-pinned-text">Fixado</span>
               </div>
             </div>
 
             <!-- Title -->
-            <h1 style="color: #1a1a1a; font-size: 32px; font-weight: 700; margin: 0 0 20px 0; letter-spacing: -0.3px;">{{ discussion.title }}</h1>
+            <h1 class="discussion-title">{{ discussion.title }}</h1>
 
-            <!-- Author Info Modernizada -->
-            <div style="display: flex; align-items: center; gap: 16px; padding-bottom: 24px; border-bottom: 1px solid #eef2f6; margin-bottom: 28px;">
-              <div style="width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" [style.backgroundColor]="discussion.avatar">
-                <span style="font-weight: 700; color: white; font-size: 20px;">{{ discussion.authorInitials }}</span>
+            <!-- Author Info -->
+            <div class="discussion-author-info">
+              <div class="discussion-avatar" [style.backgroundColor]="discussion.avatar">
+                <span class="discussion-avatar-text">{{ discussion.authorInitials }}</span>
               </div>
               <div>
-                <div style="font-weight: 700; color: #1a1a1a; font-size: 16px; margin-bottom: 4px;">{{ discussion.author }}</div>
-                <div style="color: #8a8a8a; font-size: 13px;">{{ discussion.authorRole }} • {{ discussion.date }}</div>
+                <div class="discussion-author-name">{{ discussion.author }}</div>
+                <div class="discussion-author-meta">{{ discussion.authorRole }} • {{ discussion.date }}</div>
               </div>
             </div>
 
             <!-- Content -->
-            <div style="color: #4a4a4a; font-size: 16px; line-height: 1.6; margin-bottom: 32px; white-space: pre-line;">
+            <div class="discussion-content">
               {{ discussion.content }}
             </div>
 
-            <!-- Actions Modernizadas -->
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; padding-top: 8px;">
-              <button style="display: flex; gap: 8px; align-items: center; background: none; border: none; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                <span style="font-weight: 500; color: #8a8a8a; font-size: 14px;">{{ discussion.likes }}</span>
+            <!-- Actions -->
+            <div class="discussion-actions">
+              <button class="discussion-action-btn" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span class="discussion-action-text">{{ discussion.likes }}</span>
               </button>
-              <button (click)="showReplyForm = !showReplyForm" style="display: flex; gap: 8px; align-items: center; background: none; border: none; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span style="font-weight: 500; color: #8a8a8a; font-size: 14px;">Responder</span>
+              <button (click)="showReplyForm = !showReplyForm" class="discussion-action-btn" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span class="discussion-action-text">Responder</span>
               </button>
-              <button style="display: flex; gap: 8px; align-items: center; background: none; border: none; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="1.8"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v15"/></svg>
-                <span style="font-weight: 500; color: #8a8a8a; font-size: 14px;">Partilhar</span>
+              <button class="discussion-action-btn" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v15"/></svg>
+                <span class="discussion-action-text">Partilhar</span>
               </button>
-              <div style="display: flex; gap: 6px; align-items: center; margin-left: auto;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span style="color: #8a8a8a; font-size: 13px;">{{ discussion.views }} visualizações</span>
+              <div class="discussion-views">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span class="discussion-views-text">{{ discussion.views }} visualizações</span>
               </div>
             </div>
           </div>
 
-          <!-- Reply Form Modernizado -->
-          <div *ngIf="showReplyForm" style="background: white; border-radius: 20px; padding: 28px; margin-bottom: 24px; border: 1px solid #eef2f6;">
-            <h3 style="font-weight: 700; color: #1a1a1a; font-size: 18px; margin: 0 0 20px 0;">Adicionar Resposta</h3>
+          <!-- Reply Form -->
+          <div *ngIf="showReplyForm" class="reply-form">
+            <h3 class="reply-form-title">Adicionar Resposta</h3>
             <form (ngSubmit)="handleSubmitReply($event)">
-              <textarea [(ngModel)]="replyText" name="replyText" rows="5" placeholder="Partilhe a sua perspectiva, fontes ou sugestões..."
-                style="width: 100%; min-height: 150px; padding: 14px 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 14px; line-height: 1.5; outline: none; resize: vertical; box-sizing: border-box; transition: all 0.2s;"
-                onfocus="this.style.borderColor='#800020'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 2px rgba(128,0,32,0.1)'"
-                onblur="this.style.borderColor='#e2e8f0'; this.style.backgroundColor='#f8fafc'; this.style.boxShadow='none'"></textarea>
-              <div style="display: flex; gap: 12px; margin-top: 20px;">
-                <button type="submit" style="background: linear-gradient(135deg, #800020, #6b0119); padding: 12px 28px; border-radius: 40px; border: none; cursor: pointer; transition: all 0.3s; font-weight: 600; color: white; font-size: 14px;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(128,0,32,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                  Publicar Resposta
-                </button>
-                <button type="button" (click)="showReplyForm = false" style="background: none; padding: 12px 28px; border-radius: 40px; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.3s; font-weight: 500; color: #6a6a6a; font-size: 14px;" onmouseover="this.style.borderColor='#800020'; this.style.color='#800020'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#6a6a6a'">
-                  Cancelar
-                </button>
+              <textarea [(ngModel)]="replyText" name="replyText" rows="5" placeholder="Partilhe a sua perspectiva, fontes ou sugestões..." class="reply-textarea"></textarea>
+              <div class="reply-form-actions">
+                <button type="submit" class="btn-primary">Publicar Resposta</button>
+                <button type="button" (click)="showReplyForm = false" class="btn-secondary">Cancelar</button>
               </div>
             </form>
           </div>
 
-          <!-- Replies Section Modernizada -->
+          <!-- Replies Section -->
           <div>
-            <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px;">
-              <h2 style="color: #1a1a1a; font-size: 22px; font-weight: 700; margin: 0;">{{ replies.length }} Respostas</h2>
-              <div style="height: 2px; background: linear-gradient(90deg, #800020, transparent); flex: 1;"></div>
+            <div class="replies-header">
+              <h2 class="replies-title">{{ replies.length }} Respostas</h2>
+              <div class="replies-divider"></div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-              <div *ngFor="let reply of replies" style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #eef2f6; transition: all 0.2s;" onmouseover="this.style.borderColor='rgba(128,0,32,0.15)'" onmouseout="this.style.borderColor='#eef2f6'">
+            <div>
+              <div *ngFor="let reply of replies" class="reply-card">
                 
                 <!-- Reply Author -->
-                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 18px;">
-                  <div style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" [style.backgroundColor]="reply.avatar">
-                    <span style="font-weight: 700; color: white; font-size: 16px;">{{ reply.authorInitials }}</span>
+                <div class="reply-author">
+                  <div class="reply-avatar" [style.backgroundColor]="reply.avatar">
+                    <span class="reply-avatar-text">{{ reply.authorInitials }}</span>
                   </div>
                   <div>
-                    <div style="font-weight: 700; color: #1a1a1a; font-size: 15px; margin-bottom: 2px;">{{ reply.author }}</div>
-                    <div style="color: #8a8a8a; font-size: 12px;">{{ reply.authorRole }} • {{ reply.timeAgo }}</div>
+                    <div class="reply-author-name">{{ reply.author }}</div>
+                    <div class="reply-author-meta">{{ reply.authorRole }} • {{ reply.timeAgo }}</div>
                   </div>
                 </div>
 
                 <!-- Reply Content -->
-                <div style="color: #4a4a4a; font-size: 14px; line-height: 1.6; margin-bottom: 18px; white-space: pre-line; padding-left: 58px;">
+                <div class="reply-content">
                   {{ reply.content }}
                 </div>
 
                 <!-- Reply Actions -->
-                <div style="display: flex; gap: 20px; padding-left: 58px;">
-                  <button style="display: flex; gap: 6px; align-items: center; background: none; border: none; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="reply.isLiked ? '#800020' : '#8a8a8a'" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                    <span [style.color]="reply.isLiked ? '#800020' : '#8a8a8a'" style="font-weight: 500; font-size: 13px;">{{ reply.likes }}</span>
+                <div class="reply-actions">
+                  <button class="reply-action-btn" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="reply.isLiked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <span class="reply-action-text" [class.liked]="reply.isLiked" [class.unliked]="!reply.isLiked">{{ reply.likes }}</span>
                   </button>
-                  <button style="background: none; border: none; cursor: pointer; color: #8a8a8a; font-weight: 500; font-size: 13px; transition: color 0.2s;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#8a8a8a'">Responder</button>
+                  <button class="reply-action-btn-secondary">Responder</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Sidebar Modernizada -->
+        <!-- Sidebar -->
         <aside>
-          <div style="display: flex; flex-direction: column; gap: 24px; position: sticky; top: 100px;">
+          <div class="discussion-sidebar">
             
-            <!-- Author Card Modernizado -->
-            <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #eef2f6;">
-              <h3 style="color: #800020; font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 18px;">SOBRE O AUTOR</h3>
-              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" [style.backgroundColor]="discussion.avatar">
-                  <span style="font-weight: 700; color: white; font-size: 18px;">{{ discussion.authorInitials }}</span>
+            <!-- Author Card -->
+            <div class="sidebar-card">
+              <h3 class="sidebar-title">SOBRE O AUTOR</h3>
+              <div class="author-card">
+                <div class="author-card-avatar" [style.backgroundColor]="discussion.avatar">
+                  <span class="author-card-avatar-text">{{ discussion.authorInitials }}</span>
                 </div>
                 <div>
-                  <div style="font-weight: 700; color: #1a1a1a; font-size: 15px; margin-bottom: 2px;">{{ discussion.author }}</div>
-                  <div style="color: #8a8a8a; font-size: 12px;">{{ discussion.authorRole }}</div>
+                  <div class="author-card-name">{{ discussion.author }}</div>
+                  <div class="author-card-role">{{ discussion.authorRole }}</div>
                 </div>
               </div>
-              <div style="color: #8a8a8a; font-size: 13px;">📄 {{ discussion.authorPosts }} publicações</div>
+              <div class="author-card-posts">📄 {{ discussion.authorPosts }} publicações</div>
             </div>
 
-            <!-- Related Topics Modernizado -->
-            <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #eef2f6;">
-              <h3 style="color: #800020; font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 18px;">TÓPICOS RELACIONADOS</h3>
-              <div style="display: flex; flex-direction: column; gap: 16px;">
-                <button *ngFor="let topic of relatedTopics" (click)="navigateTo('/forum/community/discussao')" style="text-align: left; background: none; border: none; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
-                  <div style="font-weight: 600; color: #1a1a1a; font-size: 14px; margin-bottom: 6px; transition: color 0.2s;" onmouseover="this.style.color='#800020'" onmouseout="this.style.color='#1a1a1a'">{{ topic.title }}</div>
-                  <div style="display: flex; gap: 12px; color: #8a8a8a; font-size: 11px;">
+            <!-- Related Topics -->
+            <div class="sidebar-card">
+              <h3 class="sidebar-title">TÓPICOS RELACIONADOS</h3>
+              <div>
+                <button *ngFor="let topic of relatedTopics" (click)="navigateTo('/forum/community/discussao')" class="related-topic-btn">
+                  <div class="related-topic-title">{{ topic.title }}</div>
+                  <div class="related-topic-meta">
                     <span>💬 {{ topic.replies }} respostas</span>
                     <span>👁️ {{ topic.views }} visualizações</span>
                   </div>
@@ -163,13 +156,13 @@
               </div>
             </div>
 
-            <!-- Quick Actions Modernizado -->
-            <div style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 16px; padding: 24px; border: 1px solid #eef2f6;">
-              <h3 style="color: #800020; font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 18px;">ACÇÕES RÁPIDAS</h3>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 10px; background: none; border: none; cursor: pointer; font-weight: 500; color: #4a4a4a; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.backgroundColor='white'; this.style.color='#800020'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#4a4a4a'">🚩 Reportar Discussão</button>
-                <button style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 10px; background: none; border: none; cursor: pointer; font-weight: 500; color: #4a4a4a; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.backgroundColor='white'; this.style.color='#800020'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#4a4a4a'">⭐ Seguir Tópico</button>
-                <button style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 10px; background: none; border: none; cursor: pointer; font-weight: 500; color: #4a4a4a; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.backgroundColor='white'; this.style.color='#800020'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#4a4a4a'">🔖 Guardar para Ler</button>
+            <!-- Quick Actions -->
+            <div class="quick-actions-card">
+              <h3 class="sidebar-title">ACÇÕES RÁPIDAS</h3>
+              <div>
+                <button class="quick-action-btn" onmouseover="this.style.backgroundColor='#FFFFFF'; this.style.color='#8B1E2D'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#1F2937'">🚩 Reportar Discussão</button>
+                <button class="quick-action-btn" onmouseover="this.style.backgroundColor='#FFFFFF'; this.style.color='#8B1E2D'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#1F2937'">⭐ Seguir Tópico</button>
+                <button class="quick-action-btn" onmouseover="this.style.backgroundColor='#FFFFFF'; this.style.color='#8B1E2D'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#1F2937'">🔖 Guardar para Ler</button>
               </div>
             </div>
           </div>
