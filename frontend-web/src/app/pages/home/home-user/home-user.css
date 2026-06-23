@@ -1,5 +1,5 @@
 /* ============================================
-   CONTENTS PAGE - DESIGN SYSTEM
+   HOME USER - DESIGN SYSTEM
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
@@ -50,6 +50,17 @@ p, span, div, button, input, textarea, a {
   padding: 48px 48px;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* ============================================
+   STICKY HEADER
+   ============================================ */
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
 }
 
 /* ============================================
@@ -208,6 +219,12 @@ p, span, div, button, input, textarea, a {
   justify-content: space-between;
   padding: 32px;
   background: #FFFFFF;
+  transition: all 0.3s;
+}
+
+.contents-category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(139, 30, 45, 0.1);
 }
 
 .contents-category-icon {
@@ -278,7 +295,7 @@ p, span, div, button, input, textarea, a {
 }
 
 /* ============================================
-   MAIN GRID
+   MAIN GRID - ESTILO G1
    ============================================ */
 
 .contents-grid {
@@ -287,8 +304,12 @@ p, span, div, button, input, textarea, a {
   gap: 64px;
 }
 
+.contents-main-content {
+  width: 100%;
+}
+
 /* ============================================
-   RECOMMENDED DOCUMENTS
+   DOCUMENTS LIST - ESTILO G1 (100% WIDTH)
    ============================================ */
 
 .contents-documents-header {
@@ -328,108 +349,103 @@ p, span, div, button, input, textarea, a {
   color: #6B0119;
 }
 
-/* Document Card Large */
-.contents-doc-large {
+/* Lista de documentos estilo G1 - 100% width */
+.contents-docs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.contents-doc-item {
+  display: flex;
   background: #FFFFFF;
   border-radius: 8px;
-  display: flex;
-  height: 256px;
   overflow: hidden;
-  margin-bottom: 28px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s;
+  cursor: pointer;
+  width: 100%;
+  min-height: 180px;
 }
 
-.contents-doc-large-image {
-  width: 50%;
+.contents-doc-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  border-color: rgba(139, 30, 45, 0.15);
+}
+
+.contents-doc-item-image {
+  width: 280px;
+  min-height: 180px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.contents-doc-item-image img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  transition: transform 0.3s;
 }
 
-.contents-doc-large-body {
-  padding: 32px;
+.contents-doc-item:hover .contents-doc-item-image img {
+  transform: scale(1.03);
+}
+
+.contents-doc-item-body {
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  flex: 1;
 }
 
-.contents-doc-large-category {
+.contents-doc-item-category {
   color: #8B1E2D;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
-  margin: 0 0 8px;
+  margin-bottom: 8px;
   font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
 }
 
-.contents-doc-large-title {
-  font-size: 24px;
+.contents-doc-item-title {
+  font-size: 22px;
   font-weight: 700;
   color: #1F2937;
-  margin: 0 0 16px;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
   font-family: 'IBM Plex Sans', sans-serif;
   letter-spacing: -0.02em;
-  line-height: 1.3;
 }
 
-.contents-doc-large-description {
-  font-size: 14px;
+.contents-doc-item-description {
   color: #1F2937;
-  margin: 0 0 24px;
-  font-family: 'Source Sans 3', sans-serif;
+  font-size: 15px;
   line-height: 1.7;
+  margin: 0 0 16px 0;
+  font-family: 'Source Sans 3', sans-serif;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.contents-doc-large-link {
+.contents-doc-item-link {
   color: #8B1E2D;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   text-decoration: none;
   font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
   transition: color 0.2s;
 }
 
-.contents-doc-large-link:hover {
+.contents-doc-item-link:hover {
   color: #6B0119;
-}
-
-/* Document Cards Small */
-.contents-docs-small {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-}
-
-.contents-doc-small {
-  background: #eff4ff;
-  border-radius: 8px;
-  padding: 32px;
-}
-
-.contents-doc-small-icon {
-  background: rgba(107, 1, 25, 0.1);
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-.contents-doc-small-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1F2937;
-  margin: 0 0 12px;
-  font-family: 'IBM Plex Sans', sans-serif;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-}
-
-.contents-doc-small-description {
-  font-size: 14px;
-  color: #1F2937;
-  margin: 0;
-  font-family: 'Source Sans 3', sans-serif;
-  line-height: 1.7;
 }
 
 /* ============================================
@@ -649,6 +665,10 @@ p, span, div, button, input, textarea, a {
   .contents-categories-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  .contents-doc-item-image {
+    width: 220px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -681,23 +701,32 @@ p, span, div, button, input, textarea, a {
     grid-template-columns: 1fr;
   }
   
-  .contents-doc-large {
-    flex-direction: column;
-    height: auto;
-  }
-  
-  .contents-doc-large-image {
-    width: 100%;
-    height: 200px;
-  }
-  
-  .contents-docs-small {
-    grid-template-columns: 1fr;
-  }
-  
   .contents-hero-actions {
     flex-direction: column;
     align-items: flex-start;
+  }
+  
+  .contents-doc-item {
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  .contents-doc-item-image {
+    width: 100%;
+    height: 200px;
+    min-height: 200px;
+  }
+  
+  .contents-doc-item-body {
+    padding: 20px;
+  }
+  
+  .contents-doc-item-title {
+    font-size: 18px;
+  }
+  
+  .contents-doc-item-description {
+    font-size: 14px;
   }
 }
 
@@ -726,26 +755,24 @@ p, span, div, button, input, textarea, a {
     font-size: 24px;
   }
   
-  .contents-doc-large-body {
-    padding: 20px;
-  }
-  
-  .contents-doc-large-title {
-    font-size: 20px;
-  }
-  
   .contents-category-card {
     padding: 24px;
   }
-}
-
-/* ============================================
-   STICKY HEADER - CORREÇÃO
-   ============================================ */
-
-.sticky-top {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  width: 100%;
+  
+  .contents-doc-item-image {
+    height: 160px;
+    min-height: 160px;
+  }
+  
+  .contents-doc-item-body {
+    padding: 16px;
+  }
+  
+  .contents-doc-item-title {
+    font-size: 16px;
+  }
+  
+  .contents-doc-item-description {
+    font-size: 13px;
+  }
 }
