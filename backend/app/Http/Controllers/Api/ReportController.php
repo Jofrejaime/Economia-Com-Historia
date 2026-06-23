@@ -15,6 +15,50 @@ class ReportController extends Controller
         private ReportModerationService $moderationService
     ) {}
 
+    /**
+     * @OA\Post(
+     *      path="/reports",
+     *      operationId="storeReport",
+     *      tags={"Reports"},
+     *      summary="Criar uma denúncia",
+     *      description="Denuncia um conteúdo (documento, tópico, resposta ou utilizador) por comportamento ou conteúdo inadequado.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"content_type", "content_id", "reason"},
+     *              @OA\Property(property="content_type", type="string", enum={"document", "topic", "reply", "user"}, example="document"),
+     *              @OA\Property(property="content_id", type="string", format="uuid", example="content-uuid"),
+     *              @OA\Property(property="reason", type="string", enum={"spam", "inappropriate", "misinformation", "copyright", "off_topic", "other"}, example="spam"),
+     *              @OA\Property(property="description", type="string", maxLength=1000, nullable=true, example="Este documento contém informações falsas...")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="Denúncia submetida com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Report submitted successfully."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Conteúdo especificado não encontrado"
+     *      ),
+     *      @OA\Response(
+     *          response=409,
+     *          description="Já tem uma denúncia pendente para este conteúdo"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Erros de validação"
+     *      )
+     * )
+     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -61,6 +105,27 @@ class ReportController extends Controller
         ], 201);
     }
 
+    /**
+     * @OA\Get(
+     *      path="/reports",
+     *      operationId="indexReports",
+     *      tags={"Reports"},
+     *      summary="Listar as minhas denúncias",
+     *      description="Lista as denúncias efetuadas pelo utilizador autenticado.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Denúncias obtidas com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      )
+     * )
+     */
     public function index(Request $request): JsonResponse
     {
         // Own reports
@@ -72,6 +137,31 @@ class ReportController extends Controller
         return response()->json(['data' => $reports]);
     }
 
+    /**
+     * @OA\Get(
+     *      path="/reports/pending",
+     *      operationId="pendingReports",
+     *      tags={"Reports"},
+     *      summary="Listar denúncias pendentes (Apenas Admin)",
+     *      description="Lista todas as denúncias com estado pendente.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Denúncias pendentes obtidas",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido (Requer admin)"
+     *      )
+     * )
+     */
     public function pending(Request $request): JsonResponse
     {
         // Admin-only: list all pending reports
@@ -83,6 +173,38 @@ class ReportController extends Controller
         return response()->json(['data' => $reports]);
     }
 
+    /**
+     * @OA\Get(
+     *      path="/reports/{id}",
+     *      operationId="showReport",
+     *      tags={"Reports"},
+     *      summary="Visualizar detalhes de uma denúncia",
+     *      description="Retorna os detalhes de uma denúncia específica.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID da denúncia",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Detalhes obtidos com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Denúncia não encontrada"
+     *      )
+     * )
+     */
     public function show(string $id): JsonResponse
     {
         $report = DB::table('content_reports')->where('id', $id)->first();
@@ -94,6 +216,57 @@ class ReportController extends Controller
         return response()->json(['data' => $report]);
     }
 
+    /**
+     * @OA\Patch(
+     *      path="/reports/{id}",
+     *      operationId="updateReport",
+     *      tags={"Reports"},
+     *      summary="Atualizar denúncia (Apenas Admin)",
+     *      description="Atualiza informações de revisão e estado da denúncia.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID da denúncia",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"status"},
+     *              @OA\Property(property="status", type="string", enum={"pending", "reviewed", "dismissed", "actioned"}),
+     *              @OA\Property(property="reviewed_by", type="string", format="uuid", nullable=true),
+     *              @OA\Property(property="reviewed_at", type="string", format="date-time", nullable=true),
+     *              @OA\Property(property="action_taken", type="string", maxLength=1000, nullable=true)
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Denúncia atualizada com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Report updated successfully."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido (Requer admin)"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Denúncia não encontrada"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Erros de validação"
+     *      )
+     * )
+     */
     public function update(string $id, Request $request): JsonResponse
     {
         $report = DB::table('content_reports')->where('id', $id)->first();
@@ -135,6 +308,55 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/reports/{id}/action",
+     *      operationId="executeReportAction",
+     *      tags={"Reports"},
+     *      summary="Executar ação moderadora em denúncia (Apenas Admin)",
+     *      description="Aplica sanções baseadas na denúncia (ex: sinalizar conteúdo, apagar conteúdo, alertar utilizador, arquivar).",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID da denúncia",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"action"},
+     *              @OA\Property(property="action", type="string", enum={"flag", "delete", "warn", "dismiss"}, example="flag"),
+     *              @OA\Property(property="reason", type="string", maxLength=500, nullable=true, example="Violação persistente de termos...")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Ação executada com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Action executed successfully."),
+     *              @OA\Property(property="action", type="string", example="flag")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Não autenticado"
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Acesso proibido (Requer admin)"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Denúncia não encontrada"
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Erro de validação"
+     *      )
+     * )
+     */
     public function action(string $id, Request $request): JsonResponse
     {
         $report = DB::table('content_reports')->where('id', $id)->first();
