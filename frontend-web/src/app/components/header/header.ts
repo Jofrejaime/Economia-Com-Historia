@@ -4,17 +4,26 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ProfileService } from '../../services/profile.service';
 
+interface HeaderUser {
+  display_name?: string;
+  email?: string;
+  role?: string;
+}
+
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './header.html',
-  styleUrls: ['./header.css']
+  styleUrls: ['./header.css'],
 })
 export class HeaderComponent implements OnInit {
   mobileMenuOpen = false;
   avatarUrl = '';
   unreadCount = 0;
+  isAuthenticated = false;
+  displayName = 'Conta';
+  userRole = '';
 
   constructor(
     private router: Router,
@@ -23,8 +32,28 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadUserAvatar();
-    this.loadUnreadCount();
+    this.syncSessionState();
+
+    if (this.isAuthenticated) {
+      this.loadUserAvatar();
+      this.loadUnreadCount();
+    }
+  }
+
+  private syncSessionState(): void {
+    this.isAuthenticated = this.auth.isAuthenticated();
+
+    if (!this.isAuthenticated) {
+      this.avatarUrl = '';
+      this.unreadCount = 0;
+      this.displayName = 'Conta';
+      this.userRole = '';
+      return;
+    }
+
+    const user = this.auth.getUser() as HeaderUser | null;
+    this.displayName = user?.display_name || user?.email || 'Conta';
+    this.userRole = user?.role || '';
   }
 
   private async loadUserAvatar(): Promise<void> {
@@ -33,20 +62,25 @@ export class HeaderComponent implements OnInit {
       if (me?.profile?.avatar_url) {
         this.avatarUrl = me.profile.avatar_url;
       }
-    } catch (error) {
+    } catch {
       this.avatarUrl = '';
     }
   }
 
   private loadUnreadCount(): void {
-    // Em produção: buscar do backend
-    // Por enquanto, valor mock
     this.unreadCount = 3;
   }
 
-  // Navegar diretamente para a página de notificações
   goToNotifications(): void {
-    this.router.navigate(['/notificacoes']);
+    void this.router.navigate(['/notificacoes']);
+  }
+
+  goToLogin(): void {
+    void this.router.navigate(['/auth/login']);
+  }
+
+  goToRegister(): void {
+    void this.router.navigate(['/auth/criar-conta']);
   }
 
   toggleMobileMenu(): void {
@@ -59,11 +93,12 @@ export class HeaderComponent implements OnInit {
 
   async logout(): Promise<void> {
     await this.auth.logout();
+    this.closeMobileMenu();
     await this.router.navigate(['/landing']);
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any): void {
+  @HostListener('window:resize')
+  onResize(): void {
     if (window.innerWidth > 768) {
       this.mobileMenuOpen = false;
     }

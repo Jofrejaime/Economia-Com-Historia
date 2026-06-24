@@ -31,8 +31,14 @@ interface ResetPasswordResponse {
   message?: string;
 }
 
+interface ResendVerificationResponse {
+  message?: string;
+  verification_token?: string;
+}
+
 export interface LoginResult {
   ok: boolean;
+  status?: number;
   message?: string;
   token?: string;
   user?: unknown;
@@ -44,12 +50,21 @@ export interface RegisterResult extends LoginResult {
 
 export interface ForgotPasswordResult {
   ok: boolean;
+  status?: number;
   message?: string;
 }
 
 export interface ResetPasswordResult {
   ok: boolean;
+  status?: number;
   message?: string;
+}
+
+export interface ResendVerificationResult {
+  ok: boolean;
+  status?: number;
+  message?: string;
+  verificationToken?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -60,90 +75,59 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(email: string, password: string): Observable<LoginResult> {
-    return this.http.post<LoginResponse>(`${environment.apiBaseUrl}/api/auth/login`, { email, password }).pipe(
-      map((data) => ({
-        ok: true,
-        message: data.message,
-        token: data.token,
-        user: data.user,
-      })),
-      catchError((error: unknown) => {
-        if (error instanceof HttpErrorResponse) {
-          return of({
-            ok: false,
-            message: error.error?.message || error.message || `HTTP ${error.status}`,
-          });
-        }
-
-        return of({
-          ok: false,
-          message: error instanceof Error ? error.message : 'Erro ao autenticar',
-        });
-      })
-    );
+    return this.http
+      .post<LoginResponse>(`${environment.apiBaseUrl}/api/auth/login`, { email, password }, { observe: 'response' })
+      .pipe(
+        timeout({ first: 15000 }),
+        map((response) => ({
+          ok: response.status === 200,
+          status: response.status,
+          message: response.body?.message,
+          token: response.body?.token,
+          user: response.body?.user,
+        })),
+        catchError((error: unknown) => of(this.toFailureResult(error, 'Erro ao autenticar')))
+      );
   }
 
   register(payload: {
     display_name: string;
     email: string;
     password: string;
+    password_confirmation: string;
     full_name?: string;
     institution?: string;
     province?: string;
     role?: 'estudante' | 'investigador' | 'professor' | 'admin';
   }): Observable<RegisterResult> {
-    return this.http.post<RegisterResponse>(`${environment.apiBaseUrl}/api/auth/register`, payload).pipe(
-      map((data) => ({
-        ok: true,
-        message: data.message,
-        token: data.token,
-        user: data.user,
-        verificationToken: data.verification_token,
-      })),
-      catchError((error: unknown) => {
-        if (error instanceof HttpErrorResponse) {
-          return of({
-            ok: false,
-            message: error.error?.message || error.message || `HTTP ${error.status}`,
-          });
-        }
-
-        return of({
-          ok: false,
-          message: error instanceof Error ? error.message : 'Erro ao registar',
-        });
-      })
-    );
+    return this.http
+      .post<RegisterResponse>(`${environment.apiBaseUrl}/api/auth/register`, payload, { observe: 'response' })
+      .pipe(
+        timeout({ first: 15000 }),
+        map((response) => ({
+          ok: response.status === 201 || response.status === 200,
+          status: response.status,
+          message: response.body?.message,
+          token: response.body?.token,
+          user: response.body?.user,
+          verificationToken: response.body?.verification_token,
+        })),
+        catchError((error: unknown) => of(this.toFailureResult(error, 'Erro ao registar')))
+      );
   }
 
   forgotPassword(email: string): Observable<ForgotPasswordResult> {
-    return this.http.post<ForgotPasswordResponse>(`${environment.apiBaseUrl}/api/auth/forgot-password`, { email }).pipe(
-      timeout({ first: 15000 }),
-      map((data) => ({
-        ok: true,
-        message: data.message,
-      })),
-      catchError((error: unknown) => {
-        if (error instanceof TimeoutError) {
-          return of({
-            ok: false,
-            message: 'O servidor demorou demasiado a responder. Verifique a ligação e tente novamente.',
-          });
-        }
-
-        if (error instanceof HttpErrorResponse) {
-          return of({
-            ok: false,
-            message: error.error?.message || error.message || `HTTP ${error.status}`,
-          });
-        }
-
-        return of({
-          ok: false,
-          message: error instanceof Error ? error.message : 'Erro ao solicitar redefinição',
-        });
-      })
-    );
+    return this.http
+      .post<ForgotPasswordResponse>(`${environment.apiBaseUrl}/api/auth/forgot-password`, { email }, { observe: 'response' })
+      .pipe(
+        timeout({ first: 15000 }),
+        map((response) => ({
+          ok: response.status === 200,
+          status: response.status,
+          message: response.body?.message,
+        })),
+        catchError((error: unknown) => of(this.toFailureResult(error, 'Erro ao solicitar redefinição')))
+      );
   }
 
   resetPassword(payload: {
@@ -151,33 +135,32 @@ export class AuthService {
     password: string;
     password_confirmation: string;
   }): Observable<ResetPasswordResult> {
-    return this.http.post<ResetPasswordResponse>(`${environment.apiBaseUrl}/api/auth/reset-password`, payload).pipe(
-      timeout({ first: 15000 }),
-      map((data) => ({
-        ok: true,
-        message: data.message,
-      })),
-      catchError((error: unknown) => {
-        if (error instanceof TimeoutError) {
-          return of({
-            ok: false,
-            message: 'O servidor demorou demasiado a responder. Verifique a ligação e tente novamente.',
-          });
-        }
+    return this.http
+      .post<ResetPasswordResponse>(`${environment.apiBaseUrl}/api/auth/reset-password`, payload, { observe: 'response' })
+      .pipe(
+        timeout({ first: 15000 }),
+        map((response) => ({
+          ok: response.status === 200,
+          status: response.status,
+          message: response.body?.message,
+        })),
+        catchError((error: unknown) => of(this.toFailureResult(error, 'Erro ao redefinir palavra-passe')))
+      );
+  }
 
-        if (error instanceof HttpErrorResponse) {
-          return of({
-            ok: false,
-            message: error.error?.message || error.message || `HTTP ${error.status}`,
-          });
-        }
-
-        return of({
-          ok: false,
-          message: error instanceof Error ? error.message : 'Erro ao redefinir palavra-passe',
-        });
-      })
-    );
+  resendVerification(email: string): Observable<ResendVerificationResult> {
+    return this.http
+      .post<ResendVerificationResponse>(`${environment.apiBaseUrl}/api/auth/resend-verification`, { email }, { observe: 'response' })
+      .pipe(
+        timeout({ first: 15000 }),
+        map((response) => ({
+          ok: response.status === 200,
+          status: response.status,
+          message: response.body?.message,
+          verificationToken: response.body?.verification_token,
+        })),
+        catchError((error: unknown) => of(this.toFailureResult(error, 'Erro ao reenviar verificação')))
+      );
   }
 
   setSession(token: string, user?: unknown): void {
@@ -199,6 +182,7 @@ export class AuthService {
 
   getUser(): unknown | null {
     const rawUser = localStorage.getItem(this.userKey);
+
     if (!rawUser) {
       return null;
     }
@@ -235,7 +219,7 @@ export class AuthService {
       return data;
     } catch (error) {
       if (error instanceof HttpErrorResponse) {
-        throw new Error(error.error?.message || error.message || `HTTP ${error.status}`);
+        throw new Error(this.extractHttpErrorMessage(error) || error.message || `HTTP ${error.status}`);
       }
 
       throw error instanceof Error ? error : new Error('Falha ao carregar sessão');
@@ -270,7 +254,7 @@ export class AuthService {
       return data.token;
     } catch (error) {
       if (error instanceof HttpErrorResponse) {
-        throw new Error(error.error?.message || error.message || `HTTP ${error.status}`);
+        throw new Error(this.extractHttpErrorMessage(error) || error.message || `HTTP ${error.status}`);
       }
 
       throw error instanceof Error ? error : new Error('Falha ao renovar sessão');
@@ -347,5 +331,51 @@ export class AuthService {
     }
 
     return false;
+  }
+
+  private toFailureResult(error: unknown, fallbackMessage: string): { ok: false; status?: number; message: string } {
+    if (error instanceof TimeoutError) {
+      return {
+        ok: false,
+        message: 'O servidor demorou demasiado a responder. Verifique a ligação e tente novamente.',
+      };
+    }
+
+    if (error instanceof HttpErrorResponse) {
+      return {
+        ok: false,
+        status: error.status,
+        message: this.extractHttpErrorMessage(error) || error.message || `HTTP ${error.status}`,
+      };
+    }
+
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : fallbackMessage,
+    };
+  }
+
+  private extractHttpErrorMessage(error: HttpErrorResponse): string {
+    const body = error.error;
+
+    if (typeof body === 'string') {
+      return body;
+    }
+
+    if (body && typeof body === 'object') {
+      if (typeof body.message === 'string') {
+        return body.message;
+      }
+
+      if (body.errors && typeof body.errors === 'object') {
+        const firstError = Object.values(body.errors as Record<string, unknown>)[0];
+
+        if (Array.isArray(firstError) && typeof firstError[0] === 'string') {
+          return firstError[0];
+        }
+      }
+    }
+
+    return '';
   }
 }

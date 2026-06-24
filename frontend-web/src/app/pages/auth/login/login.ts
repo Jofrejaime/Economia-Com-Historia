@@ -1,7 +1,9 @@
-import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { AuthFeedbackComponent } from '../../../components/auth-feedback/auth-feedback';
 import { AuthService } from '../../../services/auth.service';
 
 interface User {
@@ -15,15 +17,18 @@ interface User {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, AuthFeedbackComponent],
   templateUrl: './login.html',
-  styleUrls: ['./login.css']
+  styleUrls: ['./login.css'],
 })
 export class LoginComponent implements OnInit {
   email = '';
   password = '';
   loading = false;
   errorMessage: string | null = null;
+  successMessage: string | null = null;
+  feedbackActionLabel: string | null = null;
+  feedbackActionLink: string | null = null;
 
   constructor(private router: Router, private auth: AuthService, private cdr: ChangeDetectorRef) {}
 
@@ -43,9 +48,6 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  /**
-   * Redirect based on user role
-   */
   private redirectByRole(): void {
     const user = this.auth.getUser() as User | null;
     const userRole = user?.role ?? 'estudante';
@@ -63,54 +65,79 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  handleSubmit(event: Event): void {
+  async handleSubmit(event: Event): Promise<void> {
     event.preventDefault();
     this.errorMessage = null;
+    this.successMessage = null;
+    this.feedbackActionLabel = null;
+    this.feedbackActionLink = null;
     this.loading = true;
     this.cdr.detectChanges();
 
-    this.auth.login(this.email, this.password).subscribe({
-      next: (result) => {
-        if (result.ok && result.token) {
-          this.auth.setSession(result.token, result.user);
-        }
+    try {
+      const result = await firstValueFrom(this.auth.login(this.email, this.password));
 
-        this.loading = false;
+      if (result.ok && result.token) {
+        this.auth.setSession(result.token, result.user);
+        this.successMessage = result.message || 'Sessão iniciada com sucesso.';
         this.cdr.detectChanges();
+        await this.sleep(1000);
+        this.redirectByRole();
+        return;
+      }
 
-        if (result.ok) {
-          this.redirectByRole();
-          return;
-        }
-
-        this.errorMessage = this.getFriendlyLoginError(result.message);
-        this.cdr.detectChanges();
-      },
-      error: (err: unknown) => {
-        const message = err instanceof Error ? err.message : 'Falha ao iniciar sessão.';
-
-        this.errorMessage = this.getFriendlyLoginError(message);
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-    });
+      this.setLoginError(result.message, result.status);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Falha ao iniciar sessao.';
+      this.setLoginError(message);
+    } finally {
+      this.loading = false;
+      this.cdr.detectChanges();
+    }
   }
 
-  private getFriendlyLoginError(message?: string): string {
+  private setLoginError(message?: string, status?: number): void {
+    this.errorMessage = this.getFriendlyLoginError(message, status);
+    if (status === 403 || (message ?? '').toLowerCase().includes('verify your email')) {
+      this.feedbackActionLabel = 'Reenviar verificação';
+      this.feedbackActionLink = '/auth/resend-verification';
+    }
+    this.cdr.detectChanges();
+  }
+
+  private getFriendlyLoginError(message?: string, status?: number): string {
     const normalizedMessage = (message ?? '').toLowerCase();
+
+    if (status === 403 || normalizedMessage.includes('verify your email')) {
+      return 'Precisa verificar o email antes de iniciar sessão.';
+    }
 
     if (normalizedMessage.includes('invalid credentials')) {
       return 'Email ou palavra-passe incorretos. Verifique os dados e tente novamente.';
     }
 
-    if (normalizedMessage.includes('unprocessable') || normalizedMessage.includes('422')) {
-      return 'Não foi possível validar o acesso. Verifique os dados e tente novamente.';
+    if (status === 403 || normalizedMessage.includes('deactivated')) {
+      return 'A conta está desativada. Contacte a equipa de suporte.';
     }
 
-    return message || 'Não foi possível iniciar sessão. Verifique os dados e tente novamente.';
+    if (normalizedMessage.includes('timeout') || normalizedMessage.includes('demorou demasiado')) {
+      return 'O servidor demorou demasiado a responder. Tente novamente em instantes.';
+    }
+
+    if (normalizedMessage.includes('unprocessable') || normalizedMessage.includes('422')) {
+      return 'Nao foi possivel validar o acesso. Verifique os dados e tente novamente.';
+    }
+
+    return message || 'Nao foi possivel iniciar sessao. Verifique os dados e tente novamente.';
   }
 
   forgotPassword(): void {
     void this.router.navigate(['/auth/forgot-password']);
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      window.setTimeout(resolve, ms);
+    });
   }
 }

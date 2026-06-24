@@ -106,21 +106,21 @@
         <form (ngSubmit)="handleSubmit($event)">
           
           <!-- Error -->
-          <div *ngIf="errorMessage" class="register-error">
-            <div class="register-error-icon">!</div>
-            <div>
-              <div class="register-error-title">Pedido não enviado</div>
-              <div class="register-error-text">{{ errorMessage }}</div>
-            </div>
+          <div *ngIf="errorMessage">
+            <app-auth-feedback
+              type="error"
+              title="Pedido não enviado"
+              [message]="errorMessage">
+            </app-auth-feedback>
           </div>
 
           <!-- Success -->
-          <div *ngIf="successMessage" class="register-success">
-            <div class="register-success-icon">✓</div>
-            <div>
-              <div class="register-success-title">Conta criada</div>
-              <div class="register-success-text">{{ successMessage }}</div>
-            </div>
+          <div *ngIf="successMessage">
+            <app-auth-feedback
+              type="success"
+              title="Conta criada"
+              [message]="successMessage">
+            </app-auth-feedback>
           </div>
           
           <!-- Name Field -->
