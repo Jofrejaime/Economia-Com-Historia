@@ -17,18 +17,6 @@ class UserSeeder extends Seeder
     {
         $users = [
             [
-                'email' => 'admin@economia-historia.local',
-                'password_hash' => bcrypt('Admin@123456'),
-                'role' => 'admin',
-                'email_verified' => true,
-                'is_active' => true,
-                'display_name' => 'Administrador',
-                'full_name' => 'Administrador do Sistema',
-                'institution' => 'ISPTEC',
-                'province' => 'Luanda',
-                'bio' => 'Administrador responsável pela manutenção e gestão do sistema.',
-            ],
-            [
                 'email' => 'professor@economia-historia.local',
                 'password_hash' => bcrypt('Professor@123456'),
                 'role' => 'professor',
