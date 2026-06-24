@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // Ordem importa: níveis primeiro, depois users
         $this->call([
             LevelDefinitionsSeeder::class,
+            AdminSeeder::class,
             UserSeeder::class,
             BadgesSeeder::class,
         ]);
@@ -30,4 +31,3 @@ class DatabaseSeeder extends Seeder
         ]);
     }
 }
-

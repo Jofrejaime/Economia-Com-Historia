@@ -3,7 +3,8 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-nati
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 
 interface NotificationItem {
   id: string;
@@ -107,13 +108,7 @@ export function NotificationsScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#7F1D1D" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Notificações</Text>
-      </View>
+      <HeaderBar title="Notificações" />
 
       <ScrollView
         style={styles.container}

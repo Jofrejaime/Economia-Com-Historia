@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
+import { HeaderBar } from "../../components/HeaderBar";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { contentData, ContentItem } from "../../data/contents";
@@ -152,19 +153,11 @@ export function ContentScreen() {
   };
 
   return (
-    <ScreenContainer>
-      {/* Header */}
+    <ScreenContainer style={{ paddingHorizontal: 0 }}>
+      <HeaderBar title="Economia com História" showBackButton={false} />
+
+      {/* Search & Filter */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Home")}
-          style={styles.backButton}
-        >
-          <Feather name="arrow-left" size={20} color={appTheme.colors.primary} />
-          <Text style={styles.backButtonText}>Voltar</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.title}>Conteúdos</Text>
-
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Feather name="search" size={20} color={appTheme.colors.textMuted} style={styles.searchIcon} />

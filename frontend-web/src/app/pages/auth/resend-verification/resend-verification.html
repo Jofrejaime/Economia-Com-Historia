@@ -1,12 +1,8 @@
 <div class="forgot-password-container">
-  
-  <!-- Sidebar Esquerda - Branding -->
   <div class="forgot-password-sidebar">
-    <!-- Background Decorations -->
     <div class="forgot-password-decoration-top"></div>
     <div class="forgot-password-decoration-bottom"></div>
 
-    <!-- Logo -->
     <div class="forgot-password-logo">
       <div class="forgot-password-logo-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#d4a0a8">
@@ -18,79 +14,67 @@
       <span class="forgot-password-logo-text">Economia com História</span>
     </div>
 
-    <!-- Content -->
     <div class="forgot-password-content">
       <div>
-        <div class="forgot-password-badge">RECUPERAÇÃO DE ACESSO</div>
-        <h2 class="forgot-password-title">Esqueceu a senha?</h2>
+        <div class="forgot-password-badge">VERIFICAÇÃO DE CONTA</div>
+        <h2 class="forgot-password-title">Reenviar verificação</h2>
         <p class="forgot-password-description">
-          Indique o email institucional para receber o link de redefinição.
+          Caso não tenha recebido o email, podemos enviar outro link de verificação.
         </p>
       </div>
     </div>
   </div>
 
-  <!-- Sidebar Direita - Formulário -->
   <div class="forgot-password-form-wrapper">
     <div class="forgot-password-form-container">
-      
-      <!-- Header -->
       <div class="forgot-password-form-header">
-        <div class="forgot-password-form-badge">REDEFINIR ACESSO</div>
-        <h1 class="forgot-password-form-title">Recuperar senha</h1>
-        <p class="forgot-password-form-subtitle">Vamos enviar um link seguro para redefinir a sua palavra-passe</p>
+        <div class="forgot-password-form-badge">CONFIRMAR EMAIL</div>
+        <h1 class="forgot-password-form-title">Reenviar email</h1>
+        <p class="forgot-password-form-subtitle">Indique o email da conta para reenviar a verificação</p>
       </div>
 
-      <!-- Form -->
       <div class="forgot-password-form-card">
         <form (ngSubmit)="handleSubmit($event)">
-          
-          <!-- Error Message -->
           <div *ngIf="errorMessage">
             <app-auth-feedback
               type="error"
-              title="Pedido não enviado"
+              title="Não foi possível reenviar"
               [message]="errorMessage">
             </app-auth-feedback>
           </div>
 
-          <!-- Success Message -->
           <div *ngIf="successMessage">
             <app-auth-feedback
               type="success"
-              title="Pedido enviado"
+              title="Email reenviado"
               [message]="successMessage">
             </app-auth-feedback>
           </div>
 
-          <!-- Email Input -->
           <div class="forgot-password-form-group">
             <label class="forgot-password-label">Email institucional</label>
-            <input 
-              type="email" 
-              [(ngModel)]="email" 
-              name="email" 
-              placeholder="nome@instituicao.edu" 
+            <input
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              placeholder="nome@instituicao.edu"
               required
               class="forgot-password-input" />
           </div>
 
-          <!-- Submit Button -->
-          <button 
-            type="submit" 
-            [disabled]="loading" 
+          <button
+            type="submit"
+            [disabled]="loading"
             class="forgot-password-btn">
-            <span *ngIf="!loading">Enviar link</span>
-            <span *ngIf="loading">A enviar...</span>
+            <span *ngIf="!loading">Reenviar email</span>
+            <span *ngIf="loading">A reenviar...</span>
           </button>
         </form>
 
-        <!-- Back to Login -->
         <div class="forgot-password-back">
-          <a routerLink="/auth/login" class="forgot-password-back-link">Voltar ao login</a>
+          <button type="button" (click)="goToLogin()" class="forgot-password-back-link">Voltar ao login</button>
         </div>
       </div>
     </div>
   </div>
-
 </div>

@@ -3,7 +3,8 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "rea
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 
 export function JindungoPermissionScreen() {
   const navigation = useNavigation();
@@ -18,13 +19,7 @@ export function JindungoPermissionScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#8B1E2D" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Conteúdo Restrito</Text>
-      </View>
+      <HeaderBar title="Conteúdo Restrito" />
 
       <ScrollView
         style={styles.container}

@@ -12,6 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 
 export function QuizResultScreen() {
   const navigation = useNavigation<any>();
@@ -30,19 +31,9 @@ export function QuizResultScreen() {
   };
 
   return (
-    <ScreenContainer style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f8f9ff" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Feather name="menu" size={20} color="#7F1D1D" style={{ marginRight: 12 }} />
-          <Text style={styles.headerTitle}>Economia com História</Text>
-        </View>
-        <TouchableOpacity style={styles.searchBtn}>
-          <Feather name="search" size={20} color="#7F1D1D" />
-        </TouchableOpacity>
-      </View>
+    <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
+      <HeaderBar title="Resultado Final" />
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Score Hero Section */}

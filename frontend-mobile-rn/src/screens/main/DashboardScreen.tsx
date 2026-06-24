@@ -13,6 +13,9 @@ import {
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
+import { HeaderBar } from "../../components/HeaderBar";
+import { ContentCard } from "../../components/ContentCard";
+import { DebateCard } from "../../components/DebateCard";
 import { appTheme } from "../../constants/theme";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -44,8 +47,8 @@ const jindungoItems = [
     category: "Economia",
     image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80",
     trending: true,
-    borderColor: "#8B1E2D",
-    iconBg: "#8B1E2D",
+    borderColor: appTheme.colors.primary,
+    iconBg: appTheme.colors.primary,
   },
   {
     id: "2",
@@ -57,8 +60,8 @@ const jindungoItems = [
     category: "Política",
     image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
     trending: false,
-    borderColor: "#8B1E2D",
-    iconBg: "#8B1E2D",
+    borderColor: appTheme.colors.primary,
+    iconBg: appTheme.colors.primary,
   },
   {
     id: "3",
@@ -70,8 +73,8 @@ const jindungoItems = [
     category: "Desenvolvimento",
     image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80",
     trending: false,
-    borderColor: "#8B1E2D",
-    iconBg: "#8B1E2D",
+    borderColor: appTheme.colors.primary,
+    iconBg: appTheme.colors.primary,
   },
 ];
 
@@ -136,7 +139,7 @@ const contentFormats = [
     subLabel: "Textos académicos",
     countText: "148 disponíveis",
     icon: "file-text",
-    borderColor: "#8B1E2D",
+    borderColor: appTheme.colors.primary,
     bgColor: "#FDF3F4",
   },
   {
@@ -260,7 +263,8 @@ export function DashboardScreen() {
   };
 
   return (
-    <ScreenContainer>
+    <ScreenContainer style={{ paddingHorizontal: 0 }}>
+      <HeaderBar title="Economia com História" showBackButton={false} />
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header com Greeting */}
         <View style={styles.header}>
@@ -480,36 +484,16 @@ export function DashboardScreen() {
               <Ionicons name="arrow-forward" size={14} color={appTheme.colors.primary} />
             </TouchableOpacity>
           </View>
-          <FlatList
-            data={recentArticles}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.articleCard} onPress={() => navigation.navigate("Article", { id: "recent_" + item.id })}>
-                <Image source={{ uri: item.image }} style={styles.articleImage} />
-                <View style={styles.articleContent}>
-                  <View style={styles.articleTagsRow}>
-                    <View style={[styles.articleTag, { backgroundColor: item.id === "1" ? "#EFF6FF" : "#FFFBEB" }]}>
-                      <Text style={[styles.articleTagText, { color: item.id === "1" ? "#1E40AF" : "#92400E" }]}>
-                        {item.difficulty}
-                      </Text>
-                    </View>
-                    <View style={[styles.articleTag, { backgroundColor: "#F5F5F5" }]}>
-                      <Text style={[styles.articleTagText, { color: "#4B5563" }]}>
-                        {item.category}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.articleTitle} numberOfLines={2}>
-                    {item.title}
-                  </Text>
-                  <Text style={styles.articleDateText}>
-                    {item.readTime} min de leitura · {item.date}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-          />
+          {recentArticles.map((item) => (
+            <ContentCard
+              key={item.id}
+              title={item.title}
+              image={item.image}
+              difficulty={item.difficulty}
+              duration={`${item.readTime} min de leitura`}
+              onPress={() => navigation.navigate("Article", { id: "recent_" + item.id })}
+            />
+          ))}
         </View>
 
         {/* Active Debates */}
@@ -518,30 +502,16 @@ export function DashboardScreen() {
             <Ionicons name="chatbubbles-outline" size={20} color={appTheme.colors.primary} style={{ marginRight: 8 }} />
             <Text style={styles.sectionTitle}>Debates Activos</Text>
           </View>
-          <FlatList
-            data={activeDebates}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.debateCard,
-                  {
-                    borderLeftColor: item.isHighlight ? "#8B1E2D" : "#D1D5DB",
-                    backgroundColor: item.isHighlight ? "#FDF3F4" : "#F5F5F5",
-                  },
-                ]}
-                onPress={() => handleOpenDiscussion(item.id)}
-              >
-                <Text style={styles.debateTitle}>{item.title}</Text>
-                <View style={styles.debateMetaRow}>
-                  <Text style={styles.debateRepliesText}>💬 {item.replies} respostas</Text>
-                  <Text style={styles.debateDot}>•</Text>
-                  <Text style={styles.debateActiveText}>{item.active}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
-          />
+          {activeDebates.map((item) => (
+            <DebateCard
+              key={item.id}
+              title={item.title}
+              replies={item.replies}
+              activeSince={item.active}
+              isHighlight={item.isHighlight}
+              onPress={() => handleOpenDiscussion(item.id)}
+            />
+          ))}
         </View>
 
         {/* Ranking */}
@@ -640,6 +610,7 @@ export function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: 16,
     paddingBottom: 16,
   },
   header: {
@@ -680,7 +651,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -803,7 +774,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   continueResumeBtnText: {
-    color: "#8B1E2D",
+    color: appTheme.colors.primary,
     fontSize: 15,
     fontWeight: "700",
   },
@@ -903,7 +874,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 8,
@@ -1051,79 +1022,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  articleCard: {
-    flexDirection: "row",
-    backgroundColor: appTheme.colors.surface,
-    borderRadius: 10,
-    overflow: "hidden",
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: appTheme.colors.border,
-  },
-  articleImage: {
-    width: 90,
-    height: 90,
-  },
-  articleContent: {
-    flex: 1,
-    padding: 10,
-    justifyContent: "space-between",
-  },
-  articleTagsRow: {
-    flexDirection: "row",
-    gap: 6,
-  },
-  articleTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  articleTagText: {
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  articleTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    marginVertical: 4,
-    lineHeight: 18,
-  },
-  articleDateText: {
-    fontSize: 11,
-    color: appTheme.colors.textMuted,
-  },
-  debateCard: {
-    backgroundColor: appTheme.colors.surface,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-    borderWidth: 1,
-    borderColor: appTheme.colors.border,
-  },
-  debateTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    marginBottom: 6,
-  },
-  debateMetaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  debateRepliesText: {
-    fontSize: 12,
-    color: appTheme.colors.textSecondary,
-  },
-  debateDot: {
-    color: appTheme.colors.textMuted,
-  },
-  debateActiveText: {
-    fontSize: 12,
-    color: appTheme.colors.textMuted,
-  },
   rankingHeaderTitle: {
     fontSize: 24,
     fontWeight: "700",
@@ -1140,8 +1038,8 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.border,
   },
   rankingItemFirst: {
-    backgroundColor: "#8B1E2D",
-    borderColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
+    borderColor: appTheme.colors.primary,
   },
   rankingItemSecond: {
     backgroundColor: "#F5F5F5",
@@ -1194,7 +1092,7 @@ const styles = StyleSheet.create({
   rankingUserAvatarDefaultText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#8B1E2D",
+    color: appTheme.colors.primary,
   },
   userInfo: {
     flex: 1,

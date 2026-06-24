@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View, Modal, Alert, Platform } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, Modal, Alert, Platform, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -22,7 +23,6 @@ export function LoginScreen({ navigation }: Props) {
   const [emailError, setEmailError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // States for Password Recovery
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [recoveryEmailError, setRecoveryEmailError] = useState("");
@@ -65,7 +65,6 @@ export function LoginScreen({ navigation }: Props) {
     }
   };
 
-  // Recovery methods
   const handleSendRecoveryCode = async () => {
     const trimmedEmail = recoveryEmail.trim();
     if (!trimmedEmail || !trimmedEmail.includes("@")) {
@@ -75,15 +74,12 @@ export function LoginScreen({ navigation }: Props) {
     setIsRecoverySubmitting(true);
     setRecoveryEmailError("");
     try {
-      // simulated verification delay
       await new Promise((resolve) => setTimeout(resolve, 800));
-
       const registeredEmailsRaw = await AsyncStorage.getItem("@registered_emails");
       const registered = registeredEmailsRaw ? JSON.parse(registeredEmailsRaw) : ["user@demo.com", "luis@demo.com"];
 
       if (registered.includes(trimmedEmail.toLowerCase())) {
         setIsEmailVerified(true);
-        // Automatically prefill verification code
         setRecoveryCode("123456");
         if (Platform.OS === "web") {
           window.alert(`Código Enviado\n\nEnviámos o código de verificação para o email ${trimmedEmail}.\n\n(Para efeitos de teste, o código é: 123456)`);
@@ -113,18 +109,12 @@ export function LoginScreen({ navigation }: Props) {
     setRecoveryCodeError("");
     try {
       await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      // Reset recovery modal state and close
       const targetEmail = recoveryEmail.trim();
       setIsModalVisible(false);
       setIsEmailVerified(false);
       setRecoveryEmail("");
       setRecoveryCode("");
-
-      // Log in as recovery user
       await signIn({ email: targetEmail, password: "" });
-
-      // Navigate to security/privacy screen
       navigation.navigate("Privacy", { isFromRecovery: true });
     } catch (error) {
       console.error(error);
@@ -145,24 +135,13 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <ScreenContainer style={styles.screen}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => navigation.canGoBack() && navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons
-            name="arrow-back"
-            size={20}
-            color={appTheme.colors.primary}
-          />
-          <Text style={styles.backLabel}>Voltar</Text>
-        </Pressable>
-      </View>
+      <HeaderBar title="Iniciar Sessão" />
 
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>Bem-vindo de volta</Text>
         <Text style={styles.subtitle}>Entra para continuar a aprender</Text>
@@ -193,7 +172,7 @@ export function LoginScreen({ navigation }: Props) {
         />
 
         <View style={styles.forgotRow}>
-          <Pressable onPress={() => setIsModalVisible(true)}>
+          <Pressable onPress={() => setIsModalVisible(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Text style={styles.forgotText}>Esqueci a palavra-passe</Text>
           </Pressable>
         </View>
@@ -207,14 +186,13 @@ export function LoginScreen({ navigation }: Props) {
             pressed && canSubmit && !isSubmitting && styles.pressed,
           ]}
         >
-          <Text
-            style={[
-              styles.submitLabel,
-              (!canSubmit || isSubmitting) && styles.submitLabelDisabled,
-            ]}
-          >
-            {isSubmitting ? "A entrar..." : "Entrar"}
-          </Text>
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color={appTheme.colors.surface} />
+          ) : (
+            <Text style={[styles.submitLabel, (!canSubmit || isSubmitting) && styles.submitLabelDisabled]}>
+              Entrar
+            </Text>
+          )}
         </Pressable>
 
         <View style={styles.registerWrap}>
@@ -232,95 +210,99 @@ export function LoginScreen({ navigation }: Props) {
         animationType="fade"
         onRequestClose={handleCloseModal}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {/* Modal Header */}
+        <Pressable style={styles.modalOverlay} onPress={handleCloseModal}>
+          <Pressable style={styles.modalContent} onPress={() => {}}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Recuperar Palavra-passe</Text>
-              <Pressable onPress={handleCloseModal} style={styles.modalCloseButton}>
-                <Ionicons name="close" size={24} color={appTheme.colors.textSecondary} />
+              <Pressable onPress={handleCloseModal} style={styles.modalCloseButton} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="close" size={22} color={appTheme.colors.textMuted} />
               </Pressable>
             </View>
 
-            {/* Modal Body */}
-            {!isEmailVerified ? (
-              <View style={styles.modalBody}>
-                <Text style={styles.modalDescription}>
-                  Introduz o email com o qual fizeste a abertura de conta para receberes um código de verificação.
-                </Text>
-                
-                <FormInput
-                  label="Email da Conta"
-                  value={recoveryEmail}
-                  onChangeText={(text) => {
-                    setRecoveryEmail(text);
-                    if (recoveryEmailError) setRecoveryEmailError("");
-                  }}
-                  placeholder="o.teu@email.com"
-                  error={recoveryEmailError}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-
-                <Pressable
-                  onPress={() => void handleSendRecoveryCode()}
-                  disabled={isRecoverySubmitting}
-                  style={({ pressed }) => [
-                    styles.modalSubmitButton,
-                    isRecoverySubmitting && styles.submitButtonDisabled,
-                    pressed && !isRecoverySubmitting && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.modalSubmitLabel}>
-                    {isRecoverySubmitting ? "A enviar..." : "Enviar código"}
+            <View style={styles.modalBody}>
+              {!isEmailVerified ? (
+                <>
+                  <Text style={styles.modalDescription}>
+                    Introduz o email com o qual fizeste a abertura de conta para receberes um código de verificação.
                   </Text>
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.modalBody}>
-                <Text style={styles.modalDescription}>
-                  Enviámos um código para <Text style={styles.boldText}>{recoveryEmail}</Text>. Introduz o código abaixo para prosseguir.
-                </Text>
 
-                <FormInput
-                  label="Código de Verificação"
-                  value={recoveryCode}
-                  onChangeText={(text) => {
-                    if (text.length <= 6) {
-                      setRecoveryCode(text);
-                    }
-                    if (recoveryCodeError) setRecoveryCodeError("");
-                  }}
-                  placeholder="Introduza o código de 6 dígitos"
-                  error={recoveryCodeError}
-                  keyboardType="numeric"
-                />
+                  <FormInput
+                    label="Email da Conta"
+                    value={recoveryEmail}
+                    onChangeText={(text) => {
+                      setRecoveryEmail(text);
+                      if (recoveryEmailError) setRecoveryEmailError("");
+                    }}
+                    placeholder="o.teu@email.com"
+                    error={recoveryEmailError}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
 
-                <Pressable
-                  onPress={() => void handleVerifyRecoveryCode()}
-                  disabled={isRecoverySubmitting}
-                  style={({ pressed }) => [
-                    styles.modalSubmitButton,
-                    isRecoverySubmitting && styles.submitButtonDisabled,
-                    pressed && !isRecoverySubmitting && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.modalSubmitLabel}>
-                    {isRecoverySubmitting ? "A verificar..." : "Verificar Código"}
+                  <Pressable
+                    onPress={() => void handleSendRecoveryCode()}
+                    disabled={isRecoverySubmitting}
+                    style={({ pressed }) => [
+                      styles.modalSubmitButton,
+                      isRecoverySubmitting && styles.submitButtonDisabled,
+                      pressed && !isRecoverySubmitting && styles.pressed,
+                    ]}
+                  >
+                    {isRecoverySubmitting ? (
+                      <ActivityIndicator size="small" color={appTheme.colors.surface} />
+                    ) : (
+                      <Text style={styles.modalSubmitLabel}>Enviar código</Text>
+                    )}
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.modalDescription}>
+                    Enviámos um código para{" "}
+                    <Text style={styles.modalEmailHighlight}>{recoveryEmail}</Text>.{" "}
+                    Introduz o código abaixo para prosseguir.
                   </Text>
-                </Pressable>
 
-                <Pressable
-                  onPress={() => setIsEmailVerified(false)}
-                  disabled={isRecoverySubmitting}
-                  style={styles.modalSecondaryButton}
-                >
-                  <Text style={styles.modalSecondaryLabel}>Alterar Email</Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
-        </View>
+                  <FormInput
+                    label="Código de Verificação"
+                    value={recoveryCode}
+                    onChangeText={(text) => {
+                      if (text.length <= 6) setRecoveryCode(text);
+                      if (recoveryCodeError) setRecoveryCodeError("");
+                    }}
+                    placeholder="000000"
+                    error={recoveryCodeError}
+                    keyboardType="numeric"
+                  />
+
+                  <Pressable
+                    onPress={() => void handleVerifyRecoveryCode()}
+                    disabled={isRecoverySubmitting}
+                    style={({ pressed }) => [
+                      styles.modalSubmitButton,
+                      isRecoverySubmitting && styles.submitButtonDisabled,
+                      pressed && !isRecoverySubmitting && styles.pressed,
+                    ]}
+                  >
+                    {isRecoverySubmitting ? (
+                      <ActivityIndicator size="small" color={appTheme.colors.surface} />
+                    ) : (
+                      <Text style={styles.modalSubmitLabel}>Verificar Código</Text>
+                    )}
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => setIsEmailVerified(false)}
+                    disabled={isRecoverySubmitting}
+                    style={styles.modalSecondaryButton}
+                  >
+                    <Text style={styles.modalSecondaryLabel}>Alterar email</Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </ScreenContainer>
   );
@@ -331,53 +313,44 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
     paddingHorizontal: 0,
   },
-  header: {
-    borderBottomWidth: 1,
-    borderBottomColor: appTheme.colors.border,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    alignSelf: "flex-start",
-  },
-  backLabel: {
-    color: appTheme.colors.primary,
-    fontSize: 16,
-    fontWeight: "600",
-  },
   content: {
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 32,
+    paddingHorizontal: 24,
+    paddingTop: 36,
+    paddingBottom: 48,
   },
   title: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textPrimary,
-    fontSize: appTheme.typography.heading.fontSize,
-    fontWeight: appTheme.typography.heading.fontWeight,
+    fontSize: 26,
+    fontWeight: "700",
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   subtitle: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontSize: 16,
     marginBottom: 32,
+    lineHeight: 22,
   },
   forgotRow: {
     alignItems: "flex-end",
-    marginBottom: 20,
+    marginBottom: 24,
+    marginTop: -4,
   },
   forgotText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.primary,
     fontSize: 14,
+    fontWeight: "600",
   },
   submitButton: {
-    minHeight: 48,
+    minHeight: 52,
     borderRadius: appTheme.radius.md,
-    backgroundColor: appTheme.colors.secondary,
+    backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -385,6 +358,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.rankingCardSecondary,
   },
   submitLabel: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
@@ -393,55 +367,56 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
   },
   registerWrap: {
-    marginTop: 32,
+    marginTop: 28,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    flexWrap: "wrap",
   },
   registerText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
-    fontSize: 16,
+    fontSize: 15,
   },
   registerLink: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.primary,
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.85,
   },
-  // Password Recovery Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 24,
   },
   modalContent: {
     backgroundColor: appTheme.colors.surface,
     borderRadius: appTheme.radius.lg,
     width: "100%",
     maxWidth: 400,
-    padding: 24,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: appTheme.colors.border,
-    paddingBottom: 12,
   },
   modalTitle: {
-    fontSize: 20,
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
@@ -449,23 +424,30 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalBody: {
-    gap: 16,
+    padding: 24,
+    gap: 0,
   },
   modalDescription: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     lineHeight: 20,
-    marginBottom: 8,
+    marginBottom: 20,
+  },
+  modalEmailHighlight: {
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
   },
   modalSubmitButton: {
-    minHeight: 48,
+    minHeight: 52,
     borderRadius: appTheme.radius.md,
     backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: 4,
   },
   modalSubmitLabel: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
@@ -473,16 +455,13 @@ const styles = StyleSheet.create({
   modalSecondaryButton: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
+    paddingVertical: 14,
     marginTop: 4,
   },
   modalSecondaryLabel: {
-    color: appTheme.colors.textSecondary,
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.textMuted,
     fontSize: 14,
     fontWeight: "600",
-  },
-  boldText: {
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
   },
 });

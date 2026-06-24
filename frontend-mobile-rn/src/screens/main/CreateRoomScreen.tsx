@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { appTheme } from "../../constants/theme";
+import { HeaderBar } from "../../components/HeaderBar";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { CategorySelect } from "../../components/CategorySelect";
 import { UserSearchBar } from "../../components/UserSearchBar";
@@ -103,7 +104,8 @@ export function CreateRoomScreen() {
   };
 
   return (
-    <ScreenContainer style={styles.screen}>
+    <ScreenContainer style={[styles.screen, { paddingHorizontal: 0 }]}>
+      <HeaderBar title="Criar Sala" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardWrapper}
@@ -112,12 +114,9 @@ export function CreateRoomScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            <Text style={styles.title}>Criar Sala Virtual</Text>
-            <Text style={styles.subtitle}>
-              Configure a sala com categorias, convide membros e comece a colaborar num ambiente moderno.
-            </Text>
-          </View>
+          <Text style={[styles.subtitle, { marginBottom: 24 }]}>
+            Configure a sala com categorias, convide membros e comece a colaborar num ambiente moderno.
+          </Text>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Informações da sala</Text>
