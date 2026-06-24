@@ -3,56 +3,61 @@ import { View, Text, StyleSheet } from "react-native";
 import { appTheme } from "../constants/theme";
 
 interface PasswordStrengthIndicatorProps {
-  strength: number; // 0,1,2,3
+  strength: number; // 0, 1, 2, 3
 }
 
 export function PasswordStrengthIndicator({ strength }: PasswordStrengthIndicatorProps) {
   if (strength === 0) return null;
 
-  const getStrengthText = () => {
+  const getLabel = () => {
     if (strength === 1) return "Fraca";
     if (strength === 2) return "Média";
     return "Forte";
   };
 
-  const getStrengthColor = () => {
-    if (strength === 1) return styles.strengthWeak;
-    if (strength === 2) return styles.strengthMedium;
-    return styles.strengthStrong;
-  };
-
-  const getTextColor = () => {
-    if (strength === 1) return styles.strengthWeakText;
-    if (strength === 2) return styles.strengthMediumText;
-    return styles.strengthStrongText;
+  const getLabelStyle = () => {
+    if (strength === 1) return styles.textWeak;
+    if (strength === 2) return styles.textMedium;
+    return styles.textStrong;
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.barRow}>
-        <View style={[styles.bar, strength >= 1 && styles.strengthWeak]} />
-        <View style={[styles.bar, strength >= 2 && styles.strengthMedium]} />
-        <View style={[styles.bar, strength >= 3 && styles.strengthStrong]} />
+        <View style={[styles.bar, strength >= 1 && styles.barWeak]} />
+        <View style={[styles.bar, strength >= 2 && styles.barMedium]} />
+        <View style={[styles.bar, strength >= 3 && styles.barStrong]} />
       </View>
-      <Text style={[styles.text, getTextColor()]}>{getStrengthText()}</Text>
+      <Text style={[styles.label, getLabelStyle()]}>{getLabel()}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { marginTop: 8 },
-  barRow: { flexDirection: "row", gap: 4, marginBottom: 4 },
+  container: {
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  barRow: {
+    flexDirection: "row",
+    gap: 4,
+    marginBottom: 6,
+  },
   bar: {
     flex: 1,
-    height: 4,
+    height: 5,
     borderRadius: appTheme.radius.pill,
     backgroundColor: appTheme.colors.border,
   },
-  strengthWeak: { backgroundColor: appTheme.colors.danger },
-  strengthMedium: { backgroundColor: appTheme.colors.warning },
-  strengthStrong: { backgroundColor: appTheme.colors.success },
-  text: { fontSize: 12 },
-  strengthWeakText: { color: appTheme.colors.danger },
-  strengthMediumText: { color: appTheme.colors.warning },
-  strengthStrongText: { color: appTheme.colors.success },
+  barWeak: { backgroundColor: appTheme.colors.danger },
+  barMedium: { backgroundColor: appTheme.colors.warning },
+  barStrong: { backgroundColor: appTheme.colors.success },
+  label: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  textWeak: { color: appTheme.colors.danger },
+  textMedium: { color: appTheme.colors.warning },
+  textStrong: { color: appTheme.colors.success },
 });

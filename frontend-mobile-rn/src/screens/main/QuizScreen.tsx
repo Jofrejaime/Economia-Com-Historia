@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 
 export function QuizScreen() {
   const navigation = useNavigation<any>();
@@ -24,23 +25,9 @@ export function QuizScreen() {
   };
 
   return (
-    <ScreenContainer style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FF" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Feather name="arrow-left" size={20} color={appTheme.colors.primary} />
-          <Text style={styles.appTitle}>Economia com História</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.moreButton}>
-          <Feather name="more-vertical" size={20} color={appTheme.colors.primary} />
-        </TouchableOpacity>
-      </View>
+    <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
+      <HeaderBar title="Quiz" />
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Module and Question */}

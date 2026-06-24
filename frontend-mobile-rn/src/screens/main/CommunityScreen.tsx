@@ -11,8 +11,9 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { AppButton } from "../../components/AppButton";
+import { HeaderBar } from "../../components/HeaderBar";
 import { CommunityTopic } from "../../types/navigation";
 import { useCommunity } from "../../hooks/useCommunity";
 
@@ -25,7 +26,6 @@ export function CommunityScreen() {
   const navigation = useNavigation<any>();
   const { topics } = useCommunity();
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("all");
-  const [showSearch, setShowSearch] = useState(false);
   const scrollRef = useRef<ScrollView | null>(null);
   const discussions = sortDiscussionsByDate(topics);
 
@@ -96,27 +96,8 @@ export function CommunityScreen() {
   );
 
   return (
-    <ScreenContainer>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.iconBtn}>
-            <Feather name="arrow-left" size={20} color={appTheme.colors.primary} />
-          </TouchableOpacity>
-          <Text style={styles.appTitle}>Economia com História</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity onPress={() => setShowSearch((s) => !s)} style={styles.iconBtn}>
-            <Feather name="search" size={20} color={appTheme.colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Feather name="menu" size={20} color={appTheme.colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Feather name="more-vertical" size={20} color={appTheme.colors.primary} />
-          </TouchableOpacity>
-        </View>
-      </View>
+    <ScreenContainer style={{ paddingHorizontal: 0 }}>
+      <HeaderBar title="Economia com História" showBackButton={false} />
 
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.editorial}>
@@ -187,6 +168,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primary,
   },
   container: {
+    paddingHorizontal: 16,
     paddingTop: appTheme.spacing.lg,
     paddingBottom: appTheme.spacing.xl,
   },

@@ -27,21 +27,39 @@ export function FormInput({
   onBlur,
 }: FormInputProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
   const isPassword = secureTextEntry;
-  const inputType = isPassword ? !showPassword : secureTextEntry;
+  const inputSecure = isPassword ? !showPassword : false;
+
+  const borderColor = error
+    ? appTheme.colors.danger
+    : isFocused
+    ? appTheme.colors.primary
+    : appTheme.colors.border;
+
+  const inputBg = error ? "#FEF2F2" : appTheme.colors.surface;
 
   return (
     <View style={styles.formGroup}>
       <Text style={styles.label}>{label}</Text>
-      <View style={isPassword ? styles.passwordWrap : undefined}>
+      <View style={styles.inputWrap}>
         <TextInput
-          style={[styles.input, error && styles.inputError]}
+          style={[
+            styles.input,
+            isPassword && styles.inputWithIcon,
+            { borderColor, backgroundColor: inputBg },
+          ]}
           placeholder={placeholder}
           placeholderTextColor={appTheme.colors.textMuted}
           value={value}
           onChangeText={onChangeText}
-          onBlur={onBlur}
-          secureTextEntry={inputType}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur?.();
+          }}
+          secureTextEntry={inputSecure}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
         />
@@ -53,43 +71,65 @@ export function FormInput({
             <Ionicons
               name={showPassword ? "eye-off-outline" : "eye-outline"}
               size={20}
-              color={appTheme.colors.textMuted}
+              color={isFocused ? appTheme.colors.primary : appTheme.colors.textMuted}
             />
           </Pressable>
         )}
       </View>
-      {error ? <Text style={styles.error}>⚠ {error}</Text> : null}
+      {error ? (
+        <View style={styles.errorRow}>
+          <Ionicons name="alert-circle-outline" size={14} color={appTheme.colors.danger} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  formGroup: { marginBottom: 20 },
+  formGroup: {
+    marginBottom: 20,
+  },
   label: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textPrimary,
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 8,
   },
+  inputWrap: {
+    position: "relative",
+  },
   input: {
-    borderWidth: 2,
-    borderColor: appTheme.colors.border,
+    borderWidth: 1.5,
     borderRadius: appTheme.radius.md,
     backgroundColor: appTheme.colors.surface,
-    minHeight: 48,
+    minHeight: 52,
     paddingHorizontal: appTheme.spacing.md,
+    fontFamily: "Source_Sans_3",
+    fontSize: 16,
     color: appTheme.colors.textPrimary,
   },
-  inputError: {
-    borderColor: appTheme.colors.danger,
-    backgroundColor: "#FEF2F2",
+  inputWithIcon: {
+    paddingRight: 48,
   },
-  passwordWrap: { position: "relative" },
-  eyeButton: { position: "absolute", right: 14, top: 14 },
-  error: {
+  eyeButton: {
+    position: "absolute",
+    right: 14,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 6,
+  },
+  errorText: {
     color: appTheme.colors.danger,
-    fontSize: 14,
-    marginTop: 8,
+    fontSize: 13,
     fontWeight: "500",
   },
 });

@@ -25,13 +25,13 @@ export function InterestChip({ label, selected, onPress }: InterestChipProps) {
 
 const styles = StyleSheet.create({
   chip: {
-    minHeight: 36,
+    minHeight: 40,
     borderRadius: appTheme.radius.pill,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: appTheme.colors.border,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     backgroundColor: appTheme.colors.surface,
   },
   chipSelected: {
@@ -39,12 +39,14 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   text: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textSecondary,
     fontSize: 14,
     fontWeight: "500",
   },
   textSelected: {
     color: appTheme.colors.surface,
+    fontWeight: "600",
   },
-  pressed: { opacity: 0.9 },
+  pressed: { opacity: 0.85 },
 });

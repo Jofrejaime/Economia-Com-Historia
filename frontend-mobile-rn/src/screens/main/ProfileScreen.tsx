@@ -10,6 +10,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { ScreenContainer } from "../../components/ScreenContainer";
+import { HeaderBar } from "../../components/HeaderBar";
 import { appTheme } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -34,18 +35,7 @@ export function ProfileScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Feather name="menu" size={20} color="#7F1D1D" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Economia com História</Text>
-          <TouchableOpacity style={styles.iconButton}>
-            <Feather name="search" size={20} color="#7F1D1D" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <HeaderBar title="Economia com História" showBackButton={false} />
 
       <ScrollView
         style={styles.container}

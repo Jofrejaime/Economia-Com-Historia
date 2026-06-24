@@ -19,6 +19,7 @@ import { useCommunity } from "../../hooks/useCommunity";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 import { MainStackParamList } from "../../types/navigation";
 
 type TopicDiscussionRouteProp = RouteProp<MainStackParamList, "TopicDiscussion">;
@@ -54,7 +55,7 @@ export function TopicDiscussionScreen() {
 
   if (!topic) {
     return (
-      <ScreenContainer style={styles.container}>
+      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
         <View style={styles.notFoundContainer}>
           <Text style={styles.notFoundTitle}>Discussão não encontrada</Text>
           <Text style={styles.notFoundText}>O tópico solicitado não existe ou foi removido.</Text>
@@ -171,27 +172,9 @@ export function TopicDiscussionScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={styles.keyboardContainer}
     >
-      <ScreenContainer style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="white" />
-
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Feather name="arrow-left" size={20} color={appTheme.colors.primary} />
-            <Text style={styles.headerTitle}>Discussão do Fórum</Text>
-          </TouchableOpacity>
-          {isAuthor && !isTerminated && (
-            <TouchableOpacity 
-              style={styles.moreButton}
-              onPress={() => setShowManagementMenu(!showManagementMenu)}
-            >
-              <Feather name="more-vertical" size={20} color={appTheme.colors.textSecondary} />
-            </TouchableOpacity>
-          )}
-        </View>
+      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+        <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
+        <HeaderBar title="Discussão do Fórum" />
 
         {/* Management Menu */}
         {isAuthor && showManagementMenu && (

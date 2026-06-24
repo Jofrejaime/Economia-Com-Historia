@@ -11,6 +11,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { appTheme } from '../../constants/theme';
+import { ContentCard } from '../../components/ContentCard';
+import { DebateCard } from '../../components/DebateCard';
 
 interface HomeScreenProps {
   onLogin: () => void;
@@ -105,37 +107,20 @@ export function HomeScreen({
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.contentCard} onPress={onViewArticle}>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=200&q=80' }}
-              style={styles.cardImage}
-            />
-            <View style={styles.cardContent}>
-              <View style={styles.cardTagIntro}>
-                <Text style={styles.cardTagIntroText}>Introdução</Text>
-              </View>
-              <Text style={styles.cardTitle} numberOfLines={2}>
-                Independência e Reconstrução Económica (1975–1985)
-              </Text>
-              <Text style={styles.cardMeta}>8 min de leitura</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.contentCard} onPress={onViewPodcast}>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&q=80' }}
-              style={styles.cardImage}
-            />
-            <View style={styles.cardContent}>
-              <View style={styles.cardTagIntermédio}>
-                <Text style={styles.cardTagIntermédioText}>Intermédio</Text>
-              </View>
-              <Text style={styles.cardTitle} numberOfLines={2}>
-                Kwanza: História e Desafios da Moeda Nacional
-              </Text>
-              <Text style={styles.cardMeta}>14 min · áudio disponível</Text>
-            </View>
-          </TouchableOpacity>
+          <ContentCard
+            title="Independência e Reconstrução Económica (1975–1985)"
+            image="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=200&q=80"
+            difficulty="Introdução"
+            duration="8 min de leitura"
+            onPress={onViewArticle}
+          />
+          <ContentCard
+            title="Kwanza: História e Desafios da Moeda Nacional"
+            image="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&q=80"
+            difficulty="Intermédio"
+            duration="14 min · áudio disponível"
+            onPress={onViewPodcast}
+          />
         </View>
 
         {/* Active Debates */}
@@ -145,21 +130,20 @@ export function HomeScreen({
             <Text style={styles.smallSectionTitle}>DEBATES ACTIVOS</Text>
           </View>
 
-          <View style={styles.debateItem}>
-            <View style={[styles.debateBorder, styles.debateActiveBorder]} />
-            <View style={styles.debateContent}>
-              <Text style={styles.debateTitle}>O petróleo foi uma bênção ou uma maldição para Angola?</Text>
-              <Text style={styles.debateMeta}>💬 47 respostas • Activo há 2h</Text>
-            </View>
-          </View>
-
-          <View style={styles.debateItem}>
-            <View style={[styles.debateBorder, styles.debateInactiveBorder]} />
-            <View style={styles.debateContent}>
-              <Text style={styles.debateTitle}>Kwanza e inflação: podemos aprender com o passado?</Text>
-              <Text style={styles.debateMeta}>💬 11 respostas • Activo há 1 dia</Text>
-            </View>
-          </View>
+          <DebateCard
+            title="O petróleo foi uma bênção ou uma maldição para Angola?"
+            replies={47}
+            activeSince="Activo há 2h"
+            isHighlight={true}
+            onPress={onViewCommunity}
+          />
+          <DebateCard
+            title="Kwanza e inflação: podemos aprender com o passado?"
+            replies={11}
+            activeSince="Activo há 1 dia"
+            isHighlight={false}
+            onPress={onViewCommunity}
+          />
 
           <TouchableOpacity style={styles.debateButton} onPress={onViewCommunity}>
             <Text style={styles.debateButtonText}>Ver todos os debates</Text>
@@ -445,90 +429,6 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primary,
     fontSize: 14,
     fontFamily: 'Source_Sans_3',
-  },
-  contentCard: {
-    flexDirection: 'row',
-    backgroundColor: appTheme.colors.background,
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: appTheme.colors.border,
-  },
-  cardImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    marginRight: 12,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  cardTagIntro: {
-    backgroundColor: appTheme.colors.badgeLightBg,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 20,
-    marginBottom: 6,
-  },
-  cardTagIntroText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: appTheme.colors.badgeLightText,
-  },
-  cardTagIntermédio: {
-    backgroundColor: appTheme.colors.badgeYellowBg,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 20,
-    marginBottom: 6,
-  },
-  cardTagIntermédioText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: appTheme.colors.badgeYellowText,
-  },
-  cardTitle: {
-    fontFamily: 'IBM_Plex_Sans',
-    fontSize: 14,
-    fontWeight: '600',
-    color: appTheme.colors.textPrimary,
-    marginBottom: 4,
-  },
-  cardMeta: {
-    fontSize: 12,
-    color: appTheme.colors.textMuted,
-  },
-  debateItem: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  debateBorder: {
-    width: 4,
-    borderRadius: 2,
-    marginRight: 12,
-  },
-  debateActiveBorder: {
-    backgroundColor: appTheme.colors.primary,
-  },
-  debateInactiveBorder: {
-    backgroundColor: appTheme.colors.rankingCardSecondary,
-  },
-  debateContent: {
-    flex: 1,
-  },
-  debateTitle: {
-    fontFamily: 'IBM_Plex_Sans',
-    fontSize: 15,
-    fontWeight: '600',
-    color: appTheme.colors.textPrimary,
-    marginBottom: 4,
-  },
-  debateMeta: {
-    fontSize: 12,
-    color: appTheme.colors.textMuted,
   },
   debateButton: {
     width: '100%',

@@ -21,6 +21,7 @@ import { UserSearchBar } from "../../components/UserSearchBar";
 import { UserList } from "../../components/UserList";
 import { appTheme } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 import { MainStackParamList, CommunityTopic } from "../../types/navigation";
 import { CategoryGroup, CategoryOption, UserProfile } from "../../types/room";
 
@@ -192,13 +193,7 @@ export function CreateTopicScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#8B1E2D" />
-          <Text style={styles.backButtonText}>Novo Fórum</Text>
-        </TouchableOpacity>
-      </View>
+      <HeaderBar title="Novo Fórum" />
 
       <ScrollView
         style={styles.scrollContainer}

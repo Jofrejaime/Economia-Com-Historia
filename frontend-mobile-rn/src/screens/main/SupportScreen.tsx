@@ -11,7 +11,8 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 
 export function SupportScreen() {
   const navigation = useNavigation();
@@ -51,13 +52,7 @@ export function SupportScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#7F1D1D" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Suporte e Ajuda</Text>
-      </View>
+      <HeaderBar title="Suporte e Ajuda" />
 
       <ScrollView
         style={styles.container}
