@@ -16,6 +16,7 @@ import { UserSearchBar } from "../../components/UserSearchBar";
 import { UserList } from "../../components/UserList";
 import { appTheme } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 import { MainStackParamList } from "../../types/navigation";
 import { UserProfile } from "../../types/room";
 
@@ -114,13 +115,7 @@ export function ManageMembersScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backHeaderButton}>
-          <Ionicons name="arrow-back" size={24} color="#8B1E2D" />
-          <Text style={styles.backHeaderText}>Gestão de Membros</Text>
-        </TouchableOpacity>
-      </View>
+      <HeaderBar title="Gestão de Membros" />
 
       <ScrollView
         style={styles.scrollContainer}

@@ -13,6 +13,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 
 export function PodcastScreen() {
   const navigation = useNavigation<any>();
@@ -42,26 +43,9 @@ export function PodcastScreen() {
 
   return (
     <View style={styles.background}>
-      <StatusBar barStyle="light-content" backgroundColor="#8B1E2D" />
+      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.headerBtn}
-        >
-          <Feather name="arrow-left" size={20} color="white" />
-        </TouchableOpacity>
-
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerSubtitle}>A REPRODUZIR</Text>
-          <Text style={styles.headerTitle}>Economia com História</Text>
-        </View>
-
-        <TouchableOpacity style={styles.headerBtn}>
-          <Feather name="more-vertical" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
+      <HeaderBar title="Podcast" />
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Artwork */}

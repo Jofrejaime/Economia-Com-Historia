@@ -12,6 +12,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 
 export function QuizFeedbackScreen() {
   const navigation = useNavigation<any>();
@@ -27,23 +28,9 @@ export function QuizFeedbackScreen() {
   };
 
   return (
-    <ScreenContainer style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FF" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Feather name="arrow-left" size={20} color={appTheme.colors.primary} />
-          <Text style={styles.appTitle}>Economia com História</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate("MainTabs")} style={styles.closeButton}>
-          <Feather name="x" size={20} color={appTheme.colors.primary} />
-        </TouchableOpacity>
-      </View>
+    <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
+      <HeaderBar title="Resultado" />
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Result Header */}

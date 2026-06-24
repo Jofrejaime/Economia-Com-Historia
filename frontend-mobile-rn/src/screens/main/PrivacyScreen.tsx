@@ -5,7 +5,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { FormInput } from "../../components/FormInput";
 import { appTheme } from "../../constants/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 import { useAuth } from "../../hooks/useAuth";
 import { MainStackParamList } from "../../types/navigation";
 
@@ -66,13 +66,7 @@ export function PrivacyScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#7F1D1D" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Privacidade e Segurança</Text>
-      </View>
+      <HeaderBar title="Privacidade e Segurança" />
 
       <ScrollView
         style={styles.container}

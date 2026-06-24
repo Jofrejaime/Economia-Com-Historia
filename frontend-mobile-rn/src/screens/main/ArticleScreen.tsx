@@ -13,6 +13,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 import { contentData } from "../../data/contents";
 
 export function ArticleScreen() {
@@ -50,39 +51,9 @@ export function ArticleScreen() {
   };
 
   return (
-    <ScreenContainer style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="white" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Feather name="arrow-left" size={20} color={appTheme.colors.primary} />
-            <Text style={styles.backButtonText}>Voltar</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.appTitle}>Economia com História</Text>
-
-          <TouchableOpacity style={styles.moreButton}>
-            <Feather name="more-vertical" size={20} color={appTheme.colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Feather name="bookmark" size={16} color={appTheme.colors.textSecondary} />
-            <Text style={styles.actionBtnText}>Guardar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Feather name="share-2" size={16} color={appTheme.colors.textSecondary} />
-            <Text style={styles.actionBtnText}>Partilhar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+    <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
+      <HeaderBar title="Artigo" />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Category Badge */}

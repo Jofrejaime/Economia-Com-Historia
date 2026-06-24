@@ -11,6 +11,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
+import { HeaderBar } from "../../components/HeaderBar";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 
@@ -118,17 +119,11 @@ export function QuizListScreen() {
   };
 
   return (
-    <ScreenContainer style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#8B1E2D" />
+    <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+      <HeaderBar title="Economia com História" showBackButton={false} />
 
-      {/* Header */}
-      <View style={styles.gradientHeader}>
-        <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitle}>Quiz</Text>
-          <Text style={styles.headerSubtitle}>Teste os teus conhecimentos</Text>
-        </View>
-
-        {/* Tab Buttons */}
+      {/* Tab Buttons */}
+      <View style={[styles.gradientHeader, { paddingTop: 12 }]}>
         <View style={styles.tabBar}>
           <TouchableOpacity
             onPress={() => setActiveTab("quizzes")}

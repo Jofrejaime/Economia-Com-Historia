@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { HeaderBar } from "../../components/HeaderBar";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -86,52 +86,36 @@ export function RegisterScreen({ navigation }: Props) {
 
   return (
     <ScreenContainer style={styles.screen}>
-      <View style={styles.headerShell}>
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => {
-              if (step === 1) {
-                if (navigation.canGoBack()) navigation.goBack();
-                return;
-              }
-              setStep(1);
-            }}
-            style={styles.backButton}
-          >
-            <Ionicons
-              name="arrow-back"
-              size={20}
-              color={appTheme.colors.primary}
-            />
-            <Text style={styles.backLabel}>
-              {step === 1 ? "Voltar" : "Anterior"}
-            </Text>
-          </Pressable>
+      <HeaderBar
+        title="Criar Conta"
+        onBackPress={() => {
+          if (step === 1) {
+            if (navigation.canGoBack()) navigation.goBack();
+          } else {
+            setStep(1);
+          }
+        }}
+      />
 
-          <View style={styles.progressRow}>
-            <View
-              style={[styles.progressSegment, styles.progressSegmentActive]}
-            />
-            <View
-              style={[
-                styles.progressSegment,
-                step === 2 ? styles.progressSegmentActive : null,
-              ]}
-            />
-          </View>
-          <Text style={styles.progressText}>Passo {step} de 2</Text>
+      {/* Progress indicator */}
+      <View style={styles.progressSection}>
+        <View style={styles.progressRow}>
+          <View style={[styles.progressSegment, styles.progressSegmentActive]} />
+          <View style={[styles.progressSegment, step === 2 ? styles.progressSegmentActive : styles.progressSegmentInactive]} />
         </View>
+        <Text style={styles.progressText}>Passo {step} de 2</Text>
       </View>
 
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {step === 1 ? (
           <>
             <Text style={styles.title}>Cria a tua conta</Text>
-            <Text style={styles.subtitle}>Preenche os teus dados</Text>
+            <Text style={styles.subtitle}>Preenche os teus dados para começar</Text>
 
             <SocialButton
               icon="G"
@@ -146,6 +130,7 @@ export function RegisterScreen({ navigation }: Props) {
               value={fullName}
               onChangeText={setFullName}
               placeholder="Luís Manuel Ferreira"
+              autoCapitalize="words"
             />
 
             <FormInput
@@ -208,8 +193,8 @@ export function RegisterScreen({ navigation }: Props) {
               Personaliza a tua experiência de aprendizagem
             </Text>
 
-            <View style={styles.formGroupLarge}>
-              <Text style={styles.label}>Nível académico</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.groupLabel}>Nível académico</Text>
               <View style={styles.academicGrid}>
                 {academicLevels.map((level) => (
                   <AcademicLevelButton
@@ -222,11 +207,9 @@ export function RegisterScreen({ navigation }: Props) {
               </View>
             </View>
 
-            <View style={styles.formGroupLarge}>
-              <Text style={styles.label}>Área de interesse</Text>
-              <Text style={styles.interestHint}>
-                Seleciona pelo menos uma área
-              </Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.groupLabel}>Área de interesse</Text>
+              <Text style={styles.groupHint}>Seleciona pelo menos uma área</Text>
               <View style={styles.interestWrap}>
                 {interestsList.map((interest) => (
                   <InterestChip
@@ -244,20 +227,22 @@ export function RegisterScreen({ navigation }: Props) {
               disabled={!canCompleteStep2 || isSubmitting}
               style={({ pressed }) => [
                 styles.primaryButton,
-                (!canCompleteStep2 || isSubmitting) &&
-                  styles.primaryButtonDisabled,
+                (!canCompleteStep2 || isSubmitting) && styles.primaryButtonDisabled,
                 pressed && canCompleteStep2 && !isSubmitting && styles.pressed,
               ]}
             >
-              <Text
-                style={[
-                  styles.primaryButtonText,
-                  (!canCompleteStep2 || isSubmitting) &&
-                    styles.primaryButtonTextDisabled,
-                ]}
-              >
-                {isSubmitting ? "A criar..." : "Criar conta"}
-              </Text>
+              {isSubmitting ? (
+                <ActivityIndicator size="small" color={appTheme.colors.surface} />
+              ) : (
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    (!canCompleteStep2 || isSubmitting) && styles.primaryButtonTextDisabled,
+                  ]}
+                >
+                  Criar conta
+                </Text>
+              )}
             </Pressable>
           </>
         )}
@@ -271,76 +256,78 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
     paddingHorizontal: 0,
   },
-  headerShell: {
-    backgroundColor: appTheme.colors.surface,
-  },
-  header: {
+  progressSection: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: appTheme.colors.border,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    alignSelf: "flex-start",
-    marginBottom: 16,
-  },
-  backLabel: {
-    color: appTheme.colors.primary,
-    fontSize: 16,
-    fontWeight: "600",
+    backgroundColor: appTheme.colors.surface,
   },
   progressRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    marginBottom: 8,
   },
   progressSegment: {
     flex: 1,
-    height: 4,
+    height: 5,
     borderRadius: appTheme.radius.pill,
-    backgroundColor: appTheme.colors.border,
   },
   progressSegmentActive: {
     backgroundColor: appTheme.colors.primary,
   },
+  progressSegmentInactive: {
+    backgroundColor: appTheme.colors.border,
+  },
   progressText: {
-    marginTop: 8,
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textMuted,
     fontSize: 12,
+    fontWeight: "600",
   },
   content: {
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 32,
+    paddingHorizontal: 24,
+    paddingTop: 36,
     paddingBottom: 48,
   },
   title: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textPrimary,
-    fontSize: appTheme.typography.heading.fontSize,
-    fontWeight: appTheme.typography.heading.fontWeight,
+    fontSize: 26,
+    fontWeight: "700",
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   subtitle: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontSize: 16,
     marginBottom: 32,
+    lineHeight: 22,
   },
-  formGroupLarge: {
-    marginBottom: 24,
+  formGroup: {
+    marginBottom: 28,
   },
-  label: {
+  groupLabel: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textPrimary,
     fontSize: 14,
     fontWeight: "600",
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  groupHint: {
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.textMuted,
+    fontSize: 13,
+    marginBottom: 12,
   },
   primaryButton: {
-    minHeight: 48,
+    minHeight: 52,
     borderRadius: appTheme.radius.md,
     backgroundColor: appTheme.colors.primary,
     alignItems: "center",
@@ -350,6 +337,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.rankingCardSecondary,
   },
   primaryButtonText: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
@@ -358,27 +346,23 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
   },
   termsWrap: {
-    marginTop: 32,
+    marginTop: 28,
   },
   termsText: {
+    fontFamily: "Source_Sans_3",
     textAlign: "center",
     color: appTheme.colors.textMuted,
-    fontSize: 14,
+    fontSize: 13,
     lineHeight: 20,
   },
   termsLink: {
     color: appTheme.colors.primary,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   academicGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12,
-  },
-  interestHint: {
-    color: appTheme.colors.textMuted,
-    fontSize: 12,
-    marginBottom: 12,
   },
   interestWrap: {
     flexDirection: "row",
@@ -386,6 +370,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.85,
   },
 });

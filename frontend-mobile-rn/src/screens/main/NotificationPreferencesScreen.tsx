@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Switch } from "re
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 
 export function NotificationPreferencesScreen() {
   const navigation = useNavigation();
@@ -15,13 +15,7 @@ export function NotificationPreferencesScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#7F1D1D" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Preferências de Notificação</Text>
-      </View>
+      <HeaderBar title="Preferências de Notificação" />
 
       <ScrollView
         style={styles.container}

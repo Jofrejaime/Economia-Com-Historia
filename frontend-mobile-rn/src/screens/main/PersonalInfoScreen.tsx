@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, StatusBar } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { FormInput } from "../../components/FormInput";
 import { appTheme } from "../../constants/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { HeaderBar } from "../../components/HeaderBar";
 
 export function PersonalInfoScreen() {
   const navigation = useNavigation();
@@ -39,13 +39,8 @@ export function PersonalInfoScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#7F1D1D" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Informação Pessoal</Text>
-      </View>
+      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
+      <HeaderBar title="Informação Pessoal" />
 
       <ScrollView
         style={styles.container}
