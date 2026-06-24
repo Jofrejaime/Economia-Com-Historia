@@ -3,6 +3,7 @@ import { ContentsComponent } from './pages/contents/contents';
 import { LoginComponent } from './pages/auth/login/login';
 import { RegisterComponent } from './pages/auth/register/register';
 import { ForgotPasswordComponent } from './pages/auth/forgot-password/forgot-password';
+import { ResendVerificationComponent } from './pages/auth/resend-verification/resend-verification';
 import { ResetPasswordComponent } from './pages/auth/reset-password/reset-password';
 import { CommunityComponent } from './pages/forum/community/community';
 import { QuizListComponent } from './pages/quizzes/quiz-list/quiz-list';
@@ -16,6 +17,8 @@ import { HomeVisitorComponent } from './pages/home/home-visitor/home-visitor';
 import { CategoryViewComponent } from './pages/forum/category-view/category-view';
 import { CategoryDetailComponent } from './pages/forum/category-detail/category-detail';
 import { authGuard } from './guards/auth.guard';
+import { guestGuard } from './guards/guest.guard';
+import { adminGuard } from './guards/admin.guard';
 import { DashboardAdminComponent } from './pages/admin/dashboard-admin/dashboard-admin';
 import { OverviewPageComponent } from './pages/admin/dashboard-admin/pages/overview-page/overview-page';
 import { RequestsPageComponent } from './pages/admin/dashboard-admin/pages/request-page/request-page';
@@ -40,23 +43,22 @@ export const routes: Routes = [
   { path: 'quiz/pergunta', canActivate: [authGuard], component: QuestionQuizComponent },
   { path: 'quiz/resultado', canActivate: [authGuard], component: QuizResultComponent },
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
-  { path: 'auth/login', component: LoginComponent },
-  { path: 'auth/criar-conta', component: RegisterComponent },
-  { path: 'auth/forgot-password', component: ForgotPasswordComponent },
-  { path: 'auth/reset-password', component: ResetPasswordComponent },
+  { path: 'auth/login', canActivate: [guestGuard], component: LoginComponent },
+  { path: 'auth/criar-conta', canActivate: [guestGuard], component: RegisterComponent },
+  { path: 'auth/forgot-password', canActivate: [guestGuard], component: ForgotPasswordComponent },
+  { path: 'auth/resend-verification', canActivate: [guestGuard], component: ResendVerificationComponent },
+  { path: 'auth/reset-password', canActivate: [guestGuard], component: ResetPasswordComponent },
   { path: 'contents/view/:id', canActivate: [authGuard], component: ContentsViewComponent },
   { path: 'forum/comunidade/criar-topico', canActivate: [authGuard], component: CreateTopicComponent },
   { path: 'forum/community/discussao/:id', canActivate: [authGuard], component: DiscussionThreadComponent },
   { path: 'landing', component: HomeVisitorComponent },
   { path: 'forum/categorias', canActivate: [authGuard], component: CategoryViewComponent },
   { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },
-  // app.routes.ts
-{ path: 'notificacoes', canActivate: [authGuard], component: UserNotificationsComponent },
-  
-  // Admin Routes (com rotas aninhadas)
   {
     path: 'admin/dashboard',
     component: DashboardAdminComponent,
+    canActivate: [adminGuard],
+    canActivateChild: [adminGuard],
     children: [
       { path: '', redirectTo: 'visao-geral', pathMatch: 'full' },
       { path: 'visao-geral', component: OverviewPageComponent },
@@ -74,6 +76,6 @@ export const routes: Routes = [
       { path: 'notificacoes', component: NotificationsPageComponent }
     ]
   },
-  
+  { path: 'notificacoes', canActivate: [authGuard], component: UserNotificationsComponent },
   { path: '**', redirectTo: '/home' }
 ];

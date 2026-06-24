@@ -107,12 +107,23 @@
         <form (ngSubmit)="handleSubmit($event)">
 
           <!-- Error -->
-          <div *ngIf="errorMessage" class="login-error">
-            <div class="login-error-icon">!</div>
-            <div>
-              <div class="login-error-title">Acesso não autorizado</div>
-              <div class="login-error-text">{{ errorMessage }}</div>
-            </div>
+          <div *ngIf="errorMessage">
+            <app-auth-feedback
+              type="error"
+              title="Acesso não autorizado"
+              [message]="errorMessage"
+              [actionLabel]="feedbackActionLabel"
+              [actionLink]="feedbackActionLink">
+            </app-auth-feedback>
+          </div>
+
+          <!-- Success -->
+          <div *ngIf="successMessage">
+            <app-auth-feedback
+              type="success"
+              title="Sessão iniciada"
+              [message]="successMessage">
+            </app-auth-feedback>
           </div>
           
           <!-- Email Field -->
