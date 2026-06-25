@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -8,6 +8,7 @@ import { MarkdownPipe } from '../../../pipes/markdown.pipe';
 
 interface Reply {
   id: number;
+  parentId: number | null;
   authorId: number;
   author: string;
   authorInitials: string;
@@ -59,6 +60,17 @@ export class DiscussionThreadComponent {
   selectedReplyIndex: number | null = null;
   selectedReply: Reply | null = null;
 
+  // Menu da discussão
+  showDiscussionMenu = false;
+
+  // Menu das respostas
+  showReplyMenuIndex: number | null = null;
+
+  // Modais de confirmação para eliminar
+  showDeleteDiscussionModal = false;
+  showDeleteReplyModal = false;
+  deleteReplyIndex: number | null = null;
+
   discussion = {
     id: 1,
     authorId: 1,
@@ -97,6 +109,7 @@ Agradeço antecipadamente qualquer orientação ou referências bibliográficas.
   replies: Reply[] = [
     {
       id: 1,
+      parentId: null,
       authorId: 2,
       author: 'Ana Correia',
       authorInitials: 'AC',
@@ -121,6 +134,7 @@ Espero que ajude!`,
     },
     {
       id: 2,
+      parentId: null,
       authorId: 3,
       author: 'Manuel Santos',
       authorInitials: 'MS',
@@ -139,6 +153,7 @@ Uma observação: muita da documentação de Moxico foi transferida para Luanda 
     },
     {
       id: 3,
+      parentId: 1,
       authorId: 4,
       author: 'Isabel Fernandes',
       authorInitials: 'IF',
@@ -157,6 +172,25 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
       likes: 19,
       isLiked: false,
     },
+    {
+      id: 4,
+      parentId: 2,
+      authorId: 5,
+      author: 'Carlos Mendes',
+      authorInitials: 'CM',
+      authorRole: 'Arquivista',
+      authorPosts: 56,
+      avatar: '#8b1e2d',
+      timeAgo: 'há 15 min',
+      date: '10 Mai 2026, 16:15',
+      content: `@Manuel Santos, excelente observação sobre a documentação de Moxico!
+
+Confirmo que muitos documentos foram realmente transferidos em 1978. No arquivo, encontrei uma listagem de documentos transferidos que pode ajudar a localizar o que procura.
+
+Posso disponibilizar a listagem digitalizada. O código de referência é: ARQ-BNA-1978-TRANSF-001.`,
+      likes: 5,
+      isLiked: false,
+    },
   ];
 
   relatedTopics: RelatedTopic[] = [
@@ -172,6 +206,12 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
     this.router.navigate(['/forum/community/discussao', topicId]);
   }
 
+  // ===== OBTÉM AUTOR DA RESPOSTA PAI =====
+  getReplyAuthor(parentId: number): string {
+    const parent = this.replies.find(r => r.id === parentId);
+    return parent ? parent.author : 'usuário';
+  }
+
   // ===== RESPOSTAS =====
   handleSubmitReply(event: Event): void {
     event.preventDefault();
@@ -179,6 +219,7 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
 
     const newReply: Reply = {
       id: this.replies.length + 1,
+      parentId: null,
       authorId: 0,
       author: 'Utilizador Atual',
       authorInitials: 'UA',
@@ -207,8 +248,10 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
   handleReplyToReply(index: number, text: string): void {
     if (!text || !text.trim()) return;
 
+    const parentReply = this.replies[index];
     const newReply: Reply = {
       id: this.replies.length + 1,
+      parentId: parentReply.id,
       authorId: 0,
       author: 'Utilizador Atual',
       authorInitials: 'UA',
@@ -217,12 +260,18 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
       avatar: '#8B1E2D',
       timeAgo: 'agora mesmo',
       date: new Date().toLocaleString(),
-      content: `@${this.replies[index].author}: ${text}`,
+      content: `@${parentReply.author}: ${text}`,
       likes: 0,
       isLiked: false,
     };
 
-    this.replies.splice(index + 1, 0, newReply);
+    const insertIndex = this.replies.findIndex(r => r.id === parentReply.id);
+    if (insertIndex !== -1) {
+      this.replies.splice(insertIndex + 1, 0, newReply);
+    } else {
+      this.replies.push(newReply);
+    }
+    
     this.showReplyFormForReply[index] = false;
     this.replyReplyText[index] = '';
   }
@@ -241,7 +290,82 @@ Também estou a organizar um seminário sobre este tema no próximo mês - seria
   // ===== AÇÕES =====
   shareDiscussion(): void {
     console.log('Partilhar discussão');
-    // Implementar lógica de partilha
+  }
+
+  // ===== MENU DA DISCUSSÃO =====
+  toggleDiscussionMenu(event: Event): void {
+    event.stopPropagation();
+    this.showDiscussionMenu = !this.showDiscussionMenu;
+    this.showReplyMenuIndex = null;
+  }
+
+  editDiscussion(): void {
+    console.log('Editar discussão:', this.discussion.id);
+    this.showDiscussionMenu = false;
+  }
+
+  // ===== MODAL DE CONFIRMAÇÃO PARA ELIMINAR DISCUSSÃO =====
+  openDeleteDiscussionModal(): void {
+    this.showDiscussionMenu = false;
+    this.showDeleteDiscussionModal = true;
+  }
+
+  closeDeleteDiscussionModal(): void {
+    this.showDeleteDiscussionModal = false;
+  }
+
+  confirmDeleteDiscussion(): void {
+    console.log('Excluir discussão:', this.discussion.id);
+    this.showDeleteDiscussionModal = false;
+    // Aqui você pode adicionar a lógica de redirecionamento após eliminar
+    // this.router.navigate(['/forum/community']);
+  }
+
+  // ===== MENU DAS RESPOSTAS =====
+  toggleReplyMenu(index: number, event: Event): void {
+    event.stopPropagation();
+    this.showReplyMenuIndex = this.showReplyMenuIndex === index ? null : index;
+    this.showDiscussionMenu = false;
+  }
+
+  editReply(index: number): void {
+    console.log('Editar resposta:', this.replies[index].id);
+    this.showReplyMenuIndex = null;
+  }
+
+  // ===== MODAL DE CONFIRMAÇÃO PARA ELIMINAR RESPOSTA =====
+  openDeleteReplyModal(index: number): void {
+    this.showReplyMenuIndex = null;
+    this.deleteReplyIndex = index;
+    this.showDeleteReplyModal = true;
+  }
+
+  closeDeleteReplyModal(): void {
+    this.showDeleteReplyModal = false;
+    this.deleteReplyIndex = null;
+  }
+
+  confirmDeleteReply(): void {
+    if (this.deleteReplyIndex !== null) {
+      console.log('Excluir resposta:', this.replies[this.deleteReplyIndex].id);
+      this.replies.splice(this.deleteReplyIndex, 1);
+      this.showDeleteReplyModal = false;
+      this.deleteReplyIndex = null;
+    }
+  }
+
+  // ===== FECHAR MENUS AO CLICAR FORA =====
+  @HostListener('document:click', ['$event'])
+  handleClickOutside(event: Event): void {
+    const target = event.target as HTMLElement;
+    
+    if (!target.closest('.discussion-menu-wrapper')) {
+      this.showDiscussionMenu = false;
+    }
+    
+    if (!target.closest('.reply-menu-wrapper')) {
+      this.showReplyMenuIndex = null;
+    }
   }
 
   // ===== DENÚNCIAS =====

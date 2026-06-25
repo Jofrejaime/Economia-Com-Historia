@@ -1,76 +1,128 @@
 <div class="notifications-page">
-  
+
   <app-header></app-header>
 
   <main class="notifications-main">
     <div class="notifications-container">
-      
+
       <!-- Page Header -->
       <div class="notifications-header">
-        <div class="notifications-badge">NOTIFICAÇÕES</div>
-        <h1 class="notifications-title">Minhas Notificações</h1>
+        <h1 class="notifications-title">Notificações</h1>
         <p class="notifications-subtitle">Acompanhe as atualizações e alertas do sistema</p>
-      </div>
-
-      <!-- Stats Row -->
-      <div class="notifications-stats">
-        <div class="notifications-stat-card">
-          <p class="notifications-stat-number notifications-stat-number-dark">{{ notifications.length }}</p>
-          <p class="notifications-stat-label">Total</p>
-        </div>
-        <div class="notifications-stat-card">
-          <p class="notifications-stat-number notifications-stat-number-red">{{ unreadCount }}</p>
-          <p class="notifications-stat-label">Não lidas</p>
-        </div>
-        <div class="notifications-stat-card">
-          <p class="notifications-stat-number notifications-stat-number-green">{{ notifications.length - unreadCount }}</p>
-          <p class="notifications-stat-label">Lidas</p>
-        </div>
       </div>
 
       <!-- Action Bar -->
       <div class="notifications-actions">
         <div class="notifications-actions-left">
-          <button *ngIf="hasUnread" (click)="markAllAsRead()" class="btn-outline">
-            Marcar todas como lidas
-          </button>
+          <span class="notifications-count">{{ notifications.length }} notificações</span>
+          <span class="notifications-count-unread" *ngIf="unreadCount > 0">{{ unreadCount }} não lidas</span>
         </div>
-        <div class="notifications-divider"></div>
+        <button *ngIf="hasUnread" (click)="markAllAsRead()" class="btn-outline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Marcar todas como lidas
+        </button>
       </div>
 
-      <!-- Notifications List -->
+      <!-- Filters -->
+      <div class="notifications-filters">
+        <button
+          *ngFor="let f of filters"
+          class="filter-btn"
+          [class.filter-btn-active]="activeFilter === f.key"
+          (click)="setFilter(f.key)">
+          {{ f.label }}
+        </button>
+      </div>
+
+      <!-- Grouped List -->
       <div class="notifications-list-wrapper">
-        <div *ngFor="let notif of notifications" 
-             class="notification-item"
-             [class.notification-item-unread]="!notif.is_read">
-          
-          <!-- Ícone -->
-          <div class="notification-icon" [style.background]="getTypeBg(notif.type)">
-            <span class="notification-icon-text">{{ getTypeIcon(notif.type) }}</span>
-          </div>
-          
-          <!-- Conteúdo -->
-          <div class="notification-content">
-            <div class="notification-content-header">
-              <h4 class="notification-content-title">{{ notif.title }}</h4>
-              <span *ngIf="!notif.is_read" class="notification-badge-new">Nova</span>
+
+        <ng-container *ngFor="let group of groupedNotifications">
+
+          <!-- Group Label -->
+          <div class="notifications-group-label">{{ group.label }}</div>
+
+          <!-- Notification Items -->
+          <div *ngFor="let notif of group.notifications"
+               class="notification-item"
+               [class.notification-item-unread]="!notif.is_read">
+
+            <!-- Unread dot -->
+            <div class="notification-dot" [class.notification-dot-unread]="!notif.is_read"></div>
+
+            <!-- Icon -->
+            <div class="notification-icon" [style.background]="getTypeBg(notif.type)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   [style.stroke]="getTypeIconColor(notif.type)" stroke-width="2">
+                <ng-container [ngSwitch]="notif.type">
+
+                  <ng-container *ngSwitchCase="'info'">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </ng-container>
+
+                  <ng-container *ngSwitchCase="'success'">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </ng-container>
+
+                  <ng-container *ngSwitchCase="'warning'">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </ng-container>
+
+                  <ng-container *ngSwitchCase="'achievement'">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  </ng-container>
+
+                  <ng-container *ngSwitchDefault>
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </ng-container>
+
+                </ng-container>
+              </svg>
             </div>
-            <p class="notification-message">{{ notif.message }}</p>
-            <div class="notification-footer">
-              <span class="notification-time">{{ notif.created_at | date:'dd MMM yyyy, HH:mm' }}</span>
-              <button *ngIf="!notif.is_read" (click)="markAsRead(notif.id)" class="notification-mark-read">
-                Marcar como lida
-              </button>
+
+            <!-- Content -->
+            <div class="notification-content">
+              <div class="notification-content-header">
+                <h4 class="notification-content-title">{{ notif.title }}</h4>
+                <span class="notification-time">{{ getRelativeTime(notif.created_at) }}</span>
+              </div>
+              <p class="notification-message">{{ notif.message }}</p>
+              <div class="notification-footer">
+                <span class="notification-tag" [class]="'notification-tag-' + notif.type">
+                  {{ getTypeTag(notif.type) }}
+                </span>
+                <button *ngIf="!notif.is_read" (click)="markAsRead(notif.id)" class="notification-mark-read">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Marcar como lida
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+
+        </ng-container>
 
         <!-- Empty state -->
-        <div *ngIf="notifications.length === 0" class="notifications-empty">
-          <span class="notifications-empty-icon">🔔</span>
-          <p class="notifications-empty-title">Nenhuma notificação</p>
-          <p class="notifications-empty-sub">As suas notificações aparecerão aqui</p>
+        <div *ngIf="groupedNotifications.length === 0" class="notifications-empty">
+          <div class="notifications-empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </div>
+          <p class="notifications-empty-title">Sem notificações</p>
+          <p class="notifications-empty-sub">Não existem notificações para o filtro seleccionado</p>
         </div>
+
       </div>
     </div>
   </main>

@@ -101,7 +101,7 @@
     <div class="home-featured-contents-container">
       <div class="home-section-header">
         <div>
-          <h2 class="home-section-title">📚 Conteúdos em Destaque</h2>
+          <h2 class="home-section-title"> Conteúdos em Destaque</h2>
           <p class="home-section-subtitle">Explore os documentos mais recentes do arquivo</p>
         </div>
         <a (click)="navigateTo('/contents')" class="home-section-link">Ver todos →</a>
@@ -171,10 +171,6 @@
             <p class="home-feature-description">Contribua para a preservação e disseminação do conhecimento económico angolano.</p>
           </div>
         </div>
-
-        <button (click)="navigateTo('/auth/criar-conta')" class="btn-outline">
-          Criar Conta de Investigador
-        </button>
       </div>
     </div>
   </section>
@@ -184,7 +180,7 @@
     <div class="home-ranking-container">
       <div class="home-section-header">
         <div>
-          <h2 class="home-section-title">🏆 Ranking de Investigadores</h2>
+          <h2 class="home-section-title"> Ranking de Investigadores</h2>
           <p class="home-section-subtitle">Conheça os investigadores mais ativos da plataforma</p>
         </div>
         <button (click)="navigateTo('/ranking')" class="home-section-link">Ver ranking completo →</button>
@@ -194,9 +190,6 @@
         <div *ngFor="let rank of leaderboard; let i = index" class="home-ranking-card" [class.top-1]="i === 0" [class.top-2]="i === 1" [class.top-3]="i === 2">
           <div class="home-ranking-position">
             <span class="position-number">{{ i + 1 }}º</span>
-            <span *ngIf="i === 0" class="position-medal">🥇</span>
-            <span *ngIf="i === 1" class="position-medal">🥈</span>
-            <span *ngIf="i === 2" class="position-medal">🥉</span>
           </div>
           <div class="home-ranking-info">
             <span class="ranking-name">{{ rank.name }}</span>
@@ -231,7 +224,7 @@
 
           <div>
             <h2 class="home-access-title">Explore sem Restrições</h2>
-            <p class="home-access-description">Não precisa de criar conta para começar a explorar. Todo o conteúdo do arquivo está disponível para leitura pública.</p>
+            <strong><p class="home-access-description">Não precisa de criar conta para começar a explorar. Todo o conteúdo do arquivo está disponível para leitura pública.</p></strong>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 20px;">

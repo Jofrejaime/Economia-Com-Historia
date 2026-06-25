@@ -12,6 +12,14 @@ interface Category {
   color: { bg: string; text: string };
 }
 
+interface Participant {
+  id: string;
+  name: string;
+  email: string;
+  initials: string;
+  avatarColor: string;
+}
+
 @Component({
   selector: 'app-create-topic',
   standalone: true,
@@ -24,7 +32,10 @@ export class CreateTopicComponent {
   selectedCategory = '';
   content = '';
   showPreview = false;
-  errors: { title?: string; category?: string; content?: string } = {};
+  topicPrivacy: 'public' | 'private' = 'public';
+  selectedParticipants: string[] = [];
+  participantSearch = '';
+  errors: { title?: string; category?: string; content?: string; participants?: string } = {};
 
   categories: Category[] = [
     {
@@ -65,14 +76,53 @@ export class CreateTopicComponent {
     },
   ];
 
+  // Lista de participantes disponíveis (mock)
+  allParticipants: Participant[] = [
+    { id: '1', name: 'Ana Silva', email: 'ana.silva@universidade.ao', initials: 'AS', avatarColor: '#8B1E2D' },
+    { id: '2', name: 'Carlos Santos', email: 'carlos.santos@universidade.ao', initials: 'CS', avatarColor: '#1F2937' },
+    { id: '3', name: 'Maria Costa', email: 'maria.costa@universidade.ao', initials: 'MC', avatarColor: '#9CA3AF' },
+    { id: '4', name: 'João Mendes', email: 'joao.mendes@universidade.ao', initials: 'JM', avatarColor: '#8B1E2D' },
+    { id: '5', name: 'Paula Ferreira', email: 'paula.ferreira@universidade.ao', initials: 'PF', avatarColor: '#1F2937' },
+    { id: '6', name: 'Miguel Rodrigues', email: 'miguel.rodrigues@universidade.ao', initials: 'MR', avatarColor: '#9CA3AF' },
+  ];
+
+  filteredParticipants: Participant[] = [...this.allParticipants];
+
   constructor(private router: Router) {}
 
   get selectedCategoryData(): Category | undefined {
     return this.categories.find(cat => cat.id === this.selectedCategory);
   }
 
+  // ===== FILTRO DE PARTICIPANTES =====
+  filterParticipants(): void {
+    const search = this.participantSearch.toLowerCase().trim();
+    if (!search) {
+      this.filteredParticipants = [...this.allParticipants];
+      return;
+    }
+    this.filteredParticipants = this.allParticipants.filter(p => 
+      p.name.toLowerCase().includes(search) || 
+      p.email.toLowerCase().includes(search)
+    );
+  }
+
+  toggleParticipant(id: string): void {
+    const index = this.selectedParticipants.indexOf(id);
+    if (index === -1) {
+      this.selectedParticipants.push(id);
+    } else {
+      this.selectedParticipants.splice(index, 1);
+    }
+  }
+
+  isParticipantSelected(id: string): boolean {
+    return this.selectedParticipants.includes(id);
+  }
+
+  // ===== VALIDAÇÃO =====
   validate(): boolean {
-    const newErrors: { title?: string; category?: string; content?: string } = {};
+    const newErrors: { title?: string; category?: string; content?: string; participants?: string } = {};
 
     if (!this.title.trim()) {
       newErrors.title = 'O título é obrigatório';
@@ -92,10 +142,15 @@ export class CreateTopicComponent {
       newErrors.content = 'O conteúdo deve ter pelo menos 50 caracteres para uma discussão significativa';
     }
 
+    if (this.topicPrivacy === 'private' && this.selectedParticipants.length === 0) {
+      newErrors.participants = 'Selecione pelo menos um participante para um tópico privado';
+    }
+
     this.errors = newErrors;
     return Object.keys(newErrors).length === 0;
   }
 
+  // ===== SUBMISSÃO =====
   handleSubmit(event: Event): void {
     event.preventDefault();
     if (this.validate()) {
@@ -103,19 +158,63 @@ export class CreateTopicComponent {
         title: this.title,
         category: this.selectedCategory,
         content: this.content,
+        privacy: this.topicPrivacy,
+        participants: this.topicPrivacy === 'private' ? this.selectedParticipants : []
       });
       this.router.navigate(['/forum/community/discussao']);
     }
   }
 
-  handleSaveDraft(): void {
-    if (this.title.trim() || this.content.trim()) {
-      console.log('Rascunho salvo:', { title: this.title, category: this.selectedCategory, content: this.content });
-      alert('Rascunho guardado com sucesso!');
+  // ===== GUARDAR RASCUNHO =====
+  saveDraft(): void {
+    if (this.title.trim() || this.content.trim() || this.selectedCategory) {
+      const draft = {
+        title: this.title,
+        category: this.selectedCategory,
+        content: this.content,
+        privacy: this.topicPrivacy,
+        participants: this.selectedParticipants,
+        savedAt: new Date().toISOString()
+      };
+      console.log('Rascunho salvo:', draft);
+      
+      // Salvar no localStorage
+      try {
+        localStorage.setItem('topicDraft', JSON.stringify(draft));
+        alert('Rascunho guardado com sucesso!');
+      } catch (e) {
+        alert('Rascunho guardado com sucesso!');
+      }
+    } else {
+      alert('Não há conteúdo para guardar como rascunho.');
     }
   }
 
+  // ===== CARREGAR RASCUNHO (opcional) =====
+  loadDraft(): void {
+    try {
+      const draft = localStorage.getItem('topicDraft');
+      if (draft) {
+        const data = JSON.parse(draft);
+        this.title = data.title || '';
+        this.selectedCategory = data.category || '';
+        this.content = data.content || '';
+        this.topicPrivacy = data.privacy || 'public';
+        this.selectedParticipants = data.participants || [];
+      }
+    } catch (e) {
+      // Ignorar erro
+    }
+  }
+
+  // ===== NAVEGAÇÃO =====
   navigateTo(path: string): void {
     this.router.navigate([path]);
+  }
+
+  // ===== LIFECYCLE =====
+  ngOnInit(): void {
+    this.loadDraft();
+    this.filteredParticipants = [...this.allParticipants];
   }
 }

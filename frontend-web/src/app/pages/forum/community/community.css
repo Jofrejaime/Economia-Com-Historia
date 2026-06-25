@@ -2,16 +2,25 @@
 
 * {
   font-family: 'Source Sans 3', sans-serif;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  color: #1F2937;
 }
 
 body {
+  background-color: #F5F5F5;
   line-height: 1.7;
+  color: #1F2937;
 }
 
 p, span, div, button, input, textarea {
+  font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
+  color: #1F2937;
 }
