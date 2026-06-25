@@ -1,32 +1,31 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { AdminApiService, AdminUser } from '../../../../../services/admin-api.service';
 
-// Interface com APENAS campos que existem nas migrations
-interface User {
-  // Tabela users
-  id: string;
+type UserRole = 'admin' | 'professor' | 'investigador' | 'estudante' | '';
+type UserStatusFilter = 'todos' | 'active' | 'pending' | 'blocked' | 'inactive';
+
+interface UserFormState {
   email: string;
+  role: UserRole;
   email_verified: boolean;
   is_active: boolean;
-  role: 'estudante' | 'investigador' | 'curador' | 'administrador' | 'superadministrador';
-  created_at: string;
-  updated_at: string;
-  last_login_at: string | null;
-  
-  // Tabela user_profiles
   display_name: string;
-  full_name: string | null;
-  institution: string | null;
-  province: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  research_areas: string[] | null;
-  
-  // Campos APENAS para frontend (não existem na BD)
-  avatarColor?: string;
-  avatarInitials?: string;
-  research_areas_input?: string;
+  full_name: string;
+  institution: string;
+  province: string;
+  avatar_url: string;
+  bio: string;
+  website_url: string;
+  research_areas_input: string;
+  avatarColor: string;
+}
+
+interface AdminUserView extends AdminUser {
+  avatarInitials: string;
+  avatarColor: string;
 }
 
 @Component({
@@ -36,369 +35,497 @@ interface User {
   templateUrl: './users-page.html',
   styleUrls: ['./users-page.css']
 })
-export class UsersPageComponent {
+export class UsersPageComponent implements OnInit {
   searchQuery = '';
-  filterRole = 'todos';
-  filterStatus = 'todos';
-  
+  filterRole: 'todos' | UserRole = 'todos';
+  filterStatus: UserStatusFilter = 'todos';
+
+  loading = false;
+  saving = false;
+  errorMessage: string | null = null;
+  successMessage: string | null = null;
+
   showUserModal = false;
-  editingUser: User | null = null;
-  
-  avatarFile: File | null = null;
-  avatarPreview: string | null = null;
-  
-  // Lista de províncias
+  editingUser: AdminUserView | null = null;
+  modalMode: 'view' | 'edit' = 'view';
+
+  currentPage = 1;
+  pageSize = 10;
+  pageSizeOptions = [10, 20, 50];
+
+  users: AdminUserView[] = [];
+
   provinces = [
-    'Luanda', 'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
-    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla',
-    'Malanje', 'Moxico', 'Namibe', 'Uíge', 'Zaire'
+    'Bengo',
+    'Benguela',
+    'Bié',
+    'Cabinda',
+    'Cuando Cubango',
+    'Cuanza Norte',
+    'Cuanza Sul',
+    'Cunene',
+    'Huambo',
+    'Huíla',
+    'Luanda',
+    'Lunda Norte',
+    'Lunda Sul',
+    'Malanje',
+    'Moxico',
+    'Namibe',
+    'Uíge',
+    'Zaire',
   ];
 
-  userForm: User = {
-    id: '',
-    email: '',
-    email_verified: false,
-    is_active: true,
-    role: 'estudante',
-    created_at: '',
-    updated_at: '',
-    last_login_at: null,
-    display_name: '',
-    full_name: null,
-    institution: null,
-    province: null,
-    avatar_url: null,
-    bio: null,
-    research_areas: null,
-    research_areas_input: '',
-    avatarColor: '#8b1e2d',
-    avatarInitials: ''
-  };
+  userForm: UserFormState = this.createEmptyForm();
 
-  users: User[] = [
-    {
-      id: '1',
-      email: 'm.costa@arquivo.ao',
-      email_verified: true,
-      is_active: true,
-      role: 'administrador',
-      created_at: '2024-01-15T08:00:00Z',
-      updated_at: '2024-06-15T10:00:00Z',
-      last_login_at: '2024-06-15T09:30:00Z',
-      display_name: 'Dr. Manuel Costa',
-      full_name: 'Manuel António Costa',
-      institution: 'Arquivo Nacional',
-      province: 'Luanda',
-      avatar_url: null,
-      bio: 'Historiador económico com foco no período colonial.',
-      research_areas: ['História Económica', 'Economia Colonial', 'Arquivos'],
-      avatarColor: '#6b0119',
-      avatarInitials: 'MC'
-    },
-    {
-      id: '2',
-      email: 'a.silva@uan.ao',
-      email_verified: true,
-      is_active: true,
-      role: 'curador',
-      created_at: '2024-02-22T10:00:00Z',
-      updated_at: '2024-06-14T14:00:00Z',
-      last_login_at: '2024-06-14T13:00:00Z',
-      display_name: 'Dra. Ana Silva',
-      full_name: 'Ana Maria Silva',
-      institution: 'Universidade Agostinho Neto',
-      province: 'Luanda',
-      avatar_url: null,
-      bio: 'Investigadora em sistemas monetários africanos.',
-      research_areas: ['Sistemas Monetários', 'Economia Política', 'História Fiscal'],
-      avatarColor: '#1d4ed8',
-      avatarInitials: 'AS'
-    },
-    {
-      id: '3',
-      email: 'c.mendes@isced.ao',
-      email_verified: true,
-      is_active: true,
-      role: 'investigador',
-      created_at: '2024-03-10T09:00:00Z',
-      updated_at: '2024-06-12T16:00:00Z',
-      last_login_at: '2024-06-12T15:30:00Z',
-      display_name: 'Prof. Carlos Mendes',
-      full_name: 'Carlos Eduardo Mendes',
-      institution: 'ISCED Huíla',
-      province: 'Huíla',
-      avatar_url: null,
-      bio: 'Especialista em rotas comerciais e infraestruturas.',
-      research_areas: ['Rotas Comerciais', 'Infraestrutura', 'História do Comércio'],
-      avatarColor: '#0891b2',
-      avatarInitials: 'CM'
-    },
-    {
-      id: '4',
-      email: 'mj.santos@ucan.ao',
-      email_verified: false,
-      is_active: false,
-      role: 'estudante',
-      created_at: '2024-04-05T11:00:00Z',
-      updated_at: '2024-04-05T11:00:00Z',
-      last_login_at: null,
-      display_name: 'Maria João Santos',
-      full_name: 'Maria João Santos',
-      institution: 'Universidade Católica',
-      province: 'Benguela',
-      avatar_url: null,
-      bio: null,
-      research_areas: null,
-      avatarColor: '#7c3aed',
-      avatarInitials: 'MS'
-    },
-    {
-      id: '5',
-      email: 'j.lopes@isptec.ao',
-      email_verified: true,
-      is_active: false,
-      role: 'investigador',
-      created_at: '2024-02-28T14:00:00Z',
-      updated_at: '2024-06-10T08:00:00Z',
-      last_login_at: '2024-06-10T07:30:00Z',
-      display_name: 'Dr. João Lopes',
-      full_name: 'João Pedro Lopes',
-      institution: 'ISPTEC',
-      province: 'Luanda',
-      avatar_url: null,
-      bio: 'Pesquisador em políticas públicas e desenvolvimento.',
-      research_areas: ['Políticas Públicas', 'Desenvolvimento Económico', 'Economia Social'],
-      avatarColor: '#dc2626',
-      avatarInitials: 'JL'
-    }
-  ];
+  constructor(private adminApi: AdminApiService) {}
 
-  get filteredUsers(): User[] {
-    return this.users.filter(user => {
-      const matchSearch = this.searchQuery === '' ||
-        (user.display_name && user.display_name.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
-        (user.full_name && user.full_name.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
-        user.email.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        (user.institution && user.institution.toLowerCase().includes(this.searchQuery.toLowerCase()));
+  ngOnInit(): void {
+    void this.loadUsers();
+  }
+
+  get filteredUsers(): AdminUserView[] {
+    return this.users.filter((user) => {
+      const search = this.searchQuery.trim().toLowerCase();
+      const matchSearch = search === '' ||
+        user.display_name.toLowerCase().includes(search) ||
+        (user.full_name || '').toLowerCase().includes(search) ||
+        user.email.toLowerCase().includes(search) ||
+        (user.institution || '').toLowerCase().includes(search);
+
       const matchRole = this.filterRole === 'todos' || user.role === this.filterRole;
-      const matchStatus = this.filterStatus === 'todos' || 
-        (this.filterStatus === 'active' ? user.is_active === true : 
-         this.filterStatus === 'pending' ? user.email_verified === false && user.is_active === false :
-         this.filterStatus === 'blocked' ? user.is_active === false && user.email_verified === true : true);
+      const matchStatus = this.filterStatus === 'todos' || this.getUserStatus(user) === this.filterStatus;
+
       return matchSearch && matchRole && matchStatus;
     });
   }
 
-  getRoleLabel(role: string): string {
-    const roles: Record<string, string> = {
-      administrador: 'Administrador',
-      curador: 'Curador',
-      investigador: 'Investigador',
-      estudante: 'Estudante',
-      superadministrador: 'Super Administrador'
-    };
-    return roles[role] || role;
+  get pagedUsers(): AdminUserView[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredUsers.slice(start, start + this.pageSize);
   }
 
-  getRoleIcon(role: string): string {
-    const icons: Record<string, string> = {
-      administrador: '👑',
-      curador: '📚',
-      investigador: '🔬',
-      estudante: '🎓',
-      superadministrador: '⭐'
-    };
-    return icons[role] || '👤';
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredUsers.length / this.pageSize));
   }
 
-  getStatusLabel(isActive: boolean, emailVerified: boolean): string {
-    if (isActive && emailVerified) return 'Ativo';
-    if (!isActive && emailVerified) return 'Bloqueado';
-    if (!isActive && !emailVerified) return 'Pendente';
-    return 'Ativo';
+  get pageStart(): number {
+    return this.filteredUsers.length === 0 ? 0 : ((this.currentPage - 1) * this.pageSize) + 1;
+  }
+
+  get pageEnd(): number {
+    return Math.min(this.currentPage * this.pageSize, this.filteredUsers.length);
   }
 
   getStats() {
     return {
       total: this.users.length,
-      active: this.users.filter(u => u.is_active && u.email_verified).length,
-      pending: this.users.filter(u => !u.is_active && !u.email_verified).length,
-      blocked: this.users.filter(u => !u.is_active && u.email_verified).length
+      active: this.users.filter((user) => this.getUserStatus(user) === 'active').length,
+      pending: this.users.filter((user) => this.getUserStatus(user) === 'pending').length,
+      blocked: this.users.filter((user) => this.getUserStatus(user) === 'blocked').length,
     };
   }
 
+  async loadUsers(): Promise<void> {
+    this.loading = true;
+    this.errorMessage = null;
+    this.currentPage = 1;
+
+    const result = await firstValueFrom(this.adminApi.listUsers({
+      search: this.searchQuery.trim() || undefined,
+      role: this.filterRole === 'todos' ? undefined : this.filterRole,
+      status: this.filterStatus === 'todos' ? undefined : this.filterStatus,
+    }));
+
+    if (!result) {
+      this.errorMessage = 'Não foi possível carregar a lista de utilizadores.';
+      this.loading = false;
+      return;
+    }
+
+    if (!result.ok || !result.data) {
+      this.errorMessage = result.message || 'Não foi possível carregar a lista de utilizadores.';
+      this.users = [];
+      this.loading = false;
+      return;
+    }
+
+    this.users = result.data.map((user) => this.toViewUser(user));
+    this.loading = false;
+  }
+
+  refreshUsers(): void {
+    void this.loadUsers();
+  }
+
+  openEditUserModal(user: AdminUserView): void {
+    this.editingUser = user;
+    this.modalMode = 'edit';
+    this.userForm = {
+      email: user.email,
+      role: (user.role as UserRole) || 'estudante',
+      email_verified: user.email_verified,
+      is_active: user.is_active,
+      display_name: user.display_name || '',
+      full_name: user.full_name || '',
+      institution: user.institution || '',
+      province: user.province || '',
+      avatar_url: user.avatar_url || '',
+      bio: user.bio || '',
+      website_url: user.website_url || '',
+      research_areas_input: Array.isArray(user.research_areas) ? user.research_areas.join(', ') : '',
+      avatarColor: user.avatarColor,
+    };
+    this.showUserModal = true;
+    this.successMessage = null;
+    this.errorMessage = null;
+  }
+
+  openViewUserModal(user: AdminUserView): void {
+    this.editingUser = user;
+    this.modalMode = 'view';
+    this.userForm = {
+      email: user.email,
+      role: (user.role as UserRole) || 'estudante',
+      email_verified: user.email_verified,
+      is_active: user.is_active,
+      display_name: user.display_name || '',
+      full_name: user.full_name || '',
+      institution: user.institution || '',
+      province: user.province || '',
+      avatar_url: user.avatar_url || '',
+      bio: user.bio || '',
+      website_url: user.website_url || '',
+      research_areas_input: Array.isArray(user.research_areas) ? user.research_areas.join(', ') : '',
+      avatarColor: user.avatarColor,
+    };
+    this.showUserModal = true;
+    this.successMessage = null;
+    this.errorMessage = null;
+  }
+
+  closeUserModal(): void {
+    if (this.saving) {
+      return;
+    }
+
+    this.showUserModal = false;
+    this.editingUser = null;
+    this.modalMode = 'view';
+  }
+
+  enableEditMode(): void {
+    this.modalMode = 'edit';
+  }
+
+  async saveUser(): Promise<void> {
+    if (!this.editingUser) {
+      this.errorMessage = 'A criação de utilizadores ainda não está exposta na API administrativa.';
+      return;
+    }
+
+    this.saving = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const payload = {
+      email: this.userForm.email.trim(),
+      role: this.userForm.role || 'estudante',
+      email_verified: this.userForm.email_verified,
+      is_active: this.userForm.is_active,
+      display_name: this.userForm.display_name.trim(),
+      full_name: this.userForm.full_name.trim() || null,
+      institution: this.userForm.institution.trim() || null,
+      province: this.userForm.province.trim() || null,
+      avatar_url: this.userForm.avatar_url.trim() || null,
+      bio: this.userForm.bio.trim() || null,
+      website_url: this.userForm.website_url.trim() || null,
+      research_areas: this.parseResearchAreas(this.userForm.research_areas_input),
+    };
+
+    const result = await firstValueFrom(this.adminApi.updateUser(this.editingUser.id, payload));
+
+    if (!result) {
+      this.errorMessage = 'Não foi possível guardar as alterações.';
+      this.saving = false;
+      return;
+    }
+
+    if (!result.ok || !result.data) {
+      this.errorMessage = result.message || 'Não foi possível guardar as alterações.';
+      this.saving = false;
+      return;
+    }
+
+    this.successMessage = result.message || 'Utilizador actualizado com sucesso.';
+    this.showUserModal = false;
+    await this.loadUsers();
+    this.saving = false;
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 1;
+  }
+
+  goToPage(page: number): void {
+    this.currentPage = Math.max(1, Math.min(page, this.totalPages));
+  }
+
+  previousPage(): void {
+    this.goToPage(this.currentPage - 1);
+  }
+
+  nextPage(): void {
+    this.goToPage(this.currentPage + 1);
+  }
+
+  resetPagination(): void {
+    this.currentPage = 1;
+  }
+
+  async blockUser(id: string): Promise<void> {
+    await this.updateUserStatus(id, { is_active: false });
+  }
+
+  async activateUser(id: string): Promise<void> {
+    await this.updateUserStatus(id, { is_active: true });
+  }
+
+  async approveUser(id: string): Promise<void> {
+    await this.updateUserStatus(id, { email_verified: true });
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    if (!confirm('Tem a certeza que deseja eliminar este utilizador?')) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.adminApi.deleteUser(id));
+
+    if (!result) {
+      this.errorMessage = 'Não foi possível eliminar o utilizador.';
+      this.loading = false;
+      return;
+    }
+
+    if (!result.ok) {
+      this.errorMessage = result.message || 'Não foi possível eliminar o utilizador.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = 'Utilizador eliminado com sucesso.';
+    await this.loadUsers();
+  }
+
+  getRoleIcon(role: string): string {
+    switch (role) {
+      case 'admin':
+        return '👑';
+      case 'professor':
+        return '📚';
+      case 'investigador':
+        return '🔬';
+      case 'estudante':
+      default:
+        return '🎓';
+    }
+  }
+
+  getRoleLabel(role: string): string {
+    switch (role) {
+      case 'admin':
+        return 'Administrador';
+      case 'professor':
+        return 'Professor';
+      case 'investigador':
+        return 'Investigador';
+      case 'estudante':
+      default:
+        return 'Estudante';
+    }
+  }
+
+  getStatusLabel(isActive: boolean, emailVerified: boolean): string {
+    if (!isActive && !emailVerified) {
+      return 'Pendente';
+    }
+
+    if (!isActive) {
+      return 'Bloqueado';
+    }
+
+    return emailVerified ? 'Ativo' : 'Pendente';
+  }
+
+  getStatusClass(user: AdminUserView): string {
+    const status = this.getUserStatus(user);
+    return status === 'active' ? 'status-active' : status === 'blocked' ? 'status-blocked' : 'status-pending';
+  }
+
   getInitials(name: string): string {
-    if (!name) return '?';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-  }
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return 'U';
+    }
 
-  getRandomColor(): string {
-    const colors = ['#6b0119', '#1d4ed8', '#0891b2', '#7c3aed', '#15803d', '#b45309', '#dc2626'];
-    return colors[Math.floor(Math.random() * colors.length)];
+    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() || '').join('').slice(0, 2);
   }
-
-  // ============================================
-  // MÉTODOS DE AVATAR
-  // ============================================
 
   onAvatarSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
-    if (!file) return;
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('Tipo de arquivo não permitido. Use JPG, PNG ou WebP.');
+    if (!file) {
       return;
     }
-
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      alert('Arquivo muito grande. Máximo 5MB.');
-      return;
-    }
-
-    this.avatarFile = file;
 
     const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.avatarPreview = e.target.result;
-      this.userForm.avatar_url = this.avatarPreview;
+    reader.onload = () => {
+      this.userForm.avatar_url = String(reader.result || '');
     };
     reader.readAsDataURL(file);
   }
 
   removeAvatar(): void {
-    this.avatarFile = null;
-    this.avatarPreview = null;
-    this.userForm.avatar_url = null;
-    
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    if (input) input.value = '';
+    this.userForm.avatar_url = '';
   }
 
-  // ============================================
-  // MÉTODOS DO MODAL
-  // ============================================
+  exportCSV(): void {
+    const header = ['Nome', 'Email', 'Função', 'Instituição', 'Estado', 'Criado em'];
+    const rows = this.filteredUsers.map((user) => [
+      user.display_name || user.full_name || '',
+      user.email,
+      this.getRoleLabel(user.role),
+      user.institution || '',
+      this.getStatusLabel(user.is_active, user.email_verified),
+      user.created_at,
+    ]);
 
-  openAddUserModal(): void {
-    this.editingUser = null;
-    this.avatarFile = null;
-    this.avatarPreview = null;
-    this.userForm = {
-      id: '',
+    const csv = [header, ...rows]
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'utilizadores.csv';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private async updateUserStatus(id: string, changes: Partial<Pick<UserFormState, 'email_verified' | 'is_active'>>): Promise<void> {
+    const current = this.users.find((user) => user.id === id);
+    if (!current) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.adminApi.updateUser(id, {
+      email: current.email,
+      role: current.role,
+      email_verified: changes.email_verified ?? current.email_verified,
+      is_active: changes.is_active ?? current.is_active,
+      display_name: current.display_name || current.full_name || current.email,
+      full_name: current.full_name,
+      institution: current.institution,
+      province: current.province,
+      avatar_url: current.avatar_url,
+      bio: current.bio,
+      website_url: current.website_url,
+      research_areas: current.research_areas ?? [],
+    }));
+
+    if (!result) {
+      this.errorMessage = 'Não foi possível actualizar o utilizador.';
+      this.loading = false;
+      return;
+    }
+
+    if (!result.ok) {
+      this.errorMessage = result.message || 'Não foi possível actualizar o utilizador.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = result.message || 'Utilizador actualizado com sucesso.';
+    await this.loadUsers();
+  }
+
+  private getUserStatus(user: AdminUserView): 'active' | 'pending' | 'blocked' | 'inactive' {
+    if (user.is_active && user.email_verified) {
+      return 'active';
+    }
+
+    if (!user.is_active && !user.email_verified) {
+      return 'pending';
+    }
+
+    if (!user.is_active) {
+      return 'blocked';
+    }
+
+    return 'inactive';
+  }
+
+  private parseResearchAreas(value: string): string[] {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  private createEmptyForm(): UserFormState {
+    return {
       email: '',
+      role: 'estudante',
       email_verified: false,
       is_active: true,
-      role: 'estudante',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      last_login_at: null,
       display_name: '',
-      full_name: null,
-      institution: null,
-      province: null,
-      avatar_url: null,
-      bio: null,
-      research_areas: null,
+      full_name: '',
+      institution: '',
+      province: '',
+      avatar_url: '',
+      bio: '',
+      website_url: '',
       research_areas_input: '',
-      avatarColor: this.getRandomColor(),
-      avatarInitials: ''
+      avatarColor: '#8b1e2d',
     };
-    this.showUserModal = true;
   }
 
-  openEditUserModal(user: User): void {
-    this.editingUser = { ...user };
-    this.avatarFile = null;
-    this.avatarPreview = null;
-    this.userForm = {
+  private toViewUser(user: AdminUser): AdminUserView {
+    const displayName = user.display_name || user.full_name || user.email;
+    const avatarColor = this.pickAvatarColor(displayName);
+
+    return {
       ...user,
-      research_areas_input: user.research_areas ? user.research_areas.join(', ') : ''
+      display_name: displayName,
+      avatarInitials: this.getInitials(displayName),
+      avatarColor,
     };
-    this.showUserModal = true;
   }
 
-  closeUserModal(): void {
-    this.showUserModal = false;
-    this.editingUser = null;
-    this.avatarFile = null;
-    this.avatarPreview = null;
+  private pickAvatarColor(seed: string): string {
+    const colors = ['#8B1E2D', '#1D4ED8', '#0F766E', '#7C3AED', '#B45309'];
+    const index = Math.abs(this.hashCode(seed)) % colors.length;
+    return colors[index] ?? colors[0];
   }
 
-  // ============================================
-  // MÉTODOS CRUD
-  // ============================================
-
-  saveUser(): void {
-    if (!this.userForm.display_name?.trim()) {
-      alert('Por favor, insira o nome de exibição do utilizador');
-      return;
+  private hashCode(value: string): number {
+    let hash = 0;
+    for (let index = 0; index < value.length; index += 1) {
+      hash = ((hash << 5) - hash) + value.charCodeAt(index);
+      hash |= 0;
     }
-    
-    if (!this.userForm.email?.trim()) {
-      alert('Por favor, insira o email do utilizador');
-      return;
-    }
-    
-    if (!this.userForm.avatarInitials) {
-      this.userForm.avatarInitials = this.getInitials(this.userForm.display_name);
-    }
-    
-    if (this.userForm.research_areas_input?.trim()) {
-      this.userForm.research_areas = this.userForm.research_areas_input
-        .split(',')
-        .map(area => area.trim())
-        .filter(area => area.length > 0);
-    } else {
-      this.userForm.research_areas = null;
-    }
-    
-    if (this.avatarFile) {
-      // Em produção: upload para o servidor
-      this.userForm.avatar_url = this.avatarPreview;
-    }
-    
-    if (this.editingUser) {
-      const index = this.users.findIndex(u => u.id === this.editingUser!.id);
-      if (index !== -1) {
-        this.users[index] = { ...this.userForm, id: this.editingUser.id };
-      }
-    } else {
-      this.userForm.id = Date.now().toString();
-      this.users.push({ ...this.userForm });
-    }
-    
-    this.closeUserModal();
-  }
-
-  deleteUser(id: string): void {
-    if (confirm('Tem certeza que deseja eliminar este utilizador?')) {
-      this.users = this.users.filter(u => u.id !== id);
-    }
-  }
-
-  blockUser(id: string): void {
-    const user = this.users.find(u => u.id === id);
-    if (user) {
-      user.is_active = false;
-    }
-  }
-
-  activateUser(id: string): void {
-    const user = this.users.find(u => u.id === id);
-    if (user) {
-      user.is_active = true;
-      user.email_verified = true;
-    }
-  }
-
-  approveUser(id: string): void {
-    const user = this.users.find(u => u.id === id);
-    if (user && !user.email_verified) {
-      user.email_verified = true;
-      user.is_active = true;
-    }
+    return hash;
   }
 }

@@ -22,6 +22,7 @@ import { adminGuard } from './guards/admin.guard';
 import { DashboardAdminComponent } from './pages/admin/dashboard-admin/dashboard-admin';
 import { OverviewPageComponent } from './pages/admin/dashboard-admin/pages/overview-page/overview-page';
 import { RequestsPageComponent } from './pages/admin/dashboard-admin/pages/request-page/request-page';
+import { AccessGrantsPageComponent } from './pages/admin/dashboard-admin/pages/access-grants-page/access-grants-page';
 import { UsersPageComponent } from './pages/admin/dashboard-admin/pages/users-page/users-page';
 import { CategoriesPageComponent } from './pages/admin/dashboard-admin/pages/categories-page/categories-page';
 import { ContentsPageComponent } from './pages/admin/dashboard-admin/pages/contents-page/contents-page';
@@ -63,6 +64,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'visao-geral', pathMatch: 'full' },
       { path: 'visao-geral', component: OverviewPageComponent },
       { path: 'pedidos', component: RequestsPageComponent },
+      { path: 'concessoes', component: AccessGrantsPageComponent },
       { path: 'utilizadores', component: UsersPageComponent },
       { path: 'categorias', component: CategoriesPageComponent },
       { path: 'conteudos', component: ContentsPageComponent },

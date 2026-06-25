@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AccessController;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\DocumentController;
@@ -28,6 +29,13 @@ Route::prefix('auth')->group(function (): void {
 
 // ─── Authenticated routes (any logged-in user) ─────────────────────────────
 Route::middleware(AuthenticateApiSession::class)->group(function (): void {
+    Route::middleware('role:admin')->prefix('admin')->group(function (): void {
+        Route::get('/dashboard/summary', [AdminController::class, 'summary']);
+        Route::get('/users', [AdminController::class, 'users']);
+        Route::patch('/users/{id}', [AdminController::class, 'updateUser']);
+        Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+    });
+
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/sessions', [AuthController::class, 'sessions']);
     Route::delete('/auth/sessions/others', [AuthController::class, 'destroyOtherSessions']);

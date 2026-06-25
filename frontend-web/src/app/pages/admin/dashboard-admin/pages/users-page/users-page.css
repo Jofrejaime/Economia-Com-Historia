@@ -378,6 +378,21 @@ p, span, div, button, input, textarea, select {
   white-space: nowrap;
 }
 
+.status-active {
+  background: rgba(15, 118, 110, 0.12);
+  color: #0F766E;
+}
+
+.status-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #B45309;
+}
+
+.status-blocked {
+  background: rgba(220, 38, 38, 0.12);
+  color: #DC2626;
+}
+
 /* ============================================
    ACTION BUTTONS - DESIGN SYSTEM
    ============================================ */
@@ -648,6 +663,14 @@ textarea.form-input {
   box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
 }
 
+.btn-upload:disabled,
+.btn-remove-avatar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-remove-avatar {
   display: inline-flex;
   align-items: center;
@@ -793,6 +816,61 @@ textarea.form-input {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
   background: #6B0119;
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 16px 0 28px;
+}
+
+.pagination-info {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  background: #FFFFFF;
+  padding: 8px 14px;
+  min-height: 36px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #1F2937;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-current {
+  font-size: 13px;
+  color: #1F2937;
 }
 
 /* ============================================

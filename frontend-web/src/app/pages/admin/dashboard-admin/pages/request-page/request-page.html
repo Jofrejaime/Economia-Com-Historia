@@ -1,5 +1,17 @@
 <div class="requests-container">
   
+  <div *ngIf="loading" class="empty-state" style="margin-bottom: 20px; padding: 24px;">
+    <p class="empty-subtitle">A carregar pedidos de acesso...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="empty-state" style="margin-bottom: 20px; padding: 24px; border-left: 4px solid #DC2626;">
+    <p class="empty-subtitle" style="color: #DC2626;">{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="successMessage" class="empty-state" style="margin-bottom: 20px; padding: 24px; border-left: 4px solid #0F766E;">
+    <p class="empty-subtitle" style="color: #0F766E;">{{ successMessage }}</p>
+  </div>
+  
   <!-- Page Header -->
   <div class="page-header">
     <div>

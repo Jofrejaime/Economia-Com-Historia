@@ -55,6 +55,20 @@
           <div class="nav-badge">{{ pendingCount }}</div>
         </div>
 
+        <!-- Concessões de Acesso -->
+        <div class="nav-item" [class.active]="isActive('/admin/dashboard/concessoes')" (click)="navigateTo('/admin/dashboard/concessoes')">
+          <div class="nav-link">
+            <div class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 12a4 4 0 1 0-4-4"/>
+                <path d="M4 12a8 8 0 1 0 8-8"/>
+                <path d="M12 12l6 6"/>
+              </svg>
+            </div>
+            <span class="nav-text">Concessões</span>
+          </div>
+        </div>
+
         <!-- Utilizadores -->
         <div class="nav-item" [class.active]="isActive('/admin/dashboard/utilizadores')" (click)="navigateTo('/admin/dashboard/utilizadores')">
           <div class="nav-link">

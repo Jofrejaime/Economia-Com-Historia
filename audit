@@ -1,0 +1,390 @@
+# ADMIN PANEL AUDIT
+
+Auditei o painel administrativo do `frontend-web` Angular e cruzei com o backend Laravel em `backend/routes/api.php` e controllers API. O painel admin real está em [frontend-web/src/app/app.routes.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\app.routes.ts#L58), com a shell em [dashboard-admin.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\pages\admin\dashboard-admin\dashboard-admin.ts#L7) e a camada HTTP em [admin-api.service.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\services\admin-api.service.ts#L100).
+
+## Cobertura atual
+
+- Menus do painel: 12
+- Telas com API real: 4
+- Telas parcialmente integradas: 3
+- Telas mock/pure UI: 5
+- Cobertura direta real do painel: cerca de 33%
+
+O painel usa Angular com componentes e serviços. Não encontrei stores nem hooks no admin atual, nem uma arquitetura de estado centralizada.
+
+## Mapeamento do painel
+
+| Menu | Página | Status |
+|---|---|---|
+| Visão Geral | OverviewPage | ✅ existente e integrado |
+| Pedidos de Acesso | RequestsPage | ⚠️ parcial |
+| Utilizadores | UsersPage | ⚠️ parcial |
+| Categorias | CategoriesPage | ❌ placeholder |
+| Conteúdos | ContentsPage | ❌ placeholder |
+| Comunidade | CommunityPage | ❌ placeholder |
+| Configurações | SettingsPage | ❌ placeholder |
+| Denúncias | ReportsPage | ⚠️ parcial |
+| Questionários | QuizzesManagerPage | ❌ placeholder |
+| Níveis | LevelsPage | ❌ placeholder |
+| Badges | BadgesPage | ❌ placeholder |
+| Notificações | NotificationsPage | ❌ placeholder |
+
+O layout principal e o menu estão em [dashboard-admin.html](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\pages\admin\dashboard-admin\dashboard-admin.html#L1). Os contadores da sidebar (`pendingCount`, `pendingReportsCount`, `unreadNotificationsCount`) são estáticos em [dashboard-admin.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\pages\admin\dashboard-admin\dashboard-admin.ts#L16), portanto não são dados reais.
+
+## Inventário das telas
+
+| Tela | Finalidade | Endpoint consumido | Status |
+|---|---|---|---|
+| Dashboard / Visão Geral | KPIs e atividade recente | `GET /api/admin/dashboard/summary` | ✅ integrado |
+| Pedidos de Acesso | Listar, aprovar e rejeitar pedidos | `GET /api/access-requests?scope=all`, `PATCH /api/access-requests/{id}` | ⚠️ parcial |
+| Utilizadores | Listar, editar, ativar, bloquear e eliminar | `GET /api/admin/users`, `PATCH /api/admin/users/{id}`, `DELETE /api/admin/users/{id}` | ⚠️ parcial |
+| Categorias | CRUD de categorias | nenhum | ❌ sem backend |
+| Conteúdos | CRUD de documentos/conteúdos | nenhum | ❌ sem backend |
+| Comunidade | CRUD/muse de tópicos e categorias | nenhum | ❌ sem backend |
+| Configurações | Preferências gerais do painel | nenhum | ❌ sem backend |
+| Denúncias | Revisão e moderação de reports | `GET /api/reports/pending`, `PATCH /api/reports/{id}`, `POST /api/reports/{id}/action` | ⚠️ parcial |
+| Questionários | CRUD de quizzes/perguntas | nenhum | ❌ sem backend |
+| Níveis | Gestão de níveis e recompensas | nenhum | ❌ sem backend |
+| Badges | Gestão de badges | nenhum | ❌ sem backend |
+| Notificações | Envio e gestão de notificações admin | nenhum | ❌ sem backend |
+
+Referências:
+- [overview-page.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\pages\admin\dashboard-admin\pages\overview-page\overview-page.ts#L5)
+- [request-page.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\pages\admin\dashboard-admin\pages\request-page\request-page.ts#L5)
+- [users-page.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\pages\admin\dashboard-admin\pages\users-page\users-page.ts#L4)
+- [reports-page.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\pages\admin\dashboard-admin\pages\reports-page\reports-page.ts#L5)
+
+## Componentes, formulários e serviços
+
+### Componentes e layouts
+- `DashboardAdminComponent` como shell do painel
+- `OverviewPageComponent` com KPI cards e feed de atividade
+- `RequestsPageComponent` com lista, histórico e modais de revisão
+- `UsersPageComponent` com tabela, filtros e modal de edição
+- `ReportsPageComponent` com fila de denúncias e modal
+- Páginas placeholder com tabelas/formulários em memória: categorias, conteúdos, comunidade, quizzes, níveis, badges, notificações, configurações
+
+### Tabelas
+- Utilizadores
+- Pedidos de acesso
+- Histórico de pedidos
+- Denúncias
+- Tabelas locais em placeholders para categorias/conteúdos/comunidade/quizzes/níveis/badges/notificações
+
+### Formulários
+- Edição de utilizador
+- Revisão de pedido de acesso
+- Revisão/moderação de denúncia
+- Formulários locais em placeholders
+
+### Serviços
+- `AuthService` para sessão e logout
+- `AdminApiService` para chamadas admin
+- `ProfileService` existe no app, mas não faz parte do fluxo admin
+
+### Hooks e stores
+- Não existem hooks nem stores no admin Angular atual
+- O estado é local por componente
+
+## Inventário dos endpoints
+
+### Auth
+| Módulo | Endpoint |
+|---|---|
+| Auth | `POST /api/auth/register` |
+| Auth | `POST /api/auth/login` |
+| Auth | `POST /api/auth/refresh` |
+| Auth | `POST /api/auth/forgot-password` |
+| Auth | `POST /api/auth/reset-password` |
+| Auth | `POST /api/auth/verify-email` |
+| Auth | `POST /api/auth/resend-verification` |
+| Auth | `POST /api/auth/logout` |
+| Auth | `GET /api/auth/sessions` |
+| Auth | `DELETE /api/auth/sessions/others` |
+| Auth | `DELETE /api/auth/sessions/{id}` |
+
+### Profile
+| Módulo | Endpoint |
+|---|---|
+| Profile | `GET /api/profile` |
+| Profile | `PUT /api/profile` |
+| Profile | `POST /api/profile/avatar` |
+| Profile | `PUT /api/profile/password` |
+
+### Access
+| Módulo | Endpoint |
+|---|---|
+| Access | `GET /api/access-levels` |
+| Access | `GET /api/access-requests` |
+| Access | `POST /api/access-requests` |
+| Access | `GET /api/access-requests/{id}` |
+| Access | `PATCH /api/access-requests/{id}` |
+| Access | `GET /api/access-grants` |
+| Access | `POST /api/access-grants/{id}/revoke` |
+
+### Documents
+| Módulo | Endpoint |
+|---|---|
+| Documents | `GET /api/document-categories` |
+| Documents | `GET /api/documents` |
+| Documents | `GET /api/documents/search` |
+| Documents | `GET /api/documents/{id}` |
+| Documents | `POST /api/documents` |
+| Documents | `PATCH /api/documents/{id}` |
+| Documents | `DELETE /api/documents/{id}` |
+| Documents | `POST /api/documents/{id}/like` |
+| Documents | `DELETE /api/documents/{id}/like` |
+| Documents | `POST /api/documents/{id}/download` |
+| Documents | `POST /api/documents/{id}/favorite` |
+| Documents | `DELETE /api/documents/{id}/favorite` |
+| Documents | `POST /api/documents/{id}/citations` |
+| Documents | `GET /api/me/favorites` |
+
+### Quizzes
+| Módulo | Endpoint |
+|---|---|
+| Quizzes | `GET /api/quizzes` |
+| Quizzes | `GET /api/quizzes/{id}` |
+| Quizzes | `GET /api/quizzes/{id}/questions` |
+| Quizzes | `POST /api/quizzes` |
+| Quizzes | `PATCH /api/quizzes/{id}` |
+| Quizzes | `DELETE /api/quizzes/{id}` |
+| Quizzes | `POST /api/quizzes/{id}/attempts` |
+| Quizzes | `GET /api/quiz-attempts/{id}` |
+| Quizzes | `POST /api/quiz-attempts/{id}/answers` |
+| Quizzes | `POST /api/quiz-attempts/{id}/complete` |
+| Quizzes | `GET /api/me/quiz-attempts` |
+
+### Community
+| Módulo | Endpoint |
+|---|---|
+| Community | `GET /api/community/categories` |
+| Community | `POST /api/community/categories` |
+| Community | `GET /api/topics` |
+| Community | `POST /api/topics` |
+| Community | `GET /api/topics/{id}` |
+| Community | `PATCH /api/topics/{id}` |
+| Community | `DELETE /api/topics/{id}` |
+| Community | `POST /api/topics/{id}/like` |
+| Community | `DELETE /api/topics/{id}/like` |
+| Community | `POST /api/topics/{id}/follow` |
+| Community | `DELETE /api/topics/{id}/follow` |
+| Community | `GET /api/topics/{id}/replies` |
+| Community | `POST /api/topics/{id}/replies` |
+| Community | `PATCH /api/replies/{id}` |
+| Community | `DELETE /api/replies/{id}` |
+| Community | `POST /api/replies/{id}/like` |
+| Community | `DELETE /api/replies/{id}/like` |
+| Community | `POST /api/replies/{id}/accept` |
+
+### Notifications
+| Módulo | Endpoint |
+|---|---|
+| Notifications | `GET /api/notifications` |
+| Notifications | `PATCH /api/notifications/{id}/read` |
+| Notifications | `PATCH /api/notifications/read-all` |
+| Notifications | `DELETE /api/notifications/{id}` |
+| Notifications | `POST /api/notifications/send` |
+| Notifications | `POST /api/notifications/invite` |
+
+### Reports
+| Módulo | Endpoint |
+|---|---|
+| Reports | `POST /api/reports` |
+| Reports | `GET /api/reports` |
+| Reports | `GET /api/reports/pending` |
+| Reports | `GET /api/reports/{id}` |
+| Reports | `PATCH /api/reports/{id}` |
+| Reports | `POST /api/reports/{id}/action` |
+
+### Leaderboard e gamification
+| Módulo | Endpoint |
+|---|---|
+| Leaderboard | `GET /api/leaderboard/national` |
+| Leaderboard | `GET /api/leaderboard/provincial` |
+| Leaderboard | `GET /api/leaderboard/snapshots` |
+| Leaderboard | `GET /api/stats/provinces` |
+| Gamification | `GET /api/me/point-transactions` |
+
+### Admin
+| Módulo | Endpoint |
+|---|---|
+| Admin | `GET /api/admin/dashboard/summary` |
+| Admin | `GET /api/admin/users` |
+| Admin | `PATCH /api/admin/users/{id}` |
+| Admin | `DELETE /api/admin/users/{id}` |
+
+Fontes principais do backend: [backend/routes/api.php](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\backend\routes\api.php#L32), [AdminController.php](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\backend\app\Http\Controllers\Api\AdminController.php#L15), [AccessController.php](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\backend\app\Http\Controllers\Api\AccessController.php#L88), [NotificationController.php](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\backend\app\Http\Controllers\Api\NotificationController.php#L38), [ReportController.php](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\backend\app\Http\Controllers\Api\ReportController.php#L62).
+
+## Matriz de cobertura
+
+| Módulo | Backend Existe | Tela Existe |
+|---|---|---|
+| Auth | ✅ | ⚠️ fora do admin, mas existe no app |
+| Profile | ✅ | ⚠️ fora do admin, mas existe no app |
+| Access Levels | ✅ | ❌ |
+| Access Requests | ✅ | ✅ |
+| Access Grants | ✅ | ❌ |
+| Documents | ✅ | ❌ |
+| Quizzes | ✅ | ❌ |
+| Community | ✅ | ❌ |
+| Notifications | ✅ | ❌ |
+| Reports | ✅ | ✅ |
+| Leaderboard | ✅ | ❌ |
+| Gamification | ✅ | ❌ |
+| Admin Summary | ✅ | ✅ |
+
+## Gaps identificados
+
+### Backend sem telas
+- Access Levels
+- Access Grants
+- Documents admin
+- Quiz admin
+- Community admin
+- Notifications admin
+- Leaderboard admin
+- Gamification admin
+- Role/permission dashboard dedicado
+
+### Telas sem backend
+- Categories
+- Contents
+- Community
+- Settings
+- QuizzesManager
+- Levels
+- Badges
+- Notifications
+
+### CRUDs incompletos
+- Users: falta criação dedicada de utilizador via painel
+- Reports: falta visão completa de todos os reports e detalhe consistente
+- Access: falta gestão de grants e revogação no painel
+- Community: falta CRUD real de tópicos, respostas e categorias
+- Documents: falta CRUD real
+- Quizzes: falta CRUD real
+- Notifications: falta envio/gestão real
+
+### Dashboards sem dados reais
+- Sidebar badges: `pendingCount`, `pendingReportsCount`, `unreadNotificationsCount`
+- CategoriesPage
+- ContentsPage
+- CommunityPage
+- QuizzesManagerPage
+- LevelsPage
+- BadgesPage
+- NotificationsPage
+- SettingsPage
+
+### Menus que faltam
+- Access Grants
+- Roles / Permissions
+- Leaderboard / Ranking
+- Moderação de documentos
+- Moderação de comunidade
+- Gestão de gamificação persistida
+
+## Gestão de Roles
+
+**Resposta curta: NÃO como gestão dedicada.**
+
+Existe edição de `role` dentro de Users, mas não existe uma área própria para:
+- listar roles
+- promover utilizador
+- revogar role
+- visualizar permissões
+
+O que já existe no backend:
+- `GET /api/admin/users`
+- `PATCH /api/admin/users/{id}`
+- `GET /api/me`
+- `GET /api/access-levels`
+- `GET /api/access-grants`
+- `POST /api/access-grants/{id}/revoke`
+
+O que falta no painel:
+- tela de roles
+- tela de permissões
+- tela de grants
+- tela de detalhe de privilégios por utilizador
+
+Referência: [users-page.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\pages\admin\dashboard-admin\pages\users-page\users-page.ts#L172), [AccessController.php](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\backend\app\Http\Controllers\Api\AccessController.php#L420).
+
+## Community Admin
+
+Hoje **não existe gestão real de community admin** no painel.
+
+Existe apenas uma página placeholder em [community-page.ts](C:\Users\BeeFlex Studio\Documents\ISPTEC\3 º ano\2º Semestre\ESII\Economia-Com-Historia\frontend-web\src\app\pages\admin\dashboard-admin\pages\community-page\community-page.ts#L44), com dados em memória.
+
+Telas necessárias:
+- gestão de tópicos
+- gestão de respostas
+- gestão de categorias
+- fila de moderação/reports da comunidade
+- detalhe de tópico com ações admin
+
+## Reports Admin
+
+Existe uma tela de denúncias, mas ela é só **parcialmente integrada**.
+
+O que existe:
+- consumir pendentes
+- atualizar estado
+- executar ação moderadora
+
+O que falta:
+- lista completa de reports
+- detalhe completo de report
+- estados coerentes entre UI e backend
+- histórico de ações de moderação
+
+## Document Comments
+
+**DOCUMENT COMMENTS = NÃO EXISTE**
+
+Não encontrei rotas nem controllers API para:
+- comentários em documentos
+- respostas a comentários em documentos
+
+Impacto funcional:
+- o painel não tem nada para moderar ou gerir nessa área
+- documentos não possuem camada social/comentário no contrato atual
+- qualquer workflow de discussão sobre documentos ainda não existe no backend exposto
+
+## Ranking de Prioridades
+
+### P0
+- Fechar Users com fluxo completo de gestão
+- Criar gestão de Access Grants
+- Normalizar Reports para fluxo completo
+- Integrar Documents admin
+- Integrar Community admin
+
+### P1
+- Integrar Quizzes admin
+- Integrar Notifications admin
+- Integrar Access Levels
+- Integrar Leaderboard e Gamification no painel
+- Criar gestão dedicada de roles/permissões
+
+### P2
+- Integrar Badges
+- Integrar Levels persistidos
+- Integrar Settings persistido
+- Refinar dashboards analíticos e métricas avançadas
+
+## Próximo passo recomendado
+
+A ordem mais segura é:
+1. Fechar `Users`
+2. Adicionar `Access Grants`
+3. Corrigir e completar `Reports`
+4. Integrar `Documents`
+5. Integrar `Community`
+6. Integrar `Quizzes`
+7. Integrar `Notifications`
+8. Fechar `Roles / Permissions`
+9. Só depois avançar para `Levels`, `Badges` e `Settings`
+
+Se quiser, eu posso transformar este audit numa versão executiva mais curta, pronta para colar no relatório da sprint.

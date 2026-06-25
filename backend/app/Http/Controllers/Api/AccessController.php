@@ -100,11 +100,14 @@ class AccessController extends Controller
 
         $query = DB::table('user_access_requests as uar')
             ->join('access_levels as al', 'uar.access_level_id', '=', 'al.id')
+            ->leftJoin('users as u', 'uar.user_id', '=', 'u.id')
             ->leftJoin('user_profiles as up', 'uar.user_id', '=', 'up.user_id')
             ->select(
                 'uar.*',
                 'al.name as access_level_name',
                 'up.display_name as user_display_name',
+                'up.institution as user_institution',
+                'u.email as user_email',
             );
 
         if ($scope === 'mine') {

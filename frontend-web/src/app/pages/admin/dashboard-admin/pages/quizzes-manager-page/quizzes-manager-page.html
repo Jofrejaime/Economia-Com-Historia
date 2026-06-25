@@ -99,7 +99,7 @@
       <div class="quiz-stats">
         <div class="stat-item">
           <span class="stat-icon-small">📊</span>
-          <span>{{ quiz.questions?.length || 0 }} perguntas</span>
+          <span>{{ quiz.questions.length || 0 }} perguntas</span>
         </div>
         <div class="stat-item">
           <span class="stat-icon-small">⭐</span>
@@ -144,7 +144,7 @@
           📋 Informações Gerais
         </button>
         <button class="tab-btn" [class.active]="activeTab === 'questions'" (click)="activeTab = 'questions'">
-          📝 Perguntas ({{ newQuiz.questions?.length || 0 }})
+          📝 Perguntas ({{ newQuiz.questions.length || 0 }})
         </button>
       </div>
       
@@ -235,7 +235,7 @@
             <div class="info-icon">ℹ️</div>
             <div class="info-text">
               <strong>Resumo do Questionário</strong><br>
-              <span>{{ newQuiz.questions?.length || 0 }} perguntas • {{ newQuiz.base_points || 0 }} pontos base</span>
+          <span>{{ newQuiz.questions.length || 0 }} perguntas • {{ newQuiz.base_points || 0 }} pontos base</span>
             </div>
           </div>
         </div>

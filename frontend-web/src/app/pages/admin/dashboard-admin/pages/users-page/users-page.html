@@ -1,16 +1,28 @@
 <div class="users-container">
   
+  <div *ngIf="loading" class="empty-row" style="margin-bottom: 20px;">
+    A carregar utilizadores...
+  </div>
+
+  <div *ngIf="errorMessage" class="empty-row" style="margin-bottom: 20px; color: #DC2626;">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="successMessage" class="empty-row" style="margin-bottom: 20px; color: #0F766E;">
+    {{ successMessage }}
+  </div>
+  
   <!-- Page Header -->
   <div class="page-header">
     <div>
       <h1 class="page-title">Utilizadores</h1>
       <p class="page-subtitle">Gestão de contas e permissões de acesso ao arquivo.</p>
     </div>
-    <button class="btn-primary" (click)="openAddUserModal()">
+    <button class="btn-primary" (click)="refreshUsers()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      Novo Utilizador
+      Recarregar Lista
     </button>
   </div>
 
@@ -58,19 +70,19 @@
   <div class="filters-bar">
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar por nome, email ou instituição..." class="search-input">
+      <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="resetPagination()" placeholder="Pesquisar por nome, email ou instituição..." class="search-input">
     </div>
     <div class="filter-select">
-      <select [(ngModel)]="filterRole" class="select">
+      <select [(ngModel)]="filterRole" (ngModelChange)="resetPagination()" class="select">
         <option value="todos">Todas as funções</option>
-        <option value="administrador">👑 Administrador</option>
-        <option value="curador">📚 Curador</option>
+        <option value="admin">👑 Administrador</option>
+        <option value="professor">📚 Professor</option>
         <option value="investigador">🔬 Investigador</option>
         <option value="estudante">🎓 Estudante</option>
       </select>
     </div>
     <div class="filter-select">
-      <select [(ngModel)]="filterStatus" class="select">
+      <select [(ngModel)]="filterStatus" (ngModelChange)="resetPagination()" class="select">
         <option value="todos">Todos os status</option>
         <option value="active">✓ Ativo</option>
         <option value="pending">⏳ Pendente</option>
@@ -97,7 +109,7 @@
         <tr *ngIf="filteredUsers.length === 0">
           <td colspan="7" class="empty-row">Nenhum utilizador encontrado</td>
         </tr>
-        <tr *ngFor="let user of filteredUsers">
+        <tr *ngFor="let user of pagedUsers">
           <td class="user-cell">
             <div class="user-avatar" [style.background]="user.avatarColor || '#8b1e2d'">
               {{ user.avatarInitials || getInitials(user.display_name || '?') }}
@@ -114,13 +126,14 @@
           </td>
           <td class="user-institution">{{ user.institution || 'N/A' }}</td>
           <td>
-            <span class="status-badge">
+            <span class="status-badge" [ngClass]="getStatusClass(user)">
               {{ getStatusLabel(user.is_active, user.email_verified) }}
             </span>
           </td>
           <td class="user-date">{{ user.created_at | date:'dd MMM yyyy' }}</td>
           <td class="user-date">{{ user.last_login_at ? (user.last_login_at | date:'dd MMM yyyy, HH:mm') : 'Nunca' }}</td>
           <td class="actions-cell">
+            <button class="action-btn" (click)="openViewUserModal(user)" title="Ver">👁️</button>
             <button class="action-btn" (click)="openEditUserModal(user)" title="Editar">✏️</button>
             <button *ngIf="user.is_active !== false" class="action-btn" (click)="blockUser(user.id)" title="Bloquear">🔒</button>
             <button *ngIf="user.is_active === false" class="action-btn" (click)="activateUser(user.id)" title="Ativar">✅</button>
@@ -132,11 +145,27 @@
     </table>
   </div>
 
+  <div class="pagination-bar" *ngIf="filteredUsers.length > 0">
+    <div class="pagination-info">
+      {{ pageStart }}-{{ pageEnd }} de {{ filteredUsers.length }} utilizadores
+    </div>
+    <div class="pagination-controls">
+      <div class="filter-select">
+        <select class="select" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+          <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }} por página</option>
+        </select>
+      </div>
+      <button class="pagination-btn" (click)="previousPage()" [disabled]="currentPage === 1">Anterior</button>
+      <span class="pagination-current">Página {{ currentPage }} de {{ totalPages }}</span>
+      <button class="pagination-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">Seguinte</button>
+    </div>
+  </div>
+
   <!-- Modal de Criar/Editar Utilizador -->
   <div class="modal-overlay" *ngIf="showUserModal" (click)="closeUserModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ editingUser ? 'Editar Utilizador' : 'Novo Utilizador' }}</h2>
+        <h2>{{ modalMode === 'view' ? 'Visualizar Utilizador' : 'Editar Utilizador' }}</h2>
         <button class="modal-close" (click)="closeUserModal()">✕</button>
       </div>
       
@@ -144,31 +173,31 @@
         <!-- display_name - CAMPO REAL -->
         <div class="form-group">
           <label>Nome de Exibição <span class="required">*</span></label>
-          <input type="text" [(ngModel)]="userForm.display_name" class="form-input" placeholder="Ex: Dr. Manuel Costa">
+          <input type="text" [(ngModel)]="userForm.display_name" [disabled]="modalMode === 'view'" class="form-input" placeholder="Ex: Dr. Manuel Costa">
         </div>
         
         <!-- full_name - CAMPO REAL -->
         <div class="form-group">
           <label>Nome Completo</label>
-          <input type="text" [(ngModel)]="userForm.full_name" class="form-input" placeholder="Ex: Manuel António Costa">
+          <input type="text" [(ngModel)]="userForm.full_name" [disabled]="modalMode === 'view'" class="form-input" placeholder="Ex: Manuel António Costa">
         </div>
         
         <!-- email - CAMPO REAL -->
         <div class="form-group">
           <label>Email <span class="required">*</span></label>
-          <input type="email" [(ngModel)]="userForm.email" class="form-input" placeholder="email@instituicao.ao">
+          <input type="email" [(ngModel)]="userForm.email" [disabled]="modalMode === 'view'" class="form-input" placeholder="email@instituicao.ao">
         </div>
         
         <!-- institution - CAMPO REAL -->
         <div class="form-group">
           <label>Instituição</label>
-          <input type="text" [(ngModel)]="userForm.institution" class="form-input" placeholder="Ex: Universidade Agostinho Neto">
+          <input type="text" [(ngModel)]="userForm.institution" [disabled]="modalMode === 'view'" class="form-input" placeholder="Ex: Universidade Agostinho Neto">
         </div>
         
         <!-- province - CAMPO REAL -->
         <div class="form-group">
           <label>Província</label>
-          <select [(ngModel)]="userForm.province" class="form-input">
+          <select [(ngModel)]="userForm.province" [disabled]="modalMode === 'view'" class="form-input">
             <option value="">Selecione uma província...</option>
             <option *ngFor="let p of provinces" [value]="p">{{ p }}</option>
           </select>
@@ -177,43 +206,42 @@
         <!-- role - CAMPO REAL -->
         <div class="form-group">
           <label>Função</label>
-          <select [(ngModel)]="userForm.role" class="form-input">
+          <select [(ngModel)]="userForm.role" [disabled]="modalMode === 'view'" class="form-input">
             <option value="estudante">🎓 Estudante</option>
             <option value="investigador">🔬 Investigador</option>
-            <option value="curador">📚 Curador</option>
-            <option value="administrador">👑 Administrador</option>
-            <option value="superadministrador">⭐ Super Administrador</option>
+            <option value="professor">📚 Professor</option>
+            <option value="admin">👑 Administrador</option>
           </select>
         </div>
         
         <!-- is_active - CAMPO REAL -->
         <div class="form-group">
           <label>Status</label>
-          <select [(ngModel)]="userForm.is_active" class="form-input">
-            <option [value]="true">✓ Ativo</option>
-            <option [value]="false">⏳ Inativo</option>
+          <select [(ngModel)]="userForm.is_active" [disabled]="modalMode === 'view'" class="form-input">
+            <option [ngValue]="true">✓ Ativo</option>
+            <option [ngValue]="false">⏳ Inativo</option>
           </select>
         </div>
         
         <!-- email_verified - CAMPO REAL -->
         <div class="form-group">
           <label>Email Verificado</label>
-          <select [(ngModel)]="userForm.email_verified" class="form-input">
-            <option [value]="true">✓ Verificado</option>
-            <option [value]="false">⏳ Não verificado</option>
+          <select [(ngModel)]="userForm.email_verified" [disabled]="modalMode === 'view'" class="form-input">
+            <option [ngValue]="true">✓ Verificado</option>
+            <option [ngValue]="false">⏳ Não verificado</option>
           </select>
         </div>
         
         <!-- bio - CAMPO REAL -->
         <div class="form-group">
           <label>Biografia</label>
-          <textarea [(ngModel)]="userForm.bio" rows="3" class="form-input" placeholder="Breve descrição académica..."></textarea>
+          <textarea [(ngModel)]="userForm.bio" rows="3" [disabled]="modalMode === 'view'" class="form-input" placeholder="Breve descrição académica..."></textarea>
         </div>
         
         <!-- research_areas - CAMPO REAL (JSON) -->
         <div class="form-group">
           <label>Áreas de Pesquisa</label>
-          <input type="text" [(ngModel)]="userForm.research_areas_input" class="form-input" placeholder="Ex: História Económica, Análise de Dados (separar por vírgula)">
+          <input type="text" [(ngModel)]="userForm.research_areas_input" [disabled]="modalMode === 'view'" class="form-input" placeholder="Ex: História Económica, Análise de Dados (separar por vírgula)">
         </div>
         
         <!-- ============================================ -->
@@ -228,10 +256,10 @@
             </div>
             <div class="upload-actions">
               <input #avatarInput type="file" accept="image/*" style="display: none" (change)="onAvatarSelected($event)">
-              <button type="button" class="btn-upload" (click)="avatarInput.click()">
+              <button type="button" class="btn-upload" [disabled]="modalMode === 'view'" (click)="avatarInput.click()">
                 📷 {{ userForm.avatar_url ? 'Alterar' : 'Carregar' }} Imagem
               </button>
-              <button *ngIf="userForm.avatar_url" type="button" class="btn-remove-avatar" (click)="removeAvatar()">
+              <button *ngIf="userForm.avatar_url" type="button" class="btn-remove-avatar" [disabled]="modalMode === 'view'" (click)="removeAvatar()">
                 ✕ Remover
               </button>
               <p class="form-hint">JPG, PNG ou WebP (máx 5MB)</p>
@@ -245,7 +273,7 @@
 <div class="form-group">
   <label>Cor do Avatar</label>
   <div class="color-picker-wrapper">
-    <input type="color" [(ngModel)]="userForm.avatarColor" class="color-input">
+    <input type="color" [(ngModel)]="userForm.avatarColor" [disabled]="modalMode === 'view'" class="color-input">
     <div class="color-preview-square" [style.background]="userForm.avatarColor || '#8b1e2d'"></div>
     <span class="color-label">Cor de fundo quando não há imagem</span>
   </div>
@@ -261,8 +289,12 @@
       </div>
       
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeUserModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveUser()">💾 Guardar Utilizador</button>
+        <button class="btn-cancel" *ngIf="modalMode === 'view'" (click)="closeUserModal()">Fechar</button>
+        <button class="btn-cancel" *ngIf="modalMode === 'edit'" (click)="closeUserModal()">Cancelar</button>
+        <button class="btn-save" *ngIf="modalMode === 'view'" (click)="enableEditMode()">Editar</button>
+        <button class="btn-save" *ngIf="modalMode === 'edit'" (click)="saveUser()" [disabled]="saving">
+          {{ saving ? 'A guardar...' : '💾 Guardar Utilizador' }}
+        </button>
       </div>
     </div>
   </div>
