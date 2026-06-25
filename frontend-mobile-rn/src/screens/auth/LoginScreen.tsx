@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     minHeight: 52,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.button,
     backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   },
   modalSubmitButton: {
     minHeight: 52,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.button,
     backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",

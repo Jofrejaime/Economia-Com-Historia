@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     minHeight: 52,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.button,
     backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",

@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Image,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
@@ -13,25 +13,51 @@ import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
 import { appTheme } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
+import { userService } from "../../services/api/userService";
+import { leaderboardService } from "../../services/api/leaderboardService";
+import type { UserLevel, UserBadge, LeaderboardEntry } from "../../types/api";
 
 export function ProfileScreen() {
   const { user, signOut } = useAuth();
   const navigation = useNavigation<any>();
 
-  // Fallback profile details matching the web mockup
-  const userDetails = {
-    name: user?.name || "José da Assunção A. Ndele",
-    occupation: "Economista e Político Angolano",
-    level: "Nível Académico V",
-    membership: "Membro Titular",
-    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
-    totalPoints: "14.850",
-    monthlyDiff: "+12% este mês",
-    quizzesCompleted: 42,
-    quizzesProgress: 84, // 84%
-    globalRank: "#12",
-    rankPercentile: "Top 5% de Historiadores",
-  };
+  const [level, setLevel] = useState<UserLevel | null>(null);
+  const [badges, setBadges] = useState<UserBadge[]>([]);
+  const [rankEntry, setRankEntry] = useState<LeaderboardEntry | null>(null);
+  const [quizzesCompleted, setQuizzesCompleted] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [attemptsRes, leaderboardRes] = await Promise.allSettled([
+          userService.quizAttempts({ status: "completed", page: 1 }),
+          leaderboardService.national({ per_page: 100 }),
+        ]);
+
+        if (attemptsRes.status === "fulfilled") {
+          setQuizzesCompleted(attemptsRes.value.meta.total);
+        }
+        if (leaderboardRes.status === "fulfilled" && user) {
+          const entry = leaderboardRes.value.find((e) => e.user_id === user.id) ?? null;
+          setRankEntry(entry);
+        }
+      } catch (error) {
+        console.warn("Erro ao carregar perfil", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [user]);
+
+  const initials = (user?.display_name ?? "?")
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
 
   return (
     <ScreenContainer style={styles.screen}>
@@ -42,106 +68,107 @@ export function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* User Identity Section */}
+        {/* User Identity */}
         <View style={styles.userIdentity}>
-          {/* Profile Photo */}
           <View style={styles.photoContainer}>
-            <Image source={{ uri: userDetails.photo }} style={styles.profilePhoto} />
-            <View style={styles.badgeIconOverlay}>
-              <View style={styles.badgeIconInner}>
-                <Feather name="check" size={12} color="white" />
+            {user?.avatar_url ? (
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              <View style={styles.avatarWrap}>
+                <Text style={styles.avatarInitials}>{initials}</Text>
               </View>
-            </View>
+            ) : (
+              <View style={styles.avatarWrap}>
+                <Text style={styles.avatarInitials}>{initials}</Text>
+              </View>
+            )}
           </View>
 
-          {/* Name & Details */}
           <View style={styles.userDetailsWrap}>
-            <Text style={styles.userName}>{userDetails.name}</Text>
-            <Text style={styles.userOccupation}>{userDetails.occupation}</Text>
+            <Text style={styles.userName}>{user?.display_name ?? "Utilizador"}</Text>
+            {user?.institution && (
+              <Text style={styles.userOccupation}>{user.institution}</Text>
+            )}
+            {user?.province && (
+              <Text style={styles.userProvince}>{user.province}</Text>
+            )}
             <View style={styles.badgeContainer}>
               <View style={styles.pillBadge}>
-                <Text style={styles.pillBadgeText}>{userDetails.level}</Text>
+                <Text style={styles.pillBadgeText}>{user?.role ?? "estudante"}</Text>
               </View>
-              <View style={styles.pillBadge}>
-                <Text style={styles.pillBadgeText}>{userDetails.membership}</Text>
-              </View>
+              {rankEntry && (
+                <View style={styles.pillBadge}>
+                  <Text style={styles.pillBadgeText}>Nível {rankEntry.current_level}</Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
 
-        {/* Academic Statistics - Bento Grid */}
-        <View style={styles.bentoGrid}>
-          {/* Total Score Card */}
-          <View style={[styles.bentoCard, styles.scoreCard]}>
-            <Text style={styles.bentoCardLabel}>PONTUAÇÃO TOTAL</Text>
-            <Text style={styles.scoreValue}>{userDetails.totalPoints}</Text>
-            <Text style={styles.scoreMeta}>{userDetails.monthlyDiff}</Text>
-          </View>
-
-          {/* Quizzes Completed Card */}
-          <View style={[styles.bentoCard, styles.quizCard]}>
-            <Text style={[styles.bentoCardLabel, styles.textWhite]}>QUIZZES CONCLUÍDOS</Text>
-            <Text style={[styles.quizValue, styles.textWhite]}>{userDetails.quizzesCompleted}</Text>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${userDetails.quizzesProgress}%` }]} />
-            </View>
-          </View>
-
-          {/* Global Ranking Card */}
-          <View style={[styles.bentoCard, styles.rankCard]}>
-            <Text style={styles.bentoCardLabel}>POSIÇÃO GLOBAL</Text>
-            <Text style={styles.rankValue}>{userDetails.globalRank}</Text>
-            <Text style={styles.rankMeta}>{userDetails.rankPercentile}</Text>
-          </View>
-        </View>
-
-        {/* Merits & Certificates Section */}
-        <View style={styles.meritsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Méritos e Distinções</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>Ver Todos</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.meritsGrid}>
-            {/* Badge 1 */}
-            <View style={styles.meritCard}>
-              <View style={styles.meritIconWrap}>
-                <Feather name="archive" size={24} color="#6B0119" />
+        {/* Stats Grid */}
+        {loading ? (
+          <ActivityIndicator size="large" color={appTheme.colors.primary} style={{ marginBottom: 32 }} />
+        ) : (
+          <View style={styles.bentoGrid}>
+            {/* Total Points */}
+            {rankEntry && (
+              <View style={[styles.bentoCard, styles.scoreCard]}>
+                <Text style={styles.bentoCardLabel}>PONTUAÇÃO TOTAL</Text>
+                <Text style={styles.scoreValue}>{rankEntry.total_points.toLocaleString()}</Text>
+                {rankEntry.weekly_points > 0 && (
+                  <Text style={styles.scoreMeta}>+{rankEntry.weekly_points} esta semana</Text>
+                )}
               </View>
-              <Text style={styles.meritLabel}>ARQUIVISTA{"\n"}IMPERIAL</Text>
+            )}
+
+            {/* Quizzes Completed */}
+            <View style={[styles.bentoCard, styles.quizCard]}>
+              <Text style={[styles.bentoCardLabel, styles.textWhite]}>QUIZZES CONCLUÍDOS</Text>
+              <Text style={[styles.quizValue, styles.textWhite]}>{quizzesCompleted}</Text>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${Math.min((quizzesCompleted / 50) * 100, 100)}%` }]} />
+              </View>
             </View>
 
-            {/* Badge 2 */}
-            <View style={styles.meritCard}>
-              <View style={styles.meritIconWrap}>
-                <Feather name="book-open" size={24} color="#6B0119" />
+            {/* Global Ranking */}
+            {rankEntry && (
+              <View style={[styles.bentoCard, styles.rankCard]}>
+                <Text style={styles.bentoCardLabel}>POSIÇÃO GLOBAL</Text>
+                <Text style={styles.rankValue}>#{rankEntry.rank_position}</Text>
+                {rankEntry.prev_rank > 0 && rankEntry.prev_rank !== rankEntry.rank_position && (
+                  <Text style={styles.rankMeta}>
+                    {rankEntry.rank_position < rankEntry.prev_rank ? "▲" : "▼"}{" "}
+                    {Math.abs(rankEntry.rank_position - rankEntry.prev_rank)} posições
+                  </Text>
+                )}
               </View>
-              <Text style={styles.meritLabel}>CRÓNICAS DO{"\n"}KWANZA</Text>
-            </View>
+            )}
+          </View>
+        )}
 
-            {/* Badge 3 */}
-            <View style={styles.meritCard}>
-              <View style={styles.meritIconWrap}>
-                <Feather name="award" size={24} color="#6B0119" />
-              </View>
-              <Text style={styles.meritLabel}>DIAMANTE{"\n"}ANGOLANO</Text>
+        {/* Badges section — shown only when available */}
+        {badges.length > 0 && (
+          <View style={styles.meritsSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Méritos e Distinções</Text>
+              <TouchableOpacity>
+                <Text style={styles.seeAllText}>Ver Todos</Text>
+              </TouchableOpacity>
             </View>
-
-            {/* Badge 4 - Locked */}
-            <View style={styles.meritCard}>
-              <View style={[styles.meritIconWrap, styles.meritIconWrapLocked]}>
-                <Feather name="lock" size={24} color="#574142" />
-              </View>
-              <Text style={[styles.meritLabel, styles.textMuted]}>PH.D HONORÁRIO</Text>
+            <View style={styles.meritsGrid}>
+              {badges.slice(0, 4).map((ub) => (
+                <View key={ub.id} style={styles.meritCard}>
+                  <View style={styles.meritIconWrap}>
+                    <Feather name="award" size={24} color="#6B0119" />
+                  </View>
+                  <Text style={styles.meritLabel}>{ub.badge?.name ?? "Badge"}</Text>
+                </View>
+              ))}
             </View>
           </View>
-        </View>
+        )}
 
         {/* Settings & Navigation */}
         <View style={styles.settingsPanel}>
-          {/* Personal Info */}
           <TouchableOpacity
             style={styles.settingsItem}
             onPress={() => navigation.navigate("PersonalInfo")}
@@ -158,7 +185,6 @@ export function ProfileScreen() {
             <Feather name="chevron-right" size={16} color="#DEBFBF" />
           </TouchableOpacity>
 
-          {/* Notifications */}
           <TouchableOpacity
             style={styles.settingsItem}
             onPress={() => navigation.navigate("Notifications")}
@@ -175,24 +201,6 @@ export function ProfileScreen() {
             <Feather name="chevron-right" size={16} color="#DEBFBF" />
           </TouchableOpacity>
 
-          {/* Notification Preferences */}
-          <TouchableOpacity
-            style={styles.settingsItem}
-            onPress={() => navigation.navigate("NotificationPreferences")}
-          >
-            <View style={styles.settingsItemLeft}>
-              <View style={styles.settingsIconBg}>
-                <Feather name="settings" size={16} color="#6B0119" />
-              </View>
-              <View>
-                <Text style={styles.settingsItemTitle}>Preferências de Notificação</Text>
-                <Text style={styles.settingsItemDesc}>Configurar alertas de novos conteúdos e desafios</Text>
-              </View>
-            </View>
-            <Feather name="chevron-right" size={16} color="#DEBFBF" />
-          </TouchableOpacity>
-
-          {/* Privacy & Security */}
           <TouchableOpacity
             style={styles.settingsItem}
             onPress={() => navigation.navigate("Privacy")}
@@ -209,7 +217,6 @@ export function ProfileScreen() {
             <Feather name="chevron-right" size={16} color="#DEBFBF" />
           </TouchableOpacity>
 
-          {/* Support */}
           <TouchableOpacity
             style={styles.settingsItem}
             onPress={() => navigation.navigate("Support")}
@@ -228,7 +235,6 @@ export function ProfileScreen() {
 
           <View style={styles.divider} />
 
-          {/* Logout */}
           <TouchableOpacity style={styles.logoutItem} onPress={() => void signOut()}>
             <Feather name="log-out" size={18} color="#BA1A1A" style={styles.logoutIcon} />
             <Text style={styles.logoutText}>Terminar Sessão</Text>
@@ -243,28 +249,6 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: "#F8F9FF",
     paddingHorizontal: 0,
-  },
-  header: {
-    backgroundColor: "rgba(255, 255, 255, 0.85)",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  headerTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  iconButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#7F1D1D",
-    letterSpacing: -0.4,
   },
   container: {
     flex: 1,
@@ -283,29 +267,21 @@ const styles = StyleSheet.create({
   photoContainer: {
     position: "relative",
   },
-  profilePhoto: {
+  avatarWrap: {
     width: 120,
     height: 120,
     borderRadius: 16,
+    backgroundColor: appTheme.colors.primary + "22",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 4,
     borderColor: "rgba(107, 1, 25, 0.1)",
   },
-  badgeIconOverlay: {
-    position: "absolute",
-    bottom: -6,
-    right: -6,
-    backgroundColor: "#6B0119",
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "white",
-  },
-  badgeIconInner: {
-    alignItems: "center",
-    justifyContent: "center",
+  avatarInitials: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 40,
+    fontWeight: "700",
+    color: appTheme.colors.primary,
   },
   userDetailsWrap: {
     alignItems: "center",
@@ -320,8 +296,15 @@ const styles = StyleSheet.create({
     lineHeight: 32,
   },
   userOccupation: {
+    fontFamily: "Source_Sans_3",
     fontSize: 15,
     color: "#574142",
+    textAlign: "center",
+  },
+  userProvince: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
+    color: appTheme.colors.textMuted,
     textAlign: "center",
   },
   badgeContainer: {
@@ -336,6 +319,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   pillBadgeText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 10,
     fontWeight: "700",
     color: "#6B0119",
@@ -356,29 +340,30 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   bentoCardLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 1.2,
     marginBottom: 12,
+    color: "#574142",
   },
-  scoreCard: {
-    backgroundColor: "#EFF4FF",
-  },
+  scoreCard: { backgroundColor: "#EFF4FF" },
   scoreValue: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 32,
     fontWeight: "700",
     color: "#121C2A",
     letterSpacing: -1.2,
   },
   scoreMeta: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
     color: "#574142",
     marginTop: 4,
   },
-  quizCard: {
-    backgroundColor: "#8B1E2D",
-  },
+  quizCard: { backgroundColor: "#8B1E2D" },
   quizValue: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 32,
     fontWeight: "700",
     letterSpacing: -1.2,
@@ -394,23 +379,21 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "white",
   },
-  rankCard: {
-    backgroundColor: "#EFF4FF",
-  },
+  rankCard: { backgroundColor: "#EFF4FF" },
   rankValue: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 32,
     fontWeight: "700",
     color: "#121C2A",
     letterSpacing: -1.2,
   },
   rankMeta: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
     color: "#574142",
     marginTop: 4,
   },
-  textWhite: {
-    color: "white",
-  },
+  textWhite: { color: "white" },
   meritsSection: {
     marginBottom: 40,
   },
@@ -428,6 +411,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   seeAllText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
     fontWeight: "700",
     color: "#6B0119",
@@ -456,19 +440,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 12,
   },
-  meritIconWrapLocked: {
-    opacity: 0.5,
-  },
   meritLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 10,
     fontWeight: "700",
     color: "#121C2A",
     textAlign: "center",
     lineHeight: 13,
-  },
-  textMuted: {
-    color: "#574142",
-    opacity: 0.6,
   },
   settingsPanel: {
     backgroundColor: "#EFF4FF",
@@ -497,12 +475,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   settingsItemTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 14,
     fontWeight: "700",
     color: "#121C2A",
     marginBottom: 2,
   },
   settingsItemDesc: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     color: "#574142",
   },
@@ -518,10 +498,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
   },
-  logoutIcon: {
-    marginRight: 16,
-  },
+  logoutIcon: { marginRight: 16 },
   logoutText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     fontWeight: "700",
     color: "#BA1A1A",

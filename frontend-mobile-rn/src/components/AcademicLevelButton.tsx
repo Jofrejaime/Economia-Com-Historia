@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   button: {
     width: "48%",
     minHeight: 52,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.button,
     borderWidth: 1.5,
     borderColor: appTheme.colors.border,
     alignItems: "center",

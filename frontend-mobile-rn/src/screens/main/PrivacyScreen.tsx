@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   updateButton: {
     backgroundColor: "#8B1E2D",
     height: 48,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.button,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 12,

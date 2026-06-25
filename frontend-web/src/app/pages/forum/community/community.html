@@ -8,10 +8,7 @@
       <!-- Hero Section -->
       <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; margin-bottom: 64px; flex-wrap: wrap;">
         <div style="flex: 1;">
-          <div style="margin-bottom: 20px;">
-            <span style="background: rgba(139, 30, 45, 0.1); color: #8B1E2D; font-family: 'Source Sans 3', sans-serif; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 9999px; display: inline-block; letter-spacing: 0.5px; text-transform: uppercase;">FÓRUM & INTERCÂMBIO</span>
-          </div>
-          <h1 style="font-family: 'IBM Plex Sans', sans-serif; color: #1F2937; font-size: 42px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: -0.02em; line-height: 1.3;">Discurso Académico</h1>
+          <h1 style="font-family: 'IBM Plex Sans', sans-serif; color: #1F2937; font-size: 42px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: -0.02em; line-height: 1.3;">Comunidade</h1>
           <p style="font-family: 'Source Sans 3', sans-serif; color: #1F2937; font-size: 18px; line-height: 1.7; max-width: 672px; margin: 0;">Interaja com académicos e investigadores sobre a evolução histórica da economia angolana, rotas comerciais e sistemas monetários pós-coloniais.</p>
         </div>
 
@@ -27,8 +24,9 @@
       <div style="margin-bottom: 64px;">
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
           <div>
-            <h2 style="font-family: 'IBM Plex Sans', sans-serif; color: #1F2937; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.02em; line-height: 1.3;">Categorias de Acesso</h2>
-            <p style="font-family: 'Source Sans 3', sans-serif; color: #1F2937; font-size: 16px; margin: 0; line-height: 1.7;">Solicite acesso às categorias para participar em discussões especializadas</p>
+            <h2 style="font-family: 'IBM Plex Sans', sans-serif; color: #1F2937; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.02em; line-height: 1.3; position: relative;">Categorias de Acesso</h2>
+            <div style="width: 40px; height: 3px; background: linear-gradient(90deg, #8B1E2D, transparent); border-radius: 4px; margin-top: 6px;"></div>
+            <p style="font-family: 'Source Sans 3', sans-serif; color: #1F2937; font-size: 16px; margin: 8px 0 0 0; line-height: 1.7;">Solicite acesso às categorias para participar em discussões especializadas</p>
           </div>
           <button (click)="navigateTo('/forum/categorias')" style="display: flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; color: #8B1E2D; font-weight: 600; font-size: 14px; transition: gap 0.3s; font-family: 'Source Sans 3', sans-serif; line-height: 1.7; min-height: 44px;" onmouseover="this.style.gap='12px'" onmouseout="this.style.gap='8px'">
             Ver todas
@@ -38,24 +36,34 @@
           </button>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <!-- Category Cards -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
           <div *ngFor="let cat of categories" (click)="navigateTo('/forum/categorias')" 
-               style="background: #FFFFFF; border-radius: 8px; overflow: hidden; cursor: pointer; transition: all 0.3s; border: 1px solid #E5E7EB; box-shadow: 0 1px 2px rgba(0,0,0,0.02); font-family: 'Source Sans 3', sans-serif; border-bottom: 3px solid transparent;" 
-               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02)'; this.style.borderColor='#E5E7EB'; this.style.borderBottom='3px solid #8B1E2D'" 
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)'; this.style.borderColor='#E5E7EB'; this.style.borderBottom='3px solid transparent'">
+               style="background: #FFFFFF; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.3s ease; border: 1px solid #E5E7EB; box-shadow: 0 2px 8px rgba(0,0,0,0.02); font-family: 'Source Sans 3', sans-serif; min-height: 280px; display: flex; flex-direction: column;" 
+               onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 40px rgba(139,30,45,0.12)'; this.style.borderColor='rgba(139,30,45,0.2)'" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.02)'; this.style.borderColor='#E5E7EB'">
             
-            <div style="height: 120px; overflow: hidden; position: relative;">
-              <img [src]="cat.backgroundImage" alt="" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-              <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 50px; background: linear-gradient(to top, rgba(0,0,0,0.2), transparent);"></div>
+            <div style="height: 140px; overflow: hidden; position: relative; flex-shrink: 0;">
+              <img [src]="cat.backgroundImage" alt="" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);"></div>
+              
+              <div style="position: absolute; top: 14px; right: 14px;">
+                <span style="padding: 4px 12px; border-radius: 9999px; font-size: 9px; font-weight: 700; font-family: 'Source Sans 3', sans-serif; line-height: 1.7; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" 
+                      [style.backgroundColor]="getAccessBadge(cat.accessType).bg" 
+                      [style.color]="getAccessBadge(cat.accessType).text">
+                  {{ getAccessBadge(cat.accessType).label }}
+                </span>
+              </div>
             </div>
             
-            <div style="padding: 20px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h3 style="font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; color: #1F2937; font-size: 17px; margin: 0; line-height: 1.3; letter-spacing: -0.02em;">{{ cat.name }}</h3>
-                <span style="padding: 4px 12px; border-radius: 9999px; font-size: 10px; font-weight: 700; font-family: 'Source Sans 3', sans-serif; line-height: 1.7;" [style.backgroundColor]="getAccessBadge(cat.accessType).bg" [style.color]="getAccessBadge(cat.accessType).text">{{ getAccessBadge(cat.accessType).label }}</span>
+            <div style="padding: 20px 24px 24px 24px; display: flex; flex-direction: column; flex: 1;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px;">
+                <h3 style="font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; color: #1F2937; font-size: 18px; margin: 0; line-height: 1.3; letter-spacing: -0.02em;">{{ cat.name }}</h3>
               </div>
-              <p style="font-family: 'Source Sans 3', sans-serif; color: #6a6a6a; font-size: 13px; line-height: 1.7; margin-bottom: 16px;">{{ cat.description }}</p>
-              <div style="display: flex; gap: 16px; font-size: 12px; color: #9CA3AF; font-family: 'Source Sans 3', sans-serif; line-height: 1.7;">
+              
+              <p style="font-family: 'Source Sans 3', sans-serif; color: #1F2937; font-size: 13px; line-height: 1.7; margin: 0 0 16px 0; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ cat.description }}</p>
+              
+              <div style="display: flex; gap: 16px; font-size: 12px; color: #9CA3AF; font-family: 'Source Sans 3', sans-serif; line-height: 1.7; padding-top: 12px; border-top: 1px solid #F5F5F5;">
                 <span>👥 {{ cat.members }} membros</span>
                 <span>💬 {{ cat.topics }} tópicos</span>
               </div>
@@ -95,13 +103,40 @@
           </div>
 
           <!-- Discussions List -->
-          <div style="display: flex; flex-direction: column; gap: 20px;">
-            <div *ngFor="let discussion of filteredDiscussions" (click)="navigateTo('/forum/community/discussao/:id')" 
-                 style="background: #FFFFFF; border-radius: 8px; padding: 24px; cursor: pointer; transition: all 0.3s; border: 1px solid #E5E7EB; font-family: 'Source Sans 3', sans-serif;"
-                 onmouseover="this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02)'; this.style.borderColor='#E5E7EB'" 
-                 onmouseout="this.style.boxShadow='none'; this.style.borderColor='#E5E7EB'">
+          <div (click)="navigateTo('forum/community/discussao/:id')" style="display: flex; flex-direction: column; gap: 20px;">
+            <div *ngFor="let discussion of filteredDiscussions" 
+                 style="background: #FFFFFF; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.3s; border: 1px solid #E5E7EB; font-family: 'Source Sans 3', sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.02); position: relative;"
+                 onmouseover="this.style.boxShadow='0 8px 32px rgba(0,0,0,0.08)'; this.style.transform='translateY(-3px)'; this.style.borderColor='rgba(139,30,45,0.15)'" 
+                 onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.02)'; this.style.transform='translateY(0)'; this.style.borderColor='#E5E7EB'">
               
-              <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+              <!-- Badge de Privacidade - Canto Superior Direito -->
+              <div style="position: absolute; top: 16px; right: 20px;">
+                <div *ngIf="discussion.isPrivate" 
+                     style="display: flex; align-items: center; gap: 6px; background: rgba(139, 30, 45, 0.08); padding: 4px 12px 4px 10px; border-radius: 9999px; border: 1px solid rgba(139, 30, 45, 0.15);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <span style="font-size: 10px; font-weight: 600; color: #8B1E2D; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Source Sans 3', sans-serif; line-height: 1.7;">Privado</span>
+                </div>
+              </div>
+
+              <!-- Botão Pedir Acesso - Canto Inferior Direito -->
+              <div style="position: absolute; bottom: 20px; right: 20px;">
+                <button *ngIf="discussion.isPrivate" 
+                        (click)="requestAccess(discussion.id); $event.stopPropagation()"
+                        style="background: #8B1E2D; color: #FFFFFF; border: none; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Source Sans 3', sans-serif; line-height: 1.7; min-height: 32px; white-space: nowrap; display: flex; align-items: center; gap: 6px;"
+                        onmouseover="this.style.background='#6B0119'; this.style.transform='translateY(-1px)'" 
+                        onmouseout="this.style.background='#8B1E2D'; this.style.transform='translateY(0)'">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <polyline points="9 12 11 14 15 10"/>
+                  </svg>
+                  Pedir Acesso
+                </button>
+              </div>
+
+              <div style="display: flex; gap: 20px; flex-wrap: wrap; padding-right: 120px; padding-bottom: 40px;">
                 <!-- Avatar -->
                 <div style="width: 52px; height: 52px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" [style.backgroundColor]="discussion.avatar">
                   <span style="font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; color: #FFFFFF; font-size: 18px; line-height: 1.3;">{{ discussion.authorInitials }}</span>
@@ -114,6 +149,7 @@
                     <div style="padding: 4px 12px; border-radius: 9999px;" [style.backgroundColor]="discussion.categoryColor.bg">
                       <span style="font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 10px; text-transform: uppercase; line-height: 1.7;" [style.color]="discussion.categoryColor.text">{{ discussion.category }}</span>
                     </div>
+                    
                     <span style="font-family: 'Source Sans 3', sans-serif; color: #9CA3AF; font-size: 12px; line-height: 1.7;">por <span style="font-weight: 500;">{{ discussion.author }}</span> • {{ discussion.timeAgo }}</span>
                     <span *ngIf="discussion.isPinned" style="display: inline-flex; align-items: center; gap: 4px; color: #8B1E2D; font-size: 11px; font-family: 'Source Sans 3', sans-serif; line-height: 1.7;">📌 Fixado</span>
                   </div>
@@ -145,7 +181,7 @@
           </div>
 
           <!-- Empty state -->
-          <div *ngIf="filteredDiscussions.length === 0" style="text-align: center; padding: 60px 20px; background: #FFFFFF; border-radius: 8px; border: 1px solid #E5E7EB;">
+          <div *ngIf="filteredDiscussions.length === 0" style="text-align: center; padding: 60px 20px; background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB;">
             <p style="font-family: 'Source Sans 3', sans-serif; color: #9CA3AF; font-size: 16px; margin: 0; line-height: 1.7;">Nenhuma discussão encontrada nesta categoria</p>
             <button (click)="navigateTo('/forum/comunidade/criar-topico')" style="margin-top: 16px; background: transparent; border: 1px solid #8B1E2D; padding: 10px 24px; min-height: 44px; border-radius: 4px; cursor: pointer; color: #8B1E2D; font-weight: 600; font-family: 'Source Sans 3', sans-serif; font-size: 14px; line-height: 1.7; transition: all 0.3s;" onmouseover="this.style.background='rgba(139,30,45,0.05)'" onmouseout="this.style.background='transparent'">Criar primeiro tópico</button>
           </div>
@@ -156,7 +192,7 @@
           <div style="display: flex; flex-direction: column; gap: 32px; position: sticky; top: 100px; font-family: 'Source Sans 3', sans-serif;">
             
             <!-- Community Rules -->
-            <div style="background: #FFFFFF; border-radius: 8px; padding: 24px; border: 1px solid #E5E7EB;">
+            <div style="background: #FFFFFF; border-radius: 12px; padding: 24px; border: 1px solid #E5E7EB; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
               <h3 style="font-family: 'IBM Plex Sans', sans-serif; color: #8B1E2D; font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 20px; line-height: 1.3;">REGRAS DO ARQUIVO</h3>
               <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div style="display: flex; gap: 12px; align-items: flex-start;">
@@ -181,28 +217,12 @@
             </div>
 
             <!-- Featured Researches -->
-            <div style="background: #FFFFFF; border-radius: 8px; padding: 24px; border: 1px solid #E5E7EB;">
+            <div style="background: #FFFFFF; border-radius: 12px; padding: 24px; border: 1px solid #E5E7EB; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
               <h3 style="font-family: 'IBM Plex Sans', sans-serif; color: #8B1E2D; font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 20px; line-height: 1.3;">PESQUISAS EM DESTAQUE</h3>
               <div style="display: flex; flex-direction: column; gap: 20px;">
-                <div *ngFor="let research of featuredResearches" (click)="navigateTo('/forum/community/discussao')" style="cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
+                <div *ngFor="let research of featuredResearches" (click)="navigateTo('/forum/community/discussao')" style="cursor: pointer; transition: all 0.2s; padding: 4px 0;" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
                   <div style="font-family: 'Source Sans 3', sans-serif; color: #9CA3AF; font-size: 11px; margin-bottom: 6px; line-height: 1.7;">{{ research.date }}</div>
                   <div style="font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; color: #1F2937; font-size: 15px; line-height: 1.4; letter-spacing: -0.02em;">{{ research.title }}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Quick Stats -->
-            <div style="background: #8B1E2D; border-radius: 8px; padding: 24px; color: #FFFFFF; text-align: center;">
-              <div style="font-family: 'IBM Plex Sans', sans-serif; font-size: 36px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; letter-spacing: -0.02em;">{{ categories.length }}</div>
-              <div style="font-family: 'Source Sans 3', sans-serif; font-size: 13px; opacity: 0.9; margin-bottom: 20px; line-height: 1.7;">Categorias disponíveis</div>
-              <div style="display: flex; justify-content: center; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2);">
-                <div>
-                  <div style="font-family: 'IBM Plex Sans', sans-serif; font-size: 24px; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em;">{{ getTotalMembers() }}</div>
-                  <div style="font-family: 'Source Sans 3', sans-serif; font-size: 11px; opacity: 0.8; line-height: 1.7;">Membros</div>
-                </div>
-                <div>
-                  <div style="font-family: 'IBM Plex Sans', sans-serif; font-size: 24px; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em;">{{ getTotalTopics() }}</div>
-                  <div style="font-family: 'Source Sans 3', sans-serif; font-size: 11px; opacity: 0.8; line-height: 1.7;">Tópicos</div>
                 </div>
               </div>
             </div>

@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   FlatList,
   ActivityIndicator,
   TextInput,
 } from "react-native";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
@@ -20,268 +19,128 @@ import { appTheme } from "../../constants/theme";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MainStackParamList } from "../../types/navigation";
-// Deleted unused BottomNav import
+import { documentService } from "../../services/api/documentService";
+import { leaderboardService } from "../../services/api/leaderboardService";
+import { communityService } from "../../services/api/communityService";
+import type { Document, DiscussionTopic, LeaderboardEntry } from "../../types/api";
+import { useNotifications } from "../../context/NotificationContext";
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
-// Data structures
-const continueLearning = [
-  {
-    id: "1",
-    title: "A Economia do Petróleo em Angola",
-    chapter: "Capítulo 3 de 5 · 60% concluído",
-    progress: 60,
-    difficulty: "Intermédio",
-    image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80",
-  },
-];
+function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffH = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffD = Math.floor(diffH / 24);
+  if (diffH < 1) return "Agora mesmo";
+  if (diffH < 24) return `Há ${diffH}h`;
+  if (diffD === 1) return "Ontem";
+  if (diffD < 7) return `Há ${diffD} dias`;
+  return date.toLocaleDateString("pt-AO", { day: "numeric", month: "short" });
+}
 
-const jindungoItems = [
-  {
-    id: "1",
-    title: "Dívida Externa: Angola pode sair da dependência do FMI?",
-    description: "Análise crítica sobre as negociações com o Fundo Monetário Internacional e os impactos nas políticas económicas nacionais",
-    duration: "15 min",
-    replies: 89,
-    difficulty: "Avançado",
-    category: "Economia",
-    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80",
-    trending: true,
-    borderColor: appTheme.colors.primary,
-    iconBg: appTheme.colors.primary,
-  },
-  {
-    id: "2",
-    title: "Privatizações: Progresso ou retrocesso económico?",
-    description: "O debate sobre a privatização de empresas estatais e o impacto na economia nacional",
-    duration: "12 min",
-    replies: 67,
-    difficulty: "Intermédio",
-    category: "Política",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
-    trending: false,
-    borderColor: appTheme.colors.primary,
-    iconBg: appTheme.colors.primary,
-  },
-  {
-    id: "3",
-    title: "Agricultura vs Petróleo: É possível diversificar a economia?",
-    description: "Debate sobre as políticas de diversificação económica e o abandono do sector agrícola em Angola",
-    duration: "18 min",
-    replies: 102,
-    difficulty: "Intermédio",
-    category: "Desenvolvimento",
-    image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80",
-    trending: false,
-    borderColor: appTheme.colors.primary,
-    iconBg: appTheme.colors.primary,
-  },
-];
+function academicLevelLabel(level: string): string {
+  if (level === "intro") return "Introdução";
+  if (level === "advanced") return "Avançado";
+  if (level === "doctorate") return "Doutoramento";
+  return level;
+}
 
-const microTexts = [
-  {
-    id: "1",
-    title: "O que foi o Acordo de Bicesse?",
-    time: 3,
-    difficulty: "Novo",
-    status: "new",
-    description: "Resumo histórico do acordo de paz assinado in 1991 e seu impacto económico em Angola",
-    date: "Publicado hoje",
-    category: "História",
-    image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80",
-  },
-  {
-    id: "2",
-    title: "Inflação no Kwanza: números actuais",
-    time: 2,
-    difficulty: "Popular",
-    status: "trending",
-    description: "Análise rápida da taxa de inflação e poder de compra em 2024",
-    date: "Publicado ontem",
-    category: "Economia",
-    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80",
-  },
-  {
-    id: "3",
-    title: "Sonangol: Breve história da empresa estatal",
-    time: 4,
-    difficulty: "Intermédio",
-    status: "popular",
-    description: "Da criação em 1976 até hoje: evolução e papel na economia nacional",
-    date: "Há 2 dias",
-    category: "Petróleo",
-    image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&q=80",
-  },
-];
-
-const contentFormats = [
-  {
-    id: "1",
-    label: "Vídeos",
-    subLabel: "Aulas em vídeo",
-    countText: "24 disponíveis",
-    icon: "video",
-    borderColor: "#3B82F6",
-    bgColor: "#EFF6FF",
-  },
-  {
-    id: "2",
-    label: "Áudio",
-    subLabel: "Podcasts e narração",
-    countText: "18 disponíveis",
-    icon: "headphones",
-    borderColor: "#16A34A",
-    bgColor: "#F0FDF4",
-  },
-  {
-    id: "3",
-    label: "Artigos",
-    subLabel: "Textos académicos",
-    countText: "148 disponíveis",
-    icon: "file-text",
-    borderColor: appTheme.colors.primary,
-    bgColor: "#FDF3F4",
-  },
-  {
-    id: "4",
-    label: "Séries",
-    subLabel: "Conteúdo sequencial",
-    countText: "12 séries",
-    icon: "target",
-    borderColor: "#D97706",
-    bgColor: "#FFFBEB",
-  },
-];
-
-const recentArticles = [
-  {
-    id: "1",
-    title: "Independência e Reconstrução Económica (1975–1985)",
-    category: "História",
-    readTime: 8,
-    difficulty: "Introdução",
-    date: "Publicado hoje",
-    image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=200&q=80",
-  },
-  {
-    id: "2",
-    title: "Agricultura Angolana: Do Colonialismo ao Abandono",
-    category: "Economia",
-    readTime: 16,
-    difficulty: "Intermédio",
-    date: "Ontem",
-    image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=200&q=80",
-  },
-];
-
-const activeDebates = [
-  {
-    id: "1",
-    title: "O petróleo foi uma bênção ou uma maldição para Angola?",
-    replies: 47,
-    active: "Activo há 2h",
-    isHighlight: true,
-  },
-  {
-    id: "2",
-    title: "China e Angola: parceria estratégica ou dependência?",
-    replies: 34,
-    active: "Activo há 4h",
-    isHighlight: false,
-  },
-];
-
-const topUsers = [
-  { id: "1", name: "Ana Domingos", role: "Estudante de Economia", points: 980, rank: 1, initials: "AD" },
-  { id: "2", name: "Carlos Neto", role: "Professor", points: 870, rank: 2, initials: "CN" },
-  { id: "3", name: "Luís Ferreira", role: "Estudante", points: 760, rank: 3, initials: "LF" },
-  { id: "4", name: "Maria Santos", role: "Investigadora", points: 650, rank: 4, initials: "MS" },
-  { id: "5", name: "João Mendes", role: "Analista", points: 580, rank: 5, initials: "JM" },
-];
+function getFormattedDate(): string {
+  const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+  const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const today = new Date();
+  return `${days[today.getDay()]}, ${today.getDate()} de ${months[today.getMonth()]}`;
+}
 
 export function DashboardScreen() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigation = useNavigation<NavigationProp>();
-  const [activeTab, setActiveTab] = useState<"home" | "content" | "community" | "quiz">("home");
+  const { unreadCount } = useNotifications();
   const [searchText, setSearchText] = useState("");
 
-  const getFormattedDate = () => {
-    const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-    const months = [
-      "Janeiro",
-      "Fevereiro",
-      "Março",
-      "Abril",
-      "Maio",
-      "Junho",
-      "Julho",
-      "Agosto",
-      "Setembro",
-      "Outubro",
-      "Novembro",
-      "Dezembro",
-    ];
-    const today = new Date();
-    const day = days[today.getDay()];
-    const date = today.getDate();
-    const month = months[today.getMonth()];
-    return `${day}, ${date} de ${month}`;
-  };
+  const [jindungoDocuments, setJindungoDocuments] = useState<Document[]>([]);
+  const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
+  const [activeTopics, setActiveTopics] = useState<DiscussionTopic[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleNavPress = (tab: "home" | "content" | "community" | "quiz") => {
-    setActiveTab(tab);
-    if (tab !== "home") {
-      navigation.navigate("MainTabs");
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [jindungoRes, recentRes, topicsRes, rankingRes] = await Promise.allSettled([
+        documentService.list({ access_level_id: "jindungo", per_page: 3 }),
+        documentService.list({ sort: "recent", per_page: 4 }),
+        communityService.topics({ sort: "recent", per_page: 2 }),
+        leaderboardService.national({ per_page: 5 }),
+      ]);
+
+      if (jindungoRes.status === "fulfilled") setJindungoDocuments(jindungoRes.value.data);
+      if (recentRes.status === "fulfilled") setRecentDocuments(recentRes.value.data);
+      if (topicsRes.status === "fulfilled") setActiveTopics(topicsRes.value.data);
+      if (rankingRes.status === "fulfilled") setLeaderboard(rankingRes.value);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleSearchSubmit = () => {
+    if (searchText.trim()) {
+      (navigation as any).navigate("MainTabs", {
+        screen: "Content",
+        params: { searchQuery: searchText.trim() },
+      });
+      setSearchText("");
     }
   };
 
-  const handleGoToTabs = () => {
-    navigation.navigate("MainTabs");
+  const handleOpenDocument = (id: string) => {
+    navigation.navigate("Article", { id });
   };
 
   const handleOpenDiscussion = (id: string) => {
     navigation.navigate("TopicDiscussion", { id });
   };
 
-  const handleSearchSubmit = () => {
-    if (searchText.trim()) {
-      (navigation as any).navigate("Content", {
-        searchQuery: searchText.trim(),
-      });
-      setSearchText("");
-    }
-  };
-
-  const handleFormatPress = (label: string) => {
-    let category: "video" | "podcast" | "micro" | "series" = "video";
-    if (label === "Vídeos") category = "video";
-    else if (label === "Áudio") category = "podcast";
-    else if (label === "Artigos") category = "micro";
-    else if (label === "Séries") category = "series";
-
-    (navigation as any).navigate("Content", { category });
-  };
+  if (loading) {
+    return (
+      <ScreenContainer style={{ paddingHorizontal: 0 }}>
+        <HeaderBar title="Economia com História" showBackButton={false} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={appTheme.colors.primary} />
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer style={{ paddingHorizontal: 0 }}>
       <HeaderBar title="Economia com História" showBackButton={false} />
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header com Greeting */}
+
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.greetingContainer}>
             <Text style={styles.greeting}>Bom dia,</Text>
-            <Text style={styles.userName}>{user?.name || "Leitor"}</Text>
+            <Text style={styles.userName}>{user?.display_name || "Leitor"}</Text>
             <Text style={styles.date}>{getFormattedDate()}</Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.notificationBell}
-            onPress={() => navigation.navigate('Notifications')}
+            onPress={() => navigation.navigate("Notifications")}
             activeOpacity={0.7}
           >
             <Ionicons name="notifications-outline" size={24} color={appTheme.colors.textPrimary} />
-            <View style={styles.notificationBadge}>
-              <Text style={styles.badgeText}>3</Text>
-            </View>
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.badgeText}>{unreadCount > 9 ? "9+" : unreadCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -301,307 +160,174 @@ export function DashboardScreen() {
           />
         </View>
 
-        {/* Continue Learning */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Continuar a aprender</Text>
-          <FlatList
-            data={continueLearning}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.continueCard} onPress={() => navigation.navigate("Article", { id: "continue_1" })}>
-                <Image source={{ uri: item.image }} style={styles.continueImage} />
-                <View style={styles.continueOverlay} />
-                <View style={styles.continueContent}>
-                  <View style={styles.continueBadge}>
-                    <Text style={styles.continueBadgeText}>{item.difficulty}</Text>
-                  </View>
-                  <Text style={styles.continueTitle}>{item.title}</Text>
-                  <View style={styles.progressContainer}>
-                    <View style={styles.progressBar}>
-                      <View style={[styles.progressFill, { width: `${item.progress}%` }]} />
-                    </View>
-                  </View>
-                  <Text style={styles.continueProgressText}>{item.chapter}</Text>
-                  <TouchableOpacity style={styles.continueResumeBtn} onPress={() => navigation.navigate("Article", { id: "continue_1" })}>
-                    <Text style={styles.continueResumeBtnText}>Retomar leitura</Text>
-                    <Ionicons name="arrow-forward" size={14} color={appTheme.colors.primary} />
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-
         {/* Jindungo Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="flame" size={20} color={appTheme.colors.danger} />
-            <Text style={styles.sectionTitle}>JINDUNGO</Text>
-          </View>
-          <Text style={styles.sectionSubTitle}>Temas polémicos e debates actuais sobre economia angolana</Text>
-          <FlatList
-            data={jindungoItems}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
+        {jindungoDocuments.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="flame" size={20} color={appTheme.colors.danger} />
+              <Text style={styles.sectionTitle}>JINDUNGO</Text>
+            </View>
+            <Text style={styles.sectionSubTitle}>Conteúdo premium sobre economia angolana</Text>
+            {jindungoDocuments.map((doc) => (
               <TouchableOpacity
-                style={[
-                  styles.jindungoCard,
-                  {
-                    borderColor: item.borderColor,
-                  },
-                ]}
-                onPress={() => navigation.navigate("Article", { id: "jindungo_" + item.id })}
+                key={doc.id}
+                style={styles.jindungoCard}
+                onPress={() => handleOpenDocument(doc.id)}
               >
-                <Image source={{ uri: item.image }} style={styles.jindungoBgImage} />
-                <View style={styles.jindungoOverlay} />
                 <View style={styles.jindungoCardContent}>
-                  <View style={styles.jindungoHeaderRow}>
-                    <View style={[styles.jindungoIconWrap, { backgroundColor: item.iconBg }]}>
-                      <Ionicons name="flame" size={18} color="white" />
-                    </View>
+                  <View style={styles.jindungoBadgeRow}>
                     <View style={styles.jindungoBadge}>
+                      <Ionicons name="flame" size={12} color="white" />
                       <Text style={styles.jindungoBadgeText}>JINDUNGO</Text>
                     </View>
-                  </View>
-                  
-                  <Text style={styles.jindungoCardTitle}>{item.title}</Text>
-                  <Text style={styles.jindungoCardDesc} numberOfLines={2}>{item.description}</Text>
-                  
-                  <View style={styles.jindungoMetaRow}>
-                    <Text style={styles.jindungoMetaText}>📖 {item.duration}</Text>
-                    <Text style={styles.jindungoMetaText}>💬 {item.replies} comentários</Text>
-                    {item.trending && (
-                      <View style={styles.jindungoTrendingBadge}>
-                        <Text style={styles.jindungoTrendingText}>Trending</Text>
-                      </View>
+                    {doc.category && (
+                      <Text style={styles.jindungoCategoryText}>{doc.category.name}</Text>
                     )}
                   </View>
-                  
-                  <View style={styles.jindungoTagsRow}>
-                    <View style={styles.jindungoTag}>
-                      <Text style={styles.jindungoTagText}>{item.difficulty}</Text>
-                    </View>
-                    <View style={styles.jindungoTag}>
-                      <Text style={styles.jindungoTagText}>{item.category}</Text>
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
-          />
-          <TouchableOpacity style={styles.exploreButton} onPress={() => (navigation as any).navigate("Content", { category: "jindungo" })}>
-            <Ionicons name="flame" size={16} color="white" style={{ marginRight: 6 }} />
-            <Text style={styles.exploreButtonText}>Explorar mais Jindungo</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Micro Texts */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="flash" size={20} color={appTheme.colors.primary} />
-            <Text style={styles.sectionTitle}>Micro Textos</Text>
-          </View>
-          <Text style={styles.sectionSubTitle}>Leituras rápidas de 2-5 minutos</Text>
-          <FlatList
-            data={microTexts}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.microCard} onPress={() => navigation.navigate("Article", { id: "micro_" + item.id })}>
-                <Image source={{ uri: item.image }} style={styles.microBgImage} />
-                <View style={styles.microOverlay} />
-                <View style={styles.microCardContent}>
-                  <View style={styles.microHeaderRow}>
-                    <View style={styles.microIconWrap}>
-                      <Ionicons name="time-outline" size={16} color={appTheme.colors.primary} />
-                    </View>
-                    <View style={styles.microBadgeRow}>
-                      {item.status === "new" && (
-                        <View style={[styles.microTagBadge, { backgroundColor: appTheme.colors.primary }]}>
-                          <Text style={styles.microTagText}>NOVO</Text>
-                        </View>
-                      )}
-                      {item.status === "trending" && (
-                        <View style={[styles.microTagBadge, { backgroundColor: appTheme.colors.success }]}>
-                          <Text style={styles.microTagText}>POPULAR</Text>
-                        </View>
-                      )}
-                      <Text style={styles.microTimeText}>⏱ {item.time} min</Text>
-                    </View>
-                  </View>
-
-                  <Text style={styles.microCardTitle}>{item.title}</Text>
-                  <Text style={styles.microCardDesc} numberOfLines={2}>{item.description}</Text>
-
-                  <View style={styles.microFooterRow}>
-                    <Text style={styles.microFooterText}>📅 {item.date} • {item.category}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
-          />
-          <TouchableOpacity style={styles.exploreMicroButton} onPress={() => (navigation as any).navigate("Content", { category: "micro" })}>
-            <Ionicons name="flash" size={16} color={appTheme.colors.textSecondary} style={{ marginRight: 6 }} />
-            <Text style={styles.exploreMicroButtonText}>Ver todos os micro textos</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Content Formats */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Explorar por Formato</Text>
-          <View style={styles.formatsGrid}>
-            {contentFormats.map((format) => (
-              <TouchableOpacity
-                key={format.id}
-                style={[
-                  styles.formatCard,
-                  {
-                    borderColor: format.borderColor,
-                    backgroundColor: format.bgColor,
-                  },
-                ]}
-                onPress={() => handleFormatPress(format.label)}
-              >
-                <Feather name={format.icon as any} size={28} color={format.borderColor} style={styles.formatCardIcon} />
-                <Text style={styles.formatLabel}>{format.label}</Text>
-                <Text style={styles.formatSubLabel}>{format.subLabel}</Text>
-                <Text style={[styles.formatCountText, { color: format.borderColor }]}>
-                  {format.countText}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Recent Articles */}
-        <View style={styles.section}>
-          <View style={styles.recentArticlesHeader}>
-            <Text style={styles.sectionTitle}>Artigos Recentes</Text>
-            <TouchableOpacity onPress={() => (navigation as any).navigate("Content", { category: "micro" })} style={styles.seeAllRow}>
-              <Text style={styles.seeAllText}>Ver todos</Text>
-              <Ionicons name="arrow-forward" size={14} color={appTheme.colors.primary} />
-            </TouchableOpacity>
-          </View>
-          {recentArticles.map((item) => (
-            <ContentCard
-              key={item.id}
-              title={item.title}
-              image={item.image}
-              difficulty={item.difficulty}
-              duration={`${item.readTime} min de leitura`}
-              onPress={() => navigation.navigate("Article", { id: "recent_" + item.id })}
-            />
-          ))}
-        </View>
-
-        {/* Active Debates */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="chatbubbles-outline" size={20} color={appTheme.colors.primary} style={{ marginRight: 8 }} />
-            <Text style={styles.sectionTitle}>Debates Activos</Text>
-          </View>
-          {activeDebates.map((item) => (
-            <DebateCard
-              key={item.id}
-              title={item.title}
-              replies={item.replies}
-              activeSince={item.active}
-              isHighlight={item.isHighlight}
-              onPress={() => handleOpenDiscussion(item.id)}
-            />
-          ))}
-        </View>
-
-        {/* Ranking */}
-        <View style={styles.section}>
-          <Text style={styles.rankingHeaderTitle}>Ranking</Text>
-          <FlatList
-            data={topUsers}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-              <View
-                style={[
-                  styles.rankingItem,
-                  item.rank === 1 && styles.rankingItemFirst,
-                  item.rank === 2 && styles.rankingItemSecond,
-                  item.rank === 3 && styles.rankingItemThird,
-                  item.rank > 3 && styles.rankingItemDefault,
-                ]}
-              >
-                <View style={styles.rankContainer}>
-                  <View
-                    style={[
-                      styles.rankBadge,
-                      {
-                        backgroundColor:
-                          item.rank === 1
-                            ? "rgba(255,255,255,0.2)"
-                            : item.rank === 2 || item.rank === 3
-                            ? "#E5E7EB"
-                            : "#F5F5F5",
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.rankNumber,
-                        { color: item.rank === 1 ? "white" : item.rank === 2 || item.rank === 3 ? "#6B7280" : "#9CA3AF" },
-                      ]}
-                    >
-                      #{item.rank}
+                  <Text style={styles.jindungoCardTitle} numberOfLines={2}>{doc.title}</Text>
+                  <Text style={styles.jindungoCardDesc} numberOfLines={2}>{doc.summary}</Text>
+                  <View style={styles.jindungoMeta}>
+                    <Text style={styles.jindungoMetaText}>{doc.author}</Text>
+                    <Text style={styles.jindungoMetaText}>
+                      <Ionicons name="heart-outline" size={12} /> {doc.likes_count}
                     </Text>
                   </View>
-                  
-                  {item.rank === 1 ? (
-                    <View style={styles.rankingUserAvatarFirst}>
-                      <Text style={styles.rankingUserAvatarFirstText}>👤</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.rankingUserAvatarDefault}>
-                      <Text style={styles.rankingUserAvatarDefaultText}>
-                        {item.initials}
+                </View>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.exploreButton}
+              onPress={() => (navigation as any).navigate("MainTabs", { screen: "Content", params: { access_level_id: "jindungo" } })}
+            >
+              <Ionicons name="flame" size={16} color="white" style={{ marginRight: 6 }} />
+              <Text style={styles.exploreButtonText}>Explorar mais Jindungo</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Documentos Recentes */}
+        {recentDocuments.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.recentHeader}>
+              <Text style={styles.sectionTitle}>Documentos Recentes</Text>
+              <TouchableOpacity
+                onPress={() => (navigation as any).navigate("MainTabs", { screen: "Content" })}
+                style={styles.seeAllRow}
+              >
+                <Text style={styles.seeAllText}>Ver todos</Text>
+                <Ionicons name="arrow-forward" size={14} color={appTheme.colors.primary} />
+              </TouchableOpacity>
+            </View>
+            {recentDocuments.map((doc) => (
+              <ContentCard
+                key={doc.id}
+                title={doc.title}
+                image={doc.cover_image_url ?? undefined}
+                difficulty={academicLevelLabel(doc.academic_level)}
+                duration={doc.author}
+                onPress={() => handleOpenDocument(doc.id)}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Debates Activos */}
+        {activeTopics.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="chatbubbles-outline" size={20} color={appTheme.colors.primary} style={{ marginRight: 8 }} />
+              <Text style={styles.sectionTitle}>Debates Activos</Text>
+            </View>
+            {activeTopics.map((topic) => (
+              <DebateCard
+                key={topic.id}
+                title={topic.title}
+                replies={topic.replies_count}
+                activeSince={formatRelativeDate(topic.last_reply_at ?? topic.created_at)}
+                isHighlight={topic.is_featured || topic.is_pinned}
+                onPress={() => handleOpenDiscussion(topic.id)}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Ranking */}
+        {leaderboard.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.rankingHeaderTitle}>Ranking</Text>
+            <FlatList
+              data={leaderboard}
+              keyExtractor={(item) => item.user_id}
+              scrollEnabled={false}
+              renderItem={({ item }) => (
+                <View
+                  style={[
+                    styles.rankingItem,
+                    item.rank_position === 1 && styles.rankingItemFirst,
+                    item.rank_position === 2 && styles.rankingItemSecond,
+                    item.rank_position === 3 && styles.rankingItemThird,
+                    item.rank_position > 3 && styles.rankingItemDefault,
+                  ]}
+                >
+                  <View style={styles.rankContainer}>
+                    <View
+                      style={[
+                        styles.rankBadge,
+                        {
+                          backgroundColor:
+                            item.rank_position === 1
+                              ? "rgba(255,255,255,0.2)"
+                              : item.rank_position <= 3
+                              ? "#E5E7EB"
+                              : "#F5F5F5",
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.rankNumber,
+                          { color: item.rank_position === 1 ? "white" : item.rank_position <= 3 ? "#6B7280" : "#9CA3AF" },
+                        ]}
+                      >
+                        #{item.rank_position}
                       </Text>
                     </View>
-                  )}
+                    <View style={item.rank_position === 1 ? styles.rankingUserAvatarFirst : styles.rankingUserAvatarDefault}>
+                      <Text style={item.rank_position === 1 ? styles.rankingUserAvatarFirstText : styles.rankingUserAvatarDefaultText}>
+                        {item.rank_position === 1 ? "👤" : (item.display_name?.slice(0, 2).toUpperCase() ?? "?")}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.userInfo}>
+                    <Text style={[styles.userNameText, { color: item.rank_position === 1 ? "white" : appTheme.colors.textPrimary }]}>
+                      {item.display_name}
+                    </Text>
+                    {item.province && (
+                      <Text style={[styles.userRoleText, { color: item.rank_position === 1 ? "rgba(255,255,255,0.8)" : "#6B7280" }]}>
+                        {item.province}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={styles.pointsContainer}>
+                    <Text style={[styles.pointsNumberText, { color: item.rank_position === 1 ? "white" : appTheme.colors.textPrimary }]}>
+                      {item.total_points}
+                    </Text>
+                    <Text style={[styles.pointsLabelText, { color: item.rank_position === 1 ? "rgba(255,255,255,0.7)" : "#9CA3AF" }]}>
+                      pontos
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.userInfo}>
-                  <Text style={[styles.userNameText, { color: item.rank === 1 ? "white" : appTheme.colors.textPrimary }]}>
-                    {item.name}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.userRoleText,
-                      { color: item.rank === 1 ? "rgba(255,255,255,0.8)" : "#6B7280" },
-                    ]}
-                  >
-                    {item.role}
-                  </Text>
-                </View>
-                <View style={styles.pointsContainer}>
-                  <Text
-                    style={[
-                      styles.pointsNumberText,
-                      { color: item.rank === 1 ? "white" : appTheme.colors.textPrimary },
-                    ]}
-                  >
-                    {item.points}
-                  </Text>
-                  <Text style={[styles.pointsLabelText, { color: item.rank === 1 ? "rgba(255,255,255,0.7)" : "#9CA3AF" }]}>
-                    pontos
-                  </Text>
-                </View>
-              </View>
-            )}
-          />
-          <TouchableOpacity style={styles.rankingFullButton} onPress={handleGoToTabs}>
-            <Text style={styles.rankingFullButtonText}>Ver ranking completo</Text>
-            <Ionicons name="arrow-forward" size={18} color="#4B5563" />
-          </TouchableOpacity>
-        </View>
-
+              )}
+            />
+            <TouchableOpacity
+              style={styles.rankingFullButton}
+              onPress={() => (navigation as any).navigate("MainTabs", { screen: "QuizList" })}
+            >
+              <Text style={styles.rankingFullButtonText}>Ver ranking completo</Text>
+              <Ionicons name="arrow-forward" size={18} color="#4B5563" />
+            </TouchableOpacity>
+          </View>
+        )}
 
       </ScrollView>
     </ScreenContainer>
@@ -609,6 +335,11 @@ export function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   container: {
     paddingHorizontal: 16,
     paddingBottom: 16,
@@ -672,10 +403,6 @@ const styles = StyleSheet.create({
   searchIcon: {
     marginRight: 12,
   },
-  searchPlaceholder: {
-    fontSize: 16,
-    color: appTheme.colors.textMuted,
-  },
   searchInput: {
     flex: 1,
     height: "100%",
@@ -701,174 +428,79 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textSecondary,
     marginBottom: 16,
   },
-  continueCard: {
-    height: 180,
-    borderRadius: 12,
-    overflow: "hidden",
+  recentHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
-    position: "relative",
   },
-  continueImage: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
+  seeAllRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
-  continueOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0,0,0,0.65)",
-  },
-  continueContent: {
-    flex: 1,
-    justifyContent: "flex-end",
-    padding: 16,
-  },
-  continueBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: "#FFFBEB",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  continueBadgeText: {
-    color: "#92400E",
-    fontSize: 11,
+  seeAllText: {
+    color: appTheme.colors.primary,
+    fontSize: 14,
     fontWeight: "600",
   },
-  continueTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "white",
-    marginBottom: 8,
-  },
-  progressContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  progressBar: {
-    flex: 1,
-    height: 6,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: 6,
-    backgroundColor: appTheme.colors.success,
-  },
-  continueProgressText: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 13,
-    marginBottom: 12,
-  },
-  continueResumeBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "white",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-    gap: 8,
-  },
-  continueResumeBtnText: {
-    color: appTheme.colors.primary,
-    fontSize: 15,
-    fontWeight: "700",
-  },
+  // Jindungo cards
   jindungoCard: {
-    height: 200,
     borderRadius: 12,
-    overflow: "hidden",
+    backgroundColor: "#1A0A0A",
     marginBottom: 12,
-    borderWidth: 2,
-    position: "relative",
-  },
-  jindungoBgImage: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-  },
-  jindungoOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0,0,0,0.75)",
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: appTheme.colors.primary,
   },
   jindungoCardContent: {
-    flex: 1,
     padding: 16,
-    justifyContent: "space-between",
   },
-  jindungoHeaderRow: {
+  jindungoBadgeRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-  },
-  jindungoIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
+    marginBottom: 8,
   },
   jindungoBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
     backgroundColor: appTheme.colors.primary,
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   jindungoBadgeText: {
     color: "white",
     fontSize: 10,
     fontWeight: "700",
   },
+  jindungoCategoryText: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 12,
+  },
   jindungoCardTitle: {
     fontSize: 16,
     fontWeight: "700",
     color: "white",
     lineHeight: 20,
+    marginBottom: 6,
   },
   jindungoCardDesc: {
-    color: "rgba(255,255,255,0.85)",
+    color: "rgba(255,255,255,0.7)",
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: 18,
+    marginBottom: 12,
   },
-  jindungoMetaRow: {
+  jindungoMeta: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: 12,
   },
   jindungoMetaText: {
-    color: "rgba(255,255,255,0.7)",
+    color: "rgba(255,255,255,0.5)",
     fontSize: 12,
-  },
-  jindungoTrendingBadge: {
-    backgroundColor: appTheme.colors.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  jindungoTrendingText: {
-    color: "white",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  jindungoTagsRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  jindungoTag: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  jindungoTagText: {
-    color: "white",
-    fontSize: 10,
   },
   exploreButton: {
     flexDirection: "row",
@@ -885,143 +517,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 14,
   },
-  microCard: {
-    height: 140,
-    borderRadius: 10,
-    overflow: "hidden",
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: appTheme.colors.border,
-    position: "relative",
-  },
-  microBgImage: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-  },
-  microOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(255, 255, 255, 0.88)",
-  },
-  microCardContent: {
-    flex: 1,
-    padding: 12,
-    justifyContent: "space-between",
-  },
-  microHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  microIconWrap: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "rgba(139, 30, 45, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  microBadgeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  microTagBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  microTagText: {
-    color: "white",
-    fontSize: 9,
-    fontWeight: "700",
-  },
-  microTimeText: {
-    fontSize: 11,
-    color: appTheme.colors.textMuted,
-  },
-  microCardTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-  },
-  microCardDesc: {
-    fontSize: 13,
-    color: appTheme.colors.textSecondary,
-    lineHeight: 16,
-  },
-  microFooterRow: {
-    flexDirection: "row",
-  },
-  microFooterText: {
-    fontSize: 11,
-    color: appTheme.colors.textMuted,
-  },
-  exploreMicroButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderWidth: 2,
-    borderColor: appTheme.colors.border,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  exploreMicroButtonText: {
-    color: appTheme.colors.textSecondary,
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  formatsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  formatCard: {
-    width: "48%",
-    borderRadius: 16,
-    borderWidth: 2,
-    padding: 16,
-    alignItems: "flex-start",
-    marginBottom: 4,
-    flexGrow: 1,
-  },
-  formatCardIcon: {
-    marginBottom: 12,
-  },
-  formatLabel: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    marginBottom: 4,
-  },
-  formatSubLabel: {
-    fontSize: 12,
-    color: "#574142",
-    marginBottom: 12,
-  },
-  formatCountText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  recentArticlesHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  seeAllRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  seeAllText: {
-    color: appTheme.colors.primary,
-    fontSize: 14,
-    fontWeight: "600",
-  },
+  // Ranking
   rankingHeaderTitle: {
     fontSize: 24,
     fontWeight: "700",

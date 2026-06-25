@@ -34,7 +34,6 @@ export function PodcastScreen() {
     if (user) {
       navigation.navigate("CreateTopic", {
         initialTitle: "Kwanza: História e Desafios da Moeda Nacional",
-        initialCategory: "História Monetária",
       });
     } else {
       navigation.navigate("LoginPrompt", { type: "create-topic" });

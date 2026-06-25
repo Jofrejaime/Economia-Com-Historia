@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1.5,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.sm,
     backgroundColor: appTheme.colors.surface,
     minHeight: 52,
     paddingHorizontal: appTheme.spacing.md,

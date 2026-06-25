@@ -1,178 +1,185 @@
-<div class="login-container">
+<!-- ============================================
+   LOGIN PAGE - DESIGN SYSTEM "Economia com História"
+   ============================================ -->
+
+<div class="login-page">
   
-  <!-- Left Side - Bordeaux com informações institucionais -->
-  <div class="login-sidebar">
+  <div class="login-container">
     
-    <!-- Elementos decorativos sutis -->
-    <div class="login-decoration-top"></div>
-    <div class="login-decoration-bottom"></div>
-    
-    <!-- Logo -->
-    <div class="login-logo">
-      <div class="login-logo-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#d4a0a8">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
-          <path d="M2 17L12 22L22 17"/>
-          <path d="M2 12L12 17L22 12"/>
-        </svg>
-      </div>
-      <span class="login-logo-text">Economia com História</span>
-    </div>
-
-    <!-- Conteúdo central -->
-    <div class="login-content">
+    <!-- Left Side - Bordeaux com informações institucionais -->
+    <div class="login-sidebar">
       
-      <div>
-        <div style="margin-bottom: 16px;">
-          <span class="login-badge">ARQUIVO DIGITAL</span>
-        </div>
-        <h2 class="login-title">Arquivo do Pensamento Económico de Angola</h2>
-        <p class="login-description">
-          Preservação e acesso ao património documental da história económica de Angola.
-        </p>
-      </div>
-
-      <div class="login-divider"></div>
-
-      <div class="login-stats">
-        <div class="login-stat-item">
-          <div class="login-stat-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
-              <rect x="2" y="3" width="20" height="18" rx="2"/>
-              <line x1="8" y1="9" x2="16" y2="9"/>
-              <line x1="8" y1="13" x2="12" y2="13"/>
-            </svg>
-          </div>
-          <div>
-            <p class="login-stat-value">12.500+ documentos</p>
-            <p class="login-stat-label">Fontes primárias digitalizadas</p>
-          </div>
-        </div>
-        <div class="login-stat-item">
-          <div class="login-stat-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
-          <div>
-            <p class="login-stat-value">3.200+ investigadores</p>
-            <p class="login-stat-label">Comunidade activa especializada</p>
-          </div>
-        </div>
-        <div class="login-stat-item">
-          <div class="login-stat-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
-              <path d="M4 4h16v16H4z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </div>
-          <div>
-            <p class="login-stat-value">Acesso institucional</p>
-            <p class="login-stat-label">Redes de investigação parceiras</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="login-quote">
-        <p class="login-quote-text">
-          "A memória documental é a base do conhecimento histórico."
-        </p>
-        <p class="login-quote-author">— Comissão de Arquivos</p>
-      </div>
-    </div>
-
-    <div class="login-sidebar-footer">
-      <p class="login-sidebar-footer-text">Arquivo Digital do Pensamento Económico de Angola</p>
-    </div>
-  </div>
-
-  <!-- Right Side - Login Form -->
-  <div class="login-form-wrapper">
-    
-    <div class="login-form-container">
+      <!-- Elementos decorativos sutis -->
+      <div class="login-decoration-top"></div>
+      <div class="login-decoration-bottom"></div>
       
-      <!-- Header -->
-      <div class="login-form-header">
-        <div style="margin-bottom: 16px;">
-          <span class="login-form-badge">BEM-VINDO DE VOLTA</span>
+      <!-- Logo -->
+      <div class="login-logo">
+        <div class="login-logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#d4a0a8">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+            <path d="M2 17L12 22L22 17"/>
+            <path d="M2 12L12 17L22 12"/>
+          </svg>
         </div>
-        <h1 class="login-form-title">Aceder à sua conta</h1>
-        <p class="login-form-subtitle">Utilize as suas credenciais institucionais para aceder ao arquivo digital</p>
+        <span class="login-logo-text">Economia com História</span>
       </div>
 
-      <!-- Login Card -->
-      <div class="login-form-card">
+      <!-- Conteúdo central -->
+      <div class="login-content">
         
-        <form (ngSubmit)="handleSubmit($event)">
-
-          <!-- Error -->
-          <div *ngIf="errorMessage">
-            <app-auth-feedback
-              type="error"
-              title="Acesso não autorizado"
-              [message]="errorMessage"
-              [actionLabel]="feedbackActionLabel"
-              [actionLink]="feedbackActionLink">
-            </app-auth-feedback>
+        <div>
+          <div class="login-badge-wrapper">
+            <span class="login-badge">ARQUIVO DIGITAL</span>
           </div>
-
-          <!-- Success -->
-          <div *ngIf="successMessage">
-            <app-auth-feedback
-              type="success"
-              title="Sessão iniciada"
-              [message]="successMessage">
-            </app-auth-feedback>
-          </div>
-          
-          <!-- Email Field -->
-          <div class="login-form-group">
-            <label class="login-form-label">Email institucional</label>
-            <input type="email" [(ngModel)]="email" name="email" placeholder="nome@instituicao.edu" required
-                   class="login-input">
-          </div>
-
-          <!-- Password Field -->
-          <div class="login-form-group">
-            <div class="login-form-label-row">
-              <label class="login-form-label">Palavra-passe</label>
-              <button type="button" (click)="forgotPassword()" class="login-forgot-link">Esqueceu a senha?</button>
-            </div>
-            <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required
-                   class="login-input">
-          </div>
-
-          <!-- Submit Button -->
-          <button type="submit" [disabled]="loading" class="login-btn">
-            <span *ngIf="!loading">Entrar no Arquivo</span>
-            <span *ngIf="loading">Acedendo...</span>
-          </button>
-        </form>
-
-        <!-- Divider -->
-        <div class="login-divider-form">
-          <div class="login-divider-line"></div>
-          <span class="login-divider-text">Acesso académico</span>
-          <div class="login-divider-line"></div>
+          <h2 class="login-title">Arquivo do Pensamento Económico de Angola</h2>
+          <p class="login-description">
+            Preservação e acesso ao património documental da história económica de Angola.
+          </p>
         </div>
 
-        <!-- Secondary Action -->
-        <div style="text-align: center;">
-          <p style="color: #64748b; font-size: 14px; margin-bottom: 16px; font-family: 'Source Sans 3', sans-serif;">Não possui credenciais de acesso?</p>
-          <a routerLink="/auth/criar-conta">
-            <button type="button" class="login-secondary-btn">
-              Solicitar criação de conta
-            </button>
-          </a>
+        <div class="login-divider"></div>
+
+        <div class="login-stats">
+          <div class="login-stat-item">
+            <div class="login-stat-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+                <rect x="2" y="3" width="20" height="18" rx="2"/>
+                <line x1="8" y1="9" x2="16" y2="9"/>
+                <line x1="8" y1="13" x2="12" y2="13"/>
+              </svg>
+            </div>
+            <div>
+              <p class="login-stat-value">12.500+ documentos</p>
+              <p class="login-stat-label">Fontes primárias digitalizadas</p>
+            </div>
+          </div>
+          <div class="login-stat-item">
+            <div class="login-stat-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div>
+              <p class="login-stat-value">3.200+ investigadores</p>
+              <p class="login-stat-label">Comunidade activa especializada</p>
+            </div>
+          </div>
+          <div class="login-stat-item">
+            <div class="login-stat-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+                <path d="M4 4h16v16H4z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <div>
+              <p class="login-stat-value">Acesso institucional</p>
+              <p class="login-stat-label">Redes de investigação parceiras</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="login-quote">
+          <p class="login-quote-text">
+            "A memória documental é a base do conhecimento histórico."
+          </p>
+          <p class="login-quote-author">— Comissão de Arquivos</p>
         </div>
       </div>
 
-      <!-- Footer Notice -->
-      <p class="login-footer-notice">
-        Este é um ambiente restrito a investigadores e estudantes.<br />
-        O acesso é monitorizado para fins de preservação histórica.
-      </p>
+      <div class="login-sidebar-footer">
+        <p class="login-sidebar-footer-text">Arquivo Digital do Pensamento Económico de Angola</p>
+      </div>
+    </div>
+
+    <!-- Right Side - Login Form -->
+    <div class="login-form-wrapper">
+      
+      <div class="login-form-container">
+        
+        <!-- Header -->
+        <div class="login-form-header">
+          <div class="login-form-badge-wrapper">
+            <span class="login-form-badge">BEM-VINDO DE VOLTA</span>
+          </div>
+          <h1 class="login-form-title">Aceder à sua conta</h1>
+          <p class="login-form-subtitle">Utilize as suas credenciais institucionais para aceder ao arquivo digital</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-form-card">
+          
+          <form (ngSubmit)="handleSubmit($event)">
+
+            <!-- Error -->
+            <div *ngIf="errorMessage" class="login-error-wrapper">
+              <app-auth-feedback
+                type="error"
+                title="Acesso não autorizado"
+                [message]="errorMessage"
+                [actionLabel]="feedbackActionLabel"
+                [actionLink]="feedbackActionLink">
+              </app-auth-feedback>
+            </div>
+
+            <!-- Success -->
+            <div *ngIf="successMessage" class="login-success-wrapper">
+              <app-auth-feedback
+                type="success"
+                title="Sessão iniciada"
+                [message]="successMessage">
+              </app-auth-feedback>
+            </div>
+            
+            <!-- Email Field -->
+            <div class="login-form-group">
+              <label class="login-form-label">Email institucional</label>
+              <input type="email" [(ngModel)]="email" name="email" placeholder="nome@instituicao.edu" required
+                     class="login-input">
+            </div>
+
+            <!-- Password Field -->
+            <div class="login-form-group">
+              <div class="login-form-label-row">
+                <label class="login-form-label">Palavra-passe</label>
+                <button type="button" (click)="forgotPassword()" class="login-forgot-link">Esqueceu a senha?</button>
+              </div>
+              <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required
+                     class="login-input">
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" [disabled]="loading" class="login-btn">
+              <span *ngIf="!loading">Entrar</span>
+              <span *ngIf="loading">Acedendo...</span>
+            </button>
+          </form>
+
+          <!-- Divider -->
+          <div class="login-divider-form">
+            <div class="login-divider-line"></div>
+            <span class="login-divider-text">Acesso académico</span>
+            <div class="login-divider-line"></div>
+          </div>
+
+          <!-- Secondary Action -->
+          <div class="login-secondary-action">
+            <p class="login-secondary-text">Não possui credenciais de acesso?</p>
+            <a routerLink="/auth/criar-conta" class="login-secondary-link">
+              <button type="button" class="login-secondary-btn">
+                Solicitar criação de conta
+              </button>
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer Notice -->
+        <p class="login-footer-notice">
+          Este é um ambiente restrito a investigadores e estudantes.<br />
+          O acesso é monitorizado para fins de preservação histórica.
+        </p>
+      </div>
     </div>
   </div>
 </div>

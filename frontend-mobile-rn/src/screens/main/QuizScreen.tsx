@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,185 +6,232 @@ import {
   TouchableOpacity,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
+import { quizService } from "../../services/api/quizService";
+import type { QuizQuestion, QuizOption } from "../../types/api";
+import { MainStackParamList } from "../../types/navigation";
+
+type QuizRouteProp = RouteProp<MainStackParamList, "Quiz">;
 
 export function QuizScreen() {
   const navigation = useNavigation<any>();
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const route = useRoute<QuizRouteProp>();
+  const { quizId, attemptId: routeAttemptId } = route.params;
 
-  const handleSubmit = () => {
-    if (!selectedOption) return;
-    navigation.navigate("QuizFeedback", {
-      isCorrect: selectedOption === "B",
-    });
+  const [loading, setLoading] = useState(true);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [attemptId, setAttemptId] = useState<string | null>(routeAttemptId ?? null);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [initError, setInitError] = useState(false);
+
+  const initQuiz = useCallback(async () => {
+    setLoading(true);
+    setInitError(false);
+    try {
+      let activeAttemptId = routeAttemptId ?? null;
+      if (!activeAttemptId) {
+        const attempt = await quizService.startAttempt(quizId);
+        activeAttemptId = attempt.id;
+        setAttemptId(attempt.id);
+      }
+      const qs = await quizService.questions(quizId);
+      setQuestions(qs);
+    } catch (error) {
+      console.warn("Erro ao iniciar quiz", error);
+      setInitError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [quizId, routeAttemptId]);
+
+  useEffect(() => {
+    void initQuiz();
+  }, [initQuiz]);
+
+  const currentQuestion = questions[currentIndex];
+  const totalQuestions = questions.length;
+
+  const handleConfirm = async () => {
+    if (!selectedOptionId || !attemptId || !currentQuestion) return;
+    setSubmitting(true);
+
+    try {
+      const result = await quizService.submitAnswer(attemptId, {
+        question_id: currentQuestion.id,
+        option_id: selectedOptionId,
+      });
+
+      const isCorrect = result.is_correct;
+      const explanation = result.explanation;
+
+      const isLast = currentIndex === totalQuestions - 1;
+
+      if (isLast) {
+        await quizService.completeAttempt(attemptId);
+        navigation.navigate("QuizFeedback", {
+          isCorrect,
+          explanation,
+          onNext: () => navigation.navigate("QuizResult", { attemptId }),
+        });
+      } else {
+        navigation.navigate("QuizFeedback", {
+          isCorrect,
+          explanation,
+          onNext: () => {
+            setCurrentIndex((i) => i + 1);
+            setSelectedOptionId(null);
+            navigation.goBack();
+          },
+        });
+      }
+    } catch (error) {
+      console.warn("Erro ao submeter resposta", error);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+        <HeaderBar title="Quiz" />
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={appTheme.colors.primary} />
+          <Text style={styles.loadingText}>A preparar o quiz...</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (!loading && (initError || !currentQuestion)) {
+    return (
+      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+        <HeaderBar title="Quiz" />
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>Não foi possível carregar as perguntas.</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => void initQuiz()}>
+            <Text style={styles.retryBtnText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  const progressPercent = ((currentIndex + 1) / totalQuestions) * 100;
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
       <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
       <HeaderBar title="Quiz" />
 
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Module and Question */}
+      {/* Progress bar */}
+      <View style={styles.progressWrap}>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progressPercent}%` as any }]} />
+        </View>
+        <Text style={styles.progressLabel}>{currentIndex + 1} / {totalQuestions}</Text>
+      </View>
+
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Module + Question */}
         <View style={styles.questionBlock}>
-          <Text style={styles.moduleLabel}>MÓDULO II: A ERA COLONIAL</Text>
-          <Text style={styles.questionText}>
-            Qual foi o impacto imediato da abolição do tráfico negreiro na estrutura comercial de Luanda em 1836?
-          </Text>
+          {currentQuestion.module_label && (
+            <Text style={styles.moduleLabel}>{currentQuestion.module_label.toUpperCase()}</Text>
+          )}
+          {currentQuestion.subtitle && (
+            <Text style={styles.questionSubtitle}>{currentQuestion.subtitle}</Text>
+          )}
+          <Text style={styles.questionText}>{currentQuestion.title}</Text>
           <View style={styles.divider} />
         </View>
 
+        {/* Reading material */}
+        {currentQuestion.reading_text && (
+          <View style={styles.readingBlock}>
+            {currentQuestion.reading_title && (
+              <Text style={styles.readingTitle}>{currentQuestion.reading_title}</Text>
+            )}
+            <Text style={styles.readingText}>{currentQuestion.reading_text}</Text>
+          </View>
+        )}
+
         {/* Options */}
         <View style={styles.optionsContainer}>
-          {/* Option A */}
-          <TouchableOpacity
-            onPress={() => setSelectedOption("A")}
-            style={[
-              styles.optionBtn,
-              selectedOption === "A" ? styles.optionBtnSelected : styles.optionBtnDefault,
-            ]}
-          >
-            <View style={styles.optionRow}>
-              <Text
+          {(currentQuestion.options ?? []).map((option: QuizOption) => {
+            const isSelected = selectedOptionId === option.id;
+            return (
+              <TouchableOpacity
+                key={option.id}
+                onPress={() => setSelectedOptionId(option.id)}
                 style={[
-                  styles.optionLetter,
-                  selectedOption === "A" ? styles.optionLetterSelected : styles.optionLetterDefault,
+                  styles.optionBtn,
+                  isSelected ? styles.optionBtnSelected : styles.optionBtnDefault,
                 ]}
               >
-                A
-              </Text>
-              <Text
-                style={[
-                  styles.optionText,
-                  selectedOption === "A" ? styles.optionTextSelected : styles.optionTextDefault,
-                ]}
-              >
-                O colapso total imediato de todas as rotas comerciais marítimas para a Europa.
-              </Text>
-              {selectedOption === "A" && (
-                <Feather name="check" size={20} color="#6B0119" style={styles.checkIcon} />
-              )}
-            </View>
-          </TouchableOpacity>
-
-          {/* Option B */}
-          <TouchableOpacity
-            onPress={() => setSelectedOption("B")}
-            style={[
-              styles.optionBtn,
-              selectedOption === "B" ? styles.optionBtnSelected : styles.optionBtnDefault,
-            ]}
-          >
-            <View style={styles.optionRow}>
-              <Text
-                style={[
-                  styles.optionLetter,
-                  selectedOption === "B" ? styles.optionLetterSelected : styles.optionLetterDefault,
-                ]}
-              >
-                B
-              </Text>
-              <Text
-                style={[
-                  styles.optionText,
-                  selectedOption === "B" ? styles.optionTextSelected : styles.optionTextDefault,
-                ]}
-              >
-                Uma transição forçada para a "economia lícita", focada na exportação de cera, marfim e óleo de palma.
-              </Text>
-              {selectedOption === "B" && (
-                <Feather name="check" size={20} color="#6B0119" style={styles.checkIcon} />
-              )}
-            </View>
-          </TouchableOpacity>
-
-          {/* Option C */}
-          <TouchableOpacity
-            onPress={() => setSelectedOption("C")}
-            style={[
-              styles.optionBtn,
-              selectedOption === "C" ? styles.optionBtnSelected : styles.optionBtnDefault,
-            ]}
-          >
-            <View style={styles.optionRow}>
-              <Text
-                style={[
-                  styles.optionLetter,
-                  selectedOption === "C" ? styles.optionLetterSelected : styles.optionLetterDefault,
-                ]}
-              >
-                C
-              </Text>
-              <Text
-                style={[
-                  styles.optionText,
-                  selectedOption === "C" ? styles.optionTextSelected : styles.optionTextDefault,
-                ]}
-              >
-                A substituição imediata da mão-de-obra escrava por sistemas mecanizados industriais importados.
-              </Text>
-              {selectedOption === "C" && (
-                <Feather name="check" size={20} color="#6B0119" style={styles.checkIcon} />
-              )}
-            </View>
-          </TouchableOpacity>
-
-          {/* Option D */}
-          <TouchableOpacity
-            onPress={() => setSelectedOption("D")}
-            style={[
-              styles.optionBtn,
-              selectedOption === "D" ? styles.optionBtnSelected : styles.optionBtnDefault,
-            ]}
-          >
-            <View style={styles.optionRow}>
-              <Text
-                style={[
-                  styles.optionLetter,
-                  selectedOption === "D" ? styles.optionLetterSelected : styles.optionLetterDefault,
-                ]}
-              >
-                D
-              </Text>
-              <Text
-                style={[
-                  styles.optionText,
-                  selectedOption === "D" ? styles.optionTextSelected : styles.optionTextDefault,
-                ]}
-              >
-                O isolamento diplomático de Angola perante as outras colónias portuguesas no Atlântico.
-              </Text>
-              {selectedOption === "D" && (
-                <Feather name="check" size={20} color="#6B0119" style={styles.checkIcon} />
-              )}
-            </View>
-          </TouchableOpacity>
+                <View style={styles.optionRow}>
+                  <Text
+                    style={[
+                      styles.optionLetter,
+                      isSelected ? styles.optionLetterSelected : styles.optionLetterDefault,
+                    ]}
+                  >
+                    {option.option_key}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      isSelected ? styles.optionTextSelected : styles.optionTextDefault,
+                    ]}
+                  >
+                    {option.text}
+                  </Text>
+                  {isSelected && (
+                    <Feather name="check" size={20} color="#6B0119" style={styles.checkIcon} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Hint and Submit */}
         <View style={styles.submitSection}>
-          <View style={styles.hintRow}>
-            <Feather name="help-circle" size={14} color="rgba(87,65,66,0.7)" style={{ marginTop: 2 }} />
-            <Text style={styles.hintText}>
-              Pense na transição entre o mercantilismo clássico e o novo colonialismo.
-            </Text>
-          </View>
+          {currentQuestion.hint_quote && (
+            <View style={styles.hintRow}>
+              <Feather name="help-circle" size={14} color="rgba(87,65,66,0.7)" style={{ marginTop: 2 }} />
+              <Text style={styles.hintText}>{currentQuestion.hint_quote}</Text>
+            </View>
+          )}
 
           <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={!selectedOption}
+            onPress={() => void handleConfirm()}
+            disabled={!selectedOptionId || submitting}
             style={[
               styles.submitBtn,
-              !selectedOption && styles.submitBtnDisabled,
+              (!selectedOptionId || submitting) && styles.submitBtnDisabled,
             ]}
           >
-            <Text style={styles.submitBtnLabel}>Confirmar Resposta</Text>
-            <Feather name="check-circle" size={18} color="white" />
+            {submitting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <>
+                <Text style={styles.submitBtnLabel}>Confirmar Resposta</Text>
+                <Feather name="check-circle" size={18} color="white" />
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -196,29 +243,64 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#F8F9FF",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
+    gap: 16,
+  },
+  loadingText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 15,
+    color: appTheme.colors.textMuted,
+  },
+  errorText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 16,
+    color: appTheme.colors.textMuted,
+    textAlign: "center",
+  },
+  retryBtn: {
+    backgroundColor: appTheme.colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: appTheme.radius.button,
+  },
+  retryBtnText: {
+    fontFamily: "IBM_Plex_Sans",
+    color: "white",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  progressWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 12,
     backgroundColor: "white",
     borderBottomWidth: 1,
     borderBottomColor: appTheme.colors.border,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
   },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  progressTrack: {
+    flex: 1,
+    height: 6,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 3,
+    overflow: "hidden",
   },
-  appTitle: {
-    fontSize: 16,
+  progressFill: {
+    height: "100%",
+    backgroundColor: appTheme.colors.primary,
+    borderRadius: 3,
+  },
+  progressLabel: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
     fontWeight: "700",
-    color: appTheme.colors.primary,
-    fontFamily: "IBM_Plex_Sans",
-  },
-  moreButton: {
-    padding: 4,
+    color: appTheme.colors.textSecondary,
+    minWidth: 40,
+    textAlign: "right",
   },
   scrollContainer: {
     flex: 1,
@@ -229,23 +311,31 @@ const styles = StyleSheet.create({
   },
   questionBlock: {
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 24,
   },
   moduleLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     fontWeight: "700",
     color: "#894D50",
     letterSpacing: 2.4,
-    marginBottom: 16,
+    marginBottom: 12,
     textAlign: "center",
+  },
+  questionSubtitle: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 14,
+    color: appTheme.colors.textSecondary,
+    textAlign: "center",
+    marginBottom: 8,
   },
   questionText: {
     fontFamily: "IBM_Plex_Sans",
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "700",
     color: "#121C2A",
     textAlign: "center",
-    lineHeight: 32,
+    lineHeight: 30,
     marginBottom: 24,
   },
   divider: {
@@ -253,8 +343,27 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: "rgba(139,30,45,0.2)",
   },
+  readingBlock: {
+    backgroundColor: "#EFF4FF",
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 24,
+  },
+  readingTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 13,
+    fontWeight: "700",
+    color: appTheme.colors.textSecondary,
+    marginBottom: 8,
+  },
+  readingText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 14,
+    color: appTheme.colors.textSecondary,
+    lineHeight: 22,
+  },
   optionsContainer: {
-    gap: 16,
+    gap: 12,
     marginBottom: 32,
   },
   optionBtn: {
@@ -291,6 +400,7 @@ const styles = StyleSheet.create({
     color: "#6B0119",
   },
   optionText: {
+    fontFamily: "Source_Sans_3",
     flex: 1,
     fontSize: 15,
     lineHeight: 22,
@@ -316,6 +426,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   hintText: {
+    fontFamily: "Source_Sans_3",
     flex: 1,
     fontStyle: "italic",
     fontSize: 13,
@@ -329,7 +440,7 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: appTheme.colors.primary,
     paddingVertical: 16,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.button,
     shadowColor: appTheme.colors.primary,
     shadowOpacity: 0.15,
     shadowRadius: 10,
@@ -339,6 +450,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   submitBtnLabel: {
+    fontFamily: "IBM_Plex_Sans",
     color: "white",
     fontSize: 16,
     fontWeight: "700",

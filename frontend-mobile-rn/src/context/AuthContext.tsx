@@ -2,11 +2,14 @@ import React, { createContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthState, AuthUser, SignInInput, SignUpInput } from "../types/auth";
 import { setAuthToken } from "../services/http/tokenManager";
+import { httpClient } from "../services/http/client";
+import { API_ENDPOINTS } from "../constants/api";
 
 interface AuthContextValue extends AuthState {
   signIn: (input: SignInInput) => Promise<void>;
   signUp: (input: SignUpInput) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const initialState: AuthState = {
@@ -17,18 +20,29 @@ const initialState: AuthState = {
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function mapMeResponseToAuthUser(data: any): AuthUser {
+  return {
+    id: data.id,
+    email: data.email,
+    role: data.role ?? 'estudante',
+    display_name: data.profile?.display_name ?? data.email.split('@')[0],
+    full_name: data.profile?.full_name ?? null,
+    province: data.profile?.province ?? null,
+    avatar_url: data.profile?.avatar_url ?? null,
+    institution: data.profile?.institution ?? null,
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>(initialState);
 
-  // Carrega sessão salva ao iniciar
   useEffect(() => {
     const loadSession = async () => {
       try {
         const token = await AsyncStorage.getItem("@auth_token");
         const userJson = await AsyncStorage.getItem("@auth_user");
         if (token && userJson) {
-          const user = JSON.parse(userJson);
-          // Sincroniza token em memória para o cliente HTTP
+          const user = JSON.parse(userJson) as AuthUser;
           setAuthToken(token);
           setState({ status: "authenticated", token, user });
           return;
@@ -41,67 +55,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadSession();
   }, []);
 
-  // Login (simula chamada API)
+  const refreshUser = async () => {
+    try {
+      const { data } = await httpClient.get(API_ENDPOINTS.ME.SHOW);
+      const payload = data.data ?? data;
+      const user = mapMeResponseToAuthUser(payload);
+      await AsyncStorage.setItem("@auth_user", JSON.stringify(user));
+      setState((prev) => ({ ...prev, user }));
+    } catch (error) {
+      console.warn("Erro ao actualizar utilizador", error);
+    }
+  };
+
   const signIn = async ({ email, password }: SignInInput) => {
-    // Mock – busca utilizador "existente" pelo email
-    const mockToken = "mock-jwt-token-" + Date.now();
-    const mockUser: AuthUser = {
-      id: "user-" + email,
-      name: email.split("@")[0], // nome baseado no email
-      email,
-    };
-    try {
-      const registeredEmailsRaw = await AsyncStorage.getItem("@registered_emails");
-      const registeredEmails = registeredEmailsRaw ? JSON.parse(registeredEmailsRaw) : [];
-      if (!registeredEmails.includes(email.toLowerCase())) {
-        registeredEmails.push(email.toLowerCase());
-        await AsyncStorage.setItem("@registered_emails", JSON.stringify(registeredEmails));
-      }
-    } catch (error) {
-      console.warn("Erro ao salvar email registrado", error);
-    }
-    await AsyncStorage.setItem("@auth_token", mockToken);
-    await AsyncStorage.setItem("@auth_user", JSON.stringify(mockUser));
-    // Mantém token em memória para o interceptor HTTP
-    setAuthToken(mockToken);
-    setState({ status: "authenticated", token: mockToken, user: mockUser });
+    const { data } = await httpClient.post(API_ENDPOINTS.AUTH.LOGIN, { email, password });
+    const payload = data.data ?? data;
+    const token: string = payload.token;
+    // login returns user + profile as separate fields — merge them for mapMeResponseToAuthUser
+    const userWithProfile = { ...(payload.user ?? payload), profile: payload.profile ?? null };
+    const user = mapMeResponseToAuthUser(userWithProfile);
+
+    setAuthToken(token);
+    await AsyncStorage.setItem("@auth_token", token);
+    await AsyncStorage.setItem("@auth_user", JSON.stringify(user));
+    setState({ status: "authenticated", token, user });
   };
 
-  // Registo (simula criação de conta)
   const signUp = async ({ fullName, email, password }: SignUpInput) => {
-    const mockToken = "mock-jwt-token-" + Date.now();
-    const mockUser: AuthUser = {
-      id: "user-" + email,
-      name: fullName,
+    const { data } = await httpClient.post(API_ENDPOINTS.AUTH.REGISTER, {
+      display_name: fullName,
       email,
-    };
-    try {
-      const registeredEmailsRaw = await AsyncStorage.getItem("@registered_emails");
-      const registeredEmails = registeredEmailsRaw ? JSON.parse(registeredEmailsRaw) : [];
-      if (!registeredEmails.includes(email.toLowerCase())) {
-        registeredEmails.push(email.toLowerCase());
-        await AsyncStorage.setItem("@registered_emails", JSON.stringify(registeredEmails));
-      }
-    } catch (error) {
-      console.warn("Erro ao salvar email registrado", error);
-    }
-    await AsyncStorage.setItem("@auth_token", mockToken);
-    await AsyncStorage.setItem("@auth_user", JSON.stringify(mockUser));
-    setAuthToken(mockToken);
-    setState({ status: "authenticated", token: mockToken, user: mockUser });
+      password,
+      password_confirmation: password,
+    });
+    const payload = data.data ?? data;
+    const token: string = payload.token;
+    // register returns user without profile — inject display_name directly
+    const userWithProfile = { ...(payload.user ?? payload), profile: { display_name: fullName } };
+    const user = mapMeResponseToAuthUser(userWithProfile);
+
+    setAuthToken(token);
+    await AsyncStorage.setItem("@auth_token", token);
+    await AsyncStorage.setItem("@auth_user", JSON.stringify(user));
+    setState({ status: "authenticated", token, user });
   };
 
-  // Logout
   const signOut = async () => {
+    try {
+      await httpClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+    } catch {
+      // ignore logout errors — clear session regardless
+    }
+    setAuthToken(null);
     await AsyncStorage.removeItem("@auth_token");
     await AsyncStorage.removeItem("@auth_user");
-    // Remove também o token mantido em memória
-    setAuthToken(null);
     setState({ status: "unauthenticated", token: null, user: null });
   };
 
   const value = useMemo(
-    () => ({ ...state, signIn, signUp, signOut }),
+    () => ({ ...state, signIn, signUp, signOut, refreshUser }),
     [state]
   );
 

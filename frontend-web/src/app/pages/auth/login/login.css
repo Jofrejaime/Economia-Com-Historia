@@ -1,25 +1,52 @@
 /* ============================================
-   LOGIN - DESIGN SYSTEM
+   LOGIN PAGE - DESIGN SYSTEM "Economia com História"
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 
+/* ============================================
+   1. RESET E BASE - ALTURA 100%
+   ============================================ */
+
 * {
-  font-family: 'Source Sans 3', sans-serif;
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
-/* Container principal */
+html, body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: 'Source Sans 3', sans-serif;
+  background-color: #F5F5F5;
+  color: #1F2937;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   2. PAGE CONTAINER - OCUPA 100%
+   ============================================ */
+
+.login-page {
+  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+}
+
 .login-container {
   display: flex;
   min-height: 100vh;
+  height: 100%;
+  width: 100%;
   background-color: #F5F5F5;
 }
 
 /* ============================================
-   SIDEBAR ESQUERDA - BRANDING
+   3. SIDEBAR ESQUERDA - BRANDING
    ============================================ */
 
 .login-sidebar {
@@ -31,6 +58,7 @@
   justify-content: space-between;
   padding: 48px;
   min-height: 100vh;
+  height: 100vh;
 }
 
 /* Decorações de fundo */
@@ -90,6 +118,10 @@
   flex-direction: column;
   justify-content: center;
   gap: 36px;
+}
+
+.login-badge-wrapper {
+  margin-bottom: 16px;
 }
 
 .login-badge {
@@ -210,7 +242,7 @@
 }
 
 /* ============================================
-   SIDEBAR DIREITA - FORMULÁRIO
+   4. SIDEBAR DIREITA - FORMULÁRIO
    ============================================ */
 
 .login-form-wrapper {
@@ -222,6 +254,7 @@
   padding: 48px;
   overflow-y: auto;
   min-height: 100vh;
+  height: 100%;
 }
 
 .login-form-container {
@@ -233,6 +266,10 @@
 .login-form-header {
   margin-bottom: 40px;
   text-align: center;
+}
+
+.login-form-badge-wrapper {
+  margin-bottom: 16px;
 }
 
 .login-form-badge {
@@ -275,46 +312,10 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Error Message */
-.login-error {
+/* Error & Success Messages */
+.login-error-wrapper,
+.login-success-wrapper {
   margin-bottom: 16px;
-  background: rgba(185, 28, 28, 0.08);
-  color: #7F1D1D;
-  padding: 14px 16px;
-  border-radius: 4px;
-  border: 1px solid rgba(185, 28, 28, 0.15);
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.login-error-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(185, 28, 28, 0.12);
-  color: #991B1B;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  flex-shrink: 0;
-  font-family: 'IBM Plex Sans', sans-serif;
-}
-
-.login-error-title {
-  font-weight: 700;
-  font-size: 14px;
-  margin-bottom: 4px;
-  font-family: 'IBM Plex Sans', sans-serif;
-  line-height: 1.3;
-}
-
-.login-error-text {
-  font-size: 13px;
-  line-height: 1.4;
-  color: #991B1B;
-  font-family: 'Source Sans 3', sans-serif;
 }
 
 /* Form Group */
@@ -430,7 +431,24 @@
   line-height: 1.7;
 }
 
-/* Secondary Button */
+/* Secondary Action */
+.login-secondary-action {
+  text-align: center;
+}
+
+.login-secondary-text {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 16px;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+}
+
+.login-secondary-link {
+  text-decoration: none;
+  display: block;
+}
+
 .login-secondary-btn {
   width: 100%;
   background: transparent;
@@ -464,7 +482,7 @@
 }
 
 /* ============================================
-   RESPONSIVO
+   5. RESPONSIVO
    ============================================ */
 
 @media (max-width: 1024px) {
@@ -489,6 +507,7 @@
   .login-sidebar {
     padding: 32px 24px;
     min-height: 280px;
+    height: auto;
   }
   
   .login-content {
@@ -513,6 +532,7 @@
   .login-form-wrapper {
     padding: 24px 16px;
     min-height: 60vh;
+    height: auto;
   }
   
   .login-form-title {

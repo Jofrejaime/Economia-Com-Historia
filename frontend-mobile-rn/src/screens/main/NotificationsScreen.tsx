@@ -1,153 +1,128 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
+import { useNotifications } from "../../context/NotificationContext";
+import type { Notification } from "../../types/api";
 
-interface NotificationItem {
-  id: string;
-  type: "content" | "security" | "achievement" | "community" | "system";
-  icon: keyof typeof Feather.glyphMap;
-  title: string;
-  description: string;
-  time: string;
-  isNew: boolean;
+function iconForType(type: string): { name: keyof typeof Feather.glyphMap; bg: string; color: string } {
+  switch (type) {
+    case "document_published":
+    case "document_liked":
+      return { name: "file-text", bg: "#EFF6FF", color: "#3B82F6" };
+    case "quiz_result":
+    case "badge_earned":
+    case "level_up":
+      return { name: "award", bg: "#FFFBEB", color: "#F59E0B" };
+    case "topic_reply":
+    case "reply_liked":
+      return { name: "message-circle", bg: "#FDF3F4", color: "#8B1E2D" };
+    case "access_granted":
+    case "access_requested":
+      return { name: "shield", bg: "#F0FDF4", color: appTheme.colors.success };
+    default:
+      return { name: "bell", bg: "#F3F4F6", color: "#6B7280" };
+  }
+}
+
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "Agora mesmo";
+  if (minutes < 60) return `Há ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Há ${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "Ontem";
+  if (days < 7) return `Há ${days} dias`;
+  const weeks = Math.floor(days / 7);
+  return `Há ${weeks} sem`;
 }
 
 export function NotificationsScreen() {
-  const navigation = useNavigation();
+  const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
-  const notifications: NotificationItem[] = [
-    {
-      id: "1",
-      type: "content",
-      icon: "file-text",
-      title: "Novo conteúdo disponível",
-      description: 'O artigo "Agricultura Angolana: Do Colonialismo ao Abandono" foi publicado',
-      time: "Há 2 horas",
-      isNew: true,
-    },
-    {
-      id: "2",
-      type: "security",
-      icon: "lock",
-      title: "Palavra-passe alterada",
-      description: "A sua palavra-passe foi alterada com sucesso",
-      time: "Ontem",
-      isNew: true,
-    },
-    {
-      id: "3",
-      type: "achievement",
-      icon: "award",
-      title: "Nova conquista desbloqueada",
-      description: 'Completou 10 quizzes! Ganhou o badge "Estudante Dedicado"',
-      time: "Há 2 dias",
-      isNew: false,
-    },
-    {
-      id: "4",
-      type: "community",
-      icon: "message-circle",
-      title: "Nova resposta no seu tópico",
-      description: 'Catarina Neto respondeu em "O petróleo foi uma bênção ou uma maldição?"',
-      time: "Há 3 dias",
-      isNew: false,
-    },
-    {
-      id: "5",
-      type: "content",
-      icon: "file-text",
-      title: "Novo podcast disponível",
-      description: "Kwanza: História e Desafios da Moeda Nacional já está disponível",
-      time: "Há 5 dias",
-      isNew: false,
-    },
-    {
-      id: "6",
-      type: "system",
-      icon: "bell",
-      title: "Atualização do sistema",
-      description: "A plataforma foi atualizada com novas funcionalidades",
-      time: "Há 1 semana",
-      isNew: false,
-    },
-  ];
+  const renderItem = ({ item }: { item: Notification }) => {
+    const icon = iconForType(item.type);
+    return (
+      <TouchableOpacity
+        style={[styles.card, !item.is_read ? styles.cardUnread : styles.cardRead]}
+        activeOpacity={0.7}
+        onPress={() => {
+          if (!item.is_read) {
+            void markAsRead(item.id);
+          }
+        }}
+      >
+        <View style={styles.cardRow}>
+          <View style={[styles.iconContainer, { backgroundColor: !item.is_read ? appTheme.colors.primary : icon.bg }]}>
+            <Feather
+              name={icon.name}
+              size={20}
+              color={!item.is_read ? "white" : icon.color}
+            />
+          </View>
 
-  const getIconStyles = (type: string, isNew: boolean) => {
-    switch (type) {
-      case "content":
-        return {
-          bg: isNew ? "#3B82F6" : "#EFF6FF",
-          color: isNew ? "white" : "#3B82F6",
-        };
-      case "security":
-        return {
-          bg: isNew ? "#DC2626" : "#FEE2E2",
-          color: isNew ? "white" : "#DC2626",
-        };
-      case "achievement":
-        return {
-          bg: isNew ? "#F59E0B" : "#FFFBEB",
-          color: isNew ? "white" : "#F59E0B",
-        };
-      case "community":
-        return {
-          bg: isNew ? "#8B1E2D" : "#FDF3F4",
-          color: isNew ? "white" : "#8B1E2D",
-        };
-      default:
-        return {
-          bg: isNew ? "#6B7280" : "#F3F4F6",
-          color: isNew ? "white" : "#6B7280",
-        };
-    }
+          <View style={styles.cardContent}>
+            <View style={styles.cardHeaderRow}>
+              <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+              {!item.is_read && <View style={styles.unreadDot} />}
+            </View>
+            <Text style={styles.cardBody} numberOfLines={2}>{item.body}</Text>
+            <Text style={styles.cardTime}>{relativeTime(item.created_at)}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   return (
     <ScreenContainer style={styles.screen}>
       <HeaderBar title="Notificações" />
 
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.list}>
-          {notifications.map((item) => {
-            const stylesIcon = getIconStyles(item.type, item.isNew);
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={[
-                  styles.card,
-                  item.isNew ? styles.cardNew : styles.cardOld,
-                ]}
-                activeOpacity={0.7}
-              >
-                <View style={styles.cardRow}>
-                  <View style={[styles.iconContainer, { backgroundColor: stylesIcon.bg }]}>
-                    <Feather name={item.icon} size={20} color={stylesIcon.color} />
-                  </View>
-
-                  <View style={styles.cardContent}>
-                    <View style={styles.cardHeaderRow}>
-                      <Text style={styles.cardTitle}>{item.title}</Text>
-                      {item.isNew && <View style={styles.newDot} />}
-                    </View>
-                    <Text style={styles.cardDesc}>{item.description}</Text>
-                    <Text style={styles.cardTime}>{item.time}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+      {unreadCount > 0 && (
+        <View style={styles.actionBar}>
+          <Text style={styles.unreadLabel}>{unreadCount} não lida{unreadCount !== 1 ? "s" : ""}</Text>
+          <TouchableOpacity onPress={() => void markAllAsRead()} style={styles.markAllBtn}>
+            <Ionicons name="checkmark-done-outline" size={16} color={appTheme.colors.primary} />
+            <Text style={styles.markAllText}>Marcar todas como lidas</Text>
+          </TouchableOpacity>
         </View>
+      )}
 
-        <Text style={styles.footerText}>Todas as notificações foram carregadas</Text>
-      </ScrollView>
+      {loading && notifications.length === 0 ? (
+        <ActivityIndicator size="large" color={appTheme.colors.primary} style={{ marginTop: 48 }} />
+      ) : (
+        <FlatList
+          data={notifications}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyState}>
+              <Feather name="bell-off" size={48} color={appTheme.colors.textMuted} />
+              <Text style={styles.emptyTitle}>Sem notificações</Text>
+              <Text style={styles.emptyText}>Quando houver atividade, as notificações aparecerão aqui.</Text>
+            </View>
+          )}
+          ListFooterComponent={() =>
+            notifications.length > 0 ? (
+              <Text style={styles.footerText}>Todas as notificações carregadas</Text>
+            ) : null
+          }
+        />
+      )}
     </ScreenContainer>
   );
 }
@@ -157,36 +132,37 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8F9FF",
     paddingHorizontal: 0,
   },
-  header: {
+  actionBar: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    borderBottomColor: appTheme.colors.border,
   },
-  backButton: {
-    marginRight: 16,
-    padding: 4,
+  unreadLabel: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
+    fontWeight: "600",
+    color: appTheme.colors.textSecondary,
   },
-  title: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
+  markAllBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  markAllText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
     fontWeight: "700",
-    color: "#7F1D1D",
-    letterSpacing: -0.4,
+    color: appTheme.colors.primary,
   },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
+  listContent: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 16,
     paddingBottom: 40,
-  },
-  list: {
-    gap: 12,
   },
   card: {
     backgroundColor: "white",
@@ -194,7 +170,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
   },
-  cardNew: {
+  cardUnread: {
     borderColor: "#8B1E2D",
     shadowColor: "#8B1E2D",
     shadowOffset: { width: 0, height: 2 },
@@ -202,12 +178,12 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-  cardOld: {
+  cardRead: {
     borderColor: "#E5E7EB",
   },
   cardRow: {
     flexDirection: "row",
-    gap: 16,
+    gap: 14,
   },
   iconContainer: {
     width: 48,
@@ -215,6 +191,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
   },
   cardContent: {
     flex: 1,
@@ -232,28 +209,51 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     flex: 1,
   },
-  newDot: {
+  unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: "#8B1E2D",
     marginLeft: 8,
+    flexShrink: 0,
   },
-  cardDesc: {
+  cardBody: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
     color: "#6B7280",
     lineHeight: 18,
     marginBottom: 8,
   },
   cardTime: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     color: "#9CA3AF",
   },
+  emptyState: {
+    alignItems: "center",
+    paddingTop: 64,
+    paddingHorizontal: 32,
+    gap: 12,
+  },
+  emptyTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 18,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+  },
+  emptyText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 14,
+    color: appTheme.colors.textMuted,
+    textAlign: "center",
+    lineHeight: 22,
+  },
   footerText: {
+    fontFamily: "Source_Sans_3",
     textAlign: "center",
     color: "#9CA3AF",
     fontSize: 13,
-    marginTop: 32,
+    marginTop: 24,
     marginBottom: 16,
   },
 });

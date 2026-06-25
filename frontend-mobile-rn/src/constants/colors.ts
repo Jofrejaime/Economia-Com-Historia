@@ -8,11 +8,11 @@ export const colors = {
   secondary: "#8B5E3C",
   
   // Status Colors
-  accent: "#DC2626",
-  success: "#16A34A",
-  successLight: "#D1FAE5",
-  warning: "#D97706",
-  danger: "#DC2626",
+  accent: "#EF4444",
+  success: "#22C55E",
+  successLight: "#DCFCE7",
+  warning: "#FBBF24",
+  danger: "#EF4444",
   dangerLight: "#FEE2E2",
   
   // Neutral Colors
@@ -27,13 +27,13 @@ export const colors = {
   
   // Content Type Colors
   videoColor: "#3B82F6",
-  audioColor: "#16A34A",
-  articleColor: "#DC2626",
-  seriesColor: "#D97706",
-  
+  audioColor: "#22C55E",
+  articleColor: "#EF4444",
+  seriesColor: "#FBBF24",
+
   // Jindungo Colors
-  jindungoHot: "#DC2626",
-  jindungoWarm: "#D97706",
+  jindungoHot: "#EF4444",
+  jindungoWarm: "#FBBF24",
   jindungoCardBg: "#1F2937",
   
   // Badge Colors

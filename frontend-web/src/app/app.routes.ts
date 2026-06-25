@@ -34,6 +34,7 @@ import { LevelsPageComponent } from './pages/admin/dashboard-admin/pages/levels-
 import { BadgesPageComponent } from './pages/admin/dashboard-admin/pages/badges-page/badges-page';
 import { NotificationsPageComponent } from './pages/admin/dashboard-admin/pages/notifications-page/notifications-page';
 import { UserNotificationsComponent } from './pages/user-notifications/user-notifications';
+import { RankingComponent } from './pages/quizzes/quiz-ranking/quiz-ranking';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -43,6 +44,8 @@ export const routes: Routes = [
   { path: 'quiz', canActivate: [authGuard], component: QuizListComponent },
   { path: 'quiz/pergunta', canActivate: [authGuard], component: QuestionQuizComponent },
   { path: 'quiz/resultado', canActivate: [authGuard], component: QuizResultComponent },
+  { path: 'quiz/ranking', canActivate: [authGuard], component: RankingComponent },
+  { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/login', canActivate: [guestGuard], component: LoginComponent },
   { path: 'auth/criar-conta', canActivate: [guestGuard], component: RegisterComponent },

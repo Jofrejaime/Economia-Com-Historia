@@ -105,10 +105,12 @@ export class QuizListComponent {
     }
   }
 
-  // Método chamado quando clica no card do quiz
   startQuiz(quizId: number): void {
     console.log('Iniciando quiz:', quizId);
-    // Navegar para a página de pergunta do quiz
     this.router.navigate(['/quiz/pergunta']);
+  }
+
+  goToRanking(): void {
+    this.router.navigate(['/quiz/ranking']);
   }
 }

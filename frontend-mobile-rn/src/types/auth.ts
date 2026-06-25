@@ -1,9 +1,15 @@
 export type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
+// Core user fields from the users + user_profiles tables
 export interface AuthUser {
   id: string;
-  name: string;
   email: string;
+  role: string;
+  display_name: string;
+  full_name: string | null;
+  province: string | null;
+  avatar_url: string | null;
+  institution: string | null;
 }
 
 export interface AuthState {
