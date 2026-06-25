@@ -39,21 +39,20 @@ const memberCatalog: UserProfile[] = [
 export function ManageMembersScreen() {
   const navigation = useNavigation<ManageMembersNavigationProp>();
   const route = useRoute<ManageMembersRouteProp>();
-  const { getTopicById, updateTopic } = useCommunity();
+  const { getTopicById } = useCommunity();
 
-  const { topicId } = route.params;
+  const { topicId, initialMembers } = route.params;
   const topic = getTopicById(topicId);
 
   const [selectedMembers, setSelectedMembers] = useState<UserProfile[]>([]);
   const [searchMemberText, setSearchMemberText] = useState("");
   const [loadingMembers, setLoadingMembers] = useState(false);
 
-  // Load initial members from the topic when available
   useEffect(() => {
-    if (topic && topic.members) {
-      setSelectedMembers(topic.members);
+    if (initialMembers?.length) {
+      setSelectedMembers(initialMembers as UserProfile[]);
     }
-  }, [topic]);
+  }, []);
 
   const suggestedMembers = useMemo(() => {
     const search = searchMemberText.trim().toLowerCase();
@@ -90,14 +89,15 @@ export function ManageMembersScreen() {
   };
 
   const handleSaveChanges = () => {
-    if (!topic) return;
-    updateTopic(topic.id, { members: selectedMembers });
+    const confirm = () => navigation.navigate("TopicDiscussion", { id: topicId });
     if (Platform.OS === "web") {
-      window.alert("Membros da discussão atualizados com sucesso!");
+      window.alert("Círculo de diálogo atualizado com sucesso!");
+      confirm();
     } else {
-      Alert.alert("Sucesso", "Membros da discussão atualizados com sucesso!");
+      Alert.alert("Sucesso", "Círculo de diálogo atualizado com sucesso!", [
+        { text: "OK", onPress: confirm },
+      ]);
     }
-    navigation.goBack();
   };
 
   if (!topic) {
@@ -166,7 +166,7 @@ export function ManageMembersScreen() {
                     style={styles.removeMemberButton}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="trash-outline" size={20} color="#DC2626" />
+                    <Ionicons name="trash-outline" size={20} color={appTheme.colors.danger} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: "#8B1E2D",
     height: 48,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.button,
     alignItems: "center",
     justifyContent: "center",
   },

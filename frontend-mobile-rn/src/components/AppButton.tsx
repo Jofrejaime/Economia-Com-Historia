@@ -27,7 +27,7 @@ export function AppButton({ label, onPress, disabled = false }: AppButtonProps) 
 const styles = StyleSheet.create({
   button: {
     minHeight: 48,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.button,
     backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",

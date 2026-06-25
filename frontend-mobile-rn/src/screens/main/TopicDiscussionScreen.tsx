@@ -1,61 +1,194 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   ScrollView,
-  Image,
   TextInput,
   StatusBar,
   KeyboardAvoidingView,
   Platform,
-  Switch,
-  Alert,
+  ActivityIndicator,
+  Modal,
+  Pressable,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
-import { useCommunity } from "../../hooks/useCommunity";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
+import { communityService } from "../../services/api/communityService";
+import type { DiscussionTopic, TopicReply } from "../../types/api";
 import { MainStackParamList } from "../../types/navigation";
 
 type TopicDiscussionRouteProp = RouteProp<MainStackParamList, "TopicDiscussion">;
+
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "Agora mesmo";
+  if (minutes < 60) return `Há ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Há ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return days === 1 ? "Ontem" : `Há ${days} dias`;
+}
 
 export function TopicDiscussionScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<TopicDiscussionRouteProp>();
   const { user } = useAuth();
-  const { getTopicById, addComment, toggleCommentLike, addReply, updateTopic } = useCommunity();
-  const isLoggedIn = user !== null;
-  const topic = getTopicById(route.params.id);
+
+  const [topic, setTopic] = useState<DiscussionTopic | null>(null);
+  const [replies, setReplies] = useState<TopicReply[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [topicLiked, setTopicLiked] = useState(false);
+  const [topicLikes, setTopicLikes] = useState(0);
 
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [topicLiked, setTopicLiked] = useState(false);
-  const [topicLikes, setTopicLikes] = useState(topic?.replies ?? 0);
-  const [newCommentText, setNewCommentText] = useState("");
   const [newReplyText, setNewReplyText] = useState("");
+  const [newCommentText, setNewCommentText] = useState("");
   const [composerFocused, setComposerFocused] = useState(false);
-  const [comments, setComments] = useState(topic?.comments ?? []);
-  const [isPrivate, setIsPrivate] = useState(topic?.isPrivate ?? false);
-  const [isTerminated, setIsTerminated] = useState(topic?.isActive === false);
-  const [showManagementMenu, setShowManagementMenu] = useState(false);
-  const isAuthor = user?.id === topic?.author || user?.name === topic?.author;
+  const [submitting, setSubmitting] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const topicId = route.params.id;
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [topicData, repliesData] = await Promise.all([
+        communityService.topicDetail(topicId),
+        communityService.replies(topicId),
+      ]);
+      setTopic(topicData);
+      setTopicLiked(topicData.is_liked ?? false);
+      setTopicLikes(topicData.likes_count);
+      setReplies(repliesData.data);
+    } catch (error) {
+      console.warn("Erro ao carregar discussão", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [topicId]);
 
   useEffect(() => {
-    if (topic) {
-      setComments(topic.comments);
-      setTopicLikes(topic.replies);
-      setIsPrivate(topic.isPrivate ?? false);
-      setIsTerminated(topic.isActive === false);
+    void loadData();
+  }, [loadData]);
+
+  const isTerminated = topic?.status === "closed";
+  const isAuthor = !!user && !!topic && user.id === topic.author_id;
+  const isPrivateTopic = topic?.category?.access_level_id === "restricted";
+
+  const handleToggleStatus = async () => {
+    if (!topic) return;
+    setMenuVisible(false);
+    const newStatus = isTerminated ? "open" : "closed";
+    try {
+      await communityService.updateTopic(topicId, { status: newStatus });
+      setTopic((prev) => prev ? { ...prev, status: newStatus } : prev);
+    } catch (error) {
+      console.warn("Erro ao atualizar estado da discussão", error);
     }
-  }, [topic?.id, topic?.comments, topic?.replies, topic?.isPrivate, topic?.isActive]);
+  };
+
+  const handleTopicLike = async () => {
+    if (!user) {
+      navigation.navigate("LoginPrompt", { type: "comment" });
+      return;
+    }
+    if (!topic || isTerminated) return;
+    try {
+      if (topicLiked) {
+        await communityService.unlikeTopic(topicId);
+        setTopicLikes((n) => n - 1);
+      } else {
+        await communityService.likeTopic(topicId);
+        setTopicLikes((n) => n + 1);
+      }
+      setTopicLiked((v) => !v);
+    } catch (error) {
+      console.warn("Erro ao like/unlike tópico", error);
+    }
+  };
+
+  const handleLikeReply = async (reply: TopicReply) => {
+    if (!user) {
+      navigation.navigate("LoginPrompt", { type: "comment" });
+      return;
+    }
+    if (isTerminated) return;
+    try {
+      if (reply.is_liked) {
+        await communityService.unlikeReply(reply.id);
+      } else {
+        await communityService.likeReply(reply.id);
+      }
+      setReplies((prev) =>
+        prev.map((r) =>
+          r.id === reply.id
+            ? { ...r, is_liked: !r.is_liked, likes_count: r.likes_count + (r.is_liked ? -1 : 1) }
+            : r
+        )
+      );
+    } catch (error) {
+      console.warn("Erro ao like/unlike resposta", error);
+    }
+  };
+
+  const handlePublishComment = async () => {
+    if (!newCommentText.trim() || !user || isTerminated) return;
+    setSubmitting(true);
+    try {
+      const newReply = await communityService.createReply(topicId, { content: newCommentText });
+      setReplies((prev) => [...prev, newReply]);
+      setNewCommentText("");
+      if (topic) {
+        setTopic({ ...topic, replies_count: topic.replies_count + 1 });
+      }
+    } catch (error) {
+      console.warn("Erro ao publicar comentário", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handlePublishReply = async (parentId: string) => {
+    if (!newReplyText.trim() || !user || isTerminated) return;
+    setSubmitting(true);
+    try {
+      const newReply = await communityService.createReply(topicId, {
+        content: newReplyText,
+        parent_reply_id: parentId,
+      });
+      setReplies((prev) => [...prev, newReply]);
+      setNewReplyText("");
+      setReplyingTo(null);
+    } catch (error) {
+      console.warn("Erro ao publicar resposta", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+        <HeaderBar title="Discussão do Fórum" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={appTheme.colors.primary} />
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   if (!topic) {
     return (
       <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+        <HeaderBar title="Discussão do Fórum" />
         <View style={styles.notFoundContainer}>
           <Text style={styles.notFoundTitle}>Discussão não encontrada</Text>
           <Text style={styles.notFoundText}>O tópico solicitado não existe ou foi removido.</Text>
@@ -67,105 +200,11 @@ export function TopicDiscussionScreen() {
     );
   }
 
-  const handleTopicLike = () => {
-    if (isTerminated) return;
-    if (!isLoggedIn) {
-      navigation.navigate("LoginPrompt", { type: "comment" });
-      return;
-    }
-    setTopicLiked(!topicLiked);
-    setTopicLikes(topicLiked ? topicLikes - 1 : topicLikes + 1);
-  };
+  const authorName = topic.author?.display_name ?? "Autor";
+  const authorInitials = authorName.slice(0, 2).toUpperCase();
+  const userInitials = user?.display_name ? user.display_name.slice(0, 2).toUpperCase() : "EU";
 
-  const handleLike = (commentId: string) => {
-    if (isTerminated) return;
-    if (!isLoggedIn) {
-      navigation.navigate("LoginPrompt", { type: "comment" });
-      return;
-    }
-    toggleCommentLike(route.params.id, commentId);
-  };
-
-  const handleReplyPress = (commentId: string) => {
-    if (isTerminated) return;
-    if (!isLoggedIn) {
-      navigation.navigate("LoginPrompt", { type: "comment" });
-      return;
-    }
-    setReplyingTo(replyingTo === commentId ? null : commentId);
-    setNewReplyText("");
-  };
-
-  const handlePublishComment = () => {
-    if (!newCommentText.trim() || !topic || isTerminated) return;
-    const newComment: any = {
-      id: String(Date.now()),
-      author: user?.name || "Eu",
-      authorAvatar: (user?.name || "Eu").substring(0, 2).toUpperCase(),
-      time: "Agora mesmo",
-      content: newCommentText,
-      likes: 0,
-      replies: 0,
-    };
-    addComment(topic.id, newComment);
-    setNewCommentText("");
-  };
-
-  const handlePublishReply = (commentId: string) => {
-    if (!newReplyText.trim() || !topic || isTerminated) return;
-    addReply(topic.id, commentId);
-    setNewReplyText("");
-    setReplyingTo(null);
-  };
-
-  const handleTogglePrivacy = (value: boolean) => {
-    if (!topic) return;
-    setIsPrivate(value);
-    updateTopic(topic.id, { isPrivate: value });
-  };
-
-  const handleTerminateDiscussion = () => {
-    if (!topic) return;
-
-    const title = "Terminar Discussão";
-    const message = "Esta ação é irreversível. Ao terminar a discussão, a sala de chat passará a funcionar apenas em modo de leitura (não será possível enviar novos comentários ou respostas).\n\nDeseja continuar?";
-
-    if (Platform.OS === "web") {
-      const confirmClose = window.confirm(`${title}\n\n${message}`);
-      if (confirmClose) {
-        setIsTerminated(true);
-        updateTopic(topic.id, { isActive: false });
-        setShowManagementMenu(false);
-      }
-    } else {
-      Alert.alert(
-        title,
-        message,
-        [
-          {
-            text: "Cancelar",
-            style: "cancel",
-          },
-          {
-            text: "Confirmar",
-            style: "destructive",
-            onPress: () => {
-              setIsTerminated(true);
-              updateTopic(topic.id, { isActive: false });
-              setShowManagementMenu(false);
-            },
-          },
-        ]
-      );
-    }
-  };
-
-  const handleManageMembers = () => {
-    if (!topic) return;
-    setShowManagementMenu(false);
-    navigation.navigate("ManageMembers", { topicId: topic.id });
-  };
-
+  const topLevelReplies = replies.filter((r) => !r.parent_reply_id);
 
   return (
     <KeyboardAvoidingView
@@ -174,49 +213,20 @@ export function TopicDiscussionScreen() {
     >
       <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
         <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
-        <HeaderBar title="Discussão do Fórum" />
-
-        {/* Management Menu */}
-        {isAuthor && showManagementMenu && (
-          <View style={styles.managementMenu}>
-            <View style={styles.menuItemSwitchRow}>
-              <View style={styles.menuItemSwitchLabelContainer}>
-                <Ionicons 
-                  name={isPrivate ? "lock-closed" : "globe"} 
-                  size={18} 
-                  color={appTheme.colors.primary} 
-                />
-                <Text style={styles.menuItemText}>Privado ({isPrivate ? "Activo" : "Desactivado"})</Text>
-              </View>
-              <Switch
-                value={isPrivate}
-                onValueChange={handleTogglePrivacy}
-                trackColor={{ false: "#E5E7EB", true: "#D1D5DB" }}
-                thumbColor={isPrivate ? appTheme.colors.primary : "#3B82F6"}
-              />
-            </View>
-            
-            {isPrivate && (
-              <TouchableOpacity style={styles.menuItem} onPress={handleManageMembers}>
-                <Ionicons name="people" size={18} color={appTheme.colors.primary} />
-                <Text style={styles.menuItemText}>Gestão de Membros</Text>
+        <HeaderBar
+          title="Discussão do Fórum"
+          rightElement={
+            isAuthor ? (
+              <TouchableOpacity
+                onPress={() => setMenuVisible(true)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Feather name="more-vertical" size={22} color={appTheme.colors.textPrimary} />
               </TouchableOpacity>
-            )}
-            
-            <TouchableOpacity 
-              style={[styles.menuItem, styles.menuItemDanger]} 
-              onPress={handleTerminateDiscussion}
-              disabled={isTerminated}
-            >
-              <Ionicons name="stop-circle" size={18} color={isTerminated ? "#9CA3AF" : "#DC2626"} />
-              <Text style={[styles.menuItemText, { color: isTerminated ? "#9CA3AF" : "#DC2626" }]}>
-                {isTerminated ? "Discussão Terminada" : "Terminar Discussão"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+            ) : undefined
+          }
+        />
 
-        {/* Discussion Terminated Banner */}
         {isTerminated && (
           <View style={styles.terminatedBanner}>
             <Ionicons name="lock-closed" size={18} color="white" />
@@ -224,50 +234,43 @@ export function TopicDiscussionScreen() {
           </View>
         )}
 
-        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {/* Topic Detail Header */}
+        <ScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Topic Header */}
           <View style={styles.topicHeaderCard}>
-            <Text style={styles.topicCategory}>{topic.category}</Text>
+            {topic.category && (
+              <Text style={styles.topicCategory}>{topic.category.name.toUpperCase()}</Text>
+            )}
             <Text style={styles.topicTitle}>{topic.title}</Text>
-
-            {/* Featured Image */}
-            <View style={styles.imageWrap}>
-              <Image
-                source={{
-                  uri:
-                    topic.image ||
-                    "https://images.unsplash.com/photo-1500534623283-312aade485b7?w=800&q=80",
-                }}
-                style={styles.featuredImage}
-              />
-              <View style={styles.imageOverlay} />
-              <Text style={styles.imageCaption}>IMAGEM POR FOTO: ALBERTO TEIXEIRA</Text>
-            </View>
 
             {/* Author */}
             <View style={styles.authorRow}>
               <View style={styles.authorAvatar}>
-                <Text style={styles.authorAvatarText}>{topic.author?.substring(0, 2).toUpperCase()}</Text>
+                <Text style={styles.authorAvatarText}>{authorInitials}</Text>
               </View>
               <View style={styles.authorInfo}>
-                <Text style={styles.authorName}>{topic.author}</Text>
-                <Text style={styles.authorMeta}>Publicado {topic.time || "há pouco"}</Text>
+                <Text style={styles.authorName}>{authorName}</Text>
+                <Text style={styles.authorMeta}>Publicado {relativeTime(topic.created_at)}</Text>
               </View>
             </View>
 
-            {/* Blockquote Quote */}
+            {/* Content blockquote */}
             <View style={styles.blockquote}>
-              <Text style={styles.blockquoteText}>{topic.quote ?? topic.description}</Text>
+              <Text style={styles.blockquoteText}>{topic.content}</Text>
             </View>
 
-            {/* Stats and Like trigger */}
+            {/* Stats and Like */}
             <View style={styles.statsBar}>
               <View style={styles.statsLeft}>
                 <Feather name="message-circle" size={18} color={appTheme.colors.primary} />
-                <Text style={styles.commentCountText}>{topic.comments?.length || 0} COMENTÁRIOS</Text>
+                <Text style={styles.commentCountText}>{topic.replies_count} COMENTÁRIOS</Text>
               </View>
-              <TouchableOpacity 
-                onPress={handleTopicLike} 
+              <TouchableOpacity
+                onPress={() => void handleTopicLike()}
                 style={styles.likeStatsRow}
                 disabled={isTerminated}
               >
@@ -282,14 +285,14 @@ export function TopicDiscussionScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Quick action buttons */}
+            {/* Actions */}
             <View style={styles.topicActionsRow}>
               <TouchableOpacity
-                onPress={handleTopicLike}
+                onPress={() => void handleTopicLike()}
                 style={[
-                  styles.topicActionBtn, 
+                  styles.topicActionBtn,
                   topicLiked && styles.topicActionBtnActive,
-                  isTerminated && { opacity: 0.6 }
+                  isTerminated && { opacity: 0.6 },
                 ]}
                 disabled={isTerminated}
               >
@@ -298,128 +301,199 @@ export function TopicDiscussionScreen() {
                   {topicLiked ? "Gostei" : "Gostar"}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.topicActionBtn}>
-                <Feather name="share-2" size={14} color={appTheme.colors.textSecondary} />
-                <Text style={styles.topicActionBtnText}>Partilhar</Text>
-              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Comments Section */}
+          {/* Comments */}
           <View style={styles.commentsContainer}>
-            {comments.map((comment) => (
-              <View key={comment.id} style={styles.commentItem}>
-                <View style={styles.commentRow}>
-                  {/* Avatar */}
-                  <View style={styles.commentAvatar}>
-                    <Text style={styles.commentAvatarText}>{comment.authorAvatar}</Text>
-                  </View>
-                  <View style={styles.commentContent}>
-                    <View style={styles.commentHeaderRow}>
-                      <Text style={styles.commentAuthor}>{comment.author}</Text>
-                      <Text style={styles.commentTime}>{comment.time}</Text>
+            {topLevelReplies.map((reply) => {
+              const replyAuthor = reply.author?.display_name ?? "Utilizador";
+              const replyInitials = replyAuthor.slice(0, 2).toUpperCase();
+              const nestedReplies = replies.filter((r) => r.parent_reply_id === reply.id);
+
+              return (
+                <View key={reply.id} style={styles.commentItem}>
+                  <View style={styles.commentRow}>
+                    <View style={styles.commentAvatar}>
+                      <Text style={styles.commentAvatarText}>{replyInitials}</Text>
                     </View>
-                    <Text style={styles.commentText}>{comment.content}</Text>
+                    <View style={styles.commentContent}>
+                      <View style={styles.commentHeaderRow}>
+                        <Text style={styles.commentAuthor}>{replyAuthor}</Text>
+                        <Text style={styles.commentTime}>{relativeTime(reply.created_at)}</Text>
+                      </View>
+                      <Text style={styles.commentText}>{reply.content}</Text>
+                    </View>
                   </View>
-                </View>
 
-                {/* Comment Actions */}
-                <View style={styles.commentActions}>
-                  <TouchableOpacity 
-                    onPress={() => handleLike(comment.id)} 
-                    style={[styles.actionLink, isTerminated && { opacity: 0.7 }]}
-                    disabled={isTerminated}
-                  >
-                    <Feather
-                      name="thumbs-up"
-                      size={14}
-                      color={comment.isLiked ? appTheme.colors.primary : appTheme.colors.textMuted}
-                    />
-                    <Text style={[styles.actionLinkText, comment.isLiked && styles.actionLinkTextActive]}>
-                      {comment.likes}
-                    </Text>
-                  </TouchableOpacity>
-
-                  {!isTerminated && (
-                    <TouchableOpacity onPress={() => handleReplyPress(comment.id)} style={styles.actionLink}>
-                      <Feather name="message-square" size={14} color={appTheme.colors.textMuted} />
-                      <Text style={styles.actionLinkText}>Responder</Text>
+                  {/* Comment Actions */}
+                  <View style={styles.commentActions}>
+                    <TouchableOpacity
+                      onPress={() => void handleLikeReply(reply)}
+                      style={styles.actionLink}
+                      disabled={isTerminated}
+                    >
+                      <Feather
+                        name="thumbs-up"
+                        size={14}
+                        color={reply.is_liked ? appTheme.colors.primary : appTheme.colors.textMuted}
+                      />
+                      <Text style={[styles.actionLinkText, reply.is_liked && styles.actionLinkTextActive]}>
+                        {reply.likes_count}
+                      </Text>
                     </TouchableOpacity>
+
+                    {!isTerminated && (
+                      <TouchableOpacity
+                        onPress={() => setReplyingTo(replyingTo === reply.id ? null : reply.id)}
+                        style={styles.actionLink}
+                      >
+                        <Feather name="message-square" size={14} color={appTheme.colors.textMuted} />
+                        <Text style={styles.actionLinkText}>Responder</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Nested replies */}
+                  {nestedReplies.map((nested) => {
+                    const nestedAuthor = nested.author?.display_name ?? "Utilizador";
+                    return (
+                      <View key={nested.id} style={styles.nestedReply}>
+                        <View style={styles.commentRow}>
+                          <View style={[styles.commentAvatar, styles.commentAvatarSmall]}>
+                            <Text style={[styles.commentAvatarText, { fontSize: 11 }]}>
+                              {nestedAuthor.slice(0, 2).toUpperCase()}
+                            </Text>
+                          </View>
+                          <View style={styles.commentContent}>
+                            <View style={styles.commentHeaderRow}>
+                              <Text style={styles.commentAuthor}>{nestedAuthor}</Text>
+                              <Text style={styles.commentTime}>{relativeTime(nested.created_at)}</Text>
+                            </View>
+                            <Text style={styles.commentText}>{nested.content}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })}
+
+                  {/* Reply Input */}
+                  {replyingTo === reply.id && (
+                    <View style={styles.replyBox}>
+                      <View style={styles.replyBoxHeader}>
+                        <View style={styles.smallAvatar}>
+                          <Text style={styles.smallAvatarText}>{userInitials}</Text>
+                        </View>
+                        <TextInput
+                          placeholder={`Responder a ${replyAuthor}...`}
+                          placeholderTextColor={appTheme.colors.textMuted}
+                          style={styles.replyInput}
+                          value={newReplyText}
+                          onChangeText={setNewReplyText}
+                          multiline
+                        />
+                      </View>
+                      <View style={styles.replyActionsRow}>
+                        <TouchableOpacity onPress={() => { setReplyingTo(null); setNewReplyText(""); }} style={styles.cancelBtn}>
+                          <Text style={styles.cancelBtnText}>Cancelar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => void handlePublishReply(reply.id)}
+                          style={[styles.publishBtn, (submitting || !newReplyText.trim()) && { opacity: 0.5 }]}
+                          disabled={submitting || !newReplyText.trim()}
+                        >
+                          <Text style={styles.publishBtnText}>Responder</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
                   )}
                 </View>
-
-                {/* Reply Input Box */}
-                {replyingTo === comment.id && (
-                  <View style={styles.replyBox}>
-                    <View style={styles.replyBoxHeader}>
-                      <View style={styles.smallAvatar}>
-                        <Text style={styles.smallAvatarText}>EU</Text>
-                      </View>
-                      <TextInput
-                        placeholder={`Responder a ${comment.author}...`}
-                        placeholderTextColor={appTheme.colors.textMuted}
-                        style={styles.replyInput}
-                        value={newReplyText}
-                        onChangeText={setNewReplyText}
-                        multiline
-                      />
-                    </View>
-                    <View style={styles.replyActionsRow}>
-                      <TouchableOpacity onPress={() => setReplyingTo(null)} style={styles.cancelBtn}>
-                        <Text style={styles.cancelBtnText}>Cancelar</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => handlePublishReply(comment.id)} style={styles.publishBtn}>
-                        <Text style={styles.publishBtnText}>Responder</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-              </View>
-            ))}
+              );
+            })}
           </View>
         </ScrollView>
+
+        {/* Management menu */}
+        <Modal
+          visible={menuVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setMenuVisible(false)}
+        >
+          <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
+            <Pressable style={styles.menuSheet} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.menuHandle} />
+
+              {isPrivateTopic && (
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => { setMenuVisible(false); navigation.navigate("ManageMembers", { topicId }); }}
+                >
+                  <Feather name="users" size={20} color={appTheme.colors.textPrimary} />
+                  <Text style={styles.menuItemText}>Gerir Membros</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => void handleToggleStatus()}
+              >
+                <Feather
+                  name={isTerminated ? "play-circle" : "x-circle"}
+                  size={20}
+                  color={isTerminated ? appTheme.colors.success : appTheme.colors.danger}
+                />
+                <Text style={[styles.menuItemText, { color: isTerminated ? appTheme.colors.success : appTheme.colors.danger }]}>
+                  {isTerminated ? "Reabrir Discussão" : "Encerrar Discussão"}
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.menuDivider} />
+
+              <TouchableOpacity style={styles.menuItem} onPress={() => setMenuVisible(false)}>
+                <Text style={[styles.menuItemText, { color: appTheme.colors.textMuted }]}>Cancelar</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
 
         {!isTerminated && (
           <View style={[styles.composerWrapper, composerFocused && styles.composerWrapperFocused]}>
             <View style={styles.composerInner}>
               <View style={styles.composerAvatar}>
-                <Text style={styles.composerAvatarText}>
-                  {user?.name
-                    ? user.name
-                      .split(" ")
-                      .map((part) => part[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()
-                    : "EU"}
-                </Text>
+                <Text style={styles.composerAvatarText}>{userInitials}</Text>
               </View>
 
               <TextInput
-                placeholder="Escreva um comentário..."
+                placeholder={user ? "Escreva um comentário..." : "Entre para comentar..."}
                 placeholderTextColor="#9CA3AF"
                 value={newCommentText}
                 onChangeText={setNewCommentText}
                 multiline
-                style={[
-                  styles.composerInput,
-                  composerFocused && {
-                    outlineStyle: "none",
-                    outlineWidth: 0,
-                  } as any,
-                ]}
-                onFocus={() => setComposerFocused(true)}
+                style={[styles.composerInput, composerFocused && { outlineStyle: "none" } as any]}
+                onFocus={() => {
+                  if (!user) {
+                    navigation.navigate("LoginPrompt", { type: "comment" });
+                    return;
+                  }
+                  setComposerFocused(true);
+                }}
                 onBlur={() => setComposerFocused(false)}
                 underlineColorAndroid="transparent"
                 textAlignVertical="top"
+                editable={!!user}
               />
 
               <TouchableOpacity
-                style={[styles.sendButton, !newCommentText.trim() && styles.sendButtonDisabled]}
-                onPress={handlePublishComment}
-                disabled={!newCommentText.trim()}
+                style={[styles.sendButton, (!newCommentText.trim() || submitting) && styles.sendButtonDisabled]}
+                onPress={() => void handlePublishComment()}
+                disabled={!newCommentText.trim() || submitting}
               >
-                <Ionicons name="send" size={20} color="white" />
+                {submitting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Ionicons name="send" size={20} color="white" />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -436,68 +510,13 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#F8F9FF",
   },
-  header: {
-    flexDirection: "row",
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: appTheme.colors.border,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: appTheme.colors.primary,
-    fontFamily: "IBM_Plex_Sans",
-  },
-  moreButton: {
-    padding: 4,
-  },
-  managementMenu: {
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: appTheme.colors.border,
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    gap: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-  menuItemDanger: {
-    borderBottomWidth: 0,
-  },
-  menuItemText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: appTheme.colors.textPrimary,
-  },
-  menuItemSwitchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-  menuItemSwitchLabelContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
   },
   terminatedBanner: {
-    backgroundColor: "#DC2626",
+    backgroundColor: appTheme.colors.danger,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
@@ -537,34 +556,6 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textPrimary,
     lineHeight: 32,
     marginBottom: 16,
-  },
-  imageWrap: {
-    position: "relative",
-    width: "100%",
-    height: 180,
-    borderRadius: 12,
-    overflow: "hidden",
-    marginBottom: 16,
-  },
-  featuredImage: {
-    width: "100%",
-    height: "100%",
-  },
-  imageOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.15)",
-  },
-  imageCaption: {
-    position: "absolute",
-    bottom: 12,
-    left: 12,
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 11,
-    fontWeight: "600",
   },
   authorRow: {
     flexDirection: "row",
@@ -607,7 +598,6 @@ const styles = StyleSheet.create({
   },
   blockquoteText: {
     fontSize: 15,
-    fontStyle: "italic",
     color: appTheme.colors.textSecondary,
     lineHeight: 22,
   },
@@ -692,6 +682,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  commentAvatarSmall: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
   commentAvatarText: {
     fontSize: 14,
     fontWeight: "700",
@@ -737,6 +732,13 @@ const styles = StyleSheet.create({
   },
   actionLinkTextActive: {
     color: appTheme.colors.primary,
+  },
+  nestedReply: {
+    marginLeft: 48,
+    marginTop: 12,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: appTheme.colors.border,
   },
   replyBox: {
     backgroundColor: "#F8F9FF",
@@ -801,22 +803,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "white",
   },
-  floatingActionBtn: {
-    position: "absolute",
-    bottom: 24,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: appTheme.colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
-    zIndex: 100,
-  },
   composerWrapper: {
     position: "absolute",
     left: 0,
@@ -825,12 +811,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: Platform.OS === "ios" ? 24 : 16,
-    backgroundColor: "transparent",
     borderTopWidth: 1,
     borderTopColor: "#F3F4F6",
+    backgroundColor: "white",
   },
   composerWrapperFocused: {
-    backgroundColor: "transparent",
+    backgroundColor: "white",
   },
   composerInner: {
     flexDirection: "row",
@@ -912,5 +898,44 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "700",
     fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
+  },
+  menuSheet: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Platform.OS === "ios" ? 32 : 16,
+    paddingTop: 12,
+    paddingHorizontal: 16,
+  },
+  menuHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#E5E7EB",
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+  },
+  menuItemText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 16,
+    fontWeight: "600",
+    color: appTheme.colors.textPrimary,
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: appTheme.colors.border,
+    marginVertical: 4,
   },
 });

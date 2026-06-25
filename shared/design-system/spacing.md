@@ -10,6 +10,7 @@ Sistema de espaçamento baseado em múltiplos de 8 para garantir consistência.
 - Gap entre componentes: 16px como padrão.
 - Gap entre secções: 32px ou mais.
 
+
 ## Princípio visual
 
 - Usar espaço em branco de forma generosa.

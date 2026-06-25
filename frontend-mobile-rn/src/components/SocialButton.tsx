@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderWidth: 1.5,
     borderColor: appTheme.colors.border,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.button,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",

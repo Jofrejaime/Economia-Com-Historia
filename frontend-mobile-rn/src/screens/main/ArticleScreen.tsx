@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   ScrollView,
-  Image,
+  ActivityIndicator,
   StatusBar,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -14,255 +14,258 @@ import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
-import { contentData } from "../../data/contents";
+import { documentService } from "../../services/api/documentService";
+import type { Document } from "../../types/api";
+
+function academicLevelLabel(level: string): string {
+  if (level === "intro") return "Introdução";
+  if (level === "advanced") return "Avançado";
+  if (level === "doctorate") return "Doutoramento";
+  return level;
+}
+
+function documentTypeLabel(type: string): string {
+  if (type === "article") return "Artigo";
+  if (type === "thesis") return "Tese";
+  if (type === "report") return "Relatório";
+  if (type === "manuscript") return "Manuscrito";
+  if (type === "archive") return "Arquivo";
+  return type;
+}
+
+function formatDate(dateString: string | null): string {
+  if (!dateString) return "";
+  return new Date(dateString).toLocaleDateString("pt-AO", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
 export function ArticleScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { id, type } = route.params as { id?: string; type?: "jindungo" | "micro" };
+  const { id } = route.params as { id: string };
   const { user } = useAuth();
 
-  const [liked, setLiked] = useState<boolean | null>(null);
+  const [document, setDocument] = useState<Document | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
 
-  // Find dynamic content by ID, otherwise fallback by type, otherwise fallback to first item
-  const content = contentData.find(item => item.id === id) || 
-                  contentData.find(item => item.category === type) || 
-                  contentData[0];
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const doc = await documentService.detail(id);
+        setDocument(doc);
+        setIsLiked(doc.is_liked ?? false);
+        setLikesCount(doc.likes_count);
+      } catch (error) {
+        console.warn("Erro ao carregar documento", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [id]);
 
-  const isJindungo = content.category === "jindungo";
+  const handleToggleLike = async () => {
+    if (!user) {
+      navigation.navigate("LoginPrompt", { type: "comment" });
+      return;
+    }
+    try {
+      if (isLiked) {
+        await documentService.unlike(id);
+        setLikesCount((n) => n - 1);
+      } else {
+        await documentService.like(id);
+        setLikesCount((n) => n + 1);
+      }
+      setIsLiked((v) => !v);
+    } catch (error) {
+      console.warn("Erro ao actualizar like", error);
+    }
+  };
 
   const handleStartQuiz = () => {
     if (user) {
-      navigation.navigate("Quiz");
+      navigation.navigate("QuizList");
     } else {
       navigation.navigate("LoginPrompt", { type: "quiz" });
     }
   };
 
-  const handleDebate = () => {
+  const handleOpenForum = () => {
     if (user) {
-      navigation.navigate("CreateTopic", {
-        initialTitle: content.jindungoDebate?.initialTitle || content.title,
-        initialCategory: content.jindungoDebate?.initialCategory || (isJindungo ? "Petróleo e Reforma" : "História Monetária"),
-      });
+      navigation.navigate("Community");
     } else {
       navigation.navigate("LoginPrompt", { type: "create-topic" });
     }
   };
 
+  if (loading) {
+    return (
+      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+        <HeaderBar title="Documento" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={appTheme.colors.primary} />
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (!document) {
+    return (
+      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+        <HeaderBar title="Documento" />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Documento não encontrado.</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  const isJindungo = document.access_level_id === "jindungo";
+  const isRestricted = document.access_level_id === "restricted";
+
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
       <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
-      <HeaderBar title="Artigo" />
+      <HeaderBar title="Documento" />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Category Badge */}
+        {/* Type & Access Badges */}
         <View style={styles.badgeContainer}>
-          {isJindungo ? (
+          <View style={styles.docTypeBadge}>
+            <Text style={styles.docTypeBadgeText}>{documentTypeLabel(document.document_type).toUpperCase()}</Text>
+          </View>
+          {isJindungo && (
             <View style={styles.badgeJindungo}>
               <Ionicons name="flame" size={12} color="white" />
               <Text style={styles.badgeText}>JINDUNGO</Text>
             </View>
-          ) : (
-            <View style={styles.badgeMicro}>
-              <Ionicons name="flash" size={12} color="white" />
-              <Text style={styles.badgeText}>MICRO TEXTO</Text>
+          )}
+          {isRestricted && (
+            <View style={styles.badgeRestricted}>
+              <Ionicons name="lock-closed" size={12} color="white" />
+              <Text style={styles.badgeText}>RESTRITO</Text>
             </View>
           )}
         </View>
 
         {/* Title */}
-        <Text style={styles.articleTitle}>
-          {content.title}
-        </Text>
+        <Text style={styles.articleTitle}>{document.title}</Text>
 
         {/* Author Info */}
         <View style={styles.authorRow}>
-          <Image
-            source={{
-              uri: content.authorImage,
-            }}
-            style={styles.authorImage}
-          />
+          <View style={styles.authorAvatar}>
+            <Text style={styles.authorAvatarText}>{document.author.slice(0, 2).toUpperCase()}</Text>
+          </View>
           <View style={styles.authorInfo}>
-            <Text style={styles.authorName}>
-              {content.author}
-            </Text>
+            <Text style={styles.authorName}>{document.author}</Text>
             <Text style={styles.authorMeta}>
-              {content.duration} • {content.date}
+              {document.institution ? `${document.institution} · ` : ""}
+              {formatDate(document.publication_date ?? document.published_at)}
             </Text>
           </View>
         </View>
 
-        {/* Featured Image */}
-        <Image
-          source={{
-            uri: content.image,
-          }}
-          style={styles.featuredImage}
-        />
-
-        {/* Article Body */}
-        <View style={styles.articleBody}>
-          {content.body?.map((paragraph, index) => (
-            <Text key={index} style={styles.paragraph}>
-              {paragraph}
-            </Text>
+        {/* Category & Level */}
+        <View style={styles.metaRow}>
+          {document.category && (
+            <View style={styles.metaChip}>
+              <Text style={styles.metaChipText}>{document.category.name}</Text>
+            </View>
+          )}
+          <View style={styles.metaChip}>
+            <Text style={styles.metaChipText}>{academicLevelLabel(document.academic_level)}</Text>
+          </View>
+          {document.tags?.map((tag) => (
+            <View key={tag.id} style={styles.metaChip}>
+              <Text style={styles.metaChipText}>#{tag.name}</Text>
+            </View>
           ))}
-
-          {/* Academic Note */}
-          {content.academicNote && (
-            <View style={styles.academicNote}>
-              <Text style={styles.academicNoteTitle}>
-                Nota Académica: {content.academicNote.title}
-              </Text>
-              <Text style={styles.academicNoteDesc}>
-                {content.academicNote.description}
-              </Text>
-              {content.academicNote.sub && (
-                <Text style={styles.academicNoteSub}>
-                  {content.academicNote.sub}
-                </Text>
-              )}
-            </View>
-          )}
-
-          {/* Vocabulary Section */}
-          {content.vocabulary && content.vocabulary.length > 0 && (
-            <View style={styles.vocabularyCard}>
-              <Text style={styles.vocabularyLabel}>VOCABULÁRIO</Text>
-              {content.vocabulary.map((vocab, index) => (
-                <View key={index} style={styles.vocabularyItem}>
-                  <Text style={styles.vocabularyTerm}>{vocab.term}</Text>
-                  <Text style={styles.vocabularyDef}>{vocab.definition}</Text>
-                </View>
-              ))}
-            </View>
-          )}
         </View>
 
-        {/* Action Buttons - Quiz and Forum */}
+        {/* Summary */}
+        <View style={styles.summaryBlock}>
+          <Text style={styles.summaryLabel}>RESUMO</Text>
+          <Text style={styles.summaryText}>{document.summary}</Text>
+        </View>
+
+        {/* Article Content */}
+        {document.content && (
+          <View style={styles.articleBody}>
+            {document.content.split("\n\n").map((paragraph, idx) =>
+              paragraph.trim() ? (
+                <Text key={idx} style={styles.paragraph}>{paragraph.trim()}</Text>
+              ) : null
+            )}
+          </View>
+        )}
+
+        {/* PDF Link */}
+        {document.pdf_url && (
+          <View style={styles.sectionDivider} />
+        )}
+
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          <TouchableOpacity onPress={handleToggleLike} style={styles.statBtn}>
+            <Ionicons
+              name={isLiked ? "heart" : "heart-outline"}
+              size={20}
+              color={isLiked ? appTheme.colors.danger : appTheme.colors.textSecondary}
+            />
+            <Text style={styles.statText}>{likesCount}</Text>
+          </TouchableOpacity>
+          <View style={styles.statBtn}>
+            <Ionicons name="chatbubble-outline" size={20} color={appTheme.colors.textSecondary} />
+            <Text style={styles.statText}>{document.comments_count}</Text>
+          </View>
+          <View style={styles.statBtn}>
+            <Ionicons name="eye-outline" size={20} color={appTheme.colors.textSecondary} />
+            <Text style={styles.statText}>{document.views_count}</Text>
+          </View>
+          <View style={styles.statBtn}>
+            <Ionicons name="download-outline" size={20} color={appTheme.colors.textSecondary} />
+            <Text style={styles.statText}>{document.downloads_count}</Text>
+          </View>
+        </View>
+
+        {/* Actions */}
         <View style={styles.sectionDivider} />
         <View style={styles.actionsBlock}>
-          <Text style={styles.sectionHeader}>ATIVIDADES</Text>
+          <Text style={styles.actionsLabel}>ACTIVIDADES</Text>
           <TouchableOpacity onPress={handleStartQuiz} style={styles.quizBtn}>
             <Text style={styles.actionBtnLabel}>Realizar Quiz</Text>
             <Ionicons name="trophy-outline" size={20} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleDebate} style={styles.forumBtn}>
+          <TouchableOpacity onPress={handleOpenForum} style={styles.forumBtn}>
             <Text style={styles.actionBtnLabel}>Debater no Fórum</Text>
             <Ionicons name="people-outline" size={20} color="white" />
           </TouchableOpacity>
         </View>
 
-        {/* Feedback Section */}
-        <View style={styles.sectionDivider} />
-        <View style={styles.feedbackBlock}>
-          <Text style={styles.feedbackTitle}>Gostaste deste conteúdo?</Text>
-          <View style={styles.feedbackButtonsRow}>
-            <TouchableOpacity
-              onPress={() => setLiked(true)}
-              style={[
-                styles.feedbackBtn,
-                liked === true && styles.feedbackBtnLikeActive,
-              ]}
-            >
-              <Feather
-                name="thumbs-up"
-                size={18}
-                color={liked === true ? "white" : appTheme.colors.textSecondary}
-              />
-              <Text
-                style={[
-                  styles.feedbackBtnText,
-                  liked === true && styles.feedbackBtnTextActive,
-                ]}
-              >
-                Sim
+        {/* Period info if present */}
+        {(document.period_start || document.period_end) && (
+          <>
+            <View style={styles.sectionDivider} />
+            <View style={styles.periodBlock}>
+              <Text style={styles.periodLabel}>PERÍODO HISTÓRICO</Text>
+              <Text style={styles.periodText}>
+                {document.period_start && document.period_end
+                  ? `${document.period_start} – ${document.period_end}`
+                  : document.period_start
+                  ? `A partir de ${document.period_start}`
+                  : `Até ${document.period_end}`}
               </Text>
-            </TouchableOpacity>
+            </View>
+          </>
+        )}
 
-            <TouchableOpacity
-              onPress={() => setLiked(false)}
-              style={[
-                styles.feedbackBtn,
-                liked === false && styles.feedbackBtnDislikeActive,
-              ]}
-            >
-              <Feather
-                name="thumbs-down"
-                size={18}
-                color={liked === false ? "white" : appTheme.colors.textSecondary}
-              />
-              <Text
-                style={[
-                  styles.feedbackBtnText,
-                  liked === false && styles.feedbackBtnTextActive,
-                ]}
-              >
-                Não
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Related Articles */}
-        <View style={styles.sectionDivider} />
-        <View style={styles.relatedBlock}>
-          <View style={styles.relatedHeader}>
-            <Text style={styles.relatedTitle}>Artigos Relacionados</Text>
-            <TouchableOpacity>
-              <View style={styles.seeAllRow}>
-                <Text style={styles.seeAllText}>Ver todos</Text>
-                <Feather name="chevron-right" size={16} color={appTheme.colors.primary} />
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.relatedList}>
-            <TouchableOpacity style={styles.relatedCard}>
-              <Image
-                source={{
-                  uri: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&q=80",
-                }}
-                style={styles.relatedCardImage}
-              />
-              <View style={styles.relatedCardBody}>
-                <Text style={styles.relatedCardTitle} numberOfLines={2}>
-                  Independência e Reconstrução Económica (1975–1985)
-                </Text>
-                <Text style={styles.relatedCardMeta}>8 min de leitura</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.relatedCard}>
-              <Image
-                source={{
-                  uri: "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=200&q=80",
-                }}
-                style={styles.relatedCardImage}
-              />
-              <View style={styles.relatedCardBody}>
-                <Text style={styles.relatedCardTitle} numberOfLines={2}>
-                  Kwanza: História e Desafios da Moeda Nacional
-                </Text>
-                <Text style={styles.relatedCardMeta}>14 min · áudio disponível</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Comments Button */}
-        <View style={styles.sectionDivider} />
-        <View style={styles.commentsBlock}>
-          <View style={styles.commentsHeader}>
-            <Feather name="message-circle" size={20} color={appTheme.colors.primary} />
-            <Text style={styles.commentsTitle}>Comentários (12)</Text>
-          </View>
-          <TouchableOpacity style={styles.commentsBtn}>
-            <Text style={styles.commentsBtnText}>Ver comentários</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </ScreenContainer>
   );
@@ -272,56 +275,14 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
   },
-  header: {
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: appTheme.colors.border,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
-  },
-  headerTop: {
-    flexDirection: "row",
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
   },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  backButtonText: {
-    color: appTheme.colors.primary,
-    fontWeight: "600",
-    fontSize: 15,
-  },
-  appTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    fontFamily: "IBM_Plex_Sans",
-  },
-  moreButton: {
-    padding: 4,
-  },
-  actionRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  actionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#F5F5F5",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  actionBtnText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: appTheme.colors.textSecondary,
+  errorText: {
+    fontSize: 16,
+    color: appTheme.colors.textMuted,
   },
   scrollView: {
     flex: 1,
@@ -331,9 +292,26 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   badgeContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
     paddingHorizontal: 20,
     paddingTop: 24,
     marginBottom: 16,
+  },
+  docTypeBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: appTheme.colors.surface,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+  },
+  docTypeBadgeText: {
+    color: appTheme.colors.textSecondary,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1,
   },
   badgeJindungo: {
     flexDirection: "row",
@@ -343,17 +321,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
-    alignSelf: "flex-start",
   },
-  badgeMicro: {
+  badgeRestricted: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: appTheme.colors.primary,
+    backgroundColor: "#6B7280",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
-    alignSelf: "flex-start",
   },
   badgeText: {
     color: "white",
@@ -375,14 +351,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  authorImage: {
+  authorAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    borderWidth: 2,
-    borderColor: appTheme.colors.border,
+    backgroundColor: appTheme.colors.primary + "22",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  authorAvatarText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: appTheme.colors.primary,
   },
   authorInfo: {
     flex: 1,
@@ -395,12 +377,44 @@ const styles = StyleSheet.create({
   authorMeta: {
     fontSize: 12,
     color: appTheme.colors.textMuted,
+    marginTop: 2,
   },
-  featuredImage: {
-    width: "100%",
-    height: 220,
-    resizeMode: "cover",
-    marginBottom: 24,
+  metaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  metaChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    backgroundColor: appTheme.colors.surface,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+  },
+  metaChipText: {
+    fontSize: 12,
+    color: appTheme.colors.textSecondary,
+    fontWeight: "500",
+  },
+  summaryBlock: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  summaryLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: appTheme.colors.textMuted,
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  summaryText: {
+    fontSize: 15,
+    color: appTheme.colors.textSecondary,
+    lineHeight: 22,
+    fontStyle: "italic",
   },
   articleBody: {
     paddingHorizontal: 20,
@@ -409,69 +423,28 @@ const styles = StyleSheet.create({
   paragraph: {
     fontSize: 16,
     color: appTheme.colors.textPrimary,
-    lineHeight: 24,
+    lineHeight: 26,
     marginBottom: 16,
   },
-  heading2: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 20,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    marginTop: 12,
-    marginBottom: 12,
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: appTheme.colors.border,
+    borderBottomWidth: 1,
+    borderBottomColor: appTheme.colors.border,
   },
-  academicNote: {
-    backgroundColor: "#FDF3F4",
-    borderLeftWidth: 4,
-    borderLeftColor: appTheme.colors.primary,
-    padding: 16,
-    borderRadius: 8,
-    marginVertical: 16,
+  statBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
-  academicNoteTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 15,
-    fontWeight: "700",
-    color: appTheme.colors.primary,
-    marginBottom: 8,
-  },
-  academicNoteDesc: {
-    fontSize: 14,
-    color: appTheme.colors.textPrimary,
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  academicNoteSub: {
+  statText: {
     fontSize: 14,
     color: appTheme.colors.textSecondary,
-    lineHeight: 20,
-  },
-  vocabularyCard: {
-    backgroundColor: "#F5F5F5",
-    borderRadius: 8,
-    padding: 16,
-    marginVertical: 16,
-  },
-  vocabularyLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: appTheme.colors.textSecondary,
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  vocabularyItem: {
-    marginBottom: 12,
-  },
-  vocabularyTerm: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    marginBottom: 2,
-  },
-  vocabularyDef: {
-    fontSize: 14,
-    color: appTheme.colors.textSecondary,
-    lineHeight: 18,
+    fontWeight: "600",
   },
   sectionDivider: {
     height: 8,
@@ -483,7 +456,7 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     gap: 12,
   },
-  sectionHeader: {
+  actionsLabel: {
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -513,134 +486,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
-  feedbackBlock: {
+  periodBlock: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
-    alignItems: "center",
+    paddingVertical: 20,
   },
-  feedbackTitle: {
-    fontSize: 18,
+  periodLabel: {
+    fontSize: 11,
     fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    fontFamily: "IBM_Plex_Sans",
-    marginBottom: 16,
-  },
-  feedbackButtonsRow: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  feedbackBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderWidth: 2,
-    borderColor: appTheme.colors.border,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: "white",
-  },
-  feedbackBtnLikeActive: {
-    backgroundColor: "#16A34A",
-    borderColor: "#16A34A",
-  },
-  feedbackBtnDislikeActive: {
-    backgroundColor: appTheme.colors.danger,
-    borderColor: appTheme.colors.danger,
-  },
-  feedbackBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: appTheme.colors.textSecondary,
-  },
-  feedbackBtnTextActive: {
-    color: "white",
-  },
-  relatedBlock: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  relatedHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  relatedTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-  },
-  seeAllRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  seeAllText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: appTheme.colors.primary,
-  },
-  relatedList: {
-    gap: 12,
-  },
-  relatedCard: {
-    flexDirection: "row",
-    gap: 12,
-    padding: 12,
-    backgroundColor: "#F5F5F5",
-    borderWidth: 1,
-    borderColor: appTheme.colors.border,
-    borderRadius: 8,
-  },
-  relatedCardImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  relatedCardBody: {
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  relatedCardTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 14,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    lineHeight: 18,
-  },
-  relatedCardMeta: {
-    fontSize: 12,
     color: appTheme.colors.textMuted,
+    letterSpacing: 1.2,
+    marginBottom: 6,
   },
-  commentsBlock: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  commentsHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 16,
-  },
-  commentsTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
+  periodText: {
+    fontSize: 16,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
-  },
-  commentsBtn: {
-    width: "100%",
-    borderWidth: 2,
-    borderColor: appTheme.colors.border,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  commentsBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: appTheme.colors.textSecondary,
   },
 });

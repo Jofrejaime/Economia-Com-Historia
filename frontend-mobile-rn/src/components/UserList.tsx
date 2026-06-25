@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 14,
     paddingVertical: 11,
-    borderRadius: appTheme.radius.md,
+    borderRadius: appTheme.radius.button,
     borderWidth: 1,
     borderColor: appTheme.colors.primary,
     backgroundColor: "transparent",

@@ -1,64 +1,39 @@
-import { UserProfile } from "./room";
+import type { DocumentType, AccessLevelId, AcademicLevel } from "./api";
 
-// Tipos para autenticação (já existem)
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
 };
 
-export interface CommunityTopic {
-  id: string;
-  author: string;
-  authorInitials: string;
-  time: string;
-  title: string;
-  description: string;
-  category: string;
-  image?: string;
-  quote?: string;
-  replies: number;
-  views: string;
-  isPinned?: boolean;
-  isPrivate?: boolean;
-  isActive?: boolean;
-  createdAt: string;
-  members?: UserProfile[];
-  comments: {
-    id: string;
-    author: string;
-    authorAvatar: string;
-    time: string;
-    content: string;
-    likes: number;
-    replies: number;
-    isLiked?: boolean;
-  }[];
+// Content tab params aligned with documents table filters
+export interface ContentParams {
+  searchQuery?: string;
+  document_type?: DocumentType;
+  access_level_id?: AccessLevelId;
+  academic_level?: AcademicLevel;
+  category_id?: string;
 }
 
-// Tipos para as tabs principais
 export type MainTabParamList = {
   Home: undefined;
-  Content: { searchQuery?: string; category?: "all" | "jindungo" | "micro" | "series" | "podcast" | "video" } | undefined;
+  Content: ContentParams | undefined;
   Community: undefined;
   QuizList: undefined;
   Profile: undefined;
 };
 
-// Tipos para o stack dentro do MainNavigator (novas telas)
 export type MainStackParamList = {
   Dashboard: undefined;
-  MainTabs: { screen: keyof MainTabParamList; params?: any } | undefined;
+  MainTabs: { screen: keyof MainTabParamList; params?: ContentParams } | undefined;
   Login: undefined;
   Register: undefined;
-  // Novas telas
-  Podcast: undefined;
-  Article: { id: string; type?: 'jindungo' | 'micro' };
-  Quiz: undefined;
-  QuizFeedback: { isCorrect: boolean; onNext?: () => void };
-  QuizResult: undefined;
-  CreateTopic: { initialTitle?: string; initialCategory?: string };
+  Article: { id: string };
+  Quiz: { quizId: string; attemptId?: string };
+  QuizFeedback: { isCorrect: boolean; explanation: string | null; onNext?: () => void };
+  QuizResult: { attemptId: string };
+  CreateTopic: { initialTitle?: string };
   TopicDiscussion: { id: string };
-  ManageMembers: { topicId: string };
+  ManageMembers: { topicId: string; initialMembers?: Array<{ id: string; name: string; username: string; avatarUri: string | null }> };
   PersonalInfo: undefined;
   Notifications: undefined;
   NotificationPreferences: undefined;

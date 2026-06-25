@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -14,86 +15,105 @@ import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { AppButton } from "../../components/AppButton";
 import { HeaderBar } from "../../components/HeaderBar";
-import { CommunityTopic } from "../../types/navigation";
 import { useCommunity } from "../../hooks/useCommunity";
+import { communityService } from "../../services/api/communityService";
+import type { DiscussionTopic, CommunityCategory } from "../../types/api";
 
-type FilterType = "all" | "monetary" | "agribusiness" | "oil" | "infrastructure";
-
-const sortDiscussionsByDate = (items: CommunityTopic[]) =>
-  [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "Agora mesmo";
+  if (minutes < 60) return `Há ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Há ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return days === 1 ? "Ontem" : `Há ${days} dias`;
+}
 
 export function CommunityScreen() {
   const navigation = useNavigation<any>();
-  const { topics } = useCommunity();
-  const [selectedFilter, setSelectedFilter] = useState<FilterType>("all");
-  const scrollRef = useRef<ScrollView | null>(null);
-  const discussions = sortDiscussionsByDate(topics);
+  const { topics, loading, hasMore, fetchTopics, fetchNextPage } = useCommunity();
 
-  const renderFilter = (label: string, type: FilterType) => {
-    const selected = selectedFilter === type;
+  const [categories, setCategories] = useState<CommunityCategory[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const scrollRef = useRef<ScrollView | null>(null);
+
+  useEffect(() => {
+    void fetchTopics(true);
+    communityService.categories()
+      .then(setCategories)
+      .catch((e) => console.warn("Erro ao carregar categorias", e));
+  }, []);
+
+  const filteredTopics = selectedCategoryId
+    ? topics.filter((t) => t.category_id === selectedCategoryId)
+    : topics;
+
+  const renderDiscussion = ({ item }: { item: DiscussionTopic }) => {
+    const authorName = item.author?.display_name ?? "Autor";
+    const initials = authorName.slice(0, 2).toUpperCase();
+    const isOpen = item.status === "open";
+    const isPrivate = isOpen && item.category?.access_level_id === "restricted";
+
     return (
-      <TouchableOpacity
-        key={type}
-        onPress={() => setSelectedFilter(type)}
-        style={[styles.filterChip, selected && styles.filterChipSelected]}
+      <Pressable
+        style={[styles.card, !isOpen && styles.cardTerminated]}
+        onPress={() => navigation?.navigate("TopicDiscussion", { id: item.id })}
       >
-        <Text style={[styles.filterLabel, selected && styles.filterLabelSelected]}>{label}</Text>
-      </TouchableOpacity>
+        <View style={styles.row}>
+          <View style={[styles.avatar, item.is_pinned ? styles.avatarPinned : styles.avatarDefault]}>
+            <Text style={[styles.avatarText, item.is_pinned ? styles.avatarTextPinned : styles.avatarTextDefault]}>
+              {initials}
+            </Text>
+          </View>
+          <View style={styles.cardBody}>
+            <View style={styles.metaRow}>
+              {item.is_pinned && (
+                <View style={[styles.badge, styles.badgePinned]}>
+                  <Text style={[styles.badgeText, styles.badgeTextPinned]}>DESTAQUE</Text>
+                </View>
+              )}
+              {!isOpen ? (
+                <View style={[styles.badge, styles.badgeTerminated]}>
+                  <Feather name="x-circle" size={10} color="#6B7280" style={{ marginRight: 3 }} />
+                  <Text style={[styles.badgeText, styles.badgeTextTerminated]}>TERMINADO</Text>
+                </View>
+              ) : isPrivate ? (
+                <View style={[styles.badge, styles.badgePrivate]}>
+                  <Feather name="lock" size={10} color="#92400E" style={{ marginRight: 3 }} />
+                  <Text style={[styles.badgeText, styles.badgeTextPrivate]}>PRIVADO</Text>
+                </View>
+              ) : (
+                <View style={[styles.badge, styles.badgePublic]}>
+                  <Feather name="globe" size={10} color="#065F46" style={{ marginRight: 3 }} />
+                  <Text style={[styles.badgeText, styles.badgeTextPublic]}>PÚBLICO</Text>
+                </View>
+              )}
+            </View>
+
+            <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+            <Text style={styles.cardDescription} numberOfLines={2}>{item.content}</Text>
+
+            <View style={styles.statsRow}>
+              <Text style={styles.authorText}>
+                <Text style={styles.authorName}>{authorName}</Text> • {relativeTime(item.created_at)}
+              </Text>
+              <View style={styles.statsRight}>
+                <View style={styles.statItem}>
+                  <Feather name="message-circle" size={14} color={appTheme.colors.textMuted} />
+                  <Text style={styles.statText}>{item.replies_count}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Feather name="eye" size={14} color={appTheme.colors.textMuted} />
+                  <Text style={styles.statText}>{item.views_count}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Pressable>
     );
   };
-
-  const renderDiscussion = ({ item }: { item: CommunityTopic }) => (
-    <Pressable style={styles.card} onPress={() => navigation?.navigate("TopicDiscussion", { id: item.id })}>
-      <View style={styles.row}>
-        <View style={[styles.avatar, item.isPinned ? styles.avatarPinned : styles.avatarDefault]}>
-          <Text style={[styles.avatarText, item.isPinned ? styles.avatarTextPinned : styles.avatarTextDefault]}>
-            {item.authorInitials}
-          </Text>
-        </View>
-        <View style={styles.cardBody}>
-          <View style={styles.metaRow}>
-            {item.isPinned && (
-              <View style={[styles.badge, styles.badgePinned]}>
-                <Text style={[styles.badgeText, styles.badgeTextPinned]}>DESTAQUE</Text>
-              </View>
-            )}
-            {item.isActive ? (
-              <View style={[styles.badge, styles.badgeActive]}>
-                <Text style={[styles.badgeText, styles.badgeTextActive]}>A DECORRER</Text>
-              </View>
-            ) : (
-              <View style={[styles.badge, styles.badgeTerminated]}>
-                <Text style={[styles.badgeText, styles.badgeTextTerminated]}>TERMINADO</Text>
-              </View>
-            )}
-            <View style={styles.privacyPill}>
-              <Feather name={item.isPrivate ? "lock" : "globe"} size={12} color={appTheme.colors.textMuted} />
-              <Text style={styles.privacyText}>{item.isPrivate ? "Privado" : "Público"}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardDescription}>{item.description}</Text>
-
-          <View style={styles.statsRow}>
-            <Text style={styles.authorText}>
-              <Text style={styles.authorName}>{item.author}</Text> • {item.time}
-            </Text>
-            <View style={styles.statsRight}>
-              <View style={styles.statItem}>
-                <Feather name="message-circle" size={14} color={appTheme.colors.textMuted} />
-                <Text style={styles.statText}>{item.replies}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Feather name="eye" size={14} color={appTheme.colors.textMuted} />
-                <Text style={styles.statText}>{item.views}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
 
   return (
     <ScreenContainer style={{ paddingHorizontal: 0 }}>
@@ -112,61 +132,68 @@ export function CommunityScreen() {
           </View>
         </View>
 
-        <View style={styles.filtersWrap}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} ref={scrollRef}>
-            <View style={styles.chipsRow}>
-              {renderFilter("Tudo", "all")}
-              {renderFilter("História Monetária", "monetary")}
-              {renderFilter("Agronegócio", "agribusiness")}
-              {renderFilter("Petróleo e Reforma", "oil")}
-              {renderFilter("Infraestrutura", "infrastructure")}
-            </View>
-          </ScrollView>
-        </View>
+        {/* Category filters from DB */}
+        {categories.length > 0 && (
+          <View style={styles.filtersWrap}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} ref={scrollRef}>
+              <View style={styles.chipsRow}>
+                <TouchableOpacity
+                  key="all"
+                  onPress={() => setSelectedCategoryId(null)}
+                  style={[styles.filterChip, selectedCategoryId === null && styles.filterChipSelected]}
+                >
+                  <Text style={[styles.filterLabel, selectedCategoryId === null && styles.filterLabelSelected]}>
+                    Tudo
+                  </Text>
+                </TouchableOpacity>
+                {categories.map((cat) => (
+                  <TouchableOpacity
+                    key={cat.id}
+                    onPress={() => setSelectedCategoryId(cat.id)}
+                    style={[styles.filterChip, selectedCategoryId === cat.id && styles.filterChipSelected]}
+                  >
+                    <Text style={[styles.filterLabel, selectedCategoryId === cat.id && styles.filterLabelSelected]}>
+                      {cat.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
 
-        <FlatList
-          data={discussions}
-          keyExtractor={(i) => i.id}
-          renderItem={renderDiscussion}
-          ItemSeparatorComponent={() => <View style={{ height: appTheme.spacing.lg }} />}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        />
+        {loading && filteredTopics.length === 0 ? (
+          <ActivityIndicator size="large" color={appTheme.colors.primary} style={{ marginVertical: 32 }} />
+        ) : (
+          <FlatList
+            data={filteredTopics}
+            keyExtractor={(i) => i.id}
+            renderItem={renderDiscussion}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <View style={{ height: appTheme.spacing.lg }} />}
+            contentContainerStyle={{ paddingBottom: 24 }}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>Nenhum tópico disponível</Text>
+              </View>
+            )}
+          />
+        )}
 
-        <View style={styles.loadMoreWrap}>
-          <Text style={styles.viewMoreLabel}>VER MAIS ARQUIVOS</Text>
-          <TouchableOpacity style={styles.loadMoreBtn}>
-            <Feather name="chevrons-down" size={18} color={appTheme.colors.textPrimary} />
-          </TouchableOpacity>
-        </View>
+        {hasMore && !loading && (
+          <View style={styles.loadMoreWrap}>
+            <Text style={styles.viewMoreLabel}>VER MAIS TÓPICOS</Text>
+            <TouchableOpacity style={styles.loadMoreBtn} onPress={() => void fetchNextPage()}>
+              <Feather name="chevrons-down" size={18} color={appTheme.colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: appTheme.spacing.sm,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconBtn: {
-    padding: 8,
-  },
-  appTitle: {
-    marginLeft: appTheme.spacing.sm,
-    fontSize: appTheme.typography.title.fontSize,
-    fontWeight: appTheme.typography.title.fontWeight,
-    color: appTheme.colors.primary,
-  },
   container: {
     paddingHorizontal: 16,
     paddingTop: appTheme.spacing.lg,
@@ -176,6 +203,7 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.lg,
   },
   sectionLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -183,15 +211,17 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.sm,
   },
   title: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 32,
     fontWeight: "700",
     color: appTheme.colors.primary,
     marginBottom: appTheme.spacing.sm,
   },
   description: {
+    fontFamily: "Source_Sans_3",
     fontSize: appTheme.typography.body.fontSize,
     color: appTheme.colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: 24,
     marginBottom: appTheme.spacing.md,
   },
   createBtnWrap: {
@@ -215,6 +245,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   filterLabel: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontWeight: "700",
   },
@@ -250,6 +281,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   avatarText: {
+    fontFamily: "IBM_Plex_Sans",
     fontWeight: "700",
   },
   avatarTextPinned: {
@@ -276,48 +308,55 @@ const styles = StyleSheet.create({
   badgePinned: {
     backgroundColor: "rgba(139,30,45,0.08)",
   },
-  badgeActive: {
-    backgroundColor: "rgba(4,120,87,0.08)",
-  },
   badgeTerminated: {
-    backgroundColor: "rgba(107,114,128,0.08)",
+    backgroundColor: "rgba(107,114,128,0.10)",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  badgePrivate: {
+    backgroundColor: "rgba(180,83,9,0.10)",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  badgePublic: {
+    backgroundColor: "rgba(6,95,70,0.08)",
+    flexDirection: "row",
+    alignItems: "center",
   },
   badgeText: {
+    fontFamily: "Source_Sans_3",
     fontWeight: "700",
-    fontSize: 12,
+    fontSize: 11,
   },
   badgeTextPinned: {
     color: appTheme.colors.primary,
   },
-  badgeTextActive: {
-    color: "#047857",
-  },
   badgeTextTerminated: {
     color: "#6B7280",
   },
-  privacyPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: appTheme.radius.sm,
+  badgeTextPrivate: {
+    color: "#92400E",
   },
-  privacyText: {
-    marginLeft: 6,
-    color: appTheme.colors.textMuted,
-    fontWeight: "700",
-    fontSize: 12,
+  badgeTextPublic: {
+    color: "#065F46",
+  },
+  cardTerminated: {
+    opacity: 0.6,
+    backgroundColor: appTheme.colors.background,
   },
   cardTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     marginBottom: appTheme.spacing.sm,
+    lineHeight: 24,
   },
   cardDescription: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     marginBottom: appTheme.spacing.sm,
+    lineHeight: 22,
   },
   statsRow: {
     flexDirection: "row",
@@ -328,29 +367,40 @@ const styles = StyleSheet.create({
     paddingTop: appTheme.spacing.sm,
   },
   authorText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textMuted,
     fontSize: appTheme.typography.caption.fontSize,
+    flex: 1,
   },
   authorName: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontWeight: "700",
   },
   statsRight: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: "auto",
     gap: appTheme.spacing.md,
   },
   statItem: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginLeft: appTheme.spacing.md,
   },
   statText: {
-    marginLeft: 6,
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontWeight: "700",
+    fontSize: 13,
+  },
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 32,
+  },
+  emptyStateText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 16,
+    color: appTheme.colors.textMuted,
   },
   loadMoreWrap: {
     alignItems: "center",
@@ -358,6 +408,7 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.xl,
   },
   viewMoreLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     fontWeight: "700",
     color: appTheme.colors.primary,
