@@ -1,20 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
-
-interface Quiz {
-  id: number;
-  title: string;
-  module: string;
-  description?: string;
-  questions: number;
-  difficulty: string;
-  points: number;
-  completed: boolean;
-  image?: string | null;
-}
+import { QuizService, Quiz, LeaderboardEntry } from '../../../services/quiz.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-quiz-list',
@@ -23,81 +13,58 @@ interface Quiz {
   templateUrl: './quiz-list.html',
   styleUrls: ['./quiz-list.css']
 })
-export class QuizListComponent {
+export class QuizListComponent implements OnInit {
+
+  featuredQuizzes: Quiz[] = [];
+  quizzes: Quiz[] = [];
+  topPlayers: LeaderboardEntry[] = [];
+  isLoading = true;
+  error: string | null = null;
+
   userLevel = {
-    current: 3,
-    name: "Investigador Avançado",
-    points: 2450,
-    nextLevel: 3000,
-    progress: 82
+    current: 0,
+    name: '—',
+    points: 0,
+    nextLevel: 0,
+    progress: 0
   };
 
-  featuredQuizzes: Quiz[] = [
-    {
-      id: 1,
-      title: "O Ciclo do Café em Angola",
-      module: "MÓDULO IV: ANGOLA COLONIAL",
-      description: "Análise do impacto econômico e social do café entre 1950-1970",
-      questions: 15,
-      difficulty: "Avançado",
-      points: 150,
-      completed: false
-    },
-    {
-      id: 2,
-      title: "Reformas Monetárias Pós-Independência",
-      module: "MÓDULO V: ANGOLA INDEPENDENTE",
-      description: "A transição do Escudo para o Kwanza em 1977",
-      questions: 12,
-      difficulty: "Intermédio",
-      points: 120,
-      completed: true
-    }
-  ];
+  constructor(
+    private router: Router,
+    private quizService: QuizService,
+    private authService: AuthService
+  ) {}
 
-  quizzes: Quiz[] = [
-    {
-      id: 3,
-      title: "Infraestruturas Coloniais",
-      module: "MÓDULO III",
-      questions: 10,
-      difficulty: "Básico",
-      points: 100,
-      completed: false
-    },
-    {
-      id: 4,
-      title: "Economia do Petróleo",
-      module: "MÓDULO VI",
-      questions: 18,
-      difficulty: "Avançado",
-      points: 180,
-      completed: false
-    },
-    {
-      id: 5,
-      title: "Comércio Transatlântico",
-      module: "MÓDULO II",
-      questions: 14,
-      difficulty: "Intermédio",
-      points: 140,
-      completed: true
-    },
-    {
-      id: 6,
-      title: "Desenvolvimento Urbano",
-      module: "MÓDULO IV",
-      questions: 12,
-      difficulty: "Básico",
-      points: 120,
-      completed: false
-    }
-  ];
+  async ngOnInit(): Promise<void> {
+    try {
+      const [quizzes, leaderboard] = await Promise.all([
+        this.quizService.getQuizzes(),
+        this.quizService.getNationalLeaderboard(),
+      ]);
 
-  constructor(private router: Router) {}
+      this.featuredQuizzes = quizzes.filter(q => q.is_featured);
+      this.quizzes = quizzes.filter(q => !q.is_featured);
+      this.topPlayers = leaderboard.slice(0, 3);
+
+      const user = this.authService.getUser() as any;
+      if (user) {
+        this.userLevel = {
+          current: user.level ?? 1,
+          name: user.level_name ?? 'Investigador',
+          points: user.total_points ?? 0,
+          nextLevel: user.next_level_points ?? 1000,
+          progress: user.level_progress_pct ?? 0,
+        };
+      }
+    } catch (err: any) {
+      this.error = 'Erro ao carregar quizzes.';
+    } finally {
+      this.isLoading = false;
+    }
+  }
 
   getDifficultyColor(difficulty: string): string {
-    switch(difficulty) {
+    switch (difficulty) {
       case 'Básico': return '#22c55e';
       case 'Intermédio': return '#d4a574';
       case 'Avançado': return '#6b0119';
@@ -105,9 +72,19 @@ export class QuizListComponent {
     }
   }
 
-  startQuiz(quizId: number): void {
-    console.log('Iniciando quiz:', quizId);
-    this.router.navigate(['/quiz/pergunta']);
+  getAvatarUrl(name: string): string {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8B1E2D&color=fff&size=80`;
+  }
+
+  async startQuiz(quizId: string): Promise<void> {
+    try {
+      const attemptId = await this.quizService.startAttempt(quizId);
+      this.router.navigate(['/quiz/pergunta'], {
+        queryParams: { quiz: quizId, attempt: attemptId }
+      });
+    } catch (err: any) {
+      alert('Erro ao iniciar quiz. Tente novamente.');
+    }
   }
 
   goToRanking(): void {

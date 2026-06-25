@@ -4,176 +4,163 @@
 
   <main class="contents-main">
 
-    <!-- Hero Section -->
-    <div class="contents-hero">
-      <img src="https://images.unsplash.com/photo-1447069387593-a5de0862481e?w=1536&q=80" alt="Hero" class="contents-hero-image" />
-      <div class="contents-hero-overlay"></div>
-      <div class="contents-hero-content">
-        <p class="contents-hero-badge">MÓDULO ATUAL: TEXTOS COM JINDUNGO</p>
-        <h1 class="contents-hero-title">A Era de Ouro do Café Angolano</h1>
-        <p class="contents-hero-description">Explore como Angola se tornou o terceiro maior produtor mundial de café na década de 1970.</p>
-        <div class="contents-hero-actions">
-          <a (click)="navigateToContent(1)" class="contents-hero-btn">Continuar Leitura →</a>
-          <span class="contents-hero-progress">85% Concluído • faltam 12 min</span>
-        </div>
-      </div>
+    <!-- Loading -->
+    <div *ngIf="isLoading" style="text-align:center;padding:80px">
+      A carregar...
     </div>
 
-    <!-- Grid principal - ESTILO G1 -->
-    <div class="contents-grid">
+    <ng-container *ngIf="!isLoading">
 
-      <!-- Arquivos recomendados - OCUPA 100% DA LARGURA -->
-      <div class="contents-main-content">
-        <div class="contents-documents-header">
-          <div>
-            <h2 class="contents-documents-title">Conteúdos Recomendados</h2>
-            <div class="contents-documents-divider"></div>
-          </div>
-          <a (click)="navigateTo('/contents')" class="contents-documents-link">Explorar Todos os Conteúdos →</a>
-        </div>
-
-        <!-- Cards estilo G1 - 100% width, imagem à esquerda -->
-        <div class="contents-docs-list">
-          
-          <!-- Card 1 -->
-          <div class="contents-doc-item" (click)="navigateToContent(1)">
-            <div class="contents-doc-item-image">
-              <img src="https://images.unsplash.com/photo-1604594849809-dfedbc827105?w=400&q=80" alt="" />
-            </div>
-            <div class="contents-doc-item-body">
-              <span class="contents-doc-item-category">HISTÓRIA MONETÁRIA</span>
-              <h3 class="contents-doc-item-title">A Transição: Do Escudo ao Kwanza</h3>
-              <p class="contents-doc-item-description">Uma análise profunda da reforma monetária de 1977 que moldou a soberania económica da nação.</p>
-              <span class="contents-doc-item-link">Ler Conteúdo →</span>
-            </div>
-          </div>
-
-          <!-- Card 2 -->
-          <div class="contents-doc-item" (click)="navigateToContent(2)">
-            <div class="contents-doc-item-image">
-              <img src="https://images.unsplash.com/photo-1557318041-1ce374d55ebf?w=400&q=80" alt="" />
-            </div>
-            <div class="contents-doc-item-body">
-              <span class="contents-doc-item-category">INFRAESTRUTURA</span>
-              <h3 class="contents-doc-item-title">Caminho de Ferro de Benguela</h3>
-              <p class="contents-doc-item-description">Mapeamento do corredor de exportação do Copperbelt até à costa atlântica e seu impacto económico.</p>
-              <span class="contents-doc-item-link">Ler Arquivo →</span>
-            </div>
-          </div>
-
-          <!-- Card 3 -->
-          <div class="contents-doc-item" (click)="navigateToContent(3)">
-            <div class="contents-doc-item-image">
-              <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&q=80" alt="" />
-            </div>
-            <div class="contents-doc-item-body">
-              <span class="contents-doc-item-category">ECONOMIA MODERNA</span>
-              <h3 class="contents-doc-item-title">Política Pós-Independência</h3>
-              <p class="contents-doc-item-description">Análise das estruturas de economia planeada do final dos anos 70 e 80 em Angola.</p>
-              <span class="contents-doc-item-link">Ler Arquivo →</span>
-            </div>
-          </div>
-
-          <!-- Card 4 -->
-          <div class="contents-doc-item" (click)="navigateToContent(4)">
-            <div class="contents-doc-item-image">
-              <img src="https://images.unsplash.com/photo-1447069387593-a5de0862481e?w=400&q=80" alt="" />
-            </div>
-            <div class="contents-doc-item-body">
-              <span class="contents-doc-item-category">AGRICULTURA</span>
-              <h3 class="contents-doc-item-title">O Ciclo do Café em Angola (1970-1980)</h3>
-              <p class="contents-doc-item-description">Como Angola se tornou o terceiro maior produtor mundial de café na década de 1970.</p>
-              <span class="contents-doc-item-link">Ler Arquivo →</span>
-            </div>
+      <!-- Hero Section -->
+      <div class="contents-hero">
+        <img [src]="getFeaturedImage()" alt="Hero" class="contents-hero-image" />
+        <div class="contents-hero-overlay"></div>
+        <div class="contents-hero-content">
+          <p class="contents-hero-badge">DOCUMENTO EM DESTAQUE</p>
+          <h1 class="contents-hero-title">{{ featuredDocument?.title ?? 'Arquivo de Conteúdos' }}</h1>
+          <p class="contents-hero-description">{{ featuredDocument?.summary ?? 'Explore a nossa colecção de documentos históricos e económicos.' }}</p>
+          <div class="contents-hero-actions" *ngIf="featuredDocument">
+            <a (click)="navigateToContent(featuredDocument.id)" class="contents-hero-btn">Ler Documento →</a>
           </div>
         </div>
       </div>
 
-      <!-- Sidebar -->
-      <div class="contents-sidebar">
+      <!-- Grid principal -->
+      <div class="contents-grid">
 
-        <!-- Discussões -->
-        <div class="contents-widget-discussions">
-          <h3 class="contents-widget-title">Discussões Ativas</h3>
-          <div *ngFor="let d of discussions" class="contents-widget-item" (click)="navigateToDiscussion(d.id)">
-            <p class="contents-widget-item-title">{{ d.title }}</p>
-            <p class="contents-widget-item-meta">{{ d.author }} • {{ d.replies }}</p>
-          </div>
-          <a (click)="navigateTo('/forum/community')" class="contents-widget-btn">ADERIR À COMUNIDADE</a>
-        </div>
-
-        <!-- Investigadores -->
-        <div class="contents-widget-scholars">
-          <h3 class="contents-widget-scholars-title">Ranking</h3>
-          <div *ngFor="let s of scholars" class="contents-scholar-item" (click)="navigateToScholar(s.id)">
-            <div class="contents-scholar-rank">{{ s.rank }}</div>
-            <div class="contents-scholar-info">
-              <p class="contents-scholar-name">{{ s.name }}</p>
-              <p class="contents-scholar-specialty">{{ s.specialty }}</p>
-            </div>
-            <div class="contents-scholar-points">
-              <p class="contents-scholar-points-number">{{ s.points }}</p>
-              <p class="contents-scholar-points-label">Pontos</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Citação -->
-        <div class="contents-widget-quote">
-          <p class="contents-quote-text">"Compreender o passado é a única forma de salvaguardar o futuro económico da nossa nação soberana."</p>
-          <p class="contents-quote-author">— Comissão de Arquivos Angolanos, 1978</p>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Categorias - CARROSSEL INFINITO -->
-    <div class="contents-categories">
-      <div class="contents-section-header">
-        <h2 class="contents-section-title">Explorar por Categoria</h2>
-        <div class="contents-section-divider"></div>
-        <p class="contents-section-subtitle">Navegue através das principais áreas de investigação do arquivo</p>
-      </div>
-
-      <div class="contents-categories-wrapper">
-        <div class="contents-categories-track">
-          <!-- Primeira cópia dos cards -->
-          <div *ngFor="let cat of categories" class="contents-category-card" (click)="navigateToCategory(cat.id)">
+        <!-- Documentos recomendados -->
+        <div class="contents-main-content">
+          <div class="contents-documents-header">
             <div>
-              <div class="contents-category-icon" [style.background]="cat.color + '20'">
-                <svg width="28" height="28" viewBox="0 0 24 24" [attr.fill]="cat.color"><path [attr.d]="cat.icon"/></svg>
-              </div>
-              <h3 class="contents-category-name">{{ cat.name }}</h3>
-              <p class="contents-category-description">{{ cat.description }}</p>
+              <h2 class="contents-documents-title">Conteúdos Recomendados</h2>
+              <div class="contents-documents-divider"></div>
             </div>
-            <div class="contents-category-footer">
-              <span class="contents-category-count">{{ cat.documentCount }} documentos</span>
-              <span class="contents-category-link" [style.color]="cat.color">
-                {{ cat.isExclusive ? 'Pedir Acesso →' : 'Explorar →' }}
-              </span>
-            </div>
-            <div *ngIf="cat.isExclusive" class="contents-category-badge">EXCLUSIVO</div>
+            <a (click)="navigateTo('/contents')" class="contents-documents-link">Explorar Todos os Conteúdos →</a>
           </div>
-          <!-- Duplicação para efeito infinito -->
-          <div *ngFor="let cat of categories" class="contents-category-card" (click)="navigateToCategory(cat.id)">
-            <div>
-              <div class="contents-category-icon" [style.background]="cat.color + '20'">
-                <svg width="28" height="28" viewBox="0 0 24 24" [attr.fill]="cat.color"><path [attr.d]="cat.icon"/></svg>
+
+          <!-- Empty state -->
+          <div *ngIf="documents.length === 0" style="padding:40px;color:#64748b;text-align:center">
+            Nenhum documento disponível de momento.
+          </div>
+
+          <div class="contents-docs-list">
+            <div *ngFor="let doc of documents" class="contents-doc-item" (click)="navigateToContent(doc.id)">
+              <div class="contents-doc-item-image">
+                <img [src]="getDocumentImage(doc)" [alt]="doc.title" />
               </div>
-              <h3 class="contents-category-name">{{ cat.name }}</h3>
-              <p class="contents-category-description">{{ cat.description }}</p>
+              <div class="contents-doc-item-body">
+                <span class="contents-doc-item-category">{{ getFormatLabel(doc.document_type) }}</span>
+                <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
+                <p class="contents-doc-item-description">{{ doc.summary }}</p>
+                <span class="contents-doc-item-link">Ler Conteúdo →</span>
+              </div>
             </div>
-            <div class="contents-category-footer">
-              <span class="contents-category-count">{{ cat.documentCount }} documentos</span>
-              <span class="contents-category-link" [style.color]="cat.color">
-                {{ cat.isExclusive ? 'Pedir Acesso →' : 'Explorar →' }}
-              </span>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="contents-sidebar">
+
+          <!-- Discussões -->
+          <div class="contents-widget-discussions">
+            <h3 class="contents-widget-title">Discussões Ativas</h3>
+
+            <div *ngIf="discussions.length === 0" style="padding:16px;color:#64748b;font-size:14px">
+              Nenhuma discussão activa.
             </div>
-            <div *ngIf="cat.isExclusive" class="contents-category-badge">EXCLUSIVO</div>
+
+            <div *ngFor="let d of discussions" class="contents-widget-item" (click)="navigateToDiscussion(d.id)">
+              <p class="contents-widget-item-title">{{ d.title }}</p>
+              <p class="contents-widget-item-meta">
+                {{ d.author?.display_name ?? '—' }} • {{ formatReplies(d.replies_count) }}
+              </p>
+            </div>
+            <a (click)="navigateTo('/forum/community')" class="contents-widget-btn">ADERIR À COMUNIDADE</a>
+          </div>
+
+          <!-- Ranking -->
+          <div class="contents-widget-scholars">
+            <h3 class="contents-widget-scholars-title">Ranking</h3>
+
+            <div *ngIf="scholars.length === 0" style="padding:16px;color:#64748b;font-size:14px">
+              Sem dados de ranking.
+            </div>
+
+            <div *ngFor="let s of scholars; let i = index" class="contents-scholar-item" (click)="navigateTo('/quiz/ranking')">
+              <div class="contents-scholar-rank">{{ i + 1 }}º</div>
+              <div class="contents-scholar-info">
+                <p class="contents-scholar-name">{{ s.display_name }}</p>
+                <p class="contents-scholar-specialty">{{ s.province ?? '—' }}</p>
+              </div>
+              <div class="contents-scholar-points">
+                <p class="contents-scholar-points-number">{{ s.total_points | number }}</p>
+                <p class="contents-scholar-points-label">Pontos</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Citação -->
+          <div class="contents-widget-quote">
+            <p class="contents-quote-text">"Compreender o passado é a única forma de salvaguardar o futuro económico da nossa nação soberana."</p>
+            <p class="contents-quote-author">— Comissão de Arquivos Angolanos, 1978</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Categorias -->
+      <div class="contents-categories">
+        <div class="contents-section-header">
+          <h2 class="contents-section-title">Explorar por Categoria</h2>
+          <div class="contents-section-divider"></div>
+          <p class="contents-section-subtitle">Navegue através das principais áreas de investigação do arquivo</p>
+        </div>
+
+        <div *ngIf="categories.length === 0" style="text-align:center;padding:40px;color:#64748b">
+          Nenhuma categoria disponível.
+        </div>
+
+        <div class="contents-categories-wrapper" *ngIf="categories.length > 0">
+          <div class="contents-categories-track">
+            <!-- Primeira cópia -->
+            <div *ngFor="let cat of categories" class="contents-category-card" (click)="navigateToCategory(cat.id)">
+              <div>
+                <div class="contents-category-icon" [style.background]="(cat.color_bg ?? '#6b0119') + '20'">
+                  <svg width="28" height="28" viewBox="0 0 24 24" [attr.fill]="cat.color_bg ?? '#6b0119'">
+                    <path d="M3 6h18M3 12h18M3 18h18"/>
+                  </svg>
+                </div>
+                <h3 class="contents-category-name">{{ cat.name }}</h3>
+                <p class="contents-category-description">{{ cat.description }}</p>
+              </div>
+              <div class="contents-category-footer">
+                <span class="contents-category-link" [style.color]="cat.color_bg ?? '#6b0119'">
+                  Explorar →
+                </span>
+              </div>
+            </div>
+            <!-- Duplicação para efeito infinito -->
+            <div *ngFor="let cat of categories" class="contents-category-card" (click)="navigateToCategory(cat.id)">
+              <div>
+                <div class="contents-category-icon" [style.background]="(cat.color_bg ?? '#6b0119') + '20'">
+                  <svg width="28" height="28" viewBox="0 0 24 24" [attr.fill]="cat.color_bg ?? '#6b0119'">
+                    <path d="M3 6h18M3 12h18M3 18h18"/>
+                  </svg>
+                </div>
+                <h3 class="contents-category-name">{{ cat.name }}</h3>
+                <p class="contents-category-description">{{ cat.description }}</p>
+              </div>
+              <div class="contents-category-footer">
+                <span class="contents-category-link" [style.color]="cat.color_bg ?? '#6b0119'">
+                  Explorar →
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+    </ng-container>
 
   </main>
 

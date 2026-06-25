@@ -4,66 +4,83 @@
 
   <main class="category-detail-main">
     <div class="category-detail-container">
-      
-      <!-- Breadcrumb -->
-      <nav class="category-detail-breadcrumb">
-        <button (click)="navigateTo('/forum/community')" class="category-detail-breadcrumb-btn">Comunidade</button>
-        <span class="category-detail-breadcrumb-separator">/</span>
-        <span class="category-detail-breadcrumb-current">{{ categoryName }}</span>
-      </nav>
 
-      <!-- Main Grid -->
-      <div class="category-detail-grid">
-        
-        <!-- Left Column -->
-        <div>
+      <!-- Loading -->
+      <div *ngIf="isLoading" style="text-align:center;padding:80px">
+        A carregar categoria...
+      </div>
+
+      <!-- Erro -->
+      <div *ngIf="error" style="text-align:center;padding:40px;color:red">
+        {{ error }}
+      </div>
+
+      <ng-container *ngIf="!isLoading && !error">
+
+        <!-- Breadcrumb -->
+        <nav class="category-detail-breadcrumb">
+          <button (click)="navigateTo('/forum/community')" class="category-detail-breadcrumb-btn">Comunidade</button>
+          <span class="category-detail-breadcrumb-separator">/</span>
+          <span class="category-detail-breadcrumb-current">{{ categoryName }}</span>
+        </nav>
+
+        <!-- Main Grid -->
+        <div class="category-detail-grid">
           
-          <!-- Category Header -->
-          <div class="category-detail-header">
-            <div class="category-detail-header-badge">CATEGORIA</div>
-            <h1 class="category-detail-header-title">{{ categoryName }}</h1>
-            <p class="category-detail-header-description">{{ categoryDescription }}</p>
-          </div>
-
-          <!-- New Discussion Button -->
-          <div class="category-detail-new-discussion">
-            <button (click)="startNewDiscussion()" class="btn-primary">
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="white">
-                <path d="M10 4V16M4 10H16" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-              <span>Iniciar Nova Discussão</span>
-            </button>
-          </div>
-
-          <!-- Recent Discussions -->
-          <div class="category-detail-discussions">
-            <div class="category-detail-discussions-header">
-              <h2 class="category-detail-discussions-title">Recentes</h2>
-              <div class="category-detail-discussions-divider"></div>
+          <!-- Left Column -->
+          <div>
+            
+            <!-- Category Header -->
+            <div class="category-detail-header">
+              <div class="category-detail-header-badge">CATEGORIA</div>
+              <h1 class="category-detail-header-title">{{ categoryName }}</h1>
+              <p class="category-detail-header-description">{{ categoryDescription }}</p>
             </div>
 
-            <div>
-              <div *ngFor="let discussion of discussions" (click)="viewDiscussion(discussion.id)" class="category-detail-discussion-card">
-                <div class="category-detail-discussion-inner">
-                  <!-- Avatar -->
-                  <div class="category-detail-discussion-avatar">
-                    <span>{{ discussion.authorInitials }}</span>
-                  </div>
-                  
-                  <div class="category-detail-discussion-body">
-                    <div class="category-detail-discussion-tags">
-                      <span class="category-detail-discussion-tag">{{ discussion.category }}</span>
-                      <span class="category-detail-discussion-tag-sub">{{ discussion.subcategory }}</span>
+            <!-- New Discussion Button -->
+            <div class="category-detail-new-discussion">
+              <button (click)="startNewDiscussion()" class="btn-primary">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="white">
+                  <path d="M10 4V16M4 10H16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Iniciar Nova Discussão</span>
+              </button>
+            </div>
+
+            <!-- Recent Discussions -->
+            <div class="category-detail-discussions">
+              <div class="category-detail-discussions-header">
+                <h2 class="category-detail-discussions-title">Recentes</h2>
+                <div class="category-detail-discussions-divider"></div>
+              </div>
+
+              <!-- Empty state -->
+              <div *ngIf="discussions.length === 0" style="padding:40px;color:#64748b;text-align:center">
+                Ainda não há discussões nesta categoria.
+              </div>
+
+              <div>
+                <div *ngFor="let discussion of discussions" (click)="viewDiscussion(discussion.id)" class="category-detail-discussion-card">
+                  <div class="category-detail-discussion-inner">
+                    <!-- Avatar -->
+                    <div class="category-detail-discussion-avatar">
+                      <span>{{ getAuthorInitials(discussion.author?.display_name ?? '?') }}</span>
                     </div>
-                    <h3 class="category-detail-discussion-title">{{ discussion.title }}</h3>
-                    <div class="category-detail-discussion-meta">
-                      <div class="category-detail-discussion-meta-left">
-                        <span class="category-detail-discussion-meta-text">Por {{ discussion.authorName }}</span>
-                        <span class="category-detail-discussion-meta-text">{{ discussion.date }}</span>
+                    
+                    <div class="category-detail-discussion-body">
+                      <div class="category-detail-discussion-tags">
+                        <span class="category-detail-discussion-tag">{{ discussion.category?.name ?? '—' }}</span>
                       </div>
-                      <div class="category-detail-discussion-meta-right">
-                        <span class="category-detail-discussion-meta-icon">💬 {{ discussion.replies }} respostas</span>
-                        <span class="category-detail-discussion-meta-icon">👁️ {{ discussion.views | number }} visualizações</span>
+                      <h3 class="category-detail-discussion-title">{{ discussion.title }}</h3>
+                      <div class="category-detail-discussion-meta">
+                        <div class="category-detail-discussion-meta-left">
+                          <span class="category-detail-discussion-meta-text">Por {{ discussion.author?.display_name ?? '—' }}</span>
+                          <span class="category-detail-discussion-meta-text">{{ formatTimeAgo(discussion.created_at) }}</span>
+                        </div>
+                        <div class="category-detail-discussion-meta-right">
+                          <span class="category-detail-discussion-meta-icon">💬 {{ discussion.replies_count }} respostas</span>
+                          <span class="category-detail-discussion-meta-icon">👁️ {{ discussion.views_count | number }} visualizações</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -71,69 +88,70 @@
               </div>
             </div>
           </div>
+
+          <!-- Right Column - Sidebar -->
+          <aside>
+            <div class="category-detail-sidebar">
+              <div class="category-detail-sidebar-sticky">
+                
+                <!-- Curator Card -->
+                <div class="category-detail-curator">
+                  <h3 class="category-detail-curator-title">Curator da Categoria</h3>
+                  <div class="category-detail-curator-profile">
+                    <div class="category-detail-curator-avatar">
+                      <span>CL</span>
+                    </div>
+                    <div>
+                      <p class="category-detail-curator-name">{{ curator.name }}</p>
+                      <p class="category-detail-curator-role">{{ curator.role }}</p>
+                    </div>
+                  </div>
+                  <p class="category-detail-curator-quote">{{ curator.quote }}</p>
+                  <button (click)="navigateTo('/contactar-curator')" class="btn-secondary">
+                    Contactar Curator
+                  </button>
+                </div>
+
+                <!-- Reference Documents -->
+                <div class="category-detail-reference">
+                  <h3 class="category-detail-reference-title">Documentos de Referência</h3>
+                  <div class="category-detail-reference-list">
+                    <div *ngFor="let doc of referenceDocs" class="category-detail-reference-item" (click)="navigateTo('/contents')">
+                      <p class="category-detail-reference-item-title">{{ doc.title }}</p>
+                      <span class="category-detail-reference-item-format">{{ doc.format }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Category Stats -->
+                <div class="category-detail-stats">
+                  <div class="category-detail-stats-inner">
+                    <div>
+                      <div class="category-detail-stats-number">{{ stats.documents }}</div>
+                      <div class="category-detail-stats-label">DISCUSSÕES</div>
+                    </div>
+                    <div>
+                      <div class="category-detail-stats-number">{{ stats.results }}</div>
+                      <div class="category-detail-stats-label">VISUALIZAÇÕES</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="category-detail-actions">
+                  <h3 class="category-detail-actions-title">Ações Rápidas</h3>
+                  <div class="category-detail-actions-list">
+                    <button (click)="startNewDiscussion()" class="category-detail-actions-btn">📝 Nova Discussão</button>
+                    <button (click)="navigateTo('/contents')" class="category-detail-actions-btn">📚 Ver Documentos</button>
+                    <button (click)="navigateTo('/forum/community')" class="category-detail-actions-btn">🏠 Voltar à Comunidade</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
 
-        <!-- Right Column - Sidebar -->
-        <aside>
-          <div class="category-detail-sidebar">
-            <div class="category-detail-sidebar-sticky">
-              
-              <!-- Curator Card -->
-              <div class="category-detail-curator">
-                <h3 class="category-detail-curator-title">Curator da Categoria</h3>
-                <div class="category-detail-curator-profile">
-                  <div class="category-detail-curator-avatar">
-                    <span>CL</span>
-                  </div>
-                  <div>
-                    <p class="category-detail-curator-name">{{ curator.name }}</p>
-                    <p class="category-detail-curator-role">{{ curator.role }}</p>
-                  </div>
-                </div>
-                <p class="category-detail-curator-quote">{{ curator.quote }}</p>
-                <button (click)="navigateTo('/contactar-curator')" class="btn-secondary">
-                  Contactar Curator
-                </button>
-              </div>
-
-              <!-- Reference Documents -->
-              <div class="category-detail-reference">
-                <h3 class="category-detail-reference-title">Documentos de Referência</h3>
-                <div class="category-detail-reference-list">
-                  <div *ngFor="let doc of referenceDocs" class="category-detail-reference-item" (click)="navigateTo('/contents/view/1')">
-                    <p class="category-detail-reference-item-title">{{ doc.title }}</p>
-                    <span class="category-detail-reference-item-format">{{ doc.format }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Category Stats -->
-              <div class="category-detail-stats">
-                <div class="category-detail-stats-inner">
-                  <div>
-                    <div class="category-detail-stats-number">{{ stats.documents }}</div>
-                    <div class="category-detail-stats-label">DOCUMENTOS</div>
-                  </div>
-                  <div>
-                    <div class="category-detail-stats-number">{{ stats.results }}</div>
-                    <div class="category-detail-stats-label">RESULTADOS</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Quick Actions -->
-              <div class="category-detail-actions">
-                <h3 class="category-detail-actions-title">Ações Rápidas</h3>
-                <div class="category-detail-actions-list">
-                  <button (click)="startNewDiscussion()" class="category-detail-actions-btn">📝 Nova Discussão</button>
-                  <button (click)="navigateTo('/contents')" class="category-detail-actions-btn">📚 Ver Documentos</button>
-                  <button (click)="navigateTo('/forum/community')" class="category-detail-actions-btn">🏠 Voltar à Comunidade</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </aside>
-      </div>
+      </ng-container>
     </div>
   </main>
 

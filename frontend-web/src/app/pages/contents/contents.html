@@ -22,7 +22,7 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar documentos, temas ou períodos..." 
-                   class="contents-search-input" (input)="resetAndReload()">
+                   class="contents-search-input" (input)="onSearchInput()">
           </div>
         </div>
 
@@ -87,23 +87,23 @@
           </div>
 
           <!-- Format -->
-          <div class="contents-filter-group">
-            <label class="contents-filter-label">Formato</label>
-            <div class="contents-filter-dropdown">
-              <button (click)="toggleFormatDropdown()" class="contents-filter-btn">
-                <span>{{ getSelectedFormatLabel() }}</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" [class.rotated]="showFormatDropdown">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </button>
-              <div *ngIf="showFormatDropdown" class="contents-filter-dropdown-menu">
-                <button *ngFor="let format of formats" (click)="selectFormat(format)" 
-                        class="contents-filter-option" [class.selected]="isFormatSelected(format)">
-                  {{ format }}
-                </button>
-              </div>
-            </div>
-          </div>
+<div class="contents-filter-group">
+  <label class="contents-filter-label">Formato</label>
+  <div class="contents-filter-dropdown">
+    <button (click)="toggleFormatDropdown()" class="contents-filter-btn">
+      <span>{{ getSelectedFormatLabel() }}</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" [class.rotated]="showFormatDropdown">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+    <div *ngIf="showFormatDropdown" class="contents-filter-dropdown-menu">
+      <button *ngFor="let format of formats" (click)="selectFormat(format.id)" 
+              class="contents-filter-option" [class.selected]="isFormatSelected(format.id)">
+        {{ format.label }}
+      </button>
+    </div>
+  </div>
+</div>
 
           <!-- Clear Filters -->
           <button class="contents-filters-clear" (click)="clearFilters()">
@@ -115,35 +115,46 @@
         </div>
       </div>
 
-      <!-- Documents Grid - ESTRUTURA G1 -->
+      <!-- Documents Grid -->
       <div>
         <div class="contents-documents-header">
           <div>
             <h2 class="contents-documents-title">Conteúdos Disponíveis</h2>
             <div class="contents-documents-divider"></div>
           </div>
-          <p class="contents-documents-count">{{ getFilteredDocuments().length }} documentos</p>
+          <p class="contents-documents-count">{{ totalDocuments }} documentos</p>
         </div>
 
-        <!-- Cards estilo G1 - imagem à esquerda -->
+        <!-- Loading inicial -->
+        <div *ngIf="isLoading && displayedDocuments.length === 0" class="contents-loading">
+          <div class="contents-spinner"></div>
+          <span>A carregar conteúdos...</span>
+        </div>
+
+        <!-- Cards -->
         <div class="contents-docs-list">
           <div *ngFor="let doc of displayedDocuments" 
                (click)="navigateToDocument(doc.id)"
                class="contents-doc-item">
             <div class="contents-doc-item-image">
-              <img [src]="doc.imageUrl" [alt]="doc.title">
+              <img [src]="getDocumentImage(doc)" [alt]="doc.title">
             </div>
             <div class="contents-doc-item-body">
-              <span class="contents-doc-item-category">{{ doc.type }}</span>
+              <span class="contents-doc-item-category">{{ doc.document_type | uppercase }}</span>
               <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
-              <p class="contents-doc-item-description">{{ doc.description }}</p>
+              <p class="contents-doc-item-description">{{ doc.summary }}</p>
               <div class="contents-doc-item-footer">
                 <span class="contents-doc-item-access" 
-                      [style.background]="getAccessBadgeStyle(doc.accessLevel).bg"
-                      [style.color]="getAccessBadgeStyle(doc.accessLevel).text">
-                  {{ getAccessLabel(doc.accessLevel) }}
+                      [style.background]="getAccessBadgeStyle(doc.access_level_id).bg"
+                      [style.color]="getAccessBadgeStyle(doc.access_level_id).text">
+                  {{ getAccessLabel(doc.access_level_id) }}
                 </span>
-                <span class="contents-doc-item-date">{{ doc.date }}</span>
+                <span class="contents-doc-item-date" *ngIf="doc.period_start">
+                  {{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}
+                </span>
+                <span class="contents-doc-item-date" *ngIf="!doc.period_start && doc.publication_date">
+                  {{ doc.publication_date | date:'yyyy' }}
+                </span>
                 <span class="contents-doc-item-link">Ler Conteúdo →</span>
               </div>
             </div>
@@ -153,8 +164,8 @@
         <!-- Anchor para scroll infinito -->
         <div #scrollAnchor class="contents-scroll-anchor"></div>
 
-        <!-- Loading - CORRIGIDO: usa hasMore e displayedDocuments -->
-        <div *ngIf="hasMore && displayedDocuments.length > 0" class="contents-loading">
+        <!-- Loading mais -->
+        <div *ngIf="isLoading && displayedDocuments.length > 0" class="contents-loading">
           <div class="contents-spinner"></div>
           <span>Carregando mais conteúdos...</span>
         </div>
@@ -165,7 +176,7 @@
         </div>
 
         <!-- Empty state -->
-        <div *ngIf="getFilteredDocuments().length === 0" class="contents-empty">
+        <div *ngIf="!isLoading && displayedDocuments.length === 0" class="contents-empty">
           <svg class="contents-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -173,6 +184,7 @@
           <p class="contents-empty-title">Nenhum documento encontrado</p>
           <p class="contents-empty-subtitle">Tente ajustar os filtros da pesquisa</p>
         </div>
+
       </div>
     </div>
   </main>

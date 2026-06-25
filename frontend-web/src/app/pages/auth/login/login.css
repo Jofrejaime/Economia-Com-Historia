@@ -5,7 +5,7 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 
 /* ============================================
-   1. RESET E BASE - ALTURA 100%
+   1. RESET E BASE
    ============================================ */
 
 * {
@@ -15,9 +15,10 @@
 }
 
 html, body {
-  height: 100vh;
+  height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;              /* remove o scroll do body */
   font-family: 'Source Sans 3', sans-serif;
   background-color: #F5F5F5;
   color: #1F2937;
@@ -26,20 +27,25 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:host {
+  display: block;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;              /* o host não rola */
+}
+
 /* ============================================
-   2. PAGE CONTAINER - OCUPA 100%
+   2. PAGE CONTAINER
    ============================================ */
 
 .login-page {
-  min-height: 100vh;
   height: 100%;
+  width: 100%;
   display: flex;
-  align-items: stretch;
 }
 
 .login-container {
   display: flex;
-  min-height: 100vh;
   height: 100%;
   width: 100%;
   background-color: #F5F5F5;
@@ -50,15 +56,16 @@ html, body {
    ============================================ */
 
 .login-sidebar {
-  flex: 1;
+  flex: 0 0 45%;
+  max-width: 45%;
   background: linear-gradient(135deg, #6B0119, #8B1E2D);
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 48px;
-  min-height: 100vh;
-  height: 100vh;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Decorações de fundo */
@@ -246,15 +253,14 @@ html, body {
    ============================================ */
 
 .login-form-wrapper {
-  flex: 1;
+  flex: 1 1 55%;
   background-color: #F5F5F5;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px;
-  overflow-y: auto;
-  min-height: 100vh;
   height: 100%;
+  overflow-y: auto;
 }
 
 .login-form-container {
@@ -264,7 +270,8 @@ html, body {
 
 /* Form Header */
 .login-form-header {
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+  margin-top: 8px;
   text-align: center;
 }
 
@@ -487,58 +494,78 @@ html, body {
 
 @media (max-width: 1024px) {
   .login-sidebar {
+    flex: 0 0 42%;
+    max-width: 42%;
     padding: 32px;
   }
-  
+
+  .login-form-wrapper {
+    flex: 1 1 58%;
+  }
+
   .login-title {
     font-size: 28px;
   }
-  
+
   .login-form-card {
     padding: 32px;
   }
 }
 
 @media (max-width: 768px) {
+  :host {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .login-page,
+  .login-container {
+    height: auto;
+    min-height: 100vh;
+  }
+
   .login-container {
     flex-direction: column;
   }
-  
+
   .login-sidebar {
+    flex: 0 0 auto;
+    max-width: 100%;
     padding: 32px 24px;
     min-height: 280px;
     height: auto;
   }
-  
+
   .login-content {
     justify-content: center;
     gap: 20px;
   }
-  
+
   .login-title {
     font-size: 24px;
   }
-  
+
   .login-decoration-top {
     width: 150px;
     height: 150px;
   }
-  
+
   .login-decoration-bottom {
     width: 100px;
     height: 100px;
   }
-  
+
   .login-form-wrapper {
+    flex: 1 1 auto;
     padding: 24px 16px;
     min-height: 60vh;
     height: auto;
   }
-  
+
   .login-form-title {
     font-size: 28px;
   }
-  
+
   .login-form-card {
     padding: 24px;
   }
@@ -549,45 +576,45 @@ html, body {
     padding: 24px 16px;
     min-height: 200px;
   }
-  
+
   .login-logo-text {
     font-size: 16px;
   }
-  
+
   .login-title {
     font-size: 20px;
   }
-  
+
   .login-description {
     font-size: 13px;
   }
-  
+
   .login-form-wrapper {
     padding: 16px 12px;
   }
-  
+
   .login-form-title {
     font-size: 24px;
   }
-  
+
   .login-form-subtitle {
     font-size: 14px;
   }
-  
+
   .login-form-card {
     padding: 20px;
   }
-  
+
   .login-input {
     padding: 12px 14px;
     font-size: 14px;
   }
-  
+
   .login-btn {
     padding: 14px;
     font-size: 15px;
   }
-  
+
   .login-secondary-btn {
     padding: 10px;
     font-size: 14px;

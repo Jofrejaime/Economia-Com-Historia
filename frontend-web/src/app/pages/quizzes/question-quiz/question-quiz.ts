@@ -1,15 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
-import { ActivatedRoute } from '@angular/router';
-
-interface Option {
-  id: string;
-  text: string;
-  isCorrect?: boolean;
-}
+import { QuizService, QuizQuestion } from '../../../services/quiz.service';
 
 @Component({
   selector: 'app-question-quiz',
@@ -18,73 +12,106 @@ interface Option {
   templateUrl: './question-quiz.html',
   styleUrls: ['./question-quiz.css']
 })
-export class QuestionQuizComponent {
-  selectedOption: string | null = null;
-  currentQuestion = 4;
-  totalQuestions = 15;
+export class QuestionQuizComponent implements OnInit, OnDestroy {
 
-  question = {
-    module: "MÓDULO IV: ANGOLA COLONIAL",
-    title: "O impacto do Ciclo do Café na estrutura social angolana (1950-1970)",
-    subtitle: "Considere as transformações demográficas e o surgimento de novas elites económicas durante o auge da produção cafeeira no Planalto Central.",
-    options: [
-      {
-        id: 'A',
-        text: "Provocou o declínio imediato das infraestruturas ferroviárias devido ao foco exclusivo na exportação marítima."
-      },
-      {
-        id: 'B',
-        text: "Acelerou o processo de urbanização e consolidou uma nova burguesia agrária e administrativa no corredor do Lobito.",
-        isCorrect: true
-      },
-      {
-        id: 'C',
-        text: "Resultou na abolição total do trabalho forçado em todas as explorações agrícolas do norte do país."
-      },
-      {
-        id: 'D',
-        text: "Não teve qualquer impacto significativo, permanecendo Angola dependente apenas da extração diamantífera."
-      }
-    ],
-    hint: {
-      title: "Dica do Pesquisador",
-      quote: '"O café transformou Angola no quarto maior produtor mundial nos anos 60. Note como a rede ferroviária, especialmente o CFB, foi redesenhada para drenar esta riqueza para o Porto do Lobito, criando centros urbanos vibrantes que antes eram meros postos administrativos."',
-      expert: {
-        name: "DR. ALBERTO MENDES",
-        role: "Especialista em História Económica"
-      }
-    },
-    reading: {
-      title: "Leitura Recomendada",
-      text: 'Consulte o Capítulo 12: "A Era do Ouro Negro Agrícola" no arquivo digital.'
+  questions: QuizQuestion[] = [];
+  currentIndex = 0;
+  selectedOptionId: string | null = null;
+  isLoading = true;
+  isSubmitting = false;
+  error: string | null = null;
+
+  quizId = '';
+  attemptId = '';
+  questionStartTime = Date.now();
+  private timerInterval: any = null;
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private quizService: QuizService
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    this.quizId = this.route.snapshot.queryParamMap.get('quiz') ?? '';
+    this.attemptId = this.route.snapshot.queryParamMap.get('attempt') ?? '';
+
+    if (!this.quizId || !this.attemptId) {
+      this.router.navigate(['/quiz']);
+      return;
     }
-  };
 
-  constructor(private router: Router) {}
+    try {
+      this.questions = await this.quizService.getQuestions(this.quizId);
+      if (this.questions.length === 0) {
+        this.error = 'Este quiz não tem perguntas.';
+      }
+    } catch {
+      this.error = 'Erro ao carregar perguntas.';
+    } finally {
+      this.isLoading = false;
+      this.questionStartTime = Date.now();
+    }
+  }
 
-  get progress(): number {
-    return (this.currentQuestion / this.totalQuestions) * 100;
+  ngOnDestroy(): void {
+    if (this.timerInterval) clearInterval(this.timerInterval);
+  }
+
+  get question(): QuizQuestion | null {
+    return this.questions[this.currentIndex] ?? null;
+  }
+
+  get currentQuestion(): number {
+    return this.currentIndex + 1;
+  }
+
+  get totalQuestions(): number {
+    return this.questions.length;
   }
 
   selectOption(optionId: string): void {
-    this.selectedOption = optionId;
-  }
-
-  nextQuestion(): void {
-    if (this.selectedOption) {
-      this.router.navigate(['/quiz/resultado']);
+    if (!this.isSubmitting) {
+      this.selectedOptionId = optionId;
     }
   }
 
-  getOptionClass(optionId: string): string {
-    return this.selectedOption === optionId
-      ? 'bg-white border-2 border-[#6f0008] shadow-[0px_4px_24px_-4px_rgba(27,28,27,0.06)]'
-      : 'bg-[#f5f3f1] border-2 border-transparent hover:border-[rgba(224,191,187,0.4)]';
+  async nextQuestion(): Promise<void> {
+    if (!this.selectedOptionId || !this.question || this.isSubmitting) return;
+
+    this.isSubmitting = true;
+    const timeSpent = Math.round((Date.now() - this.questionStartTime) / 1000);
+
+    try {
+      await this.quizService.answerAttempt(
+        this.attemptId,
+        this.question.id,
+        this.selectedOptionId,
+        timeSpent
+      );
+
+      if (this.currentIndex < this.questions.length - 1) {
+        this.currentIndex++;
+        this.selectedOptionId = null;
+        this.questionStartTime = Date.now();
+      } else {
+        await this.finishQuiz(timeSpent);
+      }
+    } catch {
+      alert('Erro ao registar resposta. Tente novamente.');
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 
-  getRadioButtonClass(optionId: string): string {
-    return this.selectedOption === optionId
-      ? 'border-[#6f0008] bg-[#6f0008]'
-      : 'border-[#e0bfbb] bg-transparent';
+  private async finishQuiz(lastQuestionTime: number): Promise<void> {
+    try {
+      const result = await this.quizService.completeAttempt(this.attemptId);
+      this.router.navigate(['/quiz/resultado'], {
+        queryParams: { attempt: this.attemptId }
+      });
+    } catch {
+      alert('Erro ao finalizar quiz.');
+    }
   }
 }

@@ -11,189 +11,205 @@
         <p class="quizzes-subtitle">Teste os seus conhecimentos sobre a história económica de Angola</p>
       </div>
 
-      <!-- User Level Card -->
-      <div class="quizzes-level-card">
-        <div class="quizzes-level-decoration"></div>
-        <div class="quizzes-level-grid">
-          <div>
-            <p class="quizzes-level-label">ESTATUTO ACTUAL</p>
-            <h3 class="quizzes-level-name">Nível {{ userLevel.current }}: {{ userLevel.name }}</h3>
-            <p class="quizzes-level-info">{{ userLevel.points }} pontos académicos • {{ userLevel.nextLevel - userLevel.points }} pontos até ao próximo nível</p>
-          </div>
-          <div>
-            <div class="quizzes-level-progress">
-              <span class="quizzes-level-progress-label">Progresso</span>
-              <span class="quizzes-level-progress-value">{{ userLevel.progress }}%</span>
-            </div>
-            <div class="quizzes-level-bar">
-              <div class="quizzes-level-bar-fill" [style.width]="userLevel.progress + '%'"></div>
-            </div>
-          </div>
-        </div>
+      <!-- Loading -->
+      <div *ngIf="isLoading" style="text-align:center;padding:80px">
+        A carregar quizzes...
       </div>
 
-      <!-- Featured Quizzes -->
-      <div class="quizzes-featured">
-        <div class="quizzes-section-header">
-          <h2 class="quizzes-section-title">Destaques em Progresso</h2>
-          <div class="quizzes-section-divider"></div>
+      <!-- Erro -->
+      <div *ngIf="error" style="text-align:center;padding:40px;color:red">
+        {{ error }}
+      </div>
+
+      <ng-container *ngIf="!isLoading && !error">
+
+        <!-- User Level Card -->
+        <div class="quizzes-level-card">
+          <div class="quizzes-level-decoration"></div>
+          <div class="quizzes-level-grid">
+            <div>
+              <p class="quizzes-level-label">ESTATUTO ACTUAL</p>
+              <h3 class="quizzes-level-name">Nível {{ userLevel.current }}: {{ userLevel.name }}</h3>
+              <p class="quizzes-level-info">{{ userLevel.points }} pontos académicos • {{ userLevel.nextLevel - userLevel.points }} pontos até ao próximo nível</p>
+            </div>
+            <div>
+              <div class="quizzes-level-progress">
+                <span class="quizzes-level-progress-label">Progresso</span>
+                <span class="quizzes-level-progress-value">{{ userLevel.progress }}%</span>
+              </div>
+              <div class="quizzes-level-bar">
+                <div class="quizzes-level-bar-fill" [style.width]="userLevel.progress + '%'"></div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="quizzes-featured-grid">
-          <div *ngFor="let quiz of featuredQuizzes" (click)="startQuiz(quiz.id)" class="quizzes-featured-card">
-            <div class="quizzes-featured-body">
-              <div class="quizzes-featured-top">
-                <span class="quizzes-featured-module">{{ quiz.module }}</span>
-                <div *ngIf="quiz.completed" class="quizzes-featured-completed">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="white">
-                    <path d="M13.5 4.5L6 11L2.5 7.5L3.5 6.5L6 9L12.5 2.5L13.5 3.5Z"/>
+
+        <!-- Featured Quizzes -->
+        <div class="quizzes-featured" *ngIf="featuredQuizzes.length > 0">
+          <div class="quizzes-section-header">
+            <h2 class="quizzes-section-title">Destaques em Progresso</h2>
+            <div class="quizzes-section-divider"></div>
+          </div>
+          <div class="quizzes-featured-grid">
+            <div *ngFor="let quiz of featuredQuizzes" (click)="startQuiz(quiz.id)" class="quizzes-featured-card">
+              <div class="quizzes-featured-body">
+                <div class="quizzes-featured-top">
+                  <span class="quizzes-featured-module">{{ quiz.module }}</span>
+                </div>
+                <h3 class="quizzes-featured-title">{{ quiz.title }}</h3>
+                <p class="quizzes-featured-desc">{{ quiz.description }}</p>
+                <div class="quizzes-featured-meta">
+                  <div class="quizzes-featured-difficulty">
+                    <div class="quizzes-featured-dot" [style.backgroundColor]="getDifficultyColor(quiz.difficulty)"></div>
+                    <span class="quizzes-featured-difficulty-text">{{ quiz.difficulty }}</span>
+                  </div>
+                  <span class="quizzes-featured-questions">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="2">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    {{ quiz.attempts_count }} tentativas
+                  </span>
+                  <span class="quizzes-featured-points">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                    +{{ quiz.base_points }} pts
+                  </span>
+                </div>
+                <button class="quizzes-featured-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
                   </svg>
-                  <span class="quizzes-featured-completed-text">Concluído</span>
+                  Iniciar Quizz
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking / Leaderboard -->
+        <div class="quizzes-leaderboard">
+          <div class="quizzes-leaderboard-header">
+            <h2 class="quizzes-leaderboard-title">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#FBBF24">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+              Ranking de Pontuações
+            </h2>
+          </div>
+          
+          <!-- Pódio - Top 3 -->
+          <div class="quizzes-podium" *ngIf="topPlayers.length >= 3">
+
+            <!-- 2º Lugar -->
+            <div class="quizzes-podium-item quizzes-podium-item-second" (click)="goToRanking()">
+              <div class="quizzes-podium-avatar">
+                <img [src]="getAvatarUrl(topPlayers[1].display_name)" [alt]="topPlayers[1].display_name">
+                <div class="quizzes-podium-badge quizzes-podium-badge-silver">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#9CA3AF">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  </svg>
                 </div>
               </div>
-              <h3 class="quizzes-featured-title">{{ quiz.title }}</h3>
-              <p class="quizzes-featured-desc">{{ quiz.description }}</p>
-              <div class="quizzes-featured-meta">
-                <div class="quizzes-featured-difficulty">
-                  <div class="quizzes-featured-dot" [style.backgroundColor]="getDifficultyColor(quiz.difficulty)"></div>
-                  <span class="quizzes-featured-difficulty-text">{{ quiz.difficulty }}</span>
+              <div class="quizzes-podium-rank">2º</div>
+              <div class="quizzes-podium-name">{{ topPlayers[1].display_name }}</div>
+              <div class="quizzes-podium-points">{{ topPlayers[1].total_points | number }} pts</div>
+            </div>
+
+            <!-- 1º Lugar (destacado) -->
+            <div class="quizzes-podium-item quizzes-podium-item-first" (click)="goToRanking()">
+              <div class="quizzes-podium-crown">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="#FBBF24">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                </svg>
+              </div>
+              <div class="quizzes-podium-avatar">
+                <img [src]="getAvatarUrl(topPlayers[0].display_name)" [alt]="topPlayers[0].display_name">
+                <div class="quizzes-podium-badge quizzes-podium-badge-gold">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  </svg>
                 </div>
-                <span class="quizzes-featured-questions">
+              </div>
+              <div class="quizzes-podium-rank">1º</div>
+              <div class="quizzes-podium-name">{{ topPlayers[0].display_name }}</div>
+              <div class="quizzes-podium-points">{{ topPlayers[0].total_points | number }} pts</div>
+            </div>
+
+            <!-- 3º Lugar -->
+            <div class="quizzes-podium-item quizzes-podium-item-third" (click)="goToRanking()">
+              <div class="quizzes-podium-avatar">
+                <img [src]="getAvatarUrl(topPlayers[2].display_name)" [alt]="topPlayers[2].display_name">
+                <div class="quizzes-podium-badge quizzes-podium-badge-bronze">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#CD7F32">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="quizzes-podium-rank">3º</div>
+              <div class="quizzes-podium-name">{{ topPlayers[2].display_name }}</div>
+              <div class="quizzes-podium-points">{{ topPlayers[2].total_points | number }} pts</div>
+            </div>
+
+          </div>
+
+          <!-- Sem dados de ranking -->
+          <div *ngIf="topPlayers.length === 0" style="text-align:center;padding:40px;color:#64748b">
+            <p>Ainda não há dados de ranking disponíveis.</p>
+          </div>
+
+          <!-- Ver Ranking Completo -->
+          <div class="quizzes-podium-footer">
+            <button (click)="goToRanking()" class="quizzes-podium-link">
+              Ver Ranking Completo
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- All Quizzes -->
+        <div *ngIf="quizzes.length > 0">
+          <h2 class="quizzes-all-title">Todos os Quizzes</h2>
+          <div class="quizzes-all-grid">
+            <div *ngFor="let quiz of quizzes" (click)="startQuiz(quiz.id)" class="quizzes-all-card">
+              <p class="quizzes-all-module">{{ quiz.module }}</p>
+              <h3 class="quizzes-all-title-text">{{ quiz.title }}</h3>
+              <div class="quizzes-all-meta">
+                <div class="quizzes-all-difficulty">
+                  <div class="quizzes-featured-dot" [style.backgroundColor]="getDifficultyColor(quiz.difficulty)"></div>
+                  <span class="quizzes-all-difficulty-text">{{ quiz.difficulty }}</span>
+                </div>
+                <span class="quizzes-all-questions">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="2">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                   </svg>
-                  {{ quiz.questions }} perguntas
+                  {{ quiz.attempts_count }} tentativas
                 </span>
-                <span class="quizzes-featured-points">
+              </div>
+              <div class="quizzes-all-footer">
+                <span class="quizzes-all-points">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
                     <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                   </svg>
-                  +{{ quiz.points }} pts
+                  +{{ quiz.base_points }} pts
                 </span>
-              </div>
-              <button class="quizzes-featured-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
-                </svg>
-                {{ quiz.completed ? 'Rever Quizz' : 'Iniciar Quizz' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Ranking / Leaderboard -->
-      <div class="quizzes-leaderboard">
-        <div class="quizzes-leaderboard-header">
-          <h2 class="quizzes-leaderboard-title">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#FBBF24">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-            </svg>
-            Ranking de Pontuações
-          </h2>
-        </div>
-        
-        <!-- Pódio - Top 3 -->
-        <div class="quizzes-podium">
-          <!-- 2º Lugar -->
-          <div class="quizzes-podium-item quizzes-podium-item-second" (click)="goToRanking()">
-            <div class="quizzes-podium-avatar">
-              <img src="https://ui-avatars.com/api/?name=Dr.+Miguel+Santos&background=8B1E2D&color=fff&size=64" alt="2º lugar">
-              <div class="quizzes-podium-badge quizzes-podium-badge-silver">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="#9CA3AF">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                <svg class="quizzes-all-arrow" width="12" height="12" viewBox="0 0 16 16" fill="#8B1E2D">
+                  <path d="M10.0704 5.96094L5.53516 10.4961L4.62891 9.58984L7.84766 6.37109H0.0703125V5.05078H7.84766L4.62891 1.83203L5.53516 0.925781L10.0704 5.46094V5.96094Z"/>
                 </svg>
               </div>
             </div>
-            <div class="quizzes-podium-rank">2º</div>
-            <div class="quizzes-podium-name">Dr. Miguel Santos</div>
-            <div class="quizzes-podium-points">2,421 pts</div>
-          </div>
-
-          <!-- 1º Lugar (destacado) -->
-          <div class="quizzes-podium-item quizzes-podium-item-first" (click)="goToRanking()">
-            <div class="quizzes-podium-crown">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="#FBBF24">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-              </svg>
-            </div>
-            <div class="quizzes-podium-avatar">
-              <img src="https://ui-avatars.com/api/?name=Dra.+Ana+Oliveira&background=8B1E2D&color=fff&size=80" alt="1º lugar">
-              <div class="quizzes-podium-badge quizzes-podium-badge-gold">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-              </div>
-            </div>
-            <div class="quizzes-podium-rank">1º</div>
-            <div class="quizzes-podium-name">Dra. Ana Oliveira</div>
-            <div class="quizzes-podium-points">2,847 pts</div>
-          </div>
-
-          <!-- 3º Lugar -->
-          <div class="quizzes-podium-item quizzes-podium-item-third" (click)="goToRanking()">
-            <div class="quizzes-podium-avatar">
-              <img src="https://ui-avatars.com/api/?name=Profa.+Carla+Lima&background=8B1E2D&color=fff&size=64" alt="3º lugar">
-              <div class="quizzes-podium-badge quizzes-podium-badge-bronze">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="#CD7F32">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-              </div>
-            </div>
-            <div class="quizzes-podium-rank">3º</div>
-            <div class="quizzes-podium-name">Profa. Carla Lima</div>
-            <div class="quizzes-podium-points">2,156 pts</div>
           </div>
         </div>
 
-        <!-- Ver Ranking Completo -->
-        <div class="quizzes-podium-footer">
-          <button (click)="goToRanking()" class="quizzes-podium-link">
-            Ver Ranking Completo
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </button>
+        <!-- Empty state -->
+        <div *ngIf="quizzes.length === 0 && featuredQuizzes.length === 0" style="text-align:center;padding:60px;color:#64748b">
+          <p>Nenhum quiz disponível de momento.</p>
         </div>
-      </div>
 
-      <!-- All Quizzes -->
-      <div>
-        <h2 class="quizzes-all-title">Todos os Quizzes</h2>
-        <div class="quizzes-all-grid">
-          <div *ngFor="let quiz of quizzes" (click)="startQuiz(quiz.id)" class="quizzes-all-card">
-            <div *ngIf="quiz.completed" class="quizzes-all-completed">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="white">
-                <path d="M13.5 4.5L6 11L2.5 7.5L3.5 6.5L6 9L12.5 2.5L13.5 3.5Z"/>
-              </svg>
-            </div>
-            <p class="quizzes-all-module">{{ quiz.module }}</p>
-            <h3 class="quizzes-all-title-text">{{ quiz.title }}</h3>
-            <div class="quizzes-all-meta">
-              <div class="quizzes-all-difficulty">
-                <div class="quizzes-featured-dot" [style.backgroundColor]="getDifficultyColor(quiz.difficulty)"></div>
-                <span class="quizzes-all-difficulty-text">{{ quiz.difficulty }}</span>
-              </div>
-              <span class="quizzes-all-questions">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                {{ quiz.questions }} perguntas
-              </span>
-            </div>
-            <div class="quizzes-all-footer">
-              <span class="quizzes-all-points">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-                +{{ quiz.points }} pts
-              </span>
-              <svg class="quizzes-all-arrow" width="12" height="12" viewBox="0 0 16 16" fill="#8B1E2D">
-                <path d="M10.0704 5.96094L5.53516 10.4961L4.62891 9.58984L7.84766 6.37109H0.0703125V5.05078H7.84766L4.62891 1.83203L5.53516 0.925781L10.0704 5.46094V5.96094Z"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
+      </ng-container>
+
     </div>
   </main>
 
