@@ -1,52 +1,54 @@
 <div class="categories-container">
-  
-  <!-- Page Header -->
+  <div *ngIf="loading" class="empty-state banner banner-info">
+    <p>A carregar categorias...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="empty-state banner banner-error">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="successMessage" class="empty-state banner banner-success">
+    <p>{{ successMessage }}</p>
+  </div>
+
   <div class="page-header">
     <div>
       <h1 class="page-title">Categorias</h1>
-      <p class="page-subtitle">Gestão das categorias de acesso e conteúdo do arquivo.</p>
+      <p class="page-subtitle">Gestão das categorias de acesso e conteúdo da comunidade.</p>
     </div>
-    <button class="btn-primary" (click)="openAddCategoryModal()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+
+    <button class="btn-primary" type="button" (click)="openAddCategoryModal()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round" />
       </svg>
       Nova Categoria
     </button>
   </div>
 
-  <!-- Stats Cards - TODOS BORDEAUX -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">📂</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">📂</span></div>
       <div>
         <p class="stat-label">TOTAL</p>
         <p class="stat-number">{{ getStats().total }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">✓</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">✓</span></div>
       <div>
         <p class="stat-label">ATIVAS</p>
         <p class="stat-number">{{ getStats().active }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">🌐</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">🌐</span></div>
       <div>
         <p class="stat-label">PÚBLICAS</p>
         <p class="stat-number">{{ getStats().public }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">🔒</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">🔒</span></div>
       <div>
         <p class="stat-label">RESTRITAS</p>
         <p class="stat-number">{{ getStats().restricted }}</p>
@@ -54,57 +56,55 @@
     </div>
   </div>
 
-  <!-- Filters -->
   <div class="filters-bar">
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar categorias por nome ou descrição..." class="search-input">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Pesquisar por nome, slug ou descrição..."
+        class="search-input"
+      />
     </div>
+
     <div class="filter-select">
       <select [(ngModel)]="filterType" class="select">
         <option value="todos">Todos os tipos</option>
-        <option value="public">🌐 Público</option>
-        <option value="jindungo">🔥 Jindungo</option>
-        <option value="restricted">🔒 Restrito</option>
+        <option value="public">Público</option>
+        <option value="jindungo">Jindungo</option>
+        <option value="restricted">Restrito</option>
       </select>
     </div>
+
     <div class="filter-select">
       <select [(ngModel)]="filterStatus" class="select">
-        <option value="todos">Todos os status</option>
-        <option value="active">✓ Ativo</option>
-        <option value="inactive">○ Inativo</option>
+        <option value="todos">Todos os estados</option>
+        <option value="active">Ativo</option>
+        <option value="inactive">Inativo</option>
       </select>
     </div>
   </div>
 
-  <!-- Categories Grid -->
   <div class="categories-grid">
     <div *ngFor="let cat of filteredCategories" class="category-card">
       <div class="card-header">
         <div class="card-title-section">
-          <div class="category-icon">
-            {{ cat.icon }}
-          </div>
+          <div class="category-icon">📁</div>
           <h3 class="category-name">{{ cat.name }}</h3>
         </div>
+
         <div class="card-badges">
-          <span class="type-badge">
-            {{ getTypeIcon(cat.access_level_id) }} {{ getTypeLabel(cat.access_level_id) }}
-          </span>
-          <span class="status-badge" (click)="$event.stopPropagation()">
+          <span class="type-badge">{{ getTypeIcon(cat.access_level_id) }} {{ getTypeLabel(cat.access_level_id) }}</span>
+          <span class="status-badge">
             <span class="status-dot" [class.active]="cat.is_active"></span>
             {{ getStatusLabel(cat.is_active) }}
           </span>
         </div>
       </div>
-      
+
       <p class="category-description">{{ cat.description }}</p>
-      
+
       <div class="category-stats">
-        <div class="stat-item">
-          <span class="stat-icon-small">📄</span>
-          <span>{{ cat.documents_count || 0 }} documentos</span>
-        </div>
         <div class="stat-item">
           <span class="stat-icon-small">💬</span>
           <span>{{ cat.topics_count || 0 }} tópicos</span>
@@ -114,127 +114,121 @@
           <span>{{ cat.members_count || 0 }} membros</span>
         </div>
       </div>
-      
+
       <div class="card-actions">
-        <button class="action-btn" (click)="openEditCategoryModal(cat)">✏️ Editar</button>
-        <button class="action-btn" (click)="toggleCategoryStatus(cat.id)">
-          {{ cat.is_active ? '📥 Desativar' : '📤 Ativar' }}
+        <button class="action-btn" type="button" disabled title="A edição ainda não está disponível na API">
+          Editar
         </button>
-        <button class="action-btn" (click)="deleteCategory(cat.id)">🗑️ Eliminar</button>
+        <button class="action-btn" type="button" disabled title="A remoção ainda não está disponível na API">
+          Eliminar
+        </button>
       </div>
     </div>
-    
-    <div *ngIf="filteredCategories.length === 0" class="empty-state">
-      <p>📭 Nenhuma categoria encontrada</p>
-      <button class="btn-primary" (click)="openAddCategoryModal()">Criar primeira categoria</button>
+
+    <div *ngIf="!loading && filteredCategories.length === 0" class="empty-state">
+      <p>Nenhuma categoria encontrada.</p>
+      <button class="btn-primary" type="button" (click)="openAddCategoryModal()">Criar primeira categoria</button>
     </div>
   </div>
 
-  <!-- Modal de Criar/Editar Categoria -->
   <div class="modal-overlay" *ngIf="showCategoryModal" (click)="closeCategoryModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>{{ editingCategory ? 'Editar Categoria' : 'Nova Categoria' }}</h2>
-        <button class="modal-close" (click)="closeCategoryModal()">✕</button>
+        <button class="modal-close" type="button" (click)="closeCategoryModal()">✕</button>
       </div>
-      
+
       <div class="modal-body">
         <div class="form-row">
           <div class="form-group">
             <label>Nome da Categoria <span class="required">*</span></label>
-            <input type="text" [(ngModel)]="categoryForm.name" class="form-input" placeholder="Ex: Análise de Políticas">
+            <input type="text" [(ngModel)]="categoryForm.name" class="form-input" placeholder="Ex: Análise de Políticas" />
           </div>
           <div class="form-group">
             <label>Slug</label>
-            <input type="text" [(ngModel)]="categoryForm.slug" class="form-input" placeholder="analise-de-politicas">
+            <input type="text" [(ngModel)]="categoryForm.slug" class="form-input" placeholder="analise-de-politicas" />
           </div>
         </div>
-        
+
         <div class="form-group">
           <label>Descrição <span class="required">*</span></label>
-          <textarea [(ngModel)]="categoryForm.description" rows="3" class="form-input" placeholder="Descreva o propósito e conteúdo da categoria..."></textarea>
+          <textarea
+            [(ngModel)]="categoryForm.description"
+            rows="3"
+            class="form-input"
+            placeholder="Descreva o propósito e conteúdo da categoria..."
+          ></textarea>
         </div>
-        
+
         <div class="form-row">
           <div class="form-group">
             <label>Tipo de Acesso</label>
             <select [(ngModel)]="categoryForm.access_level_id" class="form-input">
-              <option value="public">🌐 Público - Acesso livre</option>
-              <option value="jindungo">🔥 Jindungo - Conteúdo premium</option>
-              <option value="restricted">🔒 Restrito - Acesso limitado</option>
+              <option value="public">Público - Acesso livre</option>
+              <option value="jindungo">Jindungo - Conteúdo premium</option>
+              <option value="restricted">Restrito - Acesso limitado</option>
             </select>
           </div>
+
           <div class="form-group">
             <label>Status</label>
             <select [(ngModel)]="categoryForm.is_active" class="form-input">
-              <option [value]="true">✓ Ativo</option>
-              <option [value]="false">○ Inativo</option>
+              <option [ngValue]="true">Ativo</option>
+              <option [ngValue]="false">Inativo</option>
             </select>
           </div>
         </div>
-        
+
         <div class="form-row">
-          <div class="form-group">
-            <label>Ícone</label>
-            <select [(ngModel)]="categoryForm.icon" class="form-input">
-              <option *ngFor="let icon of iconOptions" [value]="icon.value">{{ icon.value }} {{ icon.name }}</option>
-            </select>
-          </div>
           <div class="form-group">
             <label>Ordem de Exibição</label>
-            <input type="number" [(ngModel)]="categoryForm.sort_order" class="form-input" min="0">
+            <input type="number" [(ngModel)]="categoryForm.sort_order" class="form-input" min="0" />
           </div>
-        </div>
-        
-        <div class="form-row">
+
           <div class="form-group">
             <label>Cor de Fundo</label>
-            <div class="color-select">
-              <div *ngFor="let color of colorOptions" class="color-option" 
-                   [style.background]="color.value" 
-                   [class.selected]="categoryForm.color_bg === color.value"
-                   (click)="categoryForm.color_bg = color.value">
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Cor do Texto</label>
-            <input type="color" [(ngModel)]="categoryForm.color_text" class="form-input" style="padding: 4px; height: 48px;">
+            <input type="text" [(ngModel)]="categoryForm.color_bg" class="form-input" placeholder="#acf0e0" />
           </div>
         </div>
-        
+
         <div class="form-group">
-          <label>Categoria Parente</label>
-          <select [(ngModel)]="categoryForm.parent_id" class="form-input">
-            <option [value]="null">Nenhuma (categoria principal)</option>
-            <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
-          </select>
+          <label>Cor do Texto</label>
+          <input type="text" [(ngModel)]="categoryForm.color_text" class="form-input" placeholder="#000000" />
         </div>
-        
+
         <div class="preview-box">
           <div class="preview-title">Pré-visualização</div>
           <div class="preview-card" [style.borderTopColor]="categoryForm.color_bg || '#8b1e2d'">
             <div class="preview-header">
-              <div class="preview-icon" [style.background]="categoryForm.color_bg || '#8b1e2d' + '20'">
-                {{ categoryForm.icon || '📁' }}
-              </div>
+              <div class="preview-icon" [style.background]="(categoryForm.color_bg || '#8b1e2d') + '20'">📁</div>
               <div>
                 <div class="preview-name">{{ categoryForm.name || 'Nome da Categoria' }}</div>
                 <div class="preview-badge">
                   <span class="type-badge">
-                    {{ getTypeIcon(categoryForm.access_level_id || 'public') }} {{ getTypeLabel(categoryForm.access_level_id || 'public') }}
+                    {{ getTypeIcon(categoryForm.access_level_id || 'public') }}
+                    {{ getTypeLabel(categoryForm.access_level_id || 'public') }}
                   </span>
                 </div>
               </div>
             </div>
-            <p class="preview-description">{{ categoryForm.description || 'Descrição da categoria aparecerá aqui...' }}</p>
+            <p class="preview-description">{{ categoryForm.description || 'A descrição da categoria aparece aqui.' }}</p>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <div class="info-icon">ℹ️</div>
+          <div class="info-text">
+            <strong>Nota</strong><br />
+            <span>Editar e eliminar categorias ainda dependem de endpoints que o backend não expôs nesta fase.</span>
           </div>
         </div>
       </div>
-      
+
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeCategoryModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveCategory()">💾 Guardar Categoria</button>
+        <button class="btn-cancel" type="button" (click)="closeCategoryModal()">Cancelar</button>
+        <button class="btn-save" type="button" (click)="saveCategory()" [disabled]="saving">
+          {{ saving ? 'A guardar...' : 'Guardar Categoria' }}
+        </button>
       </div>
     </div>
   </div>

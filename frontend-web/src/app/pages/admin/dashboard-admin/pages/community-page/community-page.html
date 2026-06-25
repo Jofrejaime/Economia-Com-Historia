@@ -1,191 +1,436 @@
 <div class="community-container">
-  
-  <!-- Page Header -->
+  <div *ngIf="loading" class="empty-state banner banner-info">
+    <p>A carregar dados da comunidade...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="empty-state banner banner-error">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="successMessage" class="empty-state banner banner-success">
+    <p>{{ successMessage }}</p>
+  </div>
+
   <div class="page-header">
     <div>
       <h1 class="page-title">Comunidade</h1>
-      <p class="page-subtitle">Gestão de discussões e interações da comunidade académica.</p>
+      <p class="page-subtitle">Administração real de tópicos, respostas e categorias da comunidade.</p>
     </div>
-    <button class="btn-primary" (click)="openAddDiscussionModal()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Nova Discussão
-    </button>
-  </div>
 
-  <!-- Stats Cards - TODOS BORDEAUX -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">💬</span>
-      </div>
-      <div>
-        <p class="stat-label">TÓPICOS</p>
-        <p class="stat-number">{{ getStats().total }}</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">✓</span>
-      </div>
-      <div>
-        <p class="stat-label">ATIVOS</p>
-        <p class="stat-number">{{ getStats().active }}</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">📝</span>
-      </div>
-      <div>
-        <p class="stat-label">RESPOSTAS</p>
-        <p class="stat-number">{{ getStats().totalReplies }}</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">👁️</span>
-      </div>
-      <div>
-        <p class="stat-label">VISUALIZAÇÕES</p>
-        <p class="stat-number">{{ getStats().totalViews | number }}</p>
-      </div>
+    <div class="tab-switcher" role="tablist" aria-label="Secções da comunidade">
+      <button
+        type="button"
+        class="tab-button"
+        [class.active]="activeTab === 'topics'"
+        (click)="setActiveTab('topics')"
+      >
+        Tópicos
+      </button>
+      <button
+        type="button"
+        class="tab-button"
+        [class.active]="activeTab === 'replies'"
+        (click)="setActiveTab('replies')"
+      >
+        Replies
+      </button>
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="filters-bar">
-    <div class="search-wrapper">
-      <span class="search-icon">🔍</span>
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar discussões por título ou autor..." class="search-input">
+  <ng-container *ngIf="activeTab === 'topics'">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon"><span class="stat-icon-emoji">💬</span></div>
+        <div>
+          <p class="stat-label">TOTAL</p>
+          <p class="stat-number">{{ topicStats.total }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><span class="stat-icon-emoji">🟢</span></div>
+        <div>
+          <p class="stat-label">ABERTOS</p>
+          <p class="stat-number">{{ topicStats.open }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><span class="stat-icon-emoji">🔒</span></div>
+        <div>
+          <p class="stat-label">BLOQUEADOS</p>
+          <p class="stat-number">{{ topicStats.locked }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><span class="stat-icon-emoji">🗂️</span></div>
+        <div>
+          <p class="stat-label">ARQUIVADOS</p>
+          <p class="stat-number">{{ topicStats.archived }}</p>
+        </div>
+      </div>
     </div>
-    <div class="filter-select">
-      <select [(ngModel)]="filterStatus" class="select">
-        <option value="todos">Todos os status</option>
-        <option value="open">✓ Aberto</option>
-        <option value="locked">🔒 Bloqueado</option>
-        <option value="archived">📁 Arquivado</option>
-      </select>
-    </div>
-    <div class="filter-select">
-      <select [(ngModel)]="filterCategory" class="select">
-        <option value="todos">Todas as categorias</option>
-        <option *ngFor="let cat of getCategories()" [value]="cat">{{ cat }}</option>
-      </select>
-    </div>
-  </div>
 
-  <!-- Discussions Table -->
-  <div class="table-wrapper">
-    <table class="discussions-table">
-      <thead>
-        <tr>
-          <th>Título</th>
-          <th>Autor</th>
-          <th>Categoria</th>
-          <th>Respostas</th>
-          <th>Visualizações</th>
-          <th>Última atividade</th>
-          <th>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="filteredDiscussions.length === 0">
-          <td colspan="8" class="empty-row">Nenhuma discussão encontrada</td>
-        </tr>
-        <tr *ngFor="let disc of filteredDiscussions">
-          <td class="title-cell">{{ disc.title }}</td>
-          <td>{{ disc.author_name }}</td>
-          <td>{{ disc.category_name }}</td>
-          <td>{{ disc.replies_count }}</td>
-          <td>{{ disc.views_count | number }}</td>
-          <td>{{ disc.last_reply_at || disc.updated_at | date:'dd MMM yyyy' }}</td>
-          <td>
-            <span class="status-badge">
-              {{ disc.status === 'open' ? '✓' : disc.status === 'locked' ? '🔒' : '📁' }} {{ getStatusLabel(disc.status) }}
-            </span>
-          </td>
-          <td class="actions-cell">
-            <button class="action-btn" (click)="openEditDiscussionModal(disc)" title="Editar">✏️</button>
-            <button *ngIf="disc.status !== 'locked'" class="action-btn" (click)="toggleLockDiscussion(disc.id)" title="Bloquear">🔒</button>
-            <button *ngIf="disc.status === 'locked'" class="action-btn" (click)="toggleLockDiscussion(disc.id)" title="Desbloquear">🔓</button>
-            <button *ngIf="disc.status !== 'archived'" class="action-btn" (click)="archiveDiscussion(disc.id)" title="Arquivar">📁</button>
-            <button *ngIf="disc.status === 'archived'" class="action-btn" (click)="restoreDiscussion(disc.id)" title="Restaurar">🔄</button>
-            <button class="action-btn" (click)="deleteDiscussion(disc.id)" title="Eliminar">🗑️</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <div class="filters-bar">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="topicSearch"
+          placeholder="Pesquisar por título, autor, conteúdo ou categoria..."
+          class="search-input"
+        />
+      </div>
 
-  <!-- Modal de Criar/Editar Discussão -->
-  <div class="modal-overlay" *ngIf="showDiscussionModal" (click)="closeDiscussionModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="filter-select">
+        <select [(ngModel)]="topicStatus" class="select">
+          <option value="todos">Todos os estados</option>
+          <option value="open">Aberto</option>
+          <option value="locked">Bloqueado</option>
+          <option value="archived">Arquivado</option>
+        </select>
+      </div>
+
+      <div class="filter-select">
+        <select [(ngModel)]="topicCategory" class="select">
+          <option value="todos">Todas as categorias</option>
+          <option *ngFor="let category of getCategoryOptions()" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-select">
+        <select [(ngModel)]="topicsPageSize" class="select" (ngModelChange)="onTopicPageSizeChange($event)">
+          <option *ngFor="let size of topicsPageSizeOptions" [ngValue]="size">
+            {{ size }} por página
+          </option>
+        </select>
+      </div>
+
+      <button class="btn-primary" type="button" (click)="refreshTopics()">Actualizar</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="discussions-table">
+        <thead>
+          <tr>
+            <th>Tópico</th>
+            <th>Categoria</th>
+            <th>Autor</th>
+            <th>Estado</th>
+            <th>Respostas</th>
+            <th>Interacções</th>
+            <th>Acções</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!loading && pagedTopics.length === 0">
+            <td class="empty-row" colspan="7">Nenhum tópico encontrado.</td>
+          </tr>
+          <tr *ngFor="let topic of pagedTopics">
+            <td>
+              <div class="topic-title-cell">
+                <span class="topic-title">{{ topic.title }}</span>
+                <span class="topic-meta">Atualizado em {{ topic.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+            </td>
+            <td>{{ topic.category_name }}</td>
+            <td>{{ topic.author_name }}</td>
+            <td>
+              <span class="status-badge">{{ getStatusLabel(topic.status) }}</span>
+            </td>
+            <td>{{ topic.replies_count }}</td>
+            <td>
+              <div class="metric-stack">
+                <span>👁️ {{ topic.views_count }}</span>
+                <span>👍 {{ topic.likes_count }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="actions-cell">
+                <button class="action-btn" type="button" (click)="openTopic(topic)">Ver</button>
+                <button class="action-btn" type="button" (click)="openTopic(topic, 'edit')">Editar</button>
+                <button class="action-btn action-btn-danger" type="button" (click)="deleteTopic(topic)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" *ngIf="filteredTopics.length > 0">
+      <div class="pagination-info">
+        Mostrando {{ topicPageStart }}-{{ topicPageEnd }} de {{ filteredTopics.length }}
+      </div>
+      <div class="pagination-controls">
+        <button class="pagination-button" type="button" [disabled]="topicsPage === 1" (click)="goToTopicPage(topicsPage - 1)">Anterior</button>
+        <button
+          class="pagination-button"
+          type="button"
+          *ngFor="let page of topicPageNumbers"
+          [class.active]="topicsPage === page"
+          (click)="goToTopicPage(page)"
+        >
+          {{ page }}
+        </button>
+        <button class="pagination-button" type="button" [disabled]="topicsPage === topicTotalPages" (click)="goToTopicPage(topicsPage + 1)">Seguinte</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'replies'">
+    <div class="reply-panel">
+      <div class="reply-panel-header">
+        <div>
+          <h2 class="section-title">Administração de respostas</h2>
+          <p class="section-subtitle">Escolhe um tópico e gere as respostas associadas sem filtros globais de moderação.</p>
+        </div>
+
+        <div class="reply-panel-actions">
+          <div class="filter-select">
+            <select [(ngModel)]="selectedTopicId" class="select" (ngModelChange)="onSelectedTopicChange($event)">
+              <option [ngValue]="null">Selecionar tópico</option>
+              <option *ngFor="let topic of topics" [ngValue]="topic.id">
+                {{ topic.title }} - {{ topic.category_name }}
+              </option>
+            </select>
+          </div>
+        <button class="btn-primary" type="button" (click)="loadRepliesForSelectedTopic()" [disabled]="!selectedTopicId">
+          Actualizar respostas
+        </button>
+        </div>
+      </div>
+
+      <div *ngIf="selectedTopic" class="selected-topic-card">
+        <div class="selected-topic-meta">
+          <span class="status-badge">{{ getStatusLabel(selectedTopic.status) }}</span>
+          <span>{{ selectedTopic.category_name }}</span>
+          <span>{{ selectedTopic.replies_count }} respostas</span>
+        </div>
+        <h3>{{ selectedTopic.title }}</h3>
+        <p>{{ selectedTopic.content }}</p>
+      </div>
+    </div>
+
+    <div class="stats-grid stats-grid--compact">
+      <div class="stat-card">
+        <div class="stat-icon"><span class="stat-icon-emoji">💬</span></div>
+        <div>
+          <p class="stat-label">TOTAL</p>
+          <p class="stat-number">{{ replyStats.total }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><span class="stat-icon-emoji">✅</span></div>
+        <div>
+          <p class="stat-label">ACEITES</p>
+          <p class="stat-number">{{ replyStats.accepted }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><span class="stat-icon-emoji">🚩</span></div>
+        <div>
+          <p class="stat-label">ASSINALADAS</p>
+          <p class="stat-number">{{ replyStats.flagged }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><span class="stat-icon-emoji">📝</span></div>
+        <div>
+          <p class="stat-label">VISÍVEIS</p>
+          <p class="stat-number">{{ filteredReplies.length }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="replySearch"
+          placeholder="Pesquisar respostas por conteúdo ou autor..."
+          class="search-input"
+        />
+      </div>
+
+      <div class="filter-select">
+        <select [(ngModel)]="replyFilter" class="select">
+          <option value="todos">Todas as respostas</option>
+          <option value="accepted">Apenas aceites</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="discussions-table">
+        <thead>
+          <tr>
+            <th>Resposta</th>
+            <th>Autor</th>
+            <th>Estado</th>
+            <th>Gostos</th>
+            <th>Data</th>
+            <th>Acções</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!loading && filteredReplies.length === 0">
+            <td class="empty-row" colspan="6">Nenhuma resposta encontrada para este tópico.</td>
+          </tr>
+          <tr *ngFor="let reply of filteredReplies">
+            <td>
+              <div class="topic-title-cell">
+                <span class="topic-title">{{ reply.content }}</span>
+                <span class="topic-meta">ID {{ reply.id }}</span>
+              </div>
+            </td>
+            <td>{{ reply.author_name }}</td>
+            <td>
+              <div class="reply-badges">
+                <span class="status-badge" [class.reply-accepted]="reply.is_accepted">Aceite</span>
+                <span class="status-badge reply-flagged" *ngIf="reply.is_flagged">Sinalizada</span>
+              </div>
+            </td>
+            <td>{{ reply.likes_count }}</td>
+            <td>{{ (reply.updated_at || reply.created_at) | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <div class="actions-cell">
+                <button class="action-btn" type="button" (click)="openReply(reply)">Ver</button>
+                <button class="action-btn" type="button" (click)="openReply(reply, 'edit')">Editar</button>
+                <button class="action-btn" type="button" (click)="acceptReply(reply)">Aceitar</button>
+                <button class="action-btn action-btn-danger" type="button" (click)="deleteReply(reply)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <div class="modal-overlay" *ngIf="showTopicModal" (click)="closeTopicModal()">
+    <div class="modal-content modal-content--wide" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ editingDiscussion ? 'Editar Discussão' : 'Nova Discussão' }}</h2>
-        <button class="modal-close" (click)="closeDiscussionModal()">✕</button>
+        <h2>{{ topicModalMode === 'edit' ? 'Editar Tópico' : 'Visualizar Tópico' }}</h2>
+        <button class="modal-close" type="button" (click)="closeTopicModal()">✕</button>
       </div>
-      
+
       <div class="modal-body">
-        <div class="form-group">
-          <label>Título <span class="required">*</span></label>
-          <input type="text" [(ngModel)]="discussionForm.title" class="form-input" placeholder="Ex: Análise da Reforma Monetária de 1976">
-        </div>
-        
-        <div class="form-group">
-          <label>Conteúdo <span class="required">*</span></label>
-          <textarea [(ngModel)]="discussionForm.content" rows="5" class="form-input" placeholder="Descreva o tema da discussão..."></textarea>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label>Categoria</label>
-            <select [(ngModel)]="discussionForm.category_id" class="form-input">
-              <option [value]="null">Sem categoria</option>
-              <option *ngFor="let cat of categoriesList" [value]="cat.id">{{ cat.name }}</option>
-            </select>
+        <ng-container *ngIf="editingTopic">
+          <div *ngIf="topicModalMode === 'view'" class="detail-card">
+            <div class="detail-row">
+              <span class="detail-label">Categoria</span>
+              <span class="detail-value">{{ editingTopic.category_name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Autor</span>
+              <span class="detail-value">{{ editingTopic.author_name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Estado</span>
+              <span class="detail-value">{{ getStatusLabel(editingTopic.status) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Conteúdo</span>
+              <p class="detail-content">{{ editingTopic.content }}</p>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Status</label>
-            <select [(ngModel)]="discussionForm.status" class="form-input">
-              <option value="open">✓ Aberto</option>
-              <option value="locked">🔒 Bloqueado</option>
-              <option value="archived">📁 Arquivado</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label>Destaque</label>
-            <select [(ngModel)]="discussionForm.is_featured" class="form-input">
-              <option [value]="false">Não</option>
-              <option [value]="true">Sim</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Fixar no topo</label>
-            <select [(ngModel)]="discussionForm.is_pinned" class="form-input">
-              <option [value]="false">Não</option>
-              <option [value]="true">Sim</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="info-box">
-          <div class="info-icon">ℹ️</div>
-          <div class="info-text">
-            <strong>Informação</strong><br>
-            <span>Discussões bloqueadas não permitem novas respostas. Discussões arquivadas são movidas para o histórico.</span>
-          </div>
-        </div>
+
+          <ng-container *ngIf="topicModalMode === 'edit'">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Título</label>
+                <input type="text" [(ngModel)]="topicForm.title" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label>Estado</label>
+                <select [(ngModel)]="topicForm.status" class="form-input">
+                  <option value="open">Aberto</option>
+                  <option value="locked">Bloqueado</option>
+                  <option value="archived">Arquivado</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Categoria</label>
+              <select [(ngModel)]="topicForm.category_id" class="form-input">
+                <option value="">Sem categoria</option>
+                <option *ngFor="let category of categories" [value]="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Conteúdo</label>
+              <textarea [(ngModel)]="topicForm.content" rows="8" class="form-input"></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" [(ngModel)]="topicForm.is_pinned" />
+                  Fixado
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" [(ngModel)]="topicForm.is_featured" />
+                  Em destaque
+                </label>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
       </div>
-      
+
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeDiscussionModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveDiscussion()">💾 Guardar Discussão</button>
+        <button *ngIf="topicModalMode === 'view'" class="btn-cancel" type="button" (click)="closeTopicModal()">Fechar</button>
+        <button *ngIf="topicModalMode === 'view'" class="btn-save" type="button" (click)="enableTopicEditMode()">Editar</button>
+        <button *ngIf="topicModalMode === 'edit'" class="btn-cancel" type="button" (click)="closeTopicModal()">Cancelar</button>
+        <button *ngIf="topicModalMode === 'edit'" class="btn-save" type="button" (click)="saveTopic()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showReplyModal" (click)="closeReplyModal()">
+    <div class="modal-content modal-content--wide" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ replyModalMode === 'edit' ? 'Editar Resposta' : 'Visualizar Resposta' }}</h2>
+        <button class="modal-close" type="button" (click)="closeReplyModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <ng-container *ngIf="editingReply">
+          <div *ngIf="replyModalMode === 'view'" class="detail-card">
+            <div class="detail-row">
+              <span class="detail-label">Autor</span>
+              <span class="detail-value">{{ editingReply.author_name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Estado</span>
+              <span class="detail-value">{{ editingReply.is_accepted ? 'Aceite' : 'Em revisão' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Conteúdo</span>
+              <p class="detail-content">{{ editingReply.content }}</p>
+            </div>
+          </div>
+
+          <ng-container *ngIf="replyModalMode === 'edit'">
+            <div class="form-group">
+              <label>Conteúdo</label>
+              <textarea [(ngModel)]="replyForm.content" rows="8" class="form-input"></textarea>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <div class="modal-footer">
+        <button *ngIf="replyModalMode === 'view'" class="btn-cancel" type="button" (click)="closeReplyModal()">Fechar</button>
+        <button *ngIf="replyModalMode === 'view'" class="btn-save" type="button" (click)="enableReplyEditMode()">Editar</button>
+        <button *ngIf="replyModalMode === 'edit'" class="btn-cancel" type="button" (click)="closeReplyModal()">Cancelar</button>
+        <button *ngIf="replyModalMode === 'edit'" class="btn-save" type="button" (click)="saveReply()">Guardar</button>
       </div>
     </div>
   </div>

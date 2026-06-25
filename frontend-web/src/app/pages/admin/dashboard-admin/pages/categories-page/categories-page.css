@@ -729,6 +729,32 @@ textarea.form-input {
   margin-top: 16px;
 }
 
+.banner {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  padding: 14px 18px;
+  border: 1px solid #E5E7EB;
+}
+
+.banner p {
+  margin: 0;
+}
+
+.banner-info {
+  background: rgba(139, 30, 45, 0.06);
+  border-color: rgba(139, 30, 45, 0.15);
+}
+
+.banner-error {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.banner-success {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
 /* ============================================
    RESPONSIVO - DESIGN SYSTEM
    ============================================ */

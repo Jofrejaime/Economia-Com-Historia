@@ -1,37 +1,25 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import {
+  Category,
+  DiscussionTopic,
+  TopicReply,
+} from '../../../../../models/community-admin.models';
+import { CommunityAdminService } from '../../../../../services/community-admin.service';
 
-// Interface alinhada com a tabela 'discussion_topics' da migration
-interface Discussion {
-  id: string;                                    // UUID
-  title: string;                                 // Título
-  content: string;                               // Conteúdo (longText)
-  status: 'open' | 'locked' | 'archived';        // Status
-  is_pinned: boolean;                            // Fixado no topo
-  is_featured: boolean;                          // Destaque
-  category_id: string | null;                    // FK para community_categories
-  author_id: string;                             // FK para users
-  replies_count: number;                         // Contagem de respostas
-  views_count: number;                           // Contagem de visualizações
-  likes_count: number;                           // Contagem de gostos
-  followers_count: number;                       // Contagem de seguidores
-  last_reply_at: string | null;                  // Última resposta
-  created_at: string;                            // Data de criação
-  updated_at: string;                            // Data de atualização
-  // Campos calculados/relacionados
-  author_name?: string;
-  category_name?: string;
+type CommunityTab = 'topics' | 'replies';
+type TopicStatusFilter = 'todos' | 'open' | 'locked' | 'archived';
+type ReplyFilter = 'todos' | 'accepted';
+
+interface TopicView extends DiscussionTopic {
+  author_name: string;
+  category_name: string;
 }
 
-// Interface para categorias da comunidade (community_categories)
-interface CommunityCategory {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  members_count?: number;
-  topics_count?: number;
+interface ReplyView extends TopicReply {
+  author_name: string;
 }
 
 @Component({
@@ -41,284 +29,431 @@ interface CommunityCategory {
   templateUrl: './community-page.html',
   styleUrls: ['./community-page.css']
 })
-export class CommunityPageComponent {
-  searchQuery = '';
-  filterStatus = 'todos';
-  filterCategory = 'todos';
-  
-  // Modal control
-  showDiscussionModal = false;
-  editingDiscussion: Discussion | null = null;
-  
-  // Form data
-  discussionForm: Discussion = {
-    id: '',
-    title: '',
-    content: '',
-    status: 'open',
-    is_pinned: false,
-    is_featured: false,
-    category_id: null,
-    author_id: '',
-    replies_count: 0,
-    views_count: 0,
-    likes_count: 0,
-    followers_count: 0,
-    last_reply_at: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    author_name: '',
-    category_name: ''
-  };
-  
-  // Categories list (from community_categories)
-  categoriesList: CommunityCategory[] = [
-    { id: '1', name: 'Sistema Monetário', slug: 'sistema-monetario', topics_count: 12 },
-    { id: '2', name: 'Economia Colonial', slug: 'economia-colonial', topics_count: 18 },
-    { id: '3', name: 'Rotas Comerciais', slug: 'rotas-comerciais', topics_count: 8 },
-    { id: '4', name: 'História Fiscal', slug: 'historia-fiscal', topics_count: 6 },
-    { id: '5', name: 'Política Económica', slug: 'politica-economica', topics_count: 10 },
-    { id: '6', name: 'Agricultura', slug: 'agricultura', topics_count: 5 },
-    { id: '7', name: 'Infraestrutura', slug: 'infraestrutura', topics_count: 7 },
-    { id: '8', name: 'Metodologia', slug: 'metodologia', topics_count: 4 }
-  ];
+export class CommunityPageComponent implements OnInit {
+  activeTab: CommunityTab = 'topics';
+  loading = false;
+  errorMessage: string | null = null;
+  successMessage: string | null = null;
 
-  // Users (mock para autor)
-  users = [
-    { id: 'user-1', name: 'Dr. Manuel Costa' },
-    { id: 'user-2', name: 'Dra. Ana Silva' },
-    { id: 'user-3', name: 'Prof. Carlos Mendes' },
-    { id: 'user-4', name: 'Maria João Santos' }
-  ];
+  topicSearch = '';
+  topicStatus: TopicStatusFilter = 'todos';
+  topicCategory = 'todos';
+  topicsPage = 1;
+  topicsPageSize = 10;
+  topicsPageSizeOptions = [10, 20, 50];
 
-  discussions: Discussion[] = [
-    {
-      id: '1',
-      title: 'Análise da Reforma Monetária de 1976',
-      content: 'Discussão sobre a transição do Escudo para o Kwanza...',
-      status: 'open',
-      is_pinned: true,
-      is_featured: false,
-      category_id: '1',
-      author_id: 'user-1',
-      replies_count: 24,
-      views_count: 1245,
-      likes_count: 45,
-      followers_count: 32,
-      last_reply_at: new Date().toISOString(),
-      created_at: '2024-03-15T10:00:00Z',
-      updated_at: '2024-03-15T10:00:00Z',
-      author_name: 'Dr. Manuel Costa',
-      category_name: 'Sistema Monetário'
-    },
-    {
-      id: '2',
-      title: 'Impacto do Café na Economia Colonial',
-      content: 'Análise do impacto do ciclo do café...',
-      status: 'open',
-      is_pinned: false,
-      is_featured: true,
-      category_id: '2',
-      author_id: 'user-2',
-      replies_count: 18,
-      views_count: 892,
-      likes_count: 32,
-      followers_count: 21,
-      last_reply_at: '2024-03-14T08:00:00Z',
-      created_at: '2024-02-10T14:30:00Z',
-      updated_at: '2024-03-14T08:00:00Z',
-      author_name: 'Dra. Ana Silva',
-      category_name: 'Economia Colonial'
-    },
-    {
-      id: '3',
-      title: 'Discussão sobre Fontes Primárias',
-      content: 'Metodologias para análise de fontes primárias...',
-      status: 'locked',
-      is_pinned: false,
-      is_featured: false,
-      category_id: '8',
-      author_id: 'user-3',
-      replies_count: 32,
-      views_count: 2100,
-      likes_count: 56,
-      followers_count: 43,
-      last_reply_at: '2024-03-12T09:00:00Z',
-      created_at: '2024-01-05T11:00:00Z',
-      updated_at: '2024-03-12T09:00:00Z',
-      author_name: 'Prof. Carlos Mendes',
-      category_name: 'Metodologia'
-    },
-    {
-      id: '4',
-      title: 'Rotas Comerciais do Século XIX',
-      content: 'Mapeamento das rotas comerciais...',
-      status: 'open',
-      is_pinned: false,
-      is_featured: false,
-      category_id: '3',
-      author_id: 'user-4',
-      replies_count: 45,
-      views_count: 3100,
-      likes_count: 78,
-      followers_count: 56,
-      last_reply_at: '2024-03-11T16:00:00Z',
-      created_at: '2023-12-20T09:00:00Z',
-      updated_at: '2024-03-11T16:00:00Z',
-      author_name: 'Maria João Santos',
-      category_name: 'Rotas Comerciais'
-    }
-  ];
+  replySearch = '';
+  replyFilter: ReplyFilter = 'todos';
 
-  get filteredDiscussions(): Discussion[] {
-    return this.discussions.filter(disc => {
-      const matchSearch = this.searchQuery === '' ||
-        disc.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        (disc.author_name && disc.author_name.toLowerCase().includes(this.searchQuery.toLowerCase()));
-      const matchStatus = this.filterStatus === 'todos' || disc.status === this.filterStatus;
-      const matchCategory = this.filterCategory === 'todos' || disc.category_id === this.filterCategory;
+  showTopicModal = false;
+  topicModalMode: 'view' | 'edit' = 'view';
+  editingTopic: TopicView | null = null;
+  topicForm: {
+    title: string;
+    content: string;
+    status: 'open' | 'locked' | 'archived';
+    category_id: string;
+    is_pinned: boolean;
+    is_featured: boolean;
+  } = this.createEmptyTopicForm();
+
+  showReplyModal = false;
+  replyModalMode: 'view' | 'edit' = 'view';
+  editingReply: ReplyView | null = null;
+  replyForm = { content: '' };
+
+  categories: Category[] = [];
+  topics: TopicView[] = [];
+  selectedTopicId: string | null = null;
+  replies: ReplyView[] = [];
+
+  constructor(private communityAdmin: CommunityAdminService) {}
+
+  ngOnInit(): void {
+    void this.loadInitialData();
+  }
+
+  get filteredTopics(): TopicView[] {
+    return this.topics.filter((topic) => {
+      const search = this.topicSearch.trim().toLowerCase();
+      const matchSearch = search === '' ||
+        topic.title.toLowerCase().includes(search) ||
+        topic.author_name.toLowerCase().includes(search) ||
+        topic.content.toLowerCase().includes(search) ||
+        topic.category_name.toLowerCase().includes(search);
+      const matchStatus = this.topicStatus === 'todos' || topic.status === this.topicStatus;
+      const matchCategory = this.topicCategory === 'todos' || topic.category_id === this.topicCategory;
       return matchSearch && matchStatus && matchCategory;
     });
+  }
+
+  get pagedTopics(): TopicView[] {
+    const start = (this.topicsPage - 1) * this.topicsPageSize;
+    return this.filteredTopics.slice(start, start + this.topicsPageSize);
+  }
+
+  get topicTotalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredTopics.length / this.topicsPageSize));
+  }
+
+  get topicPageNumbers(): number[] {
+    return Array.from({ length: this.topicTotalPages }, (_, index) => index + 1);
+  }
+
+  get topicPageStart(): number {
+    return this.filteredTopics.length === 0 ? 0 : (this.topicsPage - 1) * this.topicsPageSize + 1;
+  }
+
+  get topicPageEnd(): number {
+    return Math.min(this.topicsPage * this.topicsPageSize, this.filteredTopics.length);
+  }
+
+  get topicStats() {
+    return {
+      total: this.topics.length,
+      open: this.topics.filter((topic) => topic.status === 'open').length,
+      locked: this.topics.filter((topic) => topic.status === 'locked').length,
+      archived: this.topics.filter((topic) => topic.status === 'archived').length,
+    };
+  }
+
+  get filteredReplies(): ReplyView[] {
+    return this.replies.filter((reply) => {
+      const search = this.replySearch.trim().toLowerCase();
+      const matchSearch = search === '' ||
+        reply.content.toLowerCase().includes(search) ||
+        reply.author_name.toLowerCase().includes(search);
+      const matchAccepted = this.replyFilter === 'todos' || reply.is_accepted;
+      return matchSearch && matchAccepted;
+    });
+  }
+
+  get replyStats() {
+    return {
+      total: this.replies.length,
+      accepted: this.replies.filter((reply) => reply.is_accepted).length,
+      flagged: this.replies.filter((reply) => reply.is_flagged).length,
+    };
+  }
+
+  get selectedTopic(): TopicView | null {
+    return this.topics.find((topic) => topic.id === this.selectedTopicId) || null;
+  }
+
+  async loadInitialData(): Promise<void> {
+    this.loading = true;
+    this.errorMessage = null;
+
+    const [categoriesResult, topicsResult] = await Promise.all([
+      firstValueFrom(this.communityAdmin.getCategories()),
+      firstValueFrom(this.communityAdmin.getTopics()),
+    ]);
+
+    if (categoriesResult.ok && categoriesResult.data) {
+      this.categories = categoriesResult.data;
+    }
+
+    if (!topicsResult.ok || !topicsResult.data) {
+      this.topics = [];
+      this.replies = [];
+      this.selectedTopicId = null;
+      this.errorMessage = topicsResult.message || 'Não foi possível carregar os tópicos.';
+      this.loading = false;
+      return;
+    }
+
+    this.topics = topicsResult.data.map((topic) => this.toTopicView(topic));
+    this.topicsPage = 1;
+    this.selectedTopicId = this.selectedTopicId && this.topics.some((topic) => topic.id === this.selectedTopicId)
+      ? this.selectedTopicId
+      : (this.topics[0]?.id ?? null);
+
+    if (this.selectedTopicId) {
+      await this.loadRepliesForSelectedTopic();
+    } else {
+      this.replies = [];
+    }
+
+    this.loading = false;
+  }
+
+  async refreshTopics(): Promise<void> {
+    await this.loadInitialData();
+  }
+
+  setActiveTab(tab: CommunityTab): void {
+    this.activeTab = tab;
+
+    if (tab === 'replies' && this.selectedTopicId && this.replies.length === 0) {
+      void this.loadRepliesForSelectedTopic();
+    }
+  }
+
+  onTopicPageSizeChange(size: number): void {
+    this.topicsPageSize = size;
+    this.topicsPage = 1;
+  }
+
+  goToTopicPage(page: number): void {
+    this.topicsPage = Math.max(1, Math.min(page, this.topicTotalPages));
+  }
+
+  async openTopic(topic: TopicView, mode: 'view' | 'edit' = 'view'): Promise<void> {
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.getTopic(topic.id));
+
+    if (!result.ok || !result.data) {
+      this.errorMessage = result.message || 'Não foi possível carregar o tópico.';
+      this.loading = false;
+      return;
+    }
+
+    const fullTopic = this.toTopicView(result.data);
+    this.selectedTopicId = fullTopic.id;
+    this.editingTopic = fullTopic;
+    this.topicForm = {
+      title: fullTopic.title,
+      content: fullTopic.content,
+      status: this.normalizeTopicStatus(fullTopic.status),
+      category_id: fullTopic.category_id,
+      is_pinned: fullTopic.is_pinned,
+      is_featured: fullTopic.is_featured,
+    };
+    this.topicModalMode = mode;
+    this.showTopicModal = true;
+
+    await this.loadRepliesForSelectedTopic();
+    this.loading = false;
+  }
+
+  enableTopicEditMode(): void {
+    this.topicModalMode = 'edit';
+  }
+
+  closeTopicModal(): void {
+    this.showTopicModal = false;
+    this.editingTopic = null;
+    this.topicModalMode = 'view';
+  }
+
+  async saveTopic(): Promise<void> {
+    if (!this.editingTopic) {
+      this.errorMessage = 'Selecione um tópico para editar.';
+      return;
+    }
+
+    if (!this.topicForm.title.trim() || !this.topicForm.content.trim()) {
+      this.errorMessage = 'Título e conteúdo são obrigatórios.';
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.updateTopic(this.editingTopic.id, {
+      title: this.topicForm.title.trim(),
+      content: this.topicForm.content.trim(),
+      status: this.topicForm.status,
+      category_id: this.topicForm.category_id || null,
+      is_pinned: this.topicForm.is_pinned,
+      is_featured: this.topicForm.is_featured,
+    }));
+
+    if (!result.ok || !result.data) {
+      this.errorMessage = result.message || 'Não foi possível actualizar o tópico.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = result.message || 'Tópico actualizado com sucesso.';
+    this.showTopicModal = false;
+    this.editingTopic = null;
+    await this.loadInitialData();
+  }
+
+  async deleteTopic(topic: TopicView): Promise<void> {
+    if (!confirm('Tem a certeza que deseja eliminar este tópico?')) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.deleteTopic(topic.id));
+    if (!result.ok) {
+      this.errorMessage = result.message || 'Não foi possível eliminar o tópico.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = result.message || 'Tópico eliminado com sucesso.';
+    await this.loadInitialData();
+  }
+
+  async loadRepliesForSelectedTopic(): Promise<void> {
+    if (!this.selectedTopicId) {
+      this.replies = [];
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.getReplies(this.selectedTopicId));
+    if (!result.ok || !result.data) {
+      this.replies = [];
+      this.errorMessage = result.message || 'Não foi possível carregar as respostas.';
+      this.loading = false;
+      return;
+    }
+
+    this.replies = result.data.map((reply) => this.toReplyView(reply));
+    this.loading = false;
+  }
+
+  async onSelectedTopicChange(topicId: string): Promise<void> {
+    this.selectedTopicId = topicId || null;
+    await this.loadRepliesForSelectedTopic();
+  }
+
+  async openReply(reply: ReplyView, mode: 'view' | 'edit' = 'view'): Promise<void> {
+    this.editingReply = { ...reply };
+    this.replyForm = { content: reply.content };
+    this.replyModalMode = mode;
+    this.showReplyModal = true;
+  }
+
+  enableReplyEditMode(): void {
+    this.replyModalMode = 'edit';
+  }
+
+  closeReplyModal(): void {
+    this.showReplyModal = false;
+    this.editingReply = null;
+    this.replyModalMode = 'view';
+  }
+
+  async saveReply(): Promise<void> {
+    if (!this.editingReply) {
+      return;
+    }
+
+    if (!this.replyForm.content.trim()) {
+      this.errorMessage = 'O conteúdo da resposta é obrigatório.';
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.updateReply(this.editingReply.id, {
+      content: this.replyForm.content.trim(),
+    }));
+
+    if (!result.ok || !result.data) {
+      this.errorMessage = result.message || 'Não foi possível actualizar a resposta.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = result.message || 'Resposta actualizada com sucesso.';
+    await this.loadInitialData();
+    this.closeReplyModal();
+  }
+
+  async deleteReply(reply: ReplyView): Promise<void> {
+    if (!confirm('Tem a certeza que deseja eliminar esta resposta?')) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.deleteReply(reply.id));
+    if (!result.ok) {
+      this.errorMessage = result.message || 'Não foi possível eliminar a resposta.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = result.message || 'Resposta eliminada com sucesso.';
+    await this.loadInitialData();
+  }
+
+  async acceptReply(reply: ReplyView): Promise<void> {
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.acceptReply(reply.id));
+    if (!result.ok) {
+      this.errorMessage = result.message || 'Não foi possível aceitar a resposta.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = result.message || 'Resposta marcada como aceite.';
+    await this.loadInitialData();
   }
 
   getStatusLabel(status: string): string {
     const labels: Record<string, string> = {
       open: 'Aberto',
       locked: 'Bloqueado',
-      archived: 'Arquivado'
+      archived: 'Arquivado',
+      published: 'Publicado',
+      draft: 'Rascunho',
     };
     return labels[status] || status;
   }
 
-  getStats() {
+  getCategoryName(categoryId: string): string {
+    return this.categories.find((category) => category.id === categoryId)?.name || 'Sem categoria';
+  }
+
+  getCategoryOptions(): Category[] {
+    return this.categories;
+  }
+
+  private normalizeTopicStatus(status: string): 'open' | 'locked' | 'archived' {
+    if (status === 'locked' || status === 'archived') {
+      return status;
+    }
+
+    return 'open';
+  }
+
+  private toTopicView(topic: DiscussionTopic): TopicView {
     return {
-      total: this.discussions.length,
-      active: this.discussions.filter(d => d.status === 'open').length,
-      totalReplies: this.discussions.reduce((sum, d) => sum + d.replies_count, 0),
-      totalViews: this.discussions.reduce((sum, d) => sum + d.views_count, 0)
+      ...topic,
+      status: this.normalizeTopicStatus(topic.status),
+      author_name: topic.author?.display_name || topic.author?.email || 'Utilizador',
+      category_name: topic.category?.name || this.getCategoryName(topic.category_id),
     };
   }
 
-  getCategories(): string[] {
-    return this.categoriesList.map(c => c.name);
+  private toReplyView(reply: TopicReply): ReplyView {
+    return {
+      ...reply,
+      author_name: reply.author?.display_name || reply.author?.email || 'Utilizador',
+    };
   }
 
-  // Get category name by ID
-  getCategoryName(categoryId: string | null): string {
-    if (!categoryId) return 'Sem categoria';
-    const cat = this.categoriesList.find(c => c.id === categoryId);
-    return cat ? cat.name : 'Sem categoria';
-  }
-
-  // Get author name by ID
-  getAuthorName(authorId: string): string {
-    const user = this.users.find(u => u.id === authorId);
-    return user ? user.name : 'Utilizador desconhecido';
-  }
-
-  // Open modal to add new discussion
-  openAddDiscussionModal(): void {
-    this.editingDiscussion = null;
-    this.discussionForm = {
-      id: '',
+  private createEmptyTopicForm() {
+    return {
       title: '',
       content: '',
-      status: 'open',
+      status: 'open' as const,
+      category_id: '',
       is_pinned: false,
       is_featured: false,
-      category_id: null,
-      author_id: '',
-      replies_count: 0,
-      views_count: 0,
-      likes_count: 0,
-      followers_count: 0,
-      last_reply_at: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      author_name: '',
-      category_name: ''
     };
-    this.showDiscussionModal = true;
-  }
-
-  // Open modal to edit discussion
-  openEditDiscussionModal(discussion: Discussion): void {
-    this.editingDiscussion = { ...discussion };
-    this.discussionForm = { ...discussion };
-    this.showDiscussionModal = true;
-  }
-
-  // Close modal
-  closeDiscussionModal(): void {
-    this.showDiscussionModal = false;
-    this.editingDiscussion = null;
-  }
-
-  // Save discussion (create or update)
-  saveDiscussion(): void {
-    if (!this.discussionForm.title.trim()) {
-      alert('Por favor, insira o título da discussão');
-      return;
-    }
-    
-    if (!this.discussionForm.content.trim()) {
-      alert('Por favor, insira o conteúdo da discussão');
-      return;
-    }
-    
-    // Definir author_id (mock)
-    if (!this.discussionForm.author_id) {
-      this.discussionForm.author_id = 'user-1';
-      this.discussionForm.author_name = 'Dr. Manuel Costa';
-    }
-    
-    // Definir category_name
-    if (this.discussionForm.category_id) {
-      const cat = this.categoriesList.find(c => c.id === this.discussionForm.category_id);
-      this.discussionForm.category_name = cat ? cat.name : 'Sem categoria';
-    }
-    
-    if (this.editingDiscussion) {
-      const index = this.discussions.findIndex(d => d.id === this.editingDiscussion!.id);
-      if (index !== -1) {
-        this.discussions[index] = { ...this.discussionForm, id: this.editingDiscussion.id };
-      }
-    } else {
-      this.discussionForm.id = Date.now().toString();
-      this.discussions.push({ ...this.discussionForm });
-    }
-    
-    this.closeDiscussionModal();
-  }
-
-  // Delete discussion
-  deleteDiscussion(id: string): void {
-    if (confirm('Tem certeza que deseja eliminar esta discussão? Esta ação não pode ser desfeita.')) {
-      this.discussions = this.discussions.filter(d => d.id !== id);
-    }
-  }
-
-  // Lock/unlock discussion
-  toggleLockDiscussion(id: string): void {
-    const discussion = this.discussions.find(d => d.id === id);
-    if (discussion) {
-      discussion.status = discussion.status === 'locked' ? 'open' : 'locked';
-    }
-  }
-
-  // Archive discussion
-  archiveDiscussion(id: string): void {
-    const discussion = this.discussions.find(d => d.id === id);
-    if (discussion && discussion.status !== 'archived') {
-      discussion.status = 'archived';
-    }
-  }
-
-  // Restore discussion from archive
-  restoreDiscussion(id: string): void {
-    const discussion = this.discussions.find(d => d.id === id);
-    if (discussion && discussion.status === 'archived') {
-      discussion.status = 'open';
-    }
   }
 }
