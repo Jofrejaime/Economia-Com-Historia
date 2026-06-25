@@ -2,8 +2,6 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-
-// Caminhos corrigidos - voltar 4 pastas até src/app
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 
@@ -23,6 +21,7 @@ interface Discussion {
   views: number;
   likes: number;
   isPinned: boolean;
+  isPrivate: boolean;
 }
 
 interface Category {
@@ -67,6 +66,7 @@ export class CommunityComponent {
       views: 487,
       likes: 23,
       isPinned: false,
+      isPrivate: false,
     },
     {
       id: 2,
@@ -82,6 +82,7 @@ export class CommunityComponent {
       views: 234,
       likes: 15,
       isPinned: true,
+      isPrivate: true,
     },
     {
       id: 3,
@@ -97,6 +98,7 @@ export class CommunityComponent {
       views: 612,
       likes: 34,
       isPinned: false,
+      isPrivate: false,
     },
     {
       id: 4,
@@ -112,6 +114,7 @@ export class CommunityComponent {
       views: 891,
       likes: 42,
       isPinned: false,
+      isPrivate: true,
     },
   ];
 
@@ -187,13 +190,22 @@ export class CommunityComponent {
       default: return { label: 'Público', bg: '#d1fae5', text: '#065f46' };
     }
   }
-getTotalMembers(): number {
-  return this.categories.reduce((total, cat) => total + cat.members, 0);
-}
 
-getTotalTopics(): number {
-  return this.categories.reduce((total, cat) => total + cat.topics, 0);
-}
+  getTotalMembers(): number {
+    return this.categories.reduce((total, cat) => total + cat.members, 0);
+  }
+
+  getTotalTopics(): number {
+    return this.categories.reduce((total, cat) => total + cat.topics, 0);
+  }
+
+  requestAccess(discussionId: number): void {
+    const discussion = this.discussions.find(d => d.id === discussionId);
+    if (discussion) {
+      alert(`Pedido de acesso enviado para a discussão: "${discussion.title}"\n\nO autor será notificado e poderá aprovar o seu pedido.`);
+    }
+  }
+
   navigateTo(path: string): void {
     this.router.navigate([path]);
   }

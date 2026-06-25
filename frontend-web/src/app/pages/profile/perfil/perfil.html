@@ -1,15 +1,19 @@
-<div style="background-color: #f8f9ff; min-height: 100vh;">
+<!-- ============================================
+   PROFILE PAGE - DESIGN SYSTEM "Economia com História"
+   ============================================ -->
+
+<div class="profile-page">
   
   <app-header></app-header>
 
-  <main style="flex: 1; width: 100%;">
-    <div style="max-width: 1536px; margin: 0 auto; padding: 40px 48px;">
+  <main class="profile-main">
+    <div class="profile-container">
       
       <!-- Loading State -->
-      <div *ngIf="state.isLoadingProfile" style="text-align: center; padding: 60px 20px;">
-        <div style="font-size: 18px; color: #6a6a6a;">
-          <p style="margin: 0 0 20px 0; font-weight: 500;">Carregando seu perfil...</p>
-          <div style="display: inline-block; width: 50px; height: 50px; border: 4px solid #eef2f6; border-top: 4px solid #800020; border-radius: 50%; animation: spinnerRotate 1s linear infinite;"></div>
+      <div *ngIf="state.isLoadingProfile" class="profile-loading">
+        <div class="profile-loading-content">
+          <p class="profile-loading-text">Carregando seu perfil...</p>
+          <div class="profile-spinner"></div>
         </div>
       </div>
 
@@ -17,199 +21,202 @@
       <div [style.display]="state.isLoadingProfile ? 'none' : 'block'">
       
       <!-- Profile Header -->
-      <div style="display: flex; gap: 48px; margin-bottom: 48px; flex-wrap: wrap;">
-        <div style="background: linear-gradient(135deg, #dee9fc, #f1f5f9); border-radius: 20px; overflow: hidden; width: 280px; height: 280px; box-shadow: 0 8px 20px rgba(0,0,0,0.06);">
-          <img alt="Profile Avatar" [src]="profileAvatarUrl" style="width: 100%; height: 100%; object-fit: cover;" />
+      <div class="profile-header">
+        <div class="profile-avatar-wrapper">
+          <img alt="Profile Avatar" [src]="profileAvatarUrl" />
         </div>
-        <div style="flex: 1;">
-          <div style="margin-bottom: 12px;">
-            <span style="background: linear-gradient(135deg, #8b1e2d15, #6b011915); color: #800020; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; display: inline-block;">ESTATUTO ACADÉMICO</span>
+        <div class="profile-info">
+          <div class="profile-badge-wrapper">
+            <span class="profile-badge">ESTATUTO ACADÉMICO</span>
           </div>
-          <h1 style="color: #1a1a1a; font-size: 42px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: -0.5px;">{{ profileName }}</h1>
-          <p style="color: #6a6a6a; font-size: 16px; line-height: 1.5; margin: 0;">{{ profileStatus }}</p>
-          <p *ngFor="let line of profileBio" style="color: #6a6a6a; font-size: 16px; line-height: 1.5; margin: 8px 0 0 0;">{{ line }}</p>
-          <div style="display: flex; gap: 14px; margin-top: 28px;">
-            <button (click)="openEditProfileModal()" style="background: linear-gradient(135deg, #800020, #6b0119); padding: 10px 28px; border-radius: 40px; border: none; cursor: pointer; color: white; font-weight: 500; font-size: 14px; transition: all 0.3s;">Editar Perfil</button>
-            <button (click)="downloadPortfolio()" style="background: none; padding: 10px 28px; border-radius: 40px; border: 1px solid #e2e8f0; cursor: pointer; color: #800020; font-weight: 500; font-size: 14px; transition: all 0.3s;">Descarregar Portfólio</button>
+          <h1 class="profile-name">{{ profileName }}</h1>
+          <p class="profile-status">{{ profileStatus }}</p>
+          <p *ngFor="let line of profileBio" class="profile-bio-line">{{ line }}</p>
+          <div class="profile-actions">
+            <button (click)="openEditProfileModal()" class="btn btn-primary">Editar Perfil</button>
+            <button (click)="downloadPortfolio()" class="btn btn-secondary">Descarregar Portfólio</button>
           </div>
         </div>
       </div>
 
       <!-- Stats Grid -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 64px;">
+      <div class="profile-stats">
         <div *ngFor="let stat of stats" 
-             style="background: white; border-radius: 20px; padding: 24px; border: 1px solid #eef2f6;"
-             [style.backgroundColor]="stat.bgColor || 'white'"
+             class="profile-stat-card"
+             [style.background-color]="stat.bgColor || 'var(--color-white)'"
              [style.color]="stat.color">
-          <p style="font-weight: 600; font-size: 11px; margin: 0 0 12px 0; color: #8a8a8a; letter-spacing: 0.5px;">{{ stat.label }}</p>
-          <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 16px;" *ngIf="stat.progress !== null">
-            <span style="font-weight: 700; font-size: 42px;" [style.color]="stat.color">{{ stat.value }}</span>
-            <span style="color: #8a8a8a; font-size: 14px;">{{ stat.unit }}</span>
+          <p class="profile-stat-label">{{ stat.label }}</p>
+          <div class="profile-stat-value-wrapper" *ngIf="stat.progress !== null">
+            <span class="profile-stat-number" [style.color]="stat.color">{{ stat.value }}</span>
+            <span class="profile-stat-unit">{{ stat.unit }}</span>
           </div>
-          <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 16px;" *ngIf="stat.progress === null">
-            <span style="font-weight: 700; font-size: 42px;" [style.color]="stat.color">{{ stat.value }}</span>
-            <span style="color: #8a8a8a; font-size: 14px;">{{ stat.subtext }}</span>
+          <div class="profile-stat-value-wrapper" *ngIf="stat.progress === null">
+            <span class="profile-stat-number" [style.color]="stat.color">{{ stat.value }}</span>
+            <span class="profile-stat-unit">{{ stat.subtext }}</span>
           </div>
-          <div *ngIf="stat.progress !== null" style="background-color: #f1f5f9; height: 8px; border-radius: 10px; overflow: hidden;">
-            <div style="height: 8px; border-radius: 10px; background: linear-gradient(90deg, #800020, #6b0119);" [style.width]="stat.progress + '%'"></div>
+          <div *ngIf="stat.progress !== null" class="profile-stat-progress">
+            <div class="profile-stat-progress-fill" [style.width]="stat.progress + '%'"></div>
           </div>
-          <p *ngIf="stat.rankBadge" style="color: rgba(255,255,255,0.7); font-size: 11px; margin: 4px 0 0 0; font-weight: 500;">{{ stat.rankBadge }}</p>
+          <p *ngIf="stat.rankBadge" class="profile-stat-rank">{{ stat.rankBadge }}</p>
         </div>
       </div>
 
       <!-- Méritos e Distinções -->
-      <div style="margin-bottom: 64px;" *ngIf="merits.length > 0">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
-          <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0;">Méritos e Distinções</h2>
-          <button style="color: #800020; font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">Ver Todos os Certificados →</button>
+      <div class="profile-merits" *ngIf="merits.length > 0">
+        <div class="profile-merits-header">
+          <h2 class="section-title">Méritos e Distinções</h2>
+          <button class="link-button">Ver Todos os Certificados →</button>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+        <div class="profile-merits-grid">
           <div *ngFor="let merit of merits" 
-               style="background: #f8fafc; border-radius: 16px; padding: 20px; display: flex; gap: 16px; border: 1px solid #eef2f6; transition: all 0.3s;"
-               [style.opacity]="merit.isActive ? '1' : '0.6'">
-            <div style="background: white; border-radius: 14px; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+               class="profile-merit-card"
+               [class.profile-merit-card-inactive]="!merit.isActive">
+            <div class="profile-merit-icon">
               <svg width="32" height="32" [attr.viewBox]="merit.iconViewBox" fill="none">
-                <path [attr.d]="merit.iconPath" [style.fill]="merit.isActive ? '#800020' : '#cbd5e1'"/>
+                <path [attr.d]="merit.iconPath" [style.fill]="merit.isActive ? 'var(--color-bordeaux)' : 'var(--color-medium-grey)'"/>
               </svg>
             </div>
-            <div style="flex: 1;">
-              <h3 style="font-weight: 700; font-size: 17px; margin: 0 0 6px 0;" [style.color]="merit.isActive ? '#1a1a1a' : '#8a8a8a'">{{ merit.title }}</h3>
-              <p *ngFor="let line of merit.description" style="font-size: 13px; margin: 0; line-height: 1.4;" [style.color]="merit.isActive ? '#6a6a6a' : '#a0a0a0'">{{ line }}</p>
-              <p style="color: #8a8a8a; font-size: 10px; margin-top: 8px; font-weight: 500;">{{ merit.id || merit.progress }}</p>
+            <div class="profile-merit-content">
+              <h3 class="profile-merit-title"
+                  [class.profile-merit-title-active]="merit.isActive"
+                  [class.profile-merit-title-inactive]="!merit.isActive">
+                {{ merit.title }}
+              </h3>
+              <p *ngFor="let line of merit.description" 
+                 class="profile-merit-description"
+                 [class.profile-merit-description-active]="merit.isActive"
+                 [class.profile-merit-description-inactive]="!merit.isActive">
+                {{ line }}
+              </p>
+              <p class="profile-merit-progress">{{ merit.id || merit.progress }}</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- MODAL: Editar Perfil -->
-      <div *ngIf="state.isEditingProfile" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
-        <div style="background: white; border-radius: 20px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <div *ngIf="state.isEditingProfile" class="profile-modal-overlay">
+        <div class="profile-modal">
           
           <!-- Header do Modal -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <h2 style="color: #1a1a1a; font-size: 24px; font-weight: 700; margin: 0;">Editar Perfil</h2>
-            <button (click)="closeEditProfileModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #8a8a8a; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">×</button>
+          <div class="profile-modal-header">
+            <h2 class="profile-modal-title">Editar Perfil</h2>
+            <button (click)="closeEditProfileModal()" class="profile-modal-close">×</button>
           </div>
 
           <!-- Formulário -->
-          <form [formGroup]="editForm" style="display: flex; flex-direction: column; gap: 20px;">
+          <form [formGroup]="editForm" class="profile-form">
             
             <!-- Avatar Upload -->
-            <div>
-              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 12px;">Foto de Perfil</label>
+            <div class="profile-form-group">
+              <label class="profile-form-label">Foto de Perfil</label>
               
-              <!-- Input de arquivo (hidden) -->
               <input #avatarInput 
                      type="file" 
                      accept="image/jpeg,image/png,image/webp"
                      (change)="onAvatarSelected($event)"
-                     style="display: none;">
+                     class="profile-avatar-input">
 
-              <!-- Avatar Container with Pencil Icon Overlay -->
-              <div style="position: relative; display: inline-block; width: 120px; height: 120px; margin-bottom: 12px;">
-                <!-- Current or Preview Avatar -->
-                <img [src]="getAvatarSrc()" 
-                     alt="Avatar de perfil"
-                     style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 2px solid #eef2f6;">
-                
-                <!-- Pencil Icon Button Overlay -->
-                <button type="button"
-                        (click)="avatarInput.click()"
-                        [disabled]="state.isLoadingStats"
-                        style="position: absolute; bottom: 0; right: 0; width: 40px; height: 40px; border-radius: 50%; background: #800020; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2); font-weight: bold;"
-                        title="Alterar foto de perfil">
-                  ✎
+              <div class="profile-avatar-upload">
+                <div class="profile-avatar-container">
+                  <img [src]="getAvatarSrc()" 
+                       alt="Avatar de perfil"
+                       class="profile-avatar-preview">
+                  
+                  <button type="button"
+                          (click)="avatarInput.click()"
+                          [disabled]="state.isLoadingStats"
+                          class="profile-avatar-btn"
+                          title="Alterar foto de perfil">
+                    ✎
+                  </button>
+                </div>
+
+                <p *ngIf="avatarError" class="profile-form-error">{{ avatarError }}</p>
+                <p class="profile-form-hint">JPG, PNG ou WebP (máx 5MB)</p>
+
+                <button *ngIf="avatarPreview"
+                        type="button"
+                        (click)="clearAvatarSelection()"
+                        class="profile-avatar-remove">
+                  Remover Seleção
                 </button>
               </div>
-
-              <!-- Validações e Info -->
-              <p *ngIf="avatarError" style="color: #ba1a1a; font-size: 12px; margin-top: 8px;">Erro: {{ avatarError }}</p>
-              <p style="color: #8a8a8a; font-size: 11px; margin-top: 8px;">
-                JPG, PNG ou WebP (máx 5MB)
-              </p>
-
-              <!-- Remover Seleção (apenas se houver preview) -->
-              <button *ngIf="avatarPreview"
-                      type="button"
-                      (click)="clearAvatarSelection()"
-                      style="width: 100%; padding: 8px; margin-top: 8px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; color: #991b1b; font-size: 12px; font-weight: 500;">
-                Remover Seleção
-              </button>
             </div>
             
             <!-- Nome de Exibição -->
-            <div>
-              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Nome de Exibição *</label>
+            <div class="profile-form-group">
+              <label class="profile-form-label">
+                Nome de Exibição <span class="profile-form-label-required">*</span>
+              </label>
               <input formControlName="display_name" 
                      type="text" 
                      placeholder="Seu nome completo"
-                     style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit;">
+                     class="profile-form-input">
               <p *ngIf="editForm.get('display_name')?.hasError('required') && editForm.get('display_name')?.touched" 
-                 style="color: #ba1a1a; font-size: 12px; margin-top: 4px;">Campo obrigatório</p>
+                 class="profile-form-error">Campo obrigatório</p>
               <p *ngIf="editForm.get('display_name')?.hasError('maxlength') && editForm.get('display_name')?.touched" 
-                 style="color: #ba1a1a; font-size: 12px; margin-top: 4px;">Máximo 100 caracteres</p>
+                 class="profile-form-error">Máximo 100 caracteres</p>
             </div>
 
             <!-- Bio -->
-            <div>
-              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">
+            <div class="profile-form-group">
+              <label class="profile-form-label">
                 Bio Académica 
-                <span style="color: #8a8a8a; font-weight: 400;">
-                  ({{ editForm.get('bio')?.value?.length || 0 }}/2000)
-                </span>
+                <span class="profile-form-hint">({{ editForm.get('bio')?.value?.length || 0 }}/2000)</span>
               </label>
               <textarea formControlName="bio" 
                         placeholder="Descreva sua área de pesquisa e interesses académicos..."
-                        style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; min-height: 100px; resize: vertical;">
+                        class="profile-form-textarea">
               </textarea>
               <p *ngIf="editForm.get('bio')?.hasError('maxlength') && editForm.get('bio')?.touched" 
-                 style="color: #ba1a1a; font-size: 12px; margin-top: 4px;">Máximo 2000 caracteres</p>
+                 class="profile-form-error">Máximo 2000 caracteres</p>
             </div>
 
             <!-- Instituição -->
-            <div>
-              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Instituição</label>
+            <div class="profile-form-group">
+              <label class="profile-form-label">Instituição</label>
               <input formControlName="institution" 
                      type="text" 
                      placeholder="Sua universidade ou organização"
-                     style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit;">
+                     class="profile-form-input">
             </div>
 
             <!-- Província -->
-            <div>
-              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">Província</label>
+            <div class="profile-form-group">
+              <label class="profile-form-label">Província</label>
               <select formControlName="province" 
-                      style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; background: white;">
+                      class="profile-form-select">
                 <option value="">Selecione uma província...</option>
                 <option *ngFor="let province of angolasProvinces" [value]="province">{{ province }}</option>
               </select>
             </div>
 
             <!-- Áreas de Pesquisa -->
-            <div>
-              <label style="display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; margin-bottom: 8px;">
+            <div class="profile-form-group">
+              <label class="profile-form-label">
                 Áreas de Pesquisa
-                <span style="color: #8a8a8a; font-weight: 400; font-size: 12px;"> (máximo 10)</span>
+                <span class="profile-form-hint"> (máximo 10)</span>
               </label>
-              <p style="color: #6a6a6a; font-size: 12px; margin: 0 0 8px 0;">Separe as áreas com vírgula</p>
+              <p class="profile-form-hint">Separe as áreas com vírgula</p>
               <input formControlName="research_areas" 
                      type="text" 
                      placeholder="Ex: História Económica, Análise de Dados, Economia Social"
-                     style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit;">
-              <p style="color: #8a8a8a; font-size: 11px; margin-top: 4px;">Máx 2000 caracteres</p>
+                     class="profile-form-input">
+              <p class="profile-form-hint">Máx 2000 caracteres</p>
             </div>
 
             <!-- Botões de Ação -->
-            <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid #eef2f6; padding-top: 20px;">
+            <div class="profile-form-actions">
               <button (click)="saveProfileChanges()" 
                       [disabled]="!editForm.valid || state.isLoadingStats"
-                      style="flex: 1; padding: 12px; background: linear-gradient(135deg, #800020, #6b0119); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                      class="btn btn-save"
                       [style.opacity]="!editForm.valid || state.isLoadingStats ? '0.6' : '1'">
                 {{ state.isLoadingStats ? 'Salvando...' : 'Salvar Mudanças' }}
               </button>
               <button (click)="discardChanges()" 
                       type="button"
-                      style="flex: 1; padding: 12px; background: #f1f5f9; color: #1a1a1a; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                      class="btn btn-discard">
                 Descartar
               </button>
             </div>
@@ -218,56 +225,56 @@
       </div>
 
       <!-- Controles de Conta -->
-      <div style="margin-bottom: 64px;" *ngIf="settings.privacy.length > 0 || settings.notifications.length > 0">
-        <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0 0 24px 0;">Controlos de Conta</h2>
-        <div style="background: #f8fafc; border-radius: 20px; padding: 32px; max-width: 480px; border: 1px solid #eef2f6;">
+      <div class="profile-settings" *ngIf="settings.privacy.length > 0 || settings.notifications.length > 0">
+        <h2 class="section-title">Controlos de Conta</h2>
+        <div class="profile-settings-card">
           
-          <div style="margin-bottom: 28px;" *ngIf="settings.privacy.length > 0">
-            <p style="font-weight: 600; color: #800020; margin: 0 0 16px 0; font-size: 13px; letter-spacing: 0.5px;">PRIVACIDADE E SEGURANÇA</p>
-            <div *ngFor="let setting of settings.privacy; let i = index" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="color: #1a1a1a; font-size: 14px;">{{ setting.label }}</span>
+          <div class="profile-settings-section" *ngIf="settings.privacy.length > 0">
+            <p class="profile-settings-section-title">PRIVACIDADE E SEGURANÇA</p>
+            <div *ngFor="let setting of settings.privacy; let i = index" class="profile-settings-item">
+              <span class="profile-settings-label">{{ setting.label }}</span>
               <button (click)="togglePrivacySetting(i)" 
-                      style="width: 20px; height: 20px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none;"
-                      [style.backgroundColor]="setting.checked ? '#800020' : 'white'"
-                      [style.border]="setting.checked ? 'none' : '1px solid #e2e8f0'"></button>
+                      class="profile-settings-toggle"
+                      [class.profile-settings-toggle-on]="setting.checked"
+                      [class.profile-settings-toggle-off]="!setting.checked"></button>
             </div>
           </div>
 
-          <div style="margin-bottom: 24px; padding-top: 20px; border-top: 1px solid #eef2f6;" *ngIf="settings.notifications.length > 0">
-            <p style="font-weight: 600; color: #800020; margin: 0 0 16px 0; font-size: 13px; letter-spacing: 0.5px;">NOTIFICAÇÕES</p>
-            <div *ngFor="let setting of settings.notifications; let i = index" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="color: #1a1a1a; font-size: 14px;">{{ setting.label }}</span>
+          <div class="profile-settings-section" *ngIf="settings.notifications.length > 0">
+            <p class="profile-settings-section-title">NOTIFICAÇÕES</p>
+            <div *ngFor="let setting of settings.notifications; let i = index" class="profile-settings-item">
+              <span class="profile-settings-label">{{ setting.label }}</span>
               <button (click)="toggleNotificationSetting(i)" 
-                      style="width: 20px; height: 20px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none;"
-                      [style.backgroundColor]="setting.checked ? '#800020' : 'white'"
-                      [style.border]="setting.checked ? 'none' : '1px solid #e2e8f0'"></button>
+                      class="profile-settings-toggle"
+                      [class.profile-settings-toggle-on]="setting.checked"
+                      [class.profile-settings-toggle-off]="!setting.checked"></button>
             </div>
           </div>
 
-          <button (click)="deactivateAccount()" style="width: 100%; padding: 14px; background: none; border: 1px solid #e2e8f0; border-radius: 40px; cursor: pointer; margin-top: 16px; color: #ba1a1a; font-weight: 600; font-size: 14px; transition: all 0.3s;">Desativar Conta do Arquivo</button>
+          <button (click)="deactivateAccount()" class="profile-settings-deactivate">Desativar Conta do Arquivo</button>
         </div>
       </div>
 
       <!-- Conteúdos Criados -->
       <div *ngIf="userContents.length > 0">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-          <h2 style="color: #1a1a1a; font-size: 28px; font-weight: 700; margin: 0;">Conteúdos Criados</h2>
-          <span style="color: #8a8a8a; font-size: 14px; background: #f1f5f9; padding: 6px 14px; border-radius: 30px;">{{ userContents.length }} publicações</span>
+        <div class="profile-contents-header">
+          <h2 class="section-title">Conteúdos Criados</h2>
+          <span class="profile-contents-count">{{ userContents.length }} publicações</span>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <div *ngFor="let content of userContents" style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #eef2f6; cursor: pointer; transition: all 0.3s;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-              <span style="background: #f8fafc; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #800020;">{{ content.type }}</span>
-              <span style="color: #8a8a8a; font-size: 12px;">{{ content.date }}</span>
+        <div class="profile-contents-list">
+          <div *ngFor="let content of userContents" class="profile-content-item">
+            <div class="profile-content-item-header">
+              <span class="profile-content-item-type">{{ content.type }}</span>
+              <span class="profile-content-item-date">{{ content.date }}</span>
             </div>
-            <h3 style="color: #1a1a1a; font-size: 18px; font-weight: 700; margin: 0 0 12px 0;">{{ content.title }}</h3>
-            <p style="color: #6a6a6a; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0;">{{ content.description }}</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-              <div style="display: flex; gap: 16px;">
-                <span style="color: #8a8a8a; font-size: 12px;">{{ content.category }}</span>
-                <span style="color: #8a8a8a; font-size: 12px;">{{ content.views }} visualizações</span>
+            <h3 class="profile-content-item-title">{{ content.title }}</h3>
+            <p class="profile-content-item-desc">{{ content.description }}</p>
+            <div class="profile-content-item-footer">
+              <div class="profile-content-item-meta">
+                <span>{{ content.category }}</span>
+                <span>{{ content.views }} visualizações</span>
               </div>
-              <span style="color: #800020; font-size: 13px; font-weight: 600;">Ler mais →</span>
+              <span class="profile-content-item-link">Ler mais →</span>
             </div>
           </div>
         </div>

@@ -1,0 +1,90 @@
+<div class="ranking-page">
+  
+  <app-header></app-header>
+
+  <main class="ranking-main">
+    <div class="ranking-container">
+      
+      <!-- Header -->
+      <div class="ranking-header">
+        <button (click)="goBack()" class="ranking-back-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Voltar
+        </button>
+        <h1 class="ranking-title">Ranking Completo</h1>
+        <p class="ranking-subtitle">Todos os participantes do arquivo digital</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="ranking-filters">
+        <div class="ranking-search">
+          <svg class="ranking-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Pesquisar por nome..." class="ranking-search-input">
+        </div>
+        <div class="ranking-filter-group">
+          <select [(ngModel)]="selectedCommunity" class="ranking-filter-select">
+            <option value="">Todas as Comunidades</option>
+            <option value="investigadores">Investigadores</option>
+            <option value="estudantes">Estudantes</option>
+            <option value="docentes">Docentes</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Ranking List -->
+      <div class="ranking-list">
+        <div *ngFor="let player of filteredRanking; let i = index" 
+             class="ranking-item"
+             [class.ranking-item-top3]="i < 3"
+             (click)="goToProfile(player.id)">
+          
+          <div class="ranking-position">
+            <span *ngIf="i === 0" class="ranking-medal ranking-medal-gold">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#FBBF24">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            </span>
+            <span *ngIf="i === 1" class="ranking-medal ranking-medal-silver">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#9CA3AF">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            </span>
+            <span *ngIf="i === 2" class="ranking-medal ranking-medal-bronze">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#CD7F32">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            </span>
+            <span *ngIf="i > 2" class="ranking-number">{{ i + 1 }}º</span>
+          </div>
+
+          <div class="ranking-avatar">
+            <img [src]="'https://ui-avatars.com/api/?name=' + player.name + '&background=8B1E2D&color=fff&size=48'" alt="">
+          </div>
+
+          <div class="ranking-info">
+            <div class="ranking-name">{{ player.name }}</div>
+            <div class="ranking-community">{{ player.community }}</div>
+          </div>
+
+          <div class="ranking-stats">
+            <div class="ranking-points">{{ player.points }} pts</div>
+            <div class="ranking-level">Nível {{ player.level }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="filteredRanking.length === 0" class="ranking-empty">
+        <p class="ranking-empty-title">Nenhum resultado encontrado</p>
+        <p class="ranking-empty-sub">Tente ajustar os filtros da pesquisa</p>
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

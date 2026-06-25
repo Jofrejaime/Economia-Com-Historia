@@ -26,10 +26,10 @@
       <div class="contents-main-content">
         <div class="contents-documents-header">
           <div>
-            <h2 class="contents-documents-title">Arquivos Recomendados</h2>
+            <h2 class="contents-documents-title">Conteúdos Recomendados</h2>
             <div class="contents-documents-divider"></div>
           </div>
-          <a (click)="navigateTo('/contents')" class="contents-documents-link">Explorar Todos os Documentos →</a>
+          <a (click)="navigateTo('/contents')" class="contents-documents-link">Explorar Todos os Conteúdos →</a>
         </div>
 
         <!-- Cards estilo G1 - 100% width, imagem à esquerda -->
@@ -44,7 +44,7 @@
               <span class="contents-doc-item-category">HISTÓRIA MONETÁRIA</span>
               <h3 class="contents-doc-item-title">A Transição: Do Escudo ao Kwanza</h3>
               <p class="contents-doc-item-description">Uma análise profunda da reforma monetária de 1977 que moldou a soberania económica da nação.</p>
-              <span class="contents-doc-item-link">Ler Arquivo →</span>
+              <span class="contents-doc-item-link">Ler Conteúdo →</span>
             </div>
           </div>
 
@@ -104,7 +104,7 @@
 
         <!-- Investigadores -->
         <div class="contents-widget-scholars">
-          <h3 class="contents-widget-scholars-title">Principais Investigadores</h3>
+          <h3 class="contents-widget-scholars-title">Ranking</h3>
           <div *ngFor="let s of scholars" class="contents-scholar-item" (click)="navigateToScholar(s.id)">
             <div class="contents-scholar-rank">{{ s.rank }}</div>
             <div class="contents-scholar-info">

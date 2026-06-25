@@ -35,6 +35,33 @@
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="#8B1E2D"><path d="M9 2L10 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L6 5L7 2H9Z"/></svg>
                 <span class="discussion-pinned-text">Fixado</span>
               </div>
+              
+              <!-- Menu de três pontinhos - DISCUSSÃO -->
+              <div class="discussion-menu-wrapper">
+                <button class="discussion-menu-btn" (click)="toggleDiscussionMenu($event)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                    <circle cx="12" cy="5" r="1.5"/>
+                    <circle cx="12" cy="12" r="1.5"/>
+                    <circle cx="12" cy="19" r="1.5"/>
+                  </svg>
+                </button>
+                <div class="discussion-menu-dropdown" [class.discussion-menu-open]="showDiscussionMenu">
+                  <button (click)="editDiscussion()" class="discussion-menu-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Editar
+                  </button>
+                  <button (click)="openDeleteDiscussionModal()" class="discussion-menu-item discussion-menu-item-danger">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    Excluir
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- Title -->
@@ -124,8 +151,42 @@
 
             <div>
               <!-- Loop das respostas -->
-              <div *ngFor="let reply of replies; let i = index" class="reply-card">
+              <div *ngFor="let reply of replies; let i = index" 
+                   class="reply-card"
+                   [class.reply-card-nested]="reply.parentId !== null">
                 
+                <!-- Menu de três pontinhos - RESPOSTA -->
+                <div class="reply-menu-wrapper">
+                  <button class="reply-menu-btn" (click)="toggleReplyMenu(i, $event)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                      <circle cx="12" cy="5" r="1.5"/>
+                      <circle cx="12" cy="12" r="1.5"/>
+                      <circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                  <div class="reply-menu-dropdown" [class.reply-menu-open]="showReplyMenuIndex === i">
+                    <button (click)="editReply(i)" class="reply-menu-item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                      Editar
+                    </button>
+                    <button (click)="openDeleteReplyModal(i)" class="reply-menu-item reply-menu-item-danger">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                      Excluir
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Indicador visual de resposta a comentário -->
+                <div *ngIf="reply.parentId !== null" class="reply-nested-indicator">
+                  <span class="reply-nested-indicator-text">Resposta a <strong>{{ getReplyAuthor(reply.parentId) }}</strong></span>
+                </div>
+
                 <!-- Reply Author -->
                 <div class="reply-author" (click)="navigateTo('/auth/perfil/' + reply.authorId)">
                   <div class="reply-avatar" [style.backgroundColor]="reply.avatar">
@@ -170,7 +231,11 @@
                 <!-- Formulário de resposta para esta reply específica -->
                 <div *ngIf="showReplyFormForReply[i]" class="reply-form nested-reply-form">
                   <form (ngSubmit)="handleReplyToReply(i, replyReplyText[i])">
-                    <textarea [(ngModel)]="replyReplyText[i]" name="replyReplyText" rows="3" placeholder="Responder a {{ reply.author }}..." class="reply-textarea nested-textarea"></textarea>
+                    <div class="nested-reply-to">
+                      <span class="nested-reply-to-label">Respondendo a </span>
+                      <span class="nested-reply-to-name">{{ reply.author }}</span>
+                    </div>
+                    <textarea [(ngModel)]="replyReplyText[i]" name="replyReplyText" rows="3" placeholder="Escreva a sua resposta..." class="reply-textarea nested-textarea"></textarea>
                     <div class="reply-form-actions nested-actions">
                       <button type="submit" class="btn-primary btn-small">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -242,6 +307,97 @@
     </div>
   </main>
 
+  <!-- ===== MODAL DE CONFIRMAÇÃO - ELIMINAR DISCUSSÃO ===== -->
+  <div class="modal-overlay" *ngIf="showDeleteDiscussionModal" (click)="closeDeleteDiscussionModal()">
+    <div class="modal-content modal-confirm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-header-icon modal-header-icon-danger">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <div>
+            <h2>Eliminar Discussão</h2>
+            <p class="modal-subtitle">Esta ação não pode ser desfeita</p>
+          </div>
+        </div>
+        <button class="modal-close" (click)="closeDeleteDiscussionModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-content">
+          <p class="confirm-text">Tem certeza que deseja eliminar esta discussão?</p>
+          <div class="confirm-item">
+            <span class="confirm-item-label">Título</span>
+            <span class="confirm-item-value">{{ discussion.title }}</span>
+          </div>
+          <div class="confirm-item">
+            <span class="confirm-item-label">Autor</span>
+            <span class="confirm-item-value">{{ discussion.author }}</span>
+          </div>
+          <div class="confirm-item">
+            <span class="confirm-item-label">Respostas</span>
+            <span class="confirm-item-value">{{ discussion.replies }} respostas</span>
+          </div>
+          <p class="confirm-warning">⚠️ Todas as respostas associadas também serão eliminadas.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeDeleteDiscussionModal()">Cancelar</button>
+        <button class="btn-danger" (click)="confirmDeleteDiscussion()">Eliminar Discussão</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL DE CONFIRMAÇÃO - ELIMINAR RESPOSTA ===== -->
+  <div class="modal-overlay" *ngIf="showDeleteReplyModal" (click)="closeDeleteReplyModal()">
+    <div class="modal-content modal-confirm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-header-icon modal-header-icon-danger">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <div>
+            <h2>Eliminar Resposta</h2>
+            <p class="modal-subtitle">Esta ação não pode ser desfeita</p>
+          </div>
+        </div>
+        <button class="modal-close" (click)="closeDeleteReplyModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="deleteReplyIndex !== null && replies[deleteReplyIndex]">
+        <div class="confirm-content">
+          <p class="confirm-text">Tem certeza que deseja eliminar esta resposta?</p>
+          <div class="confirm-item">
+            <span class="confirm-item-label">Autor</span>
+            <span class="confirm-item-value">{{ replies[deleteReplyIndex].author }}</span>
+          </div>
+          <div class="confirm-item">
+            <span class="confirm-item-label">Conteúdo</span>
+            <span class="confirm-item-value confirm-content-preview">{{ replies[deleteReplyIndex].content | slice:0:150 }}{{ replies[deleteReplyIndex].content.length > 150 ? '...' : '' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeDeleteReplyModal()">Cancelar</button>
+        <button class="btn-danger" (click)="confirmDeleteReply()">Eliminar Resposta</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== MODAL DE DENÚNCIA DE REPLY ===== -->
   <div class="modal-overlay" *ngIf="showReportReplyModal" (click)="closeReportReplyModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
@@ -266,6 +422,14 @@
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
         </button>
+      </div>
+
+      <!-- Aviso -->
+      <div class="report-warning">
+        <div class="report-warning-content">
+          <span class="report-warning-title">Denúncia anónima e confidencial</span>
+          <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação. O denunciante permanecerá anónimo.</span>
+        </div>
       </div>
       
       <div class="modal-body">
@@ -320,21 +484,6 @@
           <textarea [(ngModel)]="reportReplyDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo da denúncia..."></textarea>
           <span class="form-hint">{{ reportReplyDescription.length || 0 }}/500 caracteres</span>
         </div>
-
-        <!-- Aviso -->
-        <div class="report-warning">
-          <div class="report-warning-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
-              <path d="M12 2L1 21h22L12 2z"/>
-              <circle cx="12" cy="16" r="1.5" fill="#DC2626"/>
-              <path d="M12 9v4"/>
-            </svg>
-          </div>
-          <div class="report-warning-content">
-            <span class="report-warning-title">Denúncia anónima e confidencial</span>
-            <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação. O denunciante permanecerá anónimo.</span>
-          </div>
-        </div>
       </div>
       
       <div class="modal-footer">
@@ -378,6 +527,14 @@
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
         </button>
+      </div>
+      
+      <!-- Aviso -->
+      <div class="report-warning">
+        <div class="report-warning-content">
+          <span class="report-warning-title">Denúncia anónima e confidencial</span>
+          <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação. O denunciante permanecerá anónimo.</span>
+        </div>
       </div>
       
       <div class="modal-body">
@@ -432,21 +589,6 @@
           <label class="form-label">Descrição Detalhada</label>
           <textarea [(ngModel)]="reportDiscussionDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo da denúncia..."></textarea>
           <span class="form-hint">{{ reportDiscussionDescription.length || 0 }}/500 caracteres</span>
-        </div>
-
-        <!-- Aviso -->
-        <div class="report-warning">
-          <div class="report-warning-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
-              <path d="M12 2L1 21h22L12 2z"/>
-              <circle cx="12" cy="16" r="1.5" fill="#DC2626"/>
-              <path d="M12 9v4"/>
-            </svg>
-          </div>
-          <div class="report-warning-content">
-            <span class="report-warning-title">Denúncia anónima e confidencial</span>
-            <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação. O denunciante permanecerá anónimo.</span>
-          </div>
         </div>
       </div>
       

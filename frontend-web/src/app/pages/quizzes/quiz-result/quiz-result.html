@@ -13,8 +13,8 @@
         <div class="quiz-result-banner-content">
           <div class="quiz-result-icon-wrapper">
             <div class="quiz-result-icon">
-              <svg width="100%" height="100%" viewBox="0 0 24 24" fill="#22c55e">
-                <path d="M20 6L9 17L4 12" stroke="#22c55e" stroke-width="2" fill="none"/>
+              <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
+                <path d="M20 6L9 17L4 12" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
           </div>
@@ -29,27 +29,27 @@
         
         <div class="quiz-result-stat-card">
           <div class="quiz-result-stat-header">
-            <div class="quiz-result-stat-icon quiz-result-stat-icon-gold">
+            <div class="quiz-result-stat-icon quiz-result-stat-icon-bordeaux">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
               </svg>
             </div>
             <h3 class="quiz-result-stat-label">PONTOS GANHOS</h3>
           </div>
-          <p class="quiz-result-stat-number quiz-result-stat-number-gold">+{{ result.pointsEarned }}</p>
-          <p *ngIf="result.bonusPoints > 0" class="quiz-result-stat-sub-green">+{{ result.bonusPoints }} bónus</p>
+          <p class="quiz-result-stat-number quiz-result-stat-number-bordeaux">+{{ result.pointsEarned }}</p>
+          <p *ngIf="result.bonusPoints > 0" class="quiz-result-stat-sub-bordeaux">+{{ result.bonusPoints }} bónus</p>
         </div>
 
         <div class="quiz-result-stat-card">
           <div class="quiz-result-stat-header">
-            <div class="quiz-result-stat-icon quiz-result-stat-icon-green">
+            <div class="quiz-result-stat-icon quiz-result-stat-icon-bordeaux">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
                 <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"/>
               </svg>
             </div>
             <h3 class="quiz-result-stat-label">PRECISÃO</h3>
           </div>
-          <p class="quiz-result-stat-number quiz-result-stat-number-green">{{ result.score }}%</p>
+          <p class="quiz-result-stat-number quiz-result-stat-number-bordeaux">{{ result.score }}%</p>
           <p class="quiz-result-stat-sub">{{ result.correctAnswers }}/{{ result.totalQuestions }} corretas</p>
         </div>
 
@@ -86,7 +86,7 @@
               </svg>
             </div>
             <div class="quiz-result-badge-info">
-              <p class="quiz-result-badge-label">🎉 NOVA DISTINÇÃO!</p>
+              <p class="quiz-result-badge-label">NOVA DISTINÇÃO!</p>
               <h2 class="quiz-result-badge-name">{{ result.badge.name }}</h2>
               <p class="quiz-result-badge-desc">{{ result.badge.description }}</p>
             </div>
@@ -113,11 +113,11 @@
 
       <!-- Action Buttons -->
       <div class="quiz-result-actions">
-        <button (click)="goToQuizList()" class="btn-outline">
-          ← Voltar aos Questionários
+        <button (click)="goToQuizList()" class="btn-secondary">
+          ← Voltar aos Quizzes
         </button>
         <button (click)="nextQuiz()" class="btn-primary">
-          Próximo Questionário →
+          Próximo Quizz →
         </button>
       </div>
     </div>

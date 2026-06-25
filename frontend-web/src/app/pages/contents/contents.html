@@ -7,7 +7,6 @@
       
       <!-- Page Header -->
       <div class="contents-header">
-        <div class="contents-header-badge">ARQUIVO DIGITAL</div>
         <h1 class="contents-header-title">Arquivo de Conteúdos</h1>
         <p class="contents-header-subtitle">Explore a nossa colecção de documentos históricos e económicos</p>
       </div>
@@ -116,33 +115,36 @@
         </div>
       </div>
 
-      <!-- Documents Grid -->
+      <!-- Documents Grid - ESTRUTURA G1 -->
       <div>
         <div class="contents-documents-header">
+          <div>
+            <h2 class="contents-documents-title">Conteúdos Disponíveis</h2>
+            <div class="contents-documents-divider"></div>
+          </div>
           <p class="contents-documents-count">{{ getFilteredDocuments().length }} documentos</p>
-          <div class="contents-documents-divider"></div>
         </div>
 
-        <div class="contents-documents-grid">
+        <!-- Cards estilo G1 - imagem à esquerda -->
+        <div class="contents-docs-list">
           <div *ngFor="let doc of displayedDocuments" 
                (click)="navigateToDocument(doc.id)"
-               class="contents-doc-card">
-            <div class="contents-doc-image">
+               class="contents-doc-item">
+            <div class="contents-doc-item-image">
               <img [src]="doc.imageUrl" [alt]="doc.title">
             </div>
-            <div class="contents-doc-body">
-              <div class="contents-doc-meta">
-                <span class="contents-doc-type">{{ doc.type }}</span>
-                <span class="contents-doc-date">{{ doc.date }}</span>
-              </div>
-              <h3 class="contents-doc-title">{{ doc.title }}</h3>
-              <p class="contents-doc-description">{{ doc.description }}</p>
-              <div>
-                <span class="contents-doc-access" 
+            <div class="contents-doc-item-body">
+              <span class="contents-doc-item-category">{{ doc.type }}</span>
+              <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
+              <p class="contents-doc-item-description">{{ doc.description }}</p>
+              <div class="contents-doc-item-footer">
+                <span class="contents-doc-item-access" 
                       [style.background]="getAccessBadgeStyle(doc.accessLevel).bg"
                       [style.color]="getAccessBadgeStyle(doc.accessLevel).text">
                   {{ getAccessLabel(doc.accessLevel) }}
                 </span>
+                <span class="contents-doc-item-date">{{ doc.date }}</span>
+                <span class="contents-doc-item-link">Ler Conteúdo →</span>
               </div>
             </div>
           </div>
@@ -150,6 +152,12 @@
 
         <!-- Anchor para scroll infinito -->
         <div #scrollAnchor class="contents-scroll-anchor"></div>
+
+        <!-- Loading - CORRIGIDO: usa hasMore e displayedDocuments -->
+        <div *ngIf="hasMore && displayedDocuments.length > 0" class="contents-loading">
+          <div class="contents-spinner"></div>
+          <span>Carregando mais conteúdos...</span>
+        </div>
 
         <!-- End of results -->
         <div *ngIf="!hasMore && displayedDocuments.length > 0" class="contents-end">

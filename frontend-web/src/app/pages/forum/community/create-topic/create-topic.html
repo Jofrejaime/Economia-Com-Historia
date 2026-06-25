@@ -66,6 +66,88 @@
                 <p *ngIf="errors.category" class="create-topic-error">{{ errors.category }}</p>
               </div>
 
+              <!-- Privacy Field - NOVO -->
+              <div class="create-topic-form-group">
+                <label class="create-topic-label">
+                  Privacidade
+                  <span class="create-topic-label-required">*</span>
+                </label>
+                <div class="create-topic-privacy">
+                  <button type="button" (click)="topicPrivacy = 'public'" 
+                    class="create-topic-privacy-btn"
+                    [class.selected]="topicPrivacy === 'public'">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <div class="create-topic-privacy-info">
+                      <span class="create-topic-privacy-label">Público</span>
+                      <span class="create-topic-privacy-desc">Visível para todos os membros</span>
+                    </div>
+                    <svg *ngIf="topicPrivacy === 'public'" class="create-topic-privacy-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </button>
+                  <button type="button" (click)="topicPrivacy = 'private'" 
+                    class="create-topic-privacy-btn"
+                    [class.selected]="topicPrivacy === 'private'">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      <circle cx="12" cy="16" r="1.5"/>
+                      <line x1="8" y1="11" x2="16" y2="11"/>
+                    </svg>
+                    <div class="create-topic-privacy-info">
+                      <span class="create-topic-privacy-label">Privado</span>
+                      <span class="create-topic-privacy-desc">Apenas membros selecionados</span>
+                    </div>
+                    <svg *ngIf="topicPrivacy === 'private'" class="create-topic-privacy-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Participants Selection - NOVO (aparece apenas quando privado) -->
+              <div *ngIf="topicPrivacy === 'private'" class="create-topic-form-group">
+                <label class="create-topic-label">
+                  Selecionar Participantes
+                  <span class="create-topic-label-required">*</span>
+                </label>
+                <div class="create-topic-participants">
+                  <div class="create-topic-participants-search">
+                    <svg class="create-topic-participants-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" [(ngModel)]="participantSearch" (input)="filterParticipants()" 
+                      placeholder="Pesquisar membros por nome ou email..." 
+                      class="create-topic-participants-input">
+                  </div>
+                  <div class="create-topic-participants-list">
+                    <div *ngFor="let member of filteredParticipants" 
+                      (click)="toggleParticipant(member.id)"
+                      class="create-topic-participant-item"
+                      [class.selected]="isParticipantSelected(member.id)">
+                      <div class="create-topic-participant-avatar" [style.backgroundColor]="member.avatarColor">
+                        <span>{{ member.initials }}</span>
+                      </div>
+                      <div class="create-topic-participant-info">
+                        <span class="create-topic-participant-name">{{ member.name }}</span>
+                        <span class="create-topic-participant-email">{{ member.email }}</span>
+                      </div>
+                      <svg *ngIf="isParticipantSelected(member.id)" class="create-topic-participant-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="create-topic-participants-footer">
+                    <span>{{ selectedParticipants.length }} membro(s) selecionado(s)</span>
+                  </div>
+                </div>
+                <p *ngIf="errors.participants" class="create-topic-error">{{ errors.participants }}</p>
+              </div>
+
               <!-- Content Field -->
               <div class="create-topic-form-group" style="margin-bottom: 32px;">
                 <div class="create-topic-textarea-header">
@@ -74,7 +156,11 @@
                     <span class="create-topic-label-required">*</span>
                   </label>
                   <button type="button" (click)="showPreview = !showPreview" class="create-topic-preview-btn">
-                    {{ showPreview ? '✏️ Editar' : '👁️ Pré-visualizar' }}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    {{ showPreview ? ' Editar' : ' Pré-visualizar' }}
                   </button>
                 </div>
 
@@ -84,8 +170,19 @@
                     [class.error]="errors.content"></textarea>
                   <p *ngIf="errors.content" class="create-topic-error">{{ errors.content }}</p>
                   <div class="create-topic-textarea-footer">
-                    <span class="create-topic-textarea-count">📝 {{ content.length }} / mínimo 50 caracteres</span>
-                    <span class="create-topic-textarea-hint">✨ Suporta formatação básica</span>
+                    <span class="create-topic-textarea-count">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      {{ content.length }} / mínimo 50 caracteres
+                    </span>
+                    <span class="create-topic-textarea-hint">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <polyline points="9 12 11 14 15 10"/>
+                      </svg>
+                      Suporta formatação básica
+                    </span>
                   </div>
                 </div>
 
@@ -105,12 +202,7 @@
                   </svg>
                   Publicar Tópico
                 </button>
-                <button type="button" (click)="navigateTo('/forum/community')" class="btn-secondary">
-                  Guardar Rascunho
-                </button>
-                <button type="button" (click)="navigateTo('/forum/community')" class="btn-ghost">
-                  Cancelar
-                </button>
+                <button type="button" (click)="navigateTo('/forum/community')" class="btn-ghost">Cancelar</button>
               </div>
             </div>
           </form>
@@ -122,7 +214,14 @@
             
             <!-- Guidelines -->
             <div class="create-topic-guidelines">
-              <h3 class="create-topic-guidelines-title">📋 DIRETRIZES</h3>
+              <h3 class="create-topic-guidelines-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+                DIRETRIZES
+              </h3>
               <div class="create-topic-guidelines-list">
                 <div class="create-topic-guidelines-item">
                   <span class="create-topic-guidelines-number">01</span>
@@ -149,18 +248,44 @@
 
             <!-- Tips -->
             <div class="create-topic-tips">
-              <h3 class="create-topic-tips-title">💡 DICAS ÚTEIS</h3>
+              <h3 class="create-topic-tips-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                DICAS ÚTEIS
+              </h3>
               <div class="create-topic-tips-list">
                 <div class="create-topic-tips-item">
-                  <span class="create-topic-tips-item-title">🔍 Pesquise primeiro</span>
+                  <span class="create-topic-tips-item-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    Pesquise primeiro
+                  </span>
                   <p class="create-topic-tips-item-text">Verifique se o tópico já foi discutido</p>
                 </div>
                 <div class="create-topic-tips-item">
-                  <span class="create-topic-tips-item-title">🎯 Seja específico</span>
+                  <span class="create-topic-tips-item-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="12"/>
+                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    Seja específico
+                  </span>
                   <p class="create-topic-tips-item-text">Discussões focadas geram melhores respostas</p>
                 </div>
                 <div class="create-topic-tips-item">
-                  <span class="create-topic-tips-item-title">📝 Formatação</span>
+                  <span class="create-topic-tips-item-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                      <path d="M4 7L12 3L20 7L12 11L4 7Z"/>
+                      <path d="M4 13L12 17L20 13"/>
+                    </svg>
+                    Formatação
+                  </span>
                   <p class="create-topic-tips-item-text">Use quebras de linha e **negrito** para organizar</p>
                 </div>
               </div>
@@ -168,7 +293,14 @@
 
             <!-- Selected Category -->
             <div *ngIf="selectedCategoryData" class="create-topic-selected" [style.borderColor]="selectedCategoryData.color.bg">
-              <h3 class="create-topic-selected-title">📌 CATEGORIA SELECIONADA</h3>
+              <h3 class="create-topic-selected-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+                CATEGORIA SELECIONADA
+              </h3>
               <div class="create-topic-selected-tag" [style.backgroundColor]="selectedCategoryData.color.bg">
                 <span [style.color]="selectedCategoryData.color.text">{{ selectedCategoryData.name }}</span>
               </div>
