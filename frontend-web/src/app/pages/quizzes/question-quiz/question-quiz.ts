@@ -21,6 +21,11 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
   isSubmitting = false;
   error: string | null = null;
 
+  // Feedback de resposta
+  answered = false;
+  isCorrect = false;
+  correctOptionId: string | null = null;
+
   quizId = '';
   attemptId = '';
   questionStartTime = Date.now();
@@ -70,33 +75,49 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
     return this.questions.length;
   }
 
+  get isLastQuestion(): boolean {
+    return this.currentIndex === this.questions.length - 1;
+  }
+
   selectOption(optionId: string): void {
-    if (!this.isSubmitting) {
+    // Não permite trocar depois de responder
+    if (!this.isSubmitting && !this.answered) {
       this.selectedOptionId = optionId;
     }
   }
 
-  async nextQuestion(): Promise<void> {
-    if (!this.selectedOptionId || !this.question || this.isSubmitting) return;
+  // Classe visual de cada opção após responder
+  getOptionState(optionId: string): 'correct' | 'wrong' | 'selected' | 'normal' {
+    if (!this.answered) {
+      return this.selectedOptionId === optionId ? 'selected' : 'normal';
+    }
+    // Já respondeu
+    if (this.correctOptionId && optionId === this.correctOptionId) {
+      return 'correct';
+    }
+    if (optionId === this.selectedOptionId && !this.isCorrect) {
+      return 'wrong';
+    }
+    return 'normal';
+  }
+
+  // Primeiro clique em "Avançar" = submeter resposta e mostrar feedback
+  async submitAnswer(): Promise<void> {
+    if (!this.selectedOptionId || !this.question || this.isSubmitting || this.answered) return;
 
     this.isSubmitting = true;
     const timeSpent = Math.round((Date.now() - this.questionStartTime) / 1000);
 
     try {
-      await this.quizService.answerAttempt(
+      const res: any = await this.quizService.answerAttempt(
         this.attemptId,
         this.question.id,
         this.selectedOptionId,
         timeSpent
       );
-
-      if (this.currentIndex < this.questions.length - 1) {
-        this.currentIndex++;
-        this.selectedOptionId = null;
-        this.questionStartTime = Date.now();
-      } else {
-        await this.finishQuiz(timeSpent);
-      }
+      this.isCorrect = !!res?.is_correct;
+      this.correctOptionId = res?.correct_option_id ?? null;
+      this.answered = true;
     } catch {
       alert('Erro ao registar resposta. Tente novamente.');
     } finally {
@@ -104,14 +125,47 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async finishQuiz(lastQuestionTime: number): Promise<void> {
+  // Segundo clique = avançar para a próxima pergunta (ou finalizar)
+  async proceed(): Promise<void> {
+    if (this.isLastQuestion) {
+      await this.finishQuiz();
+      return;
+    }
+    this.currentIndex++;
+    this.selectedOptionId = null;
+    this.answered = false;
+    this.isCorrect = false;
+    this.correctOptionId = null;
+    this.questionStartTime = Date.now();
+  }
+
+  // Handler único do botão
+  async handleNext(): Promise<void> {
+    if (!this.answered) {
+      await this.submitAnswer();
+    } else {
+      await this.proceed();
+    }
+  }
+
+  private async finishQuiz(): Promise<void> {
+    this.isSubmitting = true;
     try {
-      const result = await this.quizService.completeAttempt(this.attemptId);
+      await this.quizService.completeAttempt(this.attemptId);
       this.router.navigate(['/quiz/resultado'], {
         queryParams: { attempt: this.attemptId }
       });
     } catch {
       alert('Erro ao finalizar quiz.');
+      this.isSubmitting = false;
     }
+  }
+
+  // Texto do botão consoante o estado
+  get buttonLabel(): string {
+    if (this.isSubmitting) return 'Aguarde...';
+    if (!this.answered) return 'Confirmar';
+    if (this.isLastQuestion) return 'Finalizar';
+    return 'Próxima pergunta';
   }
 }

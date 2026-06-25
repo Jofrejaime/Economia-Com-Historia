@@ -35,18 +35,47 @@
             <div class="quiz-options">
               <button *ngFor="let option of question.options" (click)="selectOption(option.id)"
                       class="quiz-option-btn"
-                      [class.quiz-option-btn-selected]="selectedOptionId === option.id">
+                      [class.quiz-option-btn-selected]="getOptionState(option.id) === 'selected'"
+                      [class.quiz-option-btn-correct]="getOptionState(option.id) === 'correct'"
+                      [class.quiz-option-btn-wrong]="getOptionState(option.id) === 'wrong'"
+                      [disabled]="answered">
                 <div class="quiz-option-content">
                   <div class="quiz-option-radio"
-                       [class.quiz-option-radio-normal]="selectedOptionId !== option.id"
-                       [class.quiz-option-radio-selected]="selectedOptionId === option.id">
-                    <div *ngIf="selectedOptionId === option.id" class="quiz-option-radio-dot"></div>
+                       [class.quiz-option-radio-normal]="getOptionState(option.id) === 'normal'"
+                       [class.quiz-option-radio-selected]="getOptionState(option.id) === 'selected'"
+                       [class.quiz-option-radio-correct]="getOptionState(option.id) === 'correct'"
+                       [class.quiz-option-radio-wrong]="getOptionState(option.id) === 'wrong'">
+                    <div *ngIf="getOptionState(option.id) === 'selected'" class="quiz-option-radio-dot"></div>
+                    <!-- Check para correcta -->
+                    <svg *ngIf="getOptionState(option.id) === 'correct'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    <!-- X para errada -->
+                    <svg *ngIf="getOptionState(option.id) === 'wrong'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
                   </div>
                   <p class="quiz-option-text">
                     <strong>{{ option.option_key }}.</strong> {{ option.option_text }}
                   </p>
                 </div>
               </button>
+            </div>
+
+            <!-- Feedback de resposta -->
+            <div *ngIf="answered" class="quiz-feedback"
+                 [class.quiz-feedback-correct]="isCorrect"
+                 [class.quiz-feedback-wrong]="!isCorrect">
+              <svg *ngIf="isCorrect" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <svg *ngIf="!isCorrect" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#991B1B" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+              <span>{{ isCorrect ? 'Resposta correcta!' : 'Resposta incorrecta.' }}</span>
             </div>
 
             <!-- Progress and Navigation -->
@@ -62,11 +91,11 @@
                 </div>
               </div>
 
-              <button (click)="nextQuestion()" [disabled]="!selectedOptionId || isSubmitting"
+              <button (click)="handleNext()" [disabled]="!selectedOptionId || isSubmitting"
                       class="quiz-btn-next"
                       [class.quiz-btn-next-enabled]="selectedOptionId && !isSubmitting"
                       [class.quiz-btn-next-disabled]="!selectedOptionId || isSubmitting">
-                <span style="color: #9CA3AF;">{{ isSubmitting ? 'A guardar...' : 'Avançar' }}</span>
+                <span>{{ buttonLabel }}</span>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M10.0704 5.96094L5.53516 10.4961L4.62891 9.58984L7.84766 6.37109H0.0703125V5.05078H7.84766L4.62891 1.83203L5.53516 0.925781L10.0704 5.46094V5.96094Z"/>
                 </svg>
