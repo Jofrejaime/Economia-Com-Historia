@@ -4,231 +4,232 @@
   <app-header></app-header>
 
   <main class="contents-view-main">
-    
-    <!-- Breadcrumbs -->
-    <div class="contents-view-breadcrumbs">
-      <div class="contents-view-breadcrumbs-inner">
-        <button (click)="navigateTo('/contents')" class="contents-view-breadcrumb-btn">Conteúdos</button>
-        <span class="contents-view-breadcrumb-separator">
-          <svg width="3" height="5" viewBox="0 0 3 5" fill="none"><path d="M0.5 0.5L2.5 2.5L0.5 4.5" stroke="#9CA3AF" stroke-linecap="round"/></svg>
-        </span>
-        <span class="contents-view-breadcrumb-current">CAMINHO DE FERRO DE BENGUELA</span>
-      </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" style="text-align:center;padding:80px">
+      A carregar documento...
     </div>
 
-    <!-- Hero Section -->
-    <div class="contents-view-hero">
-      <div class="contents-view-hero-image">
-        <img alt="O Caminho de Ferro de Benguela" src="https://images.unsplash.com/photo-1557318041-1ce374d55ebf?w=1920&q=80" />
-        <div class="contents-view-hero-overlay"></div>
-      </div>
-      <div class="contents-view-hero-gradient"></div>
-      <div class="contents-view-hero-content">
-        <div class="contents-view-hero-inner">
-          <div class="contents-view-hero-tags">
-            <div class="contents-view-hero-tag">
-              <span>FONTE PRIMÁRIA • 1912</span>
-            </div>
-            <div class="contents-view-hero-tag">
-              <span>IMPACTO SOCIOECONÓMICO</span>
-            </div>
-          </div>
-          <h1 class="contents-view-hero-title">O Caminho de Ferro de Benguela: Análise de Impacto Fiscal</h1>
+    <!-- Erro -->
+    <div *ngIf="error" style="text-align:center;padding:80px;color:red">
+      {{ error }}
+    </div>
+
+    <ng-container *ngIf="!isLoading && !error && document">
+
+      <!-- Breadcrumbs -->
+      <div class="contents-view-breadcrumbs">
+        <div class="contents-view-breadcrumbs-inner">
+          <button (click)="navigateTo('/contents')" class="contents-view-breadcrumb-btn">Conteúdos</button>
+          <span class="contents-view-breadcrumb-separator">
+            <svg width="3" height="5" viewBox="0 0 3 5" fill="none"><path d="M0.5 0.5L2.5 2.5L0.5 4.5" stroke="#9CA3AF" stroke-linecap="round"/></svg>
+          </span>
+          <span class="contents-view-breadcrumb-current">{{ document.title | uppercase }}</span>
         </div>
       </div>
-    </div>
 
-    <!-- Two-Column Layout -->
-    <div class="contents-view-layout">
-      <div class="contents-view-grid">
-        
-        <!-- Left Column - Main Content -->
-        <div class="contents-view-main-content">
+      <!-- Hero Section -->
+      <div class="contents-view-hero">
+        <div class="contents-view-hero-image">
+          <img [alt]="document.title" [src]="getDocumentImage()" />
+          <div class="contents-view-hero-overlay"></div>
+        </div>
+        <div class="contents-view-hero-gradient"></div>
+        <div class="contents-view-hero-content">
+          <div class="contents-view-hero-inner">
+            <div class="contents-view-hero-tags">
+              <div class="contents-view-hero-tag" *ngIf="document.category_name">
+                <span>{{ document.category_name | uppercase }}</span>
+              </div>
+              <div class="contents-view-hero-tag" *ngIf="document.period_start">
+                <span>{{ document.period_start }}{{ document.period_end ? ' – ' + document.period_end : '' }}</span>
+              </div>
+              <div class="contents-view-hero-tag" *ngIf="!document.period_start && document.publication_date">
+                <span>{{ document.publication_date | date:'yyyy' }}</span>
+              </div>
+            </div>
+            <h1 class="contents-view-hero-title">{{ document.title }}</h1>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-Column Layout -->
+      <div class="contents-view-layout">
+        <div class="contents-view-grid">
           
-          <!-- Resumo Executivo -->
-          <section class="contents-view-section">
-            <h2 class="contents-view-section-title">Resumo Executivo</h2>
-            <p class="contents-view-section-text">
-              Este documento constitui um marco fundamental na historiografia económica de Angola, detalhando a estruturação financeira e as projeções de retorno sobre o investimento do Caminho de Ferro de Benguela (CFB) durante o seu primeiro decénio de operação. A análise foca-se especificamente no equilíbrio entre as concessões estatais e o capital privado britânico.
-            </p>
-          </section>
+          <!-- Left Column - Main Content -->
+          <div class="contents-view-main-content">
+            
+            <!-- Resumo Executivo -->
+            <section class="contents-view-section">
+              <h2 class="contents-view-section-title">Resumo Executivo</h2>
+              <p class="contents-view-section-text">{{ document.summary }}</p>
+            </section>
 
-          <!-- Quote -->
-          <div class="contents-view-quote">
-            <svg class="contents-view-quote-icon" viewBox="0 0 24 24" fill="#8B1E2D">
-              <path d="M10 11h-4v-4h4v4zm8 0h-4v-4h4v4zm0 8h-4v-4h4v4zm-8 0h-4v-4h4v4z"/>
-            </svg>
-            <p class="contents-view-quote-text">
-              "A ferrovia não foi apenas um meio de transporte, mas a artéria vital da economia colonial, redefinindo as rotas comerciais de toda a África Austral e vinculando o destino do Planalto Central aos mercados globais de commodities."
-            </p>
+            <!-- Conteúdo principal (se existir) -->
+            <section class="contents-view-section" *ngIf="document.content">
+              <h2 class="contents-view-section-title">Conteúdo</h2>
+              <p class="contents-view-section-text" style="white-space: pre-line;">{{ document.content }}</p>
+            </section>
+
+            <!-- Tags -->
+            <section class="contents-view-section" *ngIf="document.tags && document.tags.length > 0">
+              <h2 class="contents-view-section-title">Temas</h2>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+                <span *ngFor="let tag of document.tags"
+                      style="background:#f1f5f9;padding:4px 12px;border-radius:20px;font-size:13px;color:#475569">
+                  {{ tag.name }}
+                </span>
+              </div>
+            </section>
+
           </div>
 
-          <!-- Contexto Histórico -->
-          <section class="contents-view-section">
-            <h2 class="contents-view-section-title">Contexto Histórico</h2>
-            <p class="contents-view-section-text" style="margin-bottom: 20px;">
-              A construção do CFB iniciou-se em 1903, sob a égide de Sir Robert Williams, visionário que procurava conectar o Porto de Lobito às ricas jazidas de cobre do Catanga. Este relatório de 1912 examina o período crítico de transição entre a fase de construção intensiva e o início da exploração comercial regular.
-            </p>
-            <p class="contents-view-section-text">
-              A análise demonstra como o traçado foi influenciado não apenas pela topografia, mas por necessidades políticas de afirmação da soberania portuguesa no interior, contrastando com os interesses estritamente extrativistas das companhias concessionárias.
-            </p>
-          </section>
-
-          <!-- Análise de Fluxos de Capital -->
-          <section class="contents-view-section">
-            <h2 class="contents-view-section-title">Análise de Fluxos de Capital</h2>
-            <p class="contents-view-section-text" style="margin-bottom: 24px;">
-              Os registos fiscais de 1912 revelam uma dependência significativa das taxas de trânsito de mercadorias agrícolas e minerais. O capital investido, predominantemente proveniente de sindicatos bancários de Londres e Lisboa, exigia garantias de juros que pressionavam as contas públicas da colónia.
-            </p>
-            <div class="contents-view-graphics">
-              <div class="contents-view-graphic-placeholder">
-                <span>[DIAGRAMA DE FLUXO FINANCEIRO 1912]</span>
+          <!-- Right Column - Sidebar -->
+          <div class="contents-view-sidebar">
+            
+            <!-- Digital Document Card -->
+            <div class="contents-view-doc-card">
+              <h3 class="contents-view-doc-card-title">DOCUMENTO DIGITALIZADO</h3>
+              <div class="contents-view-doc-preview">
+                <img [alt]="document.title" [src]="getDocumentImage()" />
               </div>
-              <div class="contents-view-graphic-placeholder">
-                <span>[TABELA DE EXPORTAÇÕES POR PORTO]</span>
+              <div class="contents-view-doc-actions">
+                <button class="contents-view-doc-btn contents-view-doc-btn-secondary"
+                        (click)="onDownload()"
+                        [disabled]="!isAuthenticated">
+                  <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
+                    <path d="M1 6H16M16 6L11 1M16 6L11 11" stroke="#8B1E2D" stroke-width="1.5"/>
+                  </svg>
+                  <span>{{ isAuthenticated ? 'Descarregar' : 'Login para descarregar' }}</span>
+                </button>
+                <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
+                        (click)="toggleFavorite()"
+                        [disabled]="!isAuthenticated">
+                  <svg width="14" height="18" viewBox="0 0 14 18" fill="none">
+                    <path d="M1 1H10L13 4V17H1V1Z" stroke="#64748b" stroke-width="1.5"/>
+                    <path d="M4 8H10M4 11H8" stroke="#64748b" stroke-width="1.5"/>
+                  </svg>
+                  <span>{{ document.is_favorited ? 'Remover Favorito' : 'Adicionar aos Favoritos' }}</span>
+                </button>
               </div>
             </div>
-          </section>
-        </div>
 
-        <!-- Right Column - Sidebar -->
-        <div class="contents-view-sidebar">
+            <!-- Metadata List -->
+            <div class="contents-view-metadata">
+              <h3 class="contents-view-metadata-title">METADADOS DO ARQUIVO</h3>
+              <div class="contents-view-metadata-list">
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">AUTOR</div>
+                  <div class="contents-view-metadata-value">{{ document.author ?? '—' }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item" *ngIf="document.institution">
+                  <div class="contents-view-metadata-label">INSTITUIÇÃO</div>
+                  <div class="contents-view-metadata-value">{{ document.institution }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">DATA DE EMISSÃO</div>
+                  <div class="contents-view-metadata-value">{{ formatDate(document.publication_date) }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item" *ngIf="document.period_start">
+                  <div class="contents-view-metadata-label">PERÍODO HISTÓRICO</div>
+                  <div class="contents-view-metadata-value">
+                    {{ document.period_start }}{{ document.period_end ? ' – ' + document.period_end : '' }}
+                  </div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">TIPO DE DOCUMENTO</div>
+                  <div class="contents-view-metadata-value">{{ document.document_type ?? '—' }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item" *ngIf="document.record_type">
+                  <div class="contents-view-metadata-label">TIPO DE REGISTO</div>
+                  <div class="contents-view-metadata-value">{{ document.record_type }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">NÍVEL ACADÉMICO</div>
+                  <div class="contents-view-metadata-value">{{ getAcademicLevelLabel() }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">NÍVEL DE ACESSO</div>
+                  <div class="contents-view-metadata-value">{{ document.access_level_id ?? '—' }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item" *ngIf="document.physical_location">
+                  <div class="contents-view-metadata-label">LOCALIZAÇÃO FÍSICA</div>
+                  <div class="contents-view-metadata-value">{{ document.physical_location }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item" *ngIf="document.unique_id">
+                  <div class="contents-view-metadata-label">ID ÚNICO</div>
+                  <div class="contents-view-metadata-value" style="font-family:monospace">{{ document.unique_id }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">GOSTOS</div>
+                  <div class="contents-view-metadata-value">{{ document.likes_count }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">TRANSFERÊNCIAS</div>
+                  <div class="contents-view-metadata-value">{{ document.downloads_count }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">VISUALIZAÇÕES</div>
+                  <div class="contents-view-metadata-value">{{ document.views_count }}</div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Discussion Section -->
+      <div class="contents-view-discussion">
+        <div class="contents-view-discussion-inner">
           
-          <!-- Digital Document Card -->
-          <div class="contents-view-doc-card">
-            <h3 class="contents-view-doc-card-title">DOCUMENTO DIGITALIZADO</h3>
-            <div class="contents-view-doc-preview">
-              <img alt="Documento digitalizado" src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&q=80" />
+          <div class="contents-view-discussion-header">
+            <div class="contents-view-discussion-title-group">
+              <div class="contents-view-discussion-badge">COMUNIDADE</div>
+              <h2 class="contents-view-discussion-title">Discussão Académica</h2>
+              <p class="contents-view-discussion-subtitle">Comentários recentes de investigadores da rede.</p>
             </div>
-            <div class="contents-view-doc-actions">
-              <button class="contents-view-doc-btn contents-view-doc-btn-secondary">
-                <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
-                  <path d="M1 6H16M16 6L11 1M16 6L11 11" stroke="#8B1E2D" stroke-width="1.5"/>
+            <div class="contents-view-discussion-actions">
+              <button (click)="navigateTo('/quiz')" class="contents-view-discussion-btn contents-view-discussion-btn-primary">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5">
+                  <path d="M8 3V13M3 8H13"/>
                 </svg>
-                <span>Citar Documento</span>
+                <span style="color: #ffffff;">Fazer Quiz</span>
               </button>
-              <button class="contents-view-doc-btn contents-view-doc-btn-ghost">
-                <svg width="14" height="18" viewBox="0 0 14 18" fill="none">
-                  <path d="M1 1H10L13 4V17H1V1Z" stroke="#64748b" stroke-width="1.5"/>
-                  <path d="M4 8H10M4 11H8" stroke="#64748b" stroke-width="1.5"/>
+              <button (click)="navigateTo('/forum/community')" class="contents-view-discussion-btn-link">
+                <span>Discutir na Comunidade</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="#8B1E2D">
+                  <path d="M6 3L11 8L6 13" stroke="#8B1E2D" stroke-width="1.5"/>
                 </svg>
-                <span>Adicionar aos Favoritos</span>
               </button>
             </div>
           </div>
 
-          <!-- Metadata List -->
-          <div class="contents-view-metadata">
-            <h3 class="contents-view-metadata-title">METADADOS DO ARQUIVO</h3>
-            <div class="contents-view-metadata-list">
-              <div class="contents-view-metadata-item">
-                <div class="contents-view-metadata-label">AUTOR</div>
-                <div class="contents-view-metadata-value">Conselho Ultramarino</div>
-              </div>
-              <div class="contents-view-metadata-item">
-                <div class="contents-view-metadata-label">DATA DE EMISSÃO</div>
-                <div class="contents-view-metadata-value">14 de Agosto de 1912</div>
-              </div>
-              <div class="contents-view-metadata-item">
-                <div class="contents-view-metadata-label">TIPO DE REGISTO</div>
-                <div class="contents-view-metadata-value">Relatório Fiscal e Estatístico</div>
-              </div>
-              <div class="contents-view-metadata-item">
-                <div class="contents-view-metadata-label">LOCALIZAÇÃO FÍSICA</div>
-                <div class="contents-view-metadata-value">Sala A, Prateleira 4, Caixa 102-B</div>
-              </div>
-              <div class="contents-view-metadata-item">
-                <div class="contents-view-metadata-label">ID ÚNICO</div>
-                <div class="contents-view-metadata-value monospace">ANA-CFB-1912-004-R</div>
-              </div>
-            </div>
+          <!-- Mensagem se não autenticado -->
+          <div *ngIf="!isAuthenticated" style="text-align:center;padding:40px;color:#64748b">
+            <p>Faz <a routerLink="/auth/login" style="color:#8B1E2D">login</a> para participar na discussão.</p>
           </div>
+
         </div>
       </div>
-    </div>
 
-    <!-- Discussion Section -->
-    <div class="contents-view-discussion">
-      <div class="contents-view-discussion-inner">
-        
-        <div class="contents-view-discussion-header">
-          <div class="contents-view-discussion-title-group">
-            <div class="contents-view-discussion-badge">COMUNIDADE</div>
-            <h2 class="contents-view-discussion-title">Discussão Académica</h2>
-            <p class="contents-view-discussion-subtitle">Comentários recentes de investigadores da rede.</p>
-          </div>
-          <div class="contents-view-discussion-actions">
-            <button (click)="navigateTo('/quiz/pergunta')" class="contents-view-discussion-btn contents-view-discussion-btn-primary">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5">
-                <path d="M8 3V13M3 8H13"/>
-              </svg>
-              <span style="color: #ffffff;">Fazer Quiz</span>
-            </button>
-            <button (click)="navigateTo('/forum/community')" class="contents-view-discussion-btn-link">
-              <span>Discutir na Comunidade</span>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="#8B1E2D">
-                <path d="M6 3L11 8L6 13" stroke="#8B1E2D" stroke-width="1.5"/>
-              </svg>
-            </button>
-          </div>
-        </div>
+    </ng-container>
 
-        <div class="contents-view-comments">
-          <!-- Comment 1 -->
-          <div (click)="navigateTo('/forum/community/discussao')" class="contents-view-comment-card">
-            <div class="contents-view-comment-author">
-              <div class="contents-view-comment-avatar">
-                <span>DA</span>
-              </div>
-              <div>
-                <div class="contents-view-comment-name">Dr. Afonso Henriques</div>
-                <div class="contents-view-comment-institution">UNIVERSIDADE AGOSTINHO NETO</div>
-              </div>
-            </div>
-            <p class="contents-view-comment-text">
-              "A análise da pág. 14 sobre os subsídios ao carvão é crucial para entender por que a tração a vapor persistiu tanto tempo em relação à eletrificação sugerida posteriormente..."
-            </p>
-            <div class="contents-view-comment-meta">
-              <span class="contents-view-comment-time">Há 2 dias</span>
-              <div class="contents-view-comment-replies">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="#9CA3AF">
-                  <path d="M6 0.5C2.96 0.5 0.5 2.96 0.5 6C0.5 9.04 2.96 11.5 6 11.5C9.04 11.5 11.5 9.04 11.5 6C11.5 2.96 9.04 0.5 6 0.5Z"/>
-                  <path d="M6 3V6L8 7" stroke="white" stroke-width="0.8"/>
-                </svg>
-                <span>4 respostas</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Comment 2 -->
-          <div (click)="navigateTo('/forum/community/discussao')" class="contents-view-comment-card inactive">
-            <div class="contents-view-comment-author">
-              <div class="contents-view-comment-avatar inactive">
-                <span>MS</span>
-              </div>
-              <div>
-                <div class="contents-view-comment-name">Maria dos Santos</div>
-                <div class="contents-view-comment-institution">INVESTIGADORA INDEPENDENTE</div>
-              </div>
-            </div>
-            <p class="contents-view-comment-text">
-              "Alguém tem dados complementares sobre a mão-de-obra local recrutada no Huambo citada nos anexos deste relatório? Gostaria de comparar com os censos de 1915."
-            </p>
-            <div class="contents-view-comment-meta">
-              <span class="contents-view-comment-time">Há 1 semana</span>
-              <div class="contents-view-comment-replies">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="#9CA3AF">
-                  <path d="M6 0.5C2.96 0.5 0.5 2.96 0.5 6C0.5 9.04 2.96 11.5 6 11.5C9.04 11.5 11.5 9.04 11.5 6C11.5 2.96 9.04 0.5 6 0.5Z"/>
-                  <path d="M6 3V6L8 7" stroke="white" stroke-width="0.8"/>
-                </svg>
-                <span>0 respostas</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </main>
-
   <app-footer></app-footer>
 </div>

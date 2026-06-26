@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "expo-image-picker": "^56.0.16"
+  },
+  "devDependencies": {
+    "@angular/cli": "^22.0.4"
   }
 }

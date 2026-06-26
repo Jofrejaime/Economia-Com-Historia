@@ -107,12 +107,13 @@ BEGIN
 END
 SQL);
 
-            DB::unprepared('DROP EVENT IF EXISTS evt_refresh_leaderboard');
-            DB::unprepared(<<<'SQL'
-CREATE EVENT IF NOT EXISTS evt_refresh_leaderboard
-  ON SCHEDULE EVERY 1 HOUR
-  DO CALL sp_refresh_leaderboard_nacional()
-SQL);
+            // EVENT comentado — usar Laravel Scheduler em vez do MySQL Event Scheduler
+            // DB::unprepared('DROP EVENT IF EXISTS evt_refresh_leaderboard');
+            // DB::unprepared(<<<'SQL'
+            // CREATE EVENT evt_refresh_leaderboard
+            //   ON SCHEDULE EVERY 1 HOUR
+            //   DO CALL sp_refresh_leaderboard_nacional()
+            // SQL);
         }
     }
 

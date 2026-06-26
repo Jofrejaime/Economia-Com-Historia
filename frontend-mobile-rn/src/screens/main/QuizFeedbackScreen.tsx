@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  Image,
   StatusBar,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -17,7 +16,11 @@ import { HeaderBar } from "../../components/HeaderBar";
 export function QuizFeedbackScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { isCorrect, onNext } = route.params as { isCorrect: boolean; onNext?: () => void };
+  const { isCorrect, explanation, onNext } = route.params as {
+    isCorrect: boolean;
+    explanation: string | null;
+    onNext?: () => void;
+  };
 
   const handleNext = () => {
     if (onNext) {
@@ -55,62 +58,28 @@ export function QuizFeedbackScreen() {
 
         {/* Explanation Card */}
         <View style={[styles.card, isCorrect ? styles.cardCorrect : styles.cardIncorrect]}>
-          {/* Image */}
-          <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80" }}
-              style={styles.cardImage}
-            />
-            <View style={styles.imageOverlay} />
-          </View>
-
-          {/* Content */}
           <View style={styles.cardBody}>
             {/* Title */}
             <View style={styles.cardTitleRow}>
-              <Feather name="check" size={14} color={isCorrect ? "#047857" : appTheme.colors.primary} />
+              <Feather name={isCorrect ? "check" : "info"} size={14} color={isCorrect ? "#047857" : appTheme.colors.primary} />
               <Text style={[styles.cardTitle, isCorrect ? styles.cardTitleCorrect : styles.cardTitleIncorrect]}>
-                Análise Histórica
+                {isCorrect ? "Explicação" : "Resposta Correta"}
               </Text>
             </View>
 
             {/* Explanation */}
             <Text style={styles.explanationText}>
-              {isCorrect ? (
-                "A introdução do Kwanza em 1977 não foi apenas uma mudança monetária, mas um acto de soberania económica fundamental para o recém-formado Estado angolano. Este processo permitiu o controlo centralizado da liquidez e a dissociação definitiva do sistema financeiro colonial português, estabelecendo as bases para a governação macroeconómica do país."
-              ) : (
-                "A resposta correta era a opção B. A abolição do tráfico negreiro em 1836 forçou uma transição para a \"economia lícita\", focada na exportação de produtos como cera, marfim e óleo de palma. Esta mudança representou uma transformação profunda na estrutura económica de Luanda, embora não tenha eliminado imediatamente todas as formas de trabalho forçado."
-              )}
+              {explanation
+                ? explanation
+                : isCorrect
+                  ? "Boa resposta! Continua assim."
+                  : "Não foi desta vez. Estuda bem o conteúdo relacionado e tenta novamente."}
             </Text>
-
-            {/* Link to Chapter */}
-            <TouchableOpacity style={styles.reviewBtn}>
-              <Feather name="arrow-right" size={14} color={isCorrect ? "#047857" : appTheme.colors.primary} style={{ marginRight: 6 }} />
-              <Text style={[styles.reviewBtnText, isCorrect ? styles.reviewTextCorrect : styles.reviewTextIncorrect]}>
-                Rever capítulo: "A Reforma de 1977"
-              </Text>
-              <View style={[styles.dot, { backgroundColor: isCorrect ? "#047857" : appTheme.colors.primary }]} />
-            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Progress and Next */}
+        {/* Next */}
         <View style={styles.footerSection}>
-          {/* Progress */}
-          <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>Progresso:</Text>
-            <View style={styles.progressBarBg}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  { backgroundColor: isCorrect ? "#047857" : appTheme.colors.primary },
-                ]}
-              />
-            </View>
-            <Text style={styles.progressValue}>12/16</Text>
-          </View>
-
-          {/* Next Button */}
           <TouchableOpacity
             onPress={handleNext}
             style={[
@@ -220,22 +189,6 @@ const styles = StyleSheet.create({
   cardIncorrect: {
     borderLeftColor: "#6B0119",
   },
-  imageContainer: {
-    height: 160,
-    position: "relative",
-  },
-  cardImage: {
-    width: "100%",
-    height: "100%",
-  },
-  imageOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(107,1,25,0.1)",
-  },
   cardBody: {
     padding: 24,
   },
@@ -263,57 +216,10 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 20,
   },
-  reviewBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  reviewBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  reviewTextCorrect: {
-    color: "#047857",
-  },
-  reviewTextIncorrect: {
-    color: "#6B0119",
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginLeft: 8,
-  },
   footerSection: {
     borderTopWidth: 1,
     borderTopColor: "rgba(222,191,191,0.2)",
     paddingTop: 24,
-  },
-  progressRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 24,
-  },
-  progressLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#574142",
-  },
-  progressBarBg: {
-    flex: 1,
-    height: 6,
-    backgroundColor: "#D9E3F6",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    width: "75%",
-    height: "100%",
-  },
-  progressValue: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#574142",
   },
   nextBtn: {
     flexDirection: "row",

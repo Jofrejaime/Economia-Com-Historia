@@ -11,6 +11,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { ScreenContainer } from "../../components/ScreenContainer";
+import { MediaFormatCards } from "../../components/MediaFormatCards";
 import { appTheme } from "../../constants/theme";
 import { documentService } from "../../services/api/documentService";
 import type { Document } from "../../types/api";
@@ -176,6 +177,15 @@ export function HomeScreen() {
                 ))}
               </View>
             )}
+
+            {/* Vídeos e Áudios */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitleSmall}>Vídeos e Áudios</Text>
+              <MediaFormatCards
+                onPressVideo={() => navigation.navigate("Content", { document_type: "video" })}
+                onPressAudio={() => navigation.navigate("Content", { document_type: "audio" })}
+              />
+            </View>
 
             {/* Explorar por Formato */}
             <View style={styles.section}>

@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from '../../constants/api';
 import type { Document, DocumentCategory, PaginatedResponse } from '../../types/api';
 
 export interface DocumentFilters {
+  q?: string;
   category_id?: string;
   document_type?: string;
   academic_level?: string;

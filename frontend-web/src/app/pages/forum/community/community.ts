@@ -1,3 +1,4 @@
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -5,80 +6,70 @@ import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
-import { CommunityService } from '../../../services/community.service';
-import { CommunityCategory, DiscussionTopic } from '../../../models/community.models';
+import { CommunityService, CommunityCategory, DiscussionTopic } from '../../../services/community.service';
 
 type TabType = 'recent' | 'popular' | 'pinned';
-
-interface TopicCard {
-  id: string;
-  author: string;
-  authorInitials: string;
-  avatar: string;
-  category: string;
-  categoryColor: { bg: string; text: string };
-  timeAgo: string;
-  title: string;
-  excerpt: string;
-  replies: number;
-  views: number;
-  likes: number;
-  isPinned: boolean;
-  isPrivate: boolean;
-}
-
-interface CategoryCard {
-  id: string;
-  name: string;
-  description: string;
-  accessType: 'public' | 'jindungo' | 'restricted';
-  members: number;
-  topics: number;
-  color: { bg: string; text: string };
-  backgroundImage: string;
-}
 
 @Component({
   selector: 'app-community',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule,
-    HeaderComponent,
-    FooterComponent
-  ],
+  imports: [CommonModule, FormsModule, RouterModule, HeaderComponent, FooterComponent],
   templateUrl: './community.html',
   styleUrls: ['./community.css']
 })
 export class CommunityComponent implements OnInit {
-  activeTab: TabType = 'recent';
-  loading = false;
-  errorMessage: string | null = null;
 
-  discussions: TopicCard[] = [];
-  categories: CategoryCard[] = [];
-  featuredResearches: Array<{ date: string; title: string }> = [];
+  activeTab: TabType = 'recent';
+  categories: CommunityCategory[] = [];
+  discussions: DiscussionTopic[] = [];
+  isLoading = true;
+  error: string | null = null;
+
+  featuredResearches = [
+    { date: '12 Mar 1975', title: 'Os documentos fundadores do BNA e a política fiscal inicial.' },
+    { date: '08 Fev 1982', title: 'Mudanças monetárias durante o período de transição.' },
+    { date: '22 Nov 1990', title: 'Linhas de crédito garantidas por petróleo: Uma análise histórica.' },
+  ];
 
   constructor(
     private router: Router,
-    private communityService: CommunityService,
+    private communityService: CommunityService
   ) {}
 
   async ngOnInit(): Promise<void> {
-    await this.loadCommunityData();
+    try {
+      const [categories, topics] = await Promise.all([
+        this.communityService.getCategories(),
+        this.communityService.getTopics(),
+      ]);
+      this.categories = categories;
+      this.discussions = topics;
+    } catch (err) {
+      this.error = 'Erro ao carregar a comunidade.';
+    } finally {
+      this.isLoading = false;
+    }
   }
 
-  get filteredDiscussions(): TopicCard[] {
+  get filteredDiscussions(): DiscussionTopic[] {
     if (this.activeTab === 'pinned') {
-      return this.discussions.filter((discussion) => discussion.isPinned);
+      return this.discussions.filter(d => d.is_pinned);
     }
 
     if (this.activeTab === 'popular') {
-      return this.discussions.filter((discussion) => discussion.views > 100);
+      return [...this.discussions].sort((a, b) => b.views_count - a.views_count);
     }
+    return [...this.discussions].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }
 
-    return this.discussions;
+  get totalMembers(): number {
+    return this.categories.reduce((t, c) => t + c.members_count, 0);
+  }
+
+  get totalTopics(): number {
+    return this.categories.reduce((t, c) => t + c.topics_count, 0);
   }
 
   async loadCommunityData(): Promise<void> {
@@ -116,142 +107,44 @@ export class CommunityComponent implements OnInit {
     this.activeTab = tab;
   }
 
-  getAccessBadge(accessType: string): { label: string; bg: string; text: string } {
-    switch (accessType) {
-      case 'jindungo':
-        return { label: 'Jindungo', bg: '#ffd6a5', text: '#4a2c00' };
-      case 'restricted':
-        return { label: 'Restrito', bg: '#ffb3ba', text: '#5c0011' };
-      default:
-        return { label: 'Público', bg: '#d1fae5', text: '#065f46' };
+  getAccessBadge(accessLevelId: string): { label: string; bg: string; text: string } {
+    switch (accessLevelId) {
+      case 'jindungo': return { label: 'Jindungo', bg: '#ffd6a5', text: '#4a2c00' };
+      case 'restricted': return { label: 'Restrito', bg: '#ffb3ba', text: '#5c0011' };
+      default: return { label: 'Público', bg: '#d1fae5', text: '#065f46' };
     }
   }
 
-  getTotalMembers(): number {
-    return this.categories.reduce((total, category) => total + category.members, 0);
+  getAuthorInitials(name: string): string {
+    return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
   }
 
-  getTotalTopics(): number {
-    return this.categories.reduce((total, category) => total + category.topics, 0);
+  getAvatarColor(id: string): string {
+    return id.charCodeAt(0) % 2 === 0 ? '#8b1e2d' : '#6b0119';
   }
 
-  requestAccess(discussionId: string): void {
-    this.router.navigate(['/forum/community/discussao', discussionId]);
+  formatTimeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(mins / 60);
+    const days = Math.floor(hours / 24);
+    if (days > 0) return `há ${days} dia${days > 1 ? 's' : ''}`;
+    if (hours > 0) return `há ${hours} hora${hours > 1 ? 's' : ''}`;
+    return `há ${mins} min`;
+  }
+
+  getCategoryColor(cat: CommunityCategory | null): { bg: string; text: string } {
+    return {
+      bg: cat?.color_bg ?? '#E5E7EB',
+      text: cat?.color_text ?? '#1F2937',
+    };
   }
 
   navigateTo(path: string): void {
     this.router.navigate([path]);
   }
 
-  private toTopicCard(topic: DiscussionTopic): TopicCard {
-    const authorName = topic.author?.display_name || topic.author?.full_name || topic.author?.email || 'Utilizador';
-    const categoryName = topic.category?.name || 'Sem categoria';
-    const categoryColor = this.pickCategoryColor(topic.category?.color_bg, topic.category?.color_text);
-
-    return {
-      id: topic.id,
-      author: authorName,
-      authorInitials: this.initialsFromName(authorName),
-      avatar: topic.author?.id ? '#8b1e2d' : '#6b7280',
-      category: categoryName.toUpperCase(),
-      categoryColor,
-      timeAgo: this.formatRelativeTime(topic.created_at),
-      title: topic.title,
-      excerpt: this.trimExcerpt(topic.content),
-      replies: topic.replies_count,
-      views: topic.views_count,
-      likes: topic.likes_count,
-      isPinned: topic.is_pinned,
-      isPrivate: topic.visibility === 'PRIVATE',
-    };
-  }
-
-  private toCategoryCard(category: CommunityCategory): CategoryCard {
-    return {
-      id: category.id,
-      name: category.name,
-      description: category.description || 'Categoria da comunidade',
-      accessType: this.normalizeAccessType(category.access_level_id),
-      members: category.members_count ?? 0,
-      topics: category.topics_count ?? 0,
-      color: {
-        bg: category.color_bg || '#E5E7EB',
-        text: category.color_text || '#1F2937',
-      },
-      backgroundImage: category.cover_image_url || this.placeholderImage(category.name),
-    };
-  }
-
-  private normalizeAccessType(value: string): 'public' | 'jindungo' | 'restricted' {
-    if (value === 'jindungo' || value === 'restricted') {
-      return value;
-    }
-
-    return 'public';
-  }
-
-  private pickCategoryColor(bg?: string | null, text?: string | null): { bg: string; text: string } {
-    return {
-      bg: bg || '#E5E7EB',
-      text: text || '#1F2937',
-    };
-  }
-
-  private placeholderImage(label: string): string {
-    const safeLabel = label.slice(0, 24);
-    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
-        <defs>
-          <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stop-color="#8B1E2D"/>
-            <stop offset="100%" stop-color="#1F2937"/>
-          </linearGradient>
-        </defs>
-        <rect width="800" height="400" fill="url(#g)"/>
-        <text x="50%" y="52%" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="32" text-anchor="middle">${safeLabel}</text>
-      </svg>
-    `)}`;
-  }
-
-  private initialsFromName(value: string): string {
-    return value
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? '')
-      .join('') || 'U';
-  }
-
-  private trimExcerpt(content: string): string {
-    return content.length > 180 ? `${content.slice(0, 177)}...` : content;
-  }
-
-  private formatRelativeTime(createdAt: string): string {
-    const created = new Date(createdAt);
-    const diffMs = Date.now() - created.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffHours < 1) {
-      return 'há instantes';
-    }
-
-    if (diffHours < 24) {
-      return `há ${diffHours} hora(s)`;
-    }
-
-    if (diffDays < 30) {
-      return `há ${diffDays} dia(s)`;
-    }
-
-    return this.formatDate(createdAt);
-  }
-
-  private formatDate(value: string): string {
-    return new Intl.DateTimeFormat('pt-PT', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(value));
+  navigateToDiscussion(id: string): void {
+    this.router.navigate(['/forum/community/discussao', id]);
   }
 }

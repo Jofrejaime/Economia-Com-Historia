@@ -9,8 +9,10 @@ import { ScreenContainer } from "../../components/ScreenContainer";
 import { FormInput } from "../../components/FormInput";
 import { SocialButton } from "../../components/SocialButton";
 import { Divider } from "../../components/Divider";
+import { ErrorBanner } from "../../components/ErrorBanner";
 import { appTheme } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
+import { parseApiError } from "../../utils/apiError";
 import { MainStackParamList } from "../../types/navigation";
 
 type Props = NativeStackScreenProps<MainStackParamList, "Login">;
@@ -21,6 +23,7 @@ export function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -46,10 +49,13 @@ export function LoginScreen({ navigation }: Props) {
 
   const handleSignIn = async () => {
     if (!canSubmit) return;
+    setLoginError(null);
     setIsSubmitting(true);
     try {
       await signIn({ email, password });
       navigation.navigate("MainTabs");
+    } catch (err: unknown) {
+      setLoginError(parseApiError(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -156,6 +162,7 @@ export function LoginScreen({ navigation }: Props) {
           onChangeText={(text) => {
             setEmail(text);
             validateEmail(text);
+            if (loginError) setLoginError(null);
           }}
           placeholder="o.teu@email.com"
           error={emailError}
@@ -166,7 +173,10 @@ export function LoginScreen({ navigation }: Props) {
         <FormInput
           label="Palavra-passe"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (loginError) setLoginError(null);
+          }}
           placeholder="••••••••"
           secureTextEntry
         />
@@ -176,6 +186,8 @@ export function LoginScreen({ navigation }: Props) {
             <Text style={styles.forgotText}>Esqueci a palavra-passe</Text>
           </Pressable>
         </View>
+
+        <ErrorBanner message={loginError} onDismiss={() => setLoginError(null)} />
 
         <Pressable
           onPress={() => void handleSignIn()}

@@ -43,11 +43,40 @@ class QuizController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = DB::table('quizzes');
+        $perPage = min((int) ($request->input('per_page', 20)), 50);
+        $page = max((int) ($request->input('page', 1)), 1);
+
+        $query = DB::table('quizzes')->where('status', 'published');
         $this->accessGate->applyDocumentVisibilityFilter($query, $request->user(), 'quizzes');
-        
-        $quizzes = $query->orderByDesc('created_at')->limit(20)->get();
-        return response()->json(['data' => $quizzes]);
+
+        if ($request->filled('difficulty')) {
+            $query->where('difficulty', $request->input('difficulty'));
+        }
+
+        $query->orderByDesc('created_at');
+
+        $total = (clone $query)->count();
+        $items = $query->forPage($page, $perPage)->get();
+
+        $categoryIds = $items->pluck('category_id')->filter()->unique()->values();
+        $categories = $categoryIds->isNotEmpty()
+            ? DB::table('document_categories')->whereIn('id', $categoryIds)->get()->keyBy('id')
+            : collect();
+
+        $data = $items->map(function ($quiz) use ($categories) {
+            $quiz->category = $quiz->category_id ? $categories->get($quiz->category_id) : null;
+            return $quiz;
+        });
+
+        return response()->json([
+            'data' => $data,
+            'meta' => [
+                'current_page' => $page,
+                'last_page' => max(1, (int) ceil($total / $perPage)),
+                'per_page' => $perPage,
+                'total' => $total,
+            ],
+        ]);
     }
 
     /**
@@ -692,6 +721,7 @@ class QuizController extends Controller
         return response()->json([
             'message' => 'Answer recorded.',
             'is_correct' => $result['is_correct'],
+            'explanation' => $result['explanation'] ?? null,
         ]);
     }
 
@@ -752,6 +782,33 @@ class QuizController extends Controller
             'data' => $result['attempt'],
             'gamification' => $result['gamification']->toArray(),
         ]);
+    }
+
+    public function relatedDocuments(string $id, Request $request): JsonResponse
+    {
+        $quiz = DB::table('quizzes')->where('id', $id)->first();
+        if ($quiz === null) {
+            abort(404, 'Quiz not found.');
+        }
+
+        $documents = DB::table('quiz_documents as qd')
+            ->join('documents as d', 'd.id', '=', 'qd.document_id')
+            ->leftJoin('document_categories as dc', 'dc.id', '=', 'd.category_id')
+            ->where('qd.quiz_id', $id)
+            ->where('d.status', 'published')
+            ->orderBy('qd.sort_order')
+            ->select(
+                'd.id', 'd.title', 'd.author', 'd.summary', 'd.document_type',
+                'd.academic_level', 'd.access_level_id', 'd.cover_image_url',
+                'd.views_count', 'd.likes_count', 'd.published_at', 'd.created_at',
+                'dc.name as category_name'
+            )
+            ->get()
+            ->map(fn ($doc) => array_merge((array) $doc, [
+                'category' => $doc->category_name ? ['name' => $doc->category_name] : null,
+            ]));
+
+        return response()->json(['data' => $documents]);
     }
 
     /**

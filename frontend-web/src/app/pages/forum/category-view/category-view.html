@@ -59,8 +59,18 @@
         </div>
       </div>
 
+      <!-- Loading -->
+      <div *ngIf="isLoading" style="text-align:center;padding:60px">
+        A carregar categorias...
+      </div>
+
+      <!-- Erro -->
+      <div *ngIf="error" style="text-align:center;padding:40px;color:red">
+        {{ error }}
+      </div>
+
       <!-- Categories Grid -->
-      <div class="category-view-categories-grid">
+      <div class="category-view-categories-grid" *ngIf="!isLoading && !error">
         <div *ngFor="let category of categories" class="category-view-category-card">
           
           <!-- Category Card -->
@@ -70,7 +80,7 @@
             
             <!-- Card Image -->
             <div class="category-view-category-image">
-              <img [src]="category.backgroundImage" alt="">
+              <img [src]="category.cover_image_url ?? 'assets/images/document-placeholder.jpg'" alt="">
               <div class="category-view-category-image-overlay"></div>
             </div>
             
@@ -78,11 +88,11 @@
             <div class="category-view-category-body">
               <!-- Header with Badge -->
               <div class="category-view-category-header">
-                <div class="category-view-category-type" [style.backgroundColor]="category.color.bg">
-                  <span [style.color]="category.color.text">{{ category.name }}</span>
+                <div class="category-view-category-type" [style.backgroundColor]="getCategoryColor(category).bg">
+                  <span [style.color]="getCategoryColor(category).text">{{ category.name }}</span>
                 </div>
-                <div class="category-view-category-access" [style.backgroundColor]="getAccessBadge(category.accessType).bg">
-                  <span [style.color]="getAccessBadge(category.accessType).text">{{ getAccessBadge(category.accessType).label }}</span>
+                <div class="category-view-category-access" [style.backgroundColor]="getAccessBadge(category.access_level_id).bg">
+                  <span [style.color]="getAccessBadge(category.access_level_id).text">{{ getAccessBadge(category.access_level_id).label }}</span>
                 </div>
               </div>
               
@@ -94,15 +104,15 @@
               
               <!-- Stats -->
               <div class="category-view-category-stats">
-                <span>👥 {{ category.members }} membros</span>
-                <span>💬 {{ category.topics }} tópicos</span>
+                <span>👥 {{ category.members_count }} membros</span>
+                <span>💬 {{ category.topics_count }} tópicos</span>
               </div>
             </div>
           </div>
 
           <!-- Action Button -->
           <div *ngIf="category.requestStatus === 'none'">
-            <button (click)="handleRequestAccess(category.id, category.accessType)" class="btn-primary">
+            <button (click)="handleRequestAccess(category.id, category.access_level_id)" class="btn-primary">
               Solicitar Acesso
             </button>
           </div>

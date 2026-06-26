@@ -1,17 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
-
-interface RankPlayer {
-  id: number;
-  name: string;
-  community: string;
-  points: number;
-  level: number;
-}
+import { QuizService, LeaderboardEntry } from '../../../services/quiz.service';
 
 @Component({
   selector: 'app-ranking',
@@ -20,40 +13,42 @@ interface RankPlayer {
   templateUrl: './quiz-ranking.html',
   styleUrls: ['./quiz-ranking.css']
 })
-export class RankingComponent {
+export class RankingComponent implements OnInit {
+
   searchTerm = '';
-  selectedCommunity = '';
+  selectedProvince = '';
+  players: LeaderboardEntry[] = [];
+  isLoading = true;
+  error: string | null = null;
 
-  players: RankPlayer[] = [
-    { id: 1, name: 'Dra. Ana Oliveira', community: 'Investigadores', points: 2847, level: 5 },
-    { id: 2, name: 'Dr. Miguel Santos', community: 'Investigadores', points: 2421, level: 4 },
-    { id: 3, name: 'Profa. Carla Lima', community: 'Docentes', points: 2156, level: 4 },
-    { id: 4, name: 'Dr. João Costa', community: 'Investigadores', points: 1890, level: 3 },
-    { id: 5, name: 'Maria Fernandes', community: 'Estudantes', points: 1654, level: 3 },
-    { id: 6, name: 'Prof. António Silva', community: 'Docentes', points: 1432, level: 2 },
-    { id: 7, name: 'Sofia Rodrigues', community: 'Estudantes', points: 1200, level: 2 },
-    { id: 8, name: 'Dr. Pedro Santos', community: 'Investigadores', points: 987, level: 2 },
-    { id: 9, name: 'Ana Pereira', community: 'Estudantes', points: 765, level: 1 },
-    { id: 10, name: 'Prof. Luís Mendes', community: 'Docentes', points: 654, level: 1 },
-  ];
+  constructor(
+    private router: Router,
+    private quizService: QuizService
+  ) {}
 
-  constructor(private router: Router) {}
+  async ngOnInit(): Promise<void> {
+    try {
+      this.players = await this.quizService.getNationalLeaderboard();
+    } catch {
+      this.error = 'Erro ao carregar ranking.';
+    } finally {
+      this.isLoading = false;
+    }
+  }
 
-  get filteredRanking(): RankPlayer[] {
-    return this.players
-      .filter(p => {
-        const matchName = p.name.toLowerCase().includes(this.searchTerm.toLowerCase());
-        const matchCommunity = this.selectedCommunity ? p.community === this.selectedCommunity : true;
-        return matchName && matchCommunity;
-      })
-      .sort((a, b) => b.points - a.points);
+  get filteredRanking(): LeaderboardEntry[] {
+    return this.players.filter(p => {
+      const matchName = p.display_name.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchProvince = this.selectedProvince ? p.province === this.selectedProvince : true;
+      return matchName && matchProvince;
+    });
+  }
+
+  getAvatarUrl(name: string): string {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8B1E2D&color=fff&size=48`;
   }
 
   goBack(): void {
     this.router.navigate(['/quiz']);
-  }
-
-  goToProfile(playerId: number): void {
-    this.router.navigate(['/auth/perfil', playerId]);
   }
 }

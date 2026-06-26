@@ -109,7 +109,7 @@ export interface Tag {
   created_at: string;
 }
 
-export type DocumentType = 'article' | 'thesis' | 'report' | 'manuscript' | 'archive';
+export type DocumentType = 'article' | 'thesis' | 'report' | 'manuscript' | 'archive' | 'video' | 'audio';
 export type AcademicLevel = 'intro' | 'advanced' | 'doctorate';
 export type AccessLevelId = 'public' | 'jindungo' | 'restricted';
 

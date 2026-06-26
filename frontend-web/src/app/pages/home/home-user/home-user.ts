@@ -1,88 +1,98 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
+import { DocumentService, Document, DocumentCategory } from '../../../services/document.service';
+import { QuizService, LeaderboardEntry } from '../../../services/quiz.service';
+import { CommunityService, DiscussionTopic } from '../../../services/community.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-home-user',
   standalone: true,
-  imports: [
-    CommonModule,
-    HeaderComponent,
-    FooterComponent
-  ],
+  imports: [CommonModule, HeaderComponent, FooterComponent],
   templateUrl: './home-user.html',
   styleUrls: ['./home-user.css']
 })
-export class HomeUser {
-  @ViewChild('scrollContainer') scrollContainer!: ElementRef;
+export class HomeUser implements OnInit {
 
-  categories = [
-    {
-      id: 1,
-      name: 'Período Colonial',
-      description: 'Documentos e análises do período colonial e das estruturas económicas.',
-      documentCount: 47,
-      color: '#6b0119',
-      icon: 'M3 6h18M3 12h18M3 18h18',
-      isExclusive: false
-    },
-    {
-      id: 2,
-      name: 'Economia Moderna',
-      description: 'Análises pós-independência e desafios económicos contemporâneos.',
-      documentCount: 38,
-      color: '#1e4a6b',
-      icon: 'M12 2v20M2 12h20',
-      isExclusive: false
-    },
-    {
-      id: 3,
-      name: 'Documentos Exclusivos',
-      description: 'Arquivos restritos disponíveis para investigadores credenciados.',
-      documentCount: 23,
-      color: '#8b1e2d',
-      icon: 'M12 8v4l3 3M12 2a10 10 0 1010 10A10 10 0 0012 2z',
-      isExclusive: true
+  documents: Document[] = [];
+  categories: DocumentCategory[] = [];
+  discussions: DiscussionTopic[] = [];
+  scholars: LeaderboardEntry[] = [];
+  featuredDocument: Document | null = null;
+  isLoading = true;
+
+  constructor(
+    private router: Router,
+    private documentService: DocumentService,
+    private quizService: QuizService,
+    private communityService: CommunityService,
+    private authService: AuthService
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    try {
+      const [docs, cats, topics, leaderboard] = await Promise.all([
+        this.documentService.getDocuments(),
+        this.documentService.getCategories(),
+        this.communityService.getTopics(),
+        this.quizService.getNationalLeaderboard(),
+      ]);
+
+      this.documents = docs.slice(0, 4);
+      this.featuredDocument = docs[0] ?? null;
+      this.categories = cats;
+      this.discussions = topics.slice(0, 3);
+      this.scholars = leaderboard.slice(0, 3);
+    } catch (err) {
+      console.error('Erro ao carregar home', err);
+    } finally {
+      this.isLoading = false;
     }
-  ];
-
-  discussions = [
-    { id: 1, title: 'O impacto da descolonização na economia angolana', author: 'Dra. Maria Santos', replies: '24 respostas' },
-    { id: 2, title: 'Reparação histórica e desenvolvimento', author: 'Prof. João Mendes', replies: '18 respostas' },
-    { id: 3, title: 'Fontes primárias do período 1975-1992', author: 'Dr. Carlos Ferreira', replies: '12 respostas' }
-  ];
-
-  scholars = [
-    { id: 1, rank: '1º', name: 'Prof. Ana Oliveira', specialty: 'História Económica', points: '2,847' },
-    { id: 2, rank: '2º', name: 'Dr. Miguel Santos', specialty: 'Economia Colonial', points: '2,421' },
-    { id: 3, rank: '3º', name: 'Profa. Carla Lima', specialty: 'Políticas Públicas', points: '2,156' }
-  ];
-
-  constructor(private router: Router) {}
-
-  // Navega para a página de visualização de conteúdo
-  navigateToContent(contentId: number): void {
-    this.router.navigate(['/contents/view', contentId]);
   }
 
-  // Navega para a página de categorias
-  navigateToCategory(categoryId: number): void {
-    this.router.navigate(['/forum/categoria', categoryId]);
+  getDocumentImage(doc: Document): string {
+    return doc.cover_image_url ?? 'assets/images/document-placeholder.jpg';
   }
 
-  // Navega para a página de discussão
-  navigateToDiscussion(discussionId: number): void {
-    this.router.navigate(['/forum/community/discussao', discussionId]);
+  getFeaturedImage(): string {
+    return this.featuredDocument?.cover_image_url
+      ?? 'https://images.unsplash.com/photo-1447069387593-a5de0862481e?w=1536&q=80';
   }
 
-  // Navega para o perfil do investigador
-  navigateToScholar(scholarId: number): void {
-    this.router.navigate(['/auth/perfil', scholarId]);
+  getFormatLabel(type: string): string {
+    const labels: Record<string, string> = {
+      manuscript: 'MANUSCRITO',
+      article: 'ARTIGO',
+      report: 'RELATÓRIO',
+      thesis: 'TESE',
+      archive: 'ARQUIVO',
+    };
+    return labels[type] ?? type.toUpperCase();
   }
 
-  // Navegação genérica
+  formatReplies(count: number): string {
+    return count === 1 ? '1 resposta' : `${count} respostas`;
+  }
+
+  getAvatarUrl(name: string): string {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8B1E2D&color=fff&size=48`;
+  }
+
+  navigateToContent(id: string): void {
+    this.router.navigate(['/contents/view', id]);
+  }
+
+  navigateToCategory(id: string): void {
+    this.router.navigate(['/forum/categoria', id]);
+  }
+
+  navigateToDiscussion(id: string): void {
+    this.router.navigate(['/forum/community/discussao', id]);
+  }
+
   navigateTo(path: string): void {
     this.router.navigate([path]);
   }
