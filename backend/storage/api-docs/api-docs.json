@@ -1591,6 +1591,315 @@
                 ]
             }
         },
+        "/topics/{id}/members": {
+            "get": {
+                "tags": [
+                    "Community"
+                ],
+                "summary": "Listar membros de um tópico",
+                "description": "Devolve os membros visíveis do tópico autenticado.",
+                "operationId": "topicMembers",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do tópico",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Membros obtidos"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "404": {
+                        "description": "Tópico não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Community"
+                ],
+                "summary": "Convidar membro para tópico privado",
+                "description": "Convida um utilizador autenticado para um tópico privado.",
+                "operationId": "storeTopicMember",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do tópico",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "example": "member",
+                                        "enum": [
+                                            "member",
+                                            "moderator"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Membro convidado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member invited successfully."
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sem permissões"
+                    },
+                    "404": {
+                        "description": "Tópico não encontrado"
+                    },
+                    "409": {
+                        "description": "Membro já existe"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/topics/{id}/members/{user}": {
+            "delete": {
+                "tags": [
+                    "Community"
+                ],
+                "summary": "Remover membro",
+                "description": "Remove um membro do tópico.",
+                "operationId": "destroyTopicMember",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Membro removido"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sem permissões"
+                    },
+                    "404": {
+                        "description": "Tópico ou membro não encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Community"
+                ],
+                "summary": "Atualizar papel de membro",
+                "description": "Promove ou rebaixa um membro do tópico.",
+                "operationId": "updateTopicMember",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Membro atualizado"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sem permissões"
+                    },
+                    "404": {
+                        "description": "Tópico ou membro não encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/topics/{id}/join": {
+            "post": {
+                "tags": [
+                    "Community"
+                ],
+                "summary": "Aceitar convite",
+                "description": "Permite a um utilizador autenticado aceitar um convite pendente.",
+                "operationId": "joinTopic",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Convite aceite"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sem permissões"
+                    },
+                    "404": {
+                        "description": "Tópico ou convite não encontrado"
+                    },
+                    "409": {
+                        "description": "Já aceito"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/topics/{id}/leave": {
+            "post": {
+                "tags": [
+                    "Community"
+                ],
+                "summary": "Sair do tópico",
+                "description": "Remove o utilizador autenticado do tópico privado.",
+                "operationId": "leaveTopic",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Saída concluída"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sem permissões"
+                    },
+                    "404": {
+                        "description": "Tópico ou membro não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/topics/{id}/like": {
             "post": {
                 "tags": [
@@ -3621,7 +3930,7 @@
                     "Notifications"
                 ],
                 "summary": "Enviar email de convite (Apenas Admin)",
-                "description": "Envia um convite por email externo usando o mailer Resend.",
+                "description": "Envia um convite por email externo usando o mailer configurado.",
                 "operationId": "sendInvite",
                 "requestBody": {
                     "required": true,
@@ -5315,6 +5624,86 @@
                     }
                 ]
             }
+        },
+        "/users/search": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Pesquisar utilizadores",
+                "description": "Pesquisa utilizadores ativos e devolve apenas campos públicos para convites e colaboração.",
+                "operationId": "searchUsers",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Termo de pesquisa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "jo",
+                            "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Número máximo de resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10,
+                            "maximum": 20,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Utilizadores encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            },
+                                            "display_name": {
+                                                "type": "string"
+                                            },
+                                            "full_name": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "avatar_url": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "institution": {
+                                                "type": "string",
+                                                "nullable": true
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -5369,6 +5758,10 @@
         {
             "name": "Leaderboard",
             "description": "Tabela de classificações e ranking"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
         }
     ]
 }

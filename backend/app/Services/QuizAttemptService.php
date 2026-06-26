@@ -124,6 +124,7 @@ class QuizAttemptService
 
         return [
             'is_correct' => $isCorrect,
+            'explanation' => $option->explanation ?? null,
         ];
     }
 

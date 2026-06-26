@@ -1,83 +1,149 @@
 <div class="reports-container">
-  
-  <div *ngIf="loading" class="empty-state" style="margin-bottom: 20px; padding: 24px;">
-    <p class="empty-subtitle">A carregar denúncias...</p>
+  <div *ngIf="loading" class="banner banner-info">
+    <p>A carregar denúncias...</p>
   </div>
 
-  <div *ngIf="errorMessage" class="empty-state" style="margin-bottom: 20px; padding: 24px; border-left: 4px solid #DC2626;">
-    <p class="empty-subtitle" style="color: #DC2626;">{{ errorMessage }}</p>
+  <div *ngIf="errorMessage" class="banner banner-error">
+    <p>{{ errorMessage }}</p>
   </div>
 
-  <div *ngIf="successMessage" class="empty-state" style="margin-bottom: 20px; padding: 24px; border-left: 4px solid #0F766E;">
-    <p class="empty-subtitle" style="color: #0F766E;">{{ successMessage }}</p>
+  <div *ngIf="successMessage" class="banner banner-success">
+    <p>{{ successMessage }}</p>
   </div>
-  
-  <!-- Page Header -->
+
   <div class="page-header">
     <div>
-      <h1 class="page-title">Denúncias</h1>
-      <p class="page-subtitle">Fila de moderação para denúncias pendentes vindas da API.</p>
+      <h1 class="page-title">Reports</h1>
+      <p class="page-subtitle">Centro único de moderação com base nos endpoints existentes da API.</p>
     </div>
-    <button class="btn-primary" (click)="loadReports()">Recarregar Lista</button>
+
+    <div class="page-actions">
+      <button class="btn-secondary" type="button" (click)="refreshReports()">Actualizar</button>
+    </div>
   </div>
 
-  <!-- Stats Cards -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">⚠️</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">📋</span></div>
       <div>
-        <p class="stat-label">TOTAL</p>
+        <p class="stat-label">TOTAL REPORTS</p>
         <p class="stat-number">{{ getStats().total }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">⏳</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">⏳</span></div>
       <div>
-        <p class="stat-label">PENDENTES</p>
+        <p class="stat-label">PENDING</p>
         <p class="stat-number">{{ getStats().pending }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">✅</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">✅</span></div>
       <div>
-        <p class="stat-label">RESOLVIDOS</p>
-        <p class="stat-number">{{ getStats().resolved }}</p>
+        <p class="stat-label">REVIEWED</p>
+        <p class="stat-number">{{ getStats().reviewed }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">📁</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">🗂️</span></div>
       <div>
-        <p class="stat-label">ARQUIVADOS</p>
+        <p class="stat-label">DISMISSED</p>
         <p class="stat-number">{{ getStats().dismissed }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span class="stat-icon-emoji">⚡</span></div>
+      <div>
+        <p class="stat-label">ACTIONED</p>
+        <p class="stat-number">{{ getStats().actioned }}</p>
       </div>
     </div>
   </div>
 
-  <!-- Filters -->
   <div class="filters-bar">
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar por conteúdo, motivo ou denunciante..." class="search-input">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="currentPage = 1"
+        placeholder="Pesquisar por conteúdo, motivo, denunciante ou ID..."
+        class="search-input"
+      />
     </div>
+
     <div class="filter-select">
-      <select [(ngModel)]="filterStatus" class="select">
-        <option value="todos">Todos os status</option>
-        <option value="pending">Pendentes</option>
-        <option value="resolved">Resolvidos</option>
-        <option value="dismissed">Arquivados</option>
+      <select [(ngModel)]="filterStatus" class="select" (ngModelChange)="onFilterChange()">
+        <option value="todos">Todos os estados</option>
+        <option value="pending">Pendente</option>
+        <option value="reviewed">Revisado</option>
+        <option value="dismissed">Arquivado</option>
+        <option value="actioned">Actionado</option>
+      </select>
+    </div>
+
+    <div class="filter-select">
+      <select [(ngModel)]="filterContentType" class="select" (ngModelChange)="onFilterChange()">
+        <option value="todos">Todos os tipos</option>
+        <option value="document">Documento</option>
+        <option value="topic">Tópico</option>
+        <option value="reply">Resposta</option>
+        <option value="user">Utilizador</option>
+      </select>
+    </div>
+
+    <div class="filter-select">
+      <select [(ngModel)]="filterReason" class="select" (ngModelChange)="onFilterChange()">
+        <option value="todos">Todos os motivos</option>
+        <option value="spam">Spam</option>
+        <option value="inappropriate">Inapropriado</option>
+        <option value="misinformation">Desinformação</option>
+        <option value="copyright">Direitos de autor</option>
+        <option value="off_topic">Fora do tema</option>
+        <option value="other">Outro</option>
+      </select>
+    </div>
+
+    <div class="filter-select">
+      <select [(ngModel)]="filterReporter" class="select" (ngModelChange)="onFilterChange()">
+        <option value="todos">Todos os denunciantes</option>
+        <option *ngFor="let user of getReporterOptions()" [value]="user.id">
+          {{ user.display_name || user.full_name || user.email }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-select">
+      <input type="date" [(ngModel)]="filterDateFrom" class="date-input" (ngModelChange)="onFilterChange()" />
+    </div>
+
+    <div class="filter-select">
+      <input type="date" [(ngModel)]="filterDateTo" class="date-input" (ngModelChange)="onFilterChange()" />
+    </div>
+
+    <div class="filter-select">
+      <select [(ngModel)]="sortBy" class="select" (ngModelChange)="onFilterChange()">
+        <option value="created_at">Ordenar por data</option>
+        <option value="status">Ordenar por estado</option>
+        <option value="reason">Ordenar por motivo</option>
+        <option value="content_type">Ordenar por tipo</option>
+      </select>
+    </div>
+
+    <div class="filter-select">
+      <select [(ngModel)]="sortDir" class="select" (ngModelChange)="onFilterChange()">
+        <option value="desc">Descendente</option>
+        <option value="asc">Ascendente</option>
+      </select>
+    </div>
+
+    <div class="filter-select">
+      <select [(ngModel)]="pageSize" class="select" (ngModelChange)="onPageSizeChange($event)">
+        <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }} por página</option>
       </select>
     </div>
   </div>
 
-  <!-- Reports Table -->
   <div class="table-wrapper">
     <table class="reports-table">
       <thead>
@@ -85,113 +151,169 @@
           <th>Conteúdo</th>
           <th>Denunciante</th>
           <th>Motivo</th>
-          <th>Status</th>
+          <th>Estado</th>
           <th>Data</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngIf="filteredReports.length === 0">
-          <td colspan="6" class="empty-row">Nenhuma denúncia encontrada</td>
+        <tr *ngIf="!loading && filteredReports.length === 0">
+          <td colspan="6" class="empty-row">Nenhuma denúncia encontrada.</td>
         </tr>
-        <tr *ngFor="let report of filteredReports">
-          <td class="comment-cell">
-            <div class="comment-text">"{{ report.description || report.content_type }}"</div>
-            <div class="comment-meta">ID: #{{ report.content_id }}</div>
+        <tr *ngFor="let report of pagedReports">
+          <td class="content-cell">
+            <div class="content-title">{{ report.content_label }} · {{ report.content_title }}</div>
+            <div class="content-meta">ID: {{ report.content_id }}</div>
+            <div class="content-excerpt">{{ report.content_excerpt }}</div>
           </td>
-          <td class="author-cell">
-            <div class="author-name">{{ report.reporter_name || 'Utilizador' }}</div>
-            <div class="author-time">{{ report.created_at | date:'dd MMM yyyy, HH:mm' }}</div>
-          </td>
-          <td>
-            <span class="reason-badge">
-              {{ getReasonLabel(report.reason) }}
-            </span>
+          <td class="reporter-cell">
+            <div class="reporter-name">{{ report.reporter_name }}</div>
+            <div class="content-meta">ID: {{ report.reporter_id }}</div>
           </td>
           <td>
-            <span class="status-badge">
+            <span class="reason-badge">{{ getReasonLabel(report.reason) }}</span>
+          </td>
+          <td>
+            <span class="status-badge" [attr.data-status]="report.status">
               {{ getStatusLabel(report.status) }}
             </span>
           </td>
-          <td>{{ report.created_at | date:'dd MMM yyyy' }}</td>
+          <td>{{ report.created_at | date:'dd MMM yyyy, HH:mm' }}</td>
           <td class="actions-cell">
-            <button class="action-btn" (click)="viewReport(report)" title="Ver detalhes">👁️</button>
-            <button *ngIf="report.status === 'pending'" class="action-btn" (click)="approveReport(report.id)">Resolver</button>
-            <button *ngIf="report.status === 'pending'" class="action-btn" (click)="dismissReport(report.id)">Arquivar</button>
-            <button class="action-btn action-btn-danger" (click)="deleteReport(report.id)">Eliminar</button>
+            <button class="action-btn" type="button" (click)="openReport(report)">Abrir</button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Modal de Visualização/Processamento de Denúncia -->
+  <div class="pagination" *ngIf="filteredReports.length > 0">
+    <div class="pagination-info">
+      Mostrando {{ pageStart }}-{{ pageEnd }} de {{ filteredReports.length }}
+    </div>
+    <div class="pagination-controls">
+      <button class="pagination-button" type="button" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">Anterior</button>
+      <button
+        class="pagination-button"
+        type="button"
+        *ngFor="let page of pageNumbers"
+        [class.active]="currentPage === page"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+      <button class="pagination-button" type="button" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">Seguinte</button>
+    </div>
+  </div>
+
   <div class="modal-overlay" *ngIf="showReportModal" (click)="closeReportModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Detalhes da Denúncia</h2>
-        <button class="modal-close" (click)="closeReportModal()">✖</button>
+        <h2>Moderation Panel</h2>
+        <button class="modal-close" type="button" (click)="closeReportModal()">✕</button>
       </div>
-      
-      <div class="modal-body" *ngIf="viewingReport">
-        <div class="detail-section">
-          <div class="detail-label">Conteúdo</div>
-          <div class="detail-value comment-box">"{{ viewingReport.description || viewingReport.content_type }}"</div>
-        </div>
-        
-        <div class="detail-row">
-          <div class="detail-section">
+
+      <div class="modal-body" *ngIf="selectedReportDetail">
+        <div class="detail-grid">
+          <div class="detail-card detail-card--full">
+            <div class="detail-label">Conteúdo denunciado</div>
+            <div class="detail-value">{{ selectedReportDetail.content_label }} · {{ selectedReportDetail.content_title }}</div>
+            <div class="detail-muted">ID: {{ selectedReportDetail.content_id }}</div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-label">Autor / origem</div>
+            <div class="detail-value">{{ selectedPreview?.author || selectedReportDetail.content_author }}</div>
+          </div>
+
+          <div class="detail-card">
             <div class="detail-label">Denunciante</div>
-            <div class="detail-value">{{ viewingReport.reporter_name || 'Utilizador' }}</div>
+            <div class="detail-value">{{ selectedReportDetail.reporter_name }}</div>
           </div>
-          <div class="detail-section">
-            <div class="detail-label">Status</div>
-            <div class="detail-value">
-              <span class="status-badge">{{ getStatusLabel(viewingReport.status) }}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="detail-row">
-          <div class="detail-section">
+
+          <div class="detail-card">
             <div class="detail-label">Motivo</div>
-            <div class="detail-value">
-              <span class="reason-badge">
-                {{ getReasonLabel(viewingReport.reason) }}
-              </span>
+            <div class="detail-value">{{ getReasonLabel(selectedReportDetail.reason) }}</div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-label">Estado</div>
+            <div class="detail-value">{{ getStatusLabel(selectedReportDetail.status) }}</div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-label">Data</div>
+            <div class="detail-value">{{ selectedReportDetail.created_at | date:'dd MMM yyyy, HH:mm' }}</div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-label">Reviewed by</div>
+            <div class="detail-value">{{ selectedReportDetail.reviewed_by || 'Sem revisão' }}</div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-label">Reviewed at</div>
+            <div class="detail-value">{{ selectedReportDetail.reviewed_at ? (selectedReportDetail.reviewed_at | date:'dd MMM yyyy, HH:mm') : 'Sem data' }}</div>
+          </div>
+
+          <div class="detail-card detail-card--full">
+            <div class="detail-label">Descrição</div>
+            <div class="detail-value detail-value--pre">{{ selectedReportDetail.description || 'Sem descrição adicional.' }}</div>
+          </div>
+
+          <div class="detail-card detail-card--full">
+            <div class="detail-label">Action Taken</div>
+            <div class="detail-value detail-value--pre">{{ selectedReportDetail.action_taken || 'Sem acção registada.' }}</div>
+          </div>
+
+          <div class="detail-card detail-card--full" *ngIf="previewLoading">
+            <div class="detail-label">Preview</div>
+            <div class="detail-value">A carregar preview...</div>
+          </div>
+
+          <div class="detail-card detail-card--full" *ngIf="!previewLoading && previewError">
+            <div class="detail-label">Preview</div>
+            <div class="detail-value">{{ previewError }}</div>
+          </div>
+
+          <div class="detail-card detail-card--full" *ngIf="!previewLoading && selectedPreview">
+            <div class="detail-label">Preview</div>
+            <div class="preview-title">{{ selectedPreview.title || 'Sem título' }}</div>
+            <div class="preview-meta">ID: {{ selectedPreview.id }}</div>
+            <div class="preview-meta" *ngIf="selectedPreview.author">Autor: {{ selectedPreview.author }}</div>
+            <div class="preview-body" *ngIf="selectedPreview.summary">{{ selectedPreview.summary }}</div>
+            <div class="preview-extra" *ngIf="selectedPreview.extra">
+              <div class="preview-extra-row" *ngFor="let item of selectedPreview.extra | keyvalue">
+                <span class="preview-extra-key">{{ item.key }}</span>
+                <span class="preview-extra-value">{{ item.value }}</span>
+              </div>
             </div>
           </div>
-          <div class="detail-section">
-            <div class="detail-label">Data</div>
-            <div class="detail-value">{{ viewingReport.created_at | date:'dd MMM yyyy, HH:mm' }}</div>
-          </div>
         </div>
-        
-        <div class="detail-section">
-          <div class="detail-label">Descrição</div>
-          <div class="detail-value comment-box">{{ viewingReport.description || 'Sem descrição adicional.' }}</div>
+
+        <div class="form-group">
+          <label>Estado de moderação</label>
+          <select [(ngModel)]="reportForm.status" class="form-input">
+            <option value="pending">pending</option>
+            <option value="reviewed">reviewed</option>
+            <option value="dismissed">dismissed</option>
+            <option value="actioned">actioned</option>
+          </select>
         </div>
-        
-        <div class="detail-section">
-          <div class="detail-label">Nota de ação</div>
-          <textarea [(ngModel)]="actionNote" rows="3" class="form-input" placeholder="Descreva a ação tomada ou motivo da decisão..."></textarea>
-        </div>
-        
-        <div class="info-box" *ngIf="viewingReport.action_taken && viewingReport.status !== 'pending'">
-          <div class="info-icon">ℹ️</div>
-          <div class="info-text">
-            <strong>Ação anterior</strong><br>
-            <span>{{ viewingReport.action_taken }}</span>
-          </div>
+
+        <div class="form-group">
+          <label>Action Taken</label>
+          <textarea [(ngModel)]="reportForm.action_taken" rows="4" class="form-input" placeholder="Registe a decisão tomada..."></textarea>
         </div>
       </div>
-      
+
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeReportModal()">Fechar</button>
-        <ng-container *ngIf="viewingReport?.status === 'pending'">
-          <button class="btn-dismiss" (click)="dismissReport(viewingReport!.id)">Arquivar Denúncia</button>
-          <button class="btn-approve" (click)="approveReport(viewingReport!.id)">Resolver Denúncia</button>
-        </ng-container>
+        <button class="btn-cancel" type="button" (click)="closeReportModal()">Fechar</button>
+        <button class="btn-secondary" type="button" (click)="saveModeration()" [disabled]="saving || !selectedReportDetail">Guardar revisão</button>
+        <button class="btn-approve" type="button" (click)="applyAction('flag')" [disabled]="saving || !selectedReportDetail">Flag</button>
+        <button class="btn-danger" type="button" (click)="applyAction('delete')" [disabled]="saving || !selectedReportDetail">Delete</button>
+        <button class="btn-secondary" type="button" (click)="applyAction('warn')" [disabled]="saving || !selectedReportDetail">Warn</button>
+        <button class="btn-cancel" type="button" (click)="applyAction('dismiss')" [disabled]="saving || !selectedReportDetail">Dismiss</button>
       </div>
     </div>
   </div>

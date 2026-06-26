@@ -24,6 +24,7 @@ import { leaderboardService } from "../../services/api/leaderboardService";
 import { communityService } from "../../services/api/communityService";
 import type { Document, DiscussionTopic, LeaderboardEntry } from "../../types/api";
 import { useNotifications } from "../../context/NotificationContext";
+import { MediaFormatCards } from "../../components/MediaFormatCards";
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -231,6 +232,15 @@ export function DashboardScreen() {
           </View>
         )}
 
+        {/* Vídeos e Áudios */}
+        <View style={styles.section}>
+          <Text style={styles.mediaSectionTitle}>Vídeos e Áudios</Text>
+          <MediaFormatCards
+            onPressVideo={() => (navigation as any).navigate("Content", { document_type: "video" })}
+            onPressAudio={() => (navigation as any).navigate("Content", { document_type: "audio" })}
+          />
+        </View>
+
         {/* Debates Activos */}
         {activeTopics.length > 0 && (
           <View style={styles.section}>
@@ -427,6 +437,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     marginBottom: 16,
+  },
+  mediaSectionTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 16,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    marginBottom: 12,
   },
   recentHeader: {
     flexDirection: "row",

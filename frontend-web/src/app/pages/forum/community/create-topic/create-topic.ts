@@ -1,7 +1,9 @@
 import { Component, OnInit,ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { debounceTime, distinctUntilChanged, firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { HeaderComponent } from '../../../../components/header/header';
 import { FooterComponent } from '../../../../components/footer/footer';
 import { CommunityService, CommunityCategory } from '../../../../services/community.service';
@@ -80,21 +82,24 @@ export class CreateTopicComponent implements OnInit {
     );
   }
 
-  toggleParticipant(id: string): void {
-    const index = this.selectedParticipants.indexOf(id);
-    if (index === -1) {
-      this.selectedParticipants.push(id);
-    } else {
-      this.selectedParticipants.splice(index, 1);
+  removeMember(userId: string): void {
+    this.selectedMembers = this.selectedMembers.filter((member) => member.user.id !== userId);
+  }
+
+  updateMemberRole(userId: string, role: MemberRole): void {
+    const member = this.selectedMembers.find((item) => item.user.id === userId);
+
+    if (member) {
+      member.role = role;
     }
   }
 
-  isParticipantSelected(id: string): boolean {
-    return this.selectedParticipants.includes(id);
+  togglePreview(): void {
+    this.showPreview = !this.showPreview;
   }
 
   validate(): boolean {
-    const newErrors: { title?: string; category?: string; content?: string; participants?: string } = {};
+    const newErrors: { title?: string; category?: string; content?: string; members?: string } = {};
 
     if (!this.title.trim()) {
       newErrors.title = 'O título é obrigatório';

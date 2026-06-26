@@ -67,7 +67,7 @@ export function QuizScreen() {
     try {
       const result = await quizService.submitAnswer(attemptId, {
         question_id: currentQuestion.id,
-        option_id: selectedOptionId,
+        selected_option_id: selectedOptionId,
       });
 
       const isCorrect = result.is_correct;
@@ -80,7 +80,7 @@ export function QuizScreen() {
         navigation.navigate("QuizFeedback", {
           isCorrect,
           explanation,
-          onNext: () => navigation.navigate("QuizResult", { attemptId }),
+          onNext: () => navigation.navigate("QuizResult", { attemptId, quizId }),
         });
       } else {
         navigation.navigate("QuizFeedback", {

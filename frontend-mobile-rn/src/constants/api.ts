@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/quizzes/${id}`,
     QUESTIONS: (id: string) => `/quizzes/${id}/questions`,
     START_ATTEMPT: (id: string) => `/quizzes/${id}/attempts`,
+    RELATED_DOCUMENTS: (id: string) => `/quizzes/${id}/documents`,
   },
 
   QUIZ_ATTEMPTS: {

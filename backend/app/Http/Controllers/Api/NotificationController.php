@@ -151,7 +151,7 @@ class NotificationController extends Controller
      *      operationId="sendInvite",
      *      tags={"Notifications"},
      *      summary="Enviar email de convite (Apenas Admin)",
-     *      description="Envia um convite por email externo usando o mailer Resend.",
+     *      description="Envia um convite por email externo usando o mailer configurado.",
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\RequestBody(
      *          required=true,
@@ -191,7 +191,7 @@ class NotificationController extends Controller
             'action_url' => ['nullable', 'url'],
         ]);
 
-        Mail::mailer('resend')->to($validated['email'])->send(new InviteMail(
+        Mail::to($validated['email'])->send(new InviteMail(
             $validated['subject'], 
             $validated['recipient_name'], 
             $validated['message'], 

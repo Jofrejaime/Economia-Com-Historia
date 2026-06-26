@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,7 +15,6 @@ import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { AppButton } from "../../components/AppButton";
 import { HeaderBar } from "../../components/HeaderBar";
-import { useCommunity } from "../../hooks/useCommunity";
 import { communityService } from "../../services/api/communityService";
 import type { DiscussionTopic, CommunityCategory } from "../../types/api";
 
@@ -32,22 +31,50 @@ function relativeTime(dateStr: string): string {
 
 export function CommunityScreen() {
   const navigation = useNavigation<any>();
-  const { topics, loading, hasMore, fetchTopics, fetchNextPage } = useCommunity();
+
+  const [topics, setTopics] = useState<DiscussionTopic[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const [categories, setCategories] = useState<CommunityCategory[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
 
+  const fetchTopics = useCallback(async (reset = false) => {
+    setLoading(true);
+    const currentPage = reset ? 1 : page;
+    try {
+      const response = await communityService.topics({
+        category_id: selectedCategoryId ?? undefined,
+        sort: "recent",
+        page: currentPage,
+        per_page: 20,
+      });
+      setTopics((prev) => (reset ? response.data : [...prev, ...response.data]));
+      setTotal(response.meta.total);
+      setHasMore(response.meta.current_page < response.meta.last_page);
+      setPage(currentPage + 1);
+    } catch (e) {
+      console.warn("Erro ao carregar tópicos", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCategoryId, page]);
+
   useEffect(() => {
+    setPage(1);
+    setTopics([]);
+    setHasMore(true);
     void fetchTopics(true);
+  }, [selectedCategoryId]);
+
+  useEffect(() => {
     communityService.categories()
       .then(setCategories)
       .catch((e) => console.warn("Erro ao carregar categorias", e));
   }, []);
-
-  const filteredTopics = selectedCategoryId
-    ? topics.filter((t) => t.category_id === selectedCategoryId)
-    : topics;
 
   const renderDiscussion = ({ item }: { item: DiscussionTopic }) => {
     const authorName = item.author?.display_name ?? "Autor";
@@ -162,11 +189,15 @@ export function CommunityScreen() {
           </View>
         )}
 
-        {loading && filteredTopics.length === 0 ? (
+        {selectedCategoryId !== null && !loading && (
+          <Text style={styles.resultsCount}>{total} {total === 1 ? "tópico" : "tópicos"}</Text>
+        )}
+
+        {loading && topics.length === 0 ? (
           <ActivityIndicator size="large" color={appTheme.colors.primary} style={{ marginVertical: 32 }} />
         ) : (
           <FlatList
-            data={filteredTopics}
+            data={topics}
             keyExtractor={(i) => i.id}
             renderItem={renderDiscussion}
             scrollEnabled={false}
@@ -183,7 +214,7 @@ export function CommunityScreen() {
         {hasMore && !loading && (
           <View style={styles.loadMoreWrap}>
             <Text style={styles.viewMoreLabel}>VER MAIS TÓPICOS</Text>
-            <TouchableOpacity style={styles.loadMoreBtn} onPress={() => void fetchNextPage()}>
+            <TouchableOpacity style={styles.loadMoreBtn} onPress={() => void fetchTopics(false)}>
               <Feather name="chevrons-down" size={18} color={appTheme.colors.textPrimary} />
             </TouchableOpacity>
           </View>
@@ -392,6 +423,12 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textSecondary,
     fontWeight: "700",
     fontSize: 13,
+  },
+  resultsCount: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
+    color: appTheme.colors.textMuted,
+    marginBottom: appTheme.spacing.md,
   },
   emptyState: {
     alignItems: "center",

@@ -21,6 +21,7 @@ class DiscussionTopic extends Model
         'author_id',
         'title',
         'content',
+        'visibility',
         'status',
         'is_pinned',
         'is_featured',
@@ -34,6 +35,7 @@ class DiscussionTopic extends Model
     protected function casts(): array
     {
         return [
+            'visibility' => 'string',
             'is_pinned' => 'boolean',
             'is_featured' => 'boolean',
             'last_reply_at' => 'datetime',
@@ -77,5 +79,10 @@ class DiscussionTopic extends Model
     public function followers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'topic_followers', 'topic_id', 'user_id');
+    }
+
+    public function members(): HasMany
+    {
+        return $this->hasMany(DiscussionTopicMember::class, 'topic_id');
     }
 }

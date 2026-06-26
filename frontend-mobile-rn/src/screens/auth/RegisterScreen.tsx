@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { HeaderBar } from "../../components/HeaderBar";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import * as ImagePicker from "expo-image-picker";
+import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { FormInput } from "../../components/FormInput";
@@ -12,6 +14,10 @@ import { AcademicLevelButton } from "../../components/AcademicLevelButton";
 import { InterestChip } from "../../components/InterestChip";
 import { appTheme } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
+import { httpClient } from "../../services/http/client";
+import { API_ENDPOINTS } from "../../constants/api";
+import { ErrorBanner } from "../../components/ErrorBanner";
+import { parseApiError, isEmailError } from "../../utils/apiError";
 import { MainStackParamList } from "../../types/navigation";
 
 type Props = NativeStackScreenProps<MainStackParamList, "Register">;
@@ -30,9 +36,11 @@ export function RegisterScreen({ navigation }: Props) {
 
   const [academicLevel, setAcademicLevel] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
   const [emailError, setEmailError] = useState("");
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [registerError, setRegisterError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const canContinueStep1 = useMemo(
@@ -73,12 +81,45 @@ export function RegisterScreen({ navigation }: Props) {
     );
   };
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setAvatarUri(result.assets[0].uri);
+    }
+  };
+
   const handleRegister = async () => {
     if (!canCompleteStep2) return;
+    setRegisterError(null);
     setIsSubmitting(true);
     try {
       await signUp({ fullName, email, password });
+      if (avatarUri) {
+        try {
+          const form = new FormData();
+          form.append("avatar", { uri: avatarUri, name: "avatar.jpg", type: "image/jpeg" } as any);
+          await httpClient.post(API_ENDPOINTS.PROFILE.UPDATE_AVATAR, form, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        } catch {
+          // avatar upload failure is non-fatal
+        }
+      }
       navigation.navigate("MainTabs");
+    } catch (err: unknown) {
+      const message = parseApiError(err);
+      if (isEmailError(err)) {
+        // navigate back to step 1 so the user can fix their email
+        setStep(1);
+      }
+      setRegisterError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -117,6 +158,8 @@ export function RegisterScreen({ navigation }: Props) {
             <Text style={styles.title}>Cria a tua conta</Text>
             <Text style={styles.subtitle}>Preenche os teus dados para começar</Text>
 
+            <ErrorBanner message={registerError} onDismiss={() => setRegisterError(null)} />
+
             <SocialButton
               icon="G"
               label="Registar com Google"
@@ -128,7 +171,7 @@ export function RegisterScreen({ navigation }: Props) {
             <FormInput
               label="Nome completo"
               value={fullName}
-              onChangeText={setFullName}
+              onChangeText={(text) => { setFullName(text); if (registerError) setRegisterError(null); }}
               placeholder="Luís Manuel Ferreira"
               autoCapitalize="words"
             />
@@ -139,6 +182,7 @@ export function RegisterScreen({ navigation }: Props) {
               onChangeText={(text) => {
                 setEmail(text);
                 validateEmail(text);
+                if (registerError) setRegisterError(null);
               }}
               placeholder="o.teu@email.com"
               error={emailError}
@@ -160,7 +204,7 @@ export function RegisterScreen({ navigation }: Props) {
             <PasswordStrengthIndicator strength={passwordStrength} />
 
             <Pressable
-              onPress={() => canContinueStep1 && setStep(2)}
+              onPress={() => { if (canContinueStep1) { setRegisterError(null); setStep(2); } }}
               disabled={!canContinueStep1}
               style={({ pressed }) => [
                 styles.primaryButton,
@@ -192,6 +236,29 @@ export function RegisterScreen({ navigation }: Props) {
             <Text style={styles.subtitle}>
               Personaliza a tua experiência de aprendizagem
             </Text>
+
+            <ErrorBanner message={registerError} onDismiss={() => setRegisterError(null)} />
+
+            {/* Avatar picker */}
+            <View style={styles.avatarSection}>
+              <Pressable style={styles.avatarWrap} onPress={() => void pickImage()}>
+                {avatarUri ? (
+                  <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <Text style={styles.avatarInitials}>
+                      {fullName.trim().split(" ").filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?"}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.avatarBadge}>
+                  <Feather name="camera" size={12} color="white" />
+                </View>
+              </Pressable>
+              <Text style={styles.avatarHint}>
+                {avatarUri ? "Toca para alterar a foto" : "Adicionar foto (opcional)"}
+              </Text>
+            </View>
 
             <View style={styles.formGroup}>
               <Text style={styles.groupLabel}>Nível académico</Text>
@@ -358,6 +425,57 @@ const styles = StyleSheet.create({
   termsLink: {
     color: appTheme.colors.primary,
     fontWeight: "600",
+  },
+  avatarSection: {
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  avatarWrap: {
+    position: "relative",
+    width: 88,
+    height: 88,
+    marginBottom: 8,
+  },
+  avatarImage: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+  },
+  avatarPlaceholder: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: "#E8EEF8",
+    borderWidth: 2,
+    borderColor: appTheme.colors.border,
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarInitials: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 26,
+    fontWeight: "700",
+    color: appTheme.colors.primary,
+    opacity: 0.6,
+  },
+  avatarBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: appTheme.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: appTheme.colors.surface,
+  },
+  avatarHint: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
+    color: appTheme.colors.textMuted,
   },
   academicGrid: {
     flexDirection: "row",

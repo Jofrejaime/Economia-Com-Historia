@@ -13,6 +13,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { appTheme } from '../../constants/theme';
 import { ContentCard } from '../../components/ContentCard';
 import { DebateCard } from '../../components/DebateCard';
+import { MediaFormatCards } from '../../components/MediaFormatCards';
 
 interface HomeScreenProps {
   onLogin: () => void;
@@ -23,6 +24,8 @@ interface HomeScreenProps {
   onViewCommunity?: () => void;
   onViewContent?: () => void;
   onViewQuiz?: () => void;
+  onViewVideo?: () => void;
+  onViewAudio?: () => void;
 }
 
 export function HomeScreen({
@@ -34,6 +37,8 @@ export function HomeScreen({
   onViewCommunity,
   onViewContent,
   onViewQuiz,
+  onViewVideo,
+  onViewAudio,
 }: HomeScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -120,6 +125,17 @@ export function HomeScreen({
             difficulty="Intermédio"
             duration="14 min · áudio disponível"
             onPress={onViewPodcast}
+          />
+        </View>
+
+        {/* Vídeos e Áudios */}
+        <View style={styles.section}>
+          <View style={styles.recentHeader}>
+            <Text style={styles.recentTitle}>VÍDEOS E ÁUDIOS</Text>
+          </View>
+          <MediaFormatCards
+            onPressVideo={onViewVideo ?? (() => {})}
+            onPressAudio={onViewAudio ?? (() => {})}
           />
         </View>
 

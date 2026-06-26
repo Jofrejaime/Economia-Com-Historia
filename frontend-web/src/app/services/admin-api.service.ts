@@ -82,20 +82,6 @@ export interface AccessGrantRecord {
   is_active: boolean;
 }
 
-export interface ReportRecord {
-  id: string;
-  reporter_id: string;
-  content_type: 'document' | 'topic' | 'reply' | 'user' | string;
-  content_id: string;
-  reason: string;
-  description: string | null;
-  status: 'pending' | 'reviewed' | 'dismissed' | 'actioned' | string;
-  reviewed_by: string | null;
-  reviewed_at: string | null;
-  action_taken: string | null;
-  created_at: string;
-}
-
 export interface ApiResult<T> {
   ok: boolean;
   status?: number;
@@ -200,35 +186,6 @@ export class AdminApiService {
     );
   }
 
-  listPendingReports(): Observable<ApiResult<ReportRecord[]>> {
-    return this.http.get<ApiEnvelope<ReportRecord[]>>(`${environment.apiBaseUrl}/api/reports/pending`, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<ReportRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
-      catchError((error: unknown) => of(this.toFailureResult<ReportRecord[]>(error, 'Erro ao carregar denÃºncias')))
-    );
-  }
-  listReports(): Observable<ApiResult<ReportRecord[]>> {
-    return this.http.get<ApiEnvelope<ReportRecord[]>>(`${environment.apiBaseUrl}/api/reports`, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<ReportRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
-      catchError((error: unknown) => of(this.toFailureResult<ReportRecord[]>(error, 'Erro ao carregar reports')))
-    );
-  }
-
-  updateReport(id: string, payload: { status: string; reviewed_by?: string | null; reviewed_at?: string | null; action_taken?: string | null }): Observable<ApiResult<ReportRecord>> {
-    return this.http.patch<ApiEnvelope<ReportRecord>>(`${environment.apiBaseUrl}/api/reports/${id}`, payload, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<ReportRecord> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, message: response.body?.message, data: response.body?.data })),
-      catchError((error: unknown) => of(this.toFailureResult<ReportRecord>(error, 'Erro ao actualizar denÃºncia')))
-    );
-  }
-  executeReportAction(id: string, payload: { action: 'flag' | 'delete' | 'warn' | 'dismiss'; reason?: string }): Observable<ApiResult<{ action: string }>> {
-    return this.http.post<ApiEnvelope<{ action: string }>>(`${environment.apiBaseUrl}/api/reports/${id}/action`, payload, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<{ action: string }> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, message: response.body?.message, data: response.body?.data })),
-      catchError((error: unknown) => of(this.toFailureResult<{ action: string }>(error, 'Erro ao executar a aÃ§Ã£o de moderaÃ§Ã£o')))
-    );
-  }
   private cleanParams(params?: Record<string, string | undefined>): Record<string, string> {
     const cleaned: Record<string, string> = {};
 
