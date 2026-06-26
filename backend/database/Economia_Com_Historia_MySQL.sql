@@ -364,7 +364,6 @@ CREATE TABLE documents (
   views_count       INT          NOT NULL DEFAULT 0,
   likes_count       INT          NOT NULL DEFAULT 0,
   downloads_count   INT          NOT NULL DEFAULT 0,
-  comments_count    INT          NOT NULL DEFAULT 0,
 
   PRIMARY KEY (id),
   UNIQUE KEY uq_documents_slug (slug),

@@ -51,7 +51,7 @@ export class CommunityAdminService {
       map((response) => ({
         ok: response.status >= 200 && response.status < 300,
         status: response.status,
-        data: response.body?.data ?? [],
+        data: (response.body?.data ?? []).map((topic) => this.normalizeTopic(topic)),
       })),
       catchError((error: unknown) => of(this.toFailureResult<DiscussionTopic[]>(error, 'Erro ao carregar tópicos')))
     );
@@ -63,7 +63,7 @@ export class CommunityAdminService {
       map((response) => ({
         ok: response.status >= 200 && response.status < 300,
         status: response.status,
-        data: response.body?.data,
+        data: response.body?.data ? this.normalizeTopic(response.body.data) : undefined,
       })),
       catchError((error: unknown) => of(this.toFailureResult<DiscussionTopic>(error, 'Erro ao carregar tópico')))
     );
@@ -76,7 +76,7 @@ export class CommunityAdminService {
         ok: response.status >= 200 && response.status < 300,
         status: response.status,
         message: response.body?.message,
-        data: response.body?.data,
+        data: response.body?.data ? this.normalizeTopic(response.body.data) : undefined,
       })),
       catchError((error: unknown) => of(this.toFailureResult<DiscussionTopic>(error, 'Erro ao actualizar tópico')))
     );
@@ -160,6 +160,27 @@ export class CommunityAdminService {
     }
 
     return httpParams.keys().length > 0 ? httpParams : undefined;
+  }
+
+  private normalizeTopic(topic: DiscussionTopic): DiscussionTopic {
+    return {
+      ...topic,
+      visibility: this.normalizeVisibility(topic.visibility),
+    };
+  }
+
+  private normalizeVisibility(value: string | null | undefined): 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY' {
+    switch ((value ?? '').toUpperCase()) {
+      case 'PUBLIC':
+        return 'PUBLIC';
+      case 'INVITE_ONLY':
+      case 'PRIVATE':
+        return 'INVITE_ONLY';
+      case 'CATEGORY':
+      case 'RESTRICTED':
+      default:
+        return 'CATEGORY';
+    }
   }
 
   private toFailureResult<T>(error: unknown, fallbackMessage: string): ApiResult<T> {

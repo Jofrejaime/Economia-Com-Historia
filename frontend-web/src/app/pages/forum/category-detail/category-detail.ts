@@ -1,11 +1,15 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { CommunityService, DiscussionTopic, CommunityCategory } from '../../../services/community.service';
+import { firstValueFrom } from 'rxjs';
 
-interface ReferenceDoc { title: string; format: string; }
+interface ReferenceDoc {
+  title: string;
+  format: string;
+}
 
 @Component({
   selector: 'app-category-detail',
@@ -17,6 +21,7 @@ interface ReferenceDoc { title: string; format: string; }
 export class CategoryDetailComponent implements OnInit {
   category: CommunityCategory | null = null;
   discussions: DiscussionTopic[] = [];
+  isLoading = true;
   error: string | null = null;
 
   curator = {
@@ -34,33 +39,42 @@ export class CategoryDetailComponent implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private communityService: CommunityService,
-    private cdr: ChangeDetectorRef
+    private communityService: CommunityService
   ) {}
 
   async ngOnInit(): Promise<void> {
     const categoryId = this.route.snapshot.paramMap.get('id');
-    if (!categoryId) { this.router.navigate(['/forum/community']); return; }
-    this.loadData(categoryId);
-  }
+    if (!categoryId) {
+      this.router.navigate(['/forum/community']);
+      return;
+    }
 
-  private async loadData(categoryId: string): Promise<void> {
     try {
-      const [categories, topics] = await Promise.all([
-        this.communityService.getCategories(),
-        this.communityService.getTopics(),
+      const [categoriesResult, topicsResult] = await Promise.all([
+        firstValueFrom(this.communityService.getCategories()),
+        firstValueFrom(this.communityService.getTopics()),
       ]);
-      this.category = categories.find(c => c.id === categoryId) ?? null;
-      this.discussions = topics.filter(t => t.category_id === categoryId);
+
+      const categories = categoriesResult.ok && categoriesResult.data ? categoriesResult.data : [];
+      const topics = topicsResult.ok && topicsResult.data ? topicsResult.data.data : [];
+
+      this.category = categories.find((c) => c.id === categoryId) ?? null;
+      this.discussions = topics.filter((t) => t.category_id === categoryId);
     } catch {
       this.error = 'Erro ao carregar categoria.';
     } finally {
-      this.cdr.detectChanges();
+      this.isLoading = false;
     }
   }
 
-  get categoryName(): string { return this.category?.name ?? '—'; }
-  get categoryDescription(): string { return this.category?.description ?? ''; }
+  get categoryName(): string {
+    return this.category?.name ?? '—';
+  }
+
+  get categoryDescription(): string {
+    return this.category?.description ?? '';
+  }
+
   get stats() {
     return {
       documents: this.discussions.length,
@@ -73,15 +87,23 @@ export class CategoryDetailComponent implements OnInit {
   }
 
   formatTimeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const days = Math.floor(diff / 86400000);
+    const diff  = Date.now() - new Date(dateStr).getTime();
+    const days  = Math.floor(diff / 86400000);
     const hours = Math.floor(diff / 3600000);
     if (days > 0) return `há ${days} dia${days > 1 ? 's' : ''}`;
     if (hours > 0) return `há ${hours}h`;
     return 'recentemente';
   }
 
-  navigateTo(path: string): void { this.router.navigate([path]); }
-  startNewDiscussion(): void { this.router.navigate(['/forum/comunidade/criar-topico']); }
-  viewDiscussion(id: string): void { this.router.navigate(['/forum/community/discussao', id]); }
+  navigateTo(path: string): void {
+    this.router.navigate([path]);
+  }
+
+  startNewDiscussion(): void {
+    this.router.navigate(['/forum/comunidade/criar-topico']);
+  }
+
+  viewDiscussion(id: string): void {
+    this.router.navigate(['/forum/community/discussao', id]);
+  }
 }

@@ -476,7 +476,6 @@ class DocumentController extends Controller
                 'views_count' => 0,
                 'likes_count' => 0,
                 'downloads_count' => 0,
-                'comments_count' => 0,
                 'status' => 'draft',
             ]));
 

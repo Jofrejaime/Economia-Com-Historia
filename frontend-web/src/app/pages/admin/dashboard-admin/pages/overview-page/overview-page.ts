@@ -153,7 +153,7 @@ export class OverviewPageComponent implements OnInit {
     const data = result.data;
     const pendingRequests = data.access_requests.pending;
     const publishedDocuments = data.documents.published;
-    const reviewDocuments = data.documents.review;
+    const archivedDocuments = data.documents.archived;
     const openTopics = data.community.topics_open;
 
     this.kpiCards = [
@@ -181,8 +181,8 @@ export class OverviewPageComponent implements OnInit {
         value: this.formatNumber(publishedDocuments),
         variant: {
           type: 'progress',
-          subValue: ` / ${this.formatNumber(reviewDocuments)} em revisão`,
-          progress: this.calculateProgress(publishedDocuments, publishedDocuments + reviewDocuments)
+          subValue: ` / ${this.formatNumber(archivedDocuments)} arquivados`,
+          progress: this.calculateProgress(publishedDocuments, publishedDocuments + archivedDocuments)
         }
       },
       {

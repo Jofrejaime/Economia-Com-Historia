@@ -58,7 +58,6 @@ export interface Document {
   views_count: number;
   likes_count: number;
   downloads_count: number;
-  comments_count: number;
   created_by: string;
   published_at: string | null;
   reviewed_by?: string | null;

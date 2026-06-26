@@ -61,7 +61,6 @@ return new class extends Migration
             $table->integer('views_count')->default(0);
             $table->integer('likes_count')->default(0);
             $table->integer('downloads_count')->default(0);
-            $table->integer('comments_count')->default(0);
 
             $table->foreign('access_level_id')->references('id')->on('access_levels');
             $table->index('status', 'idx_documents_status');
