@@ -159,7 +159,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 342,
                 'likes_count' => 28,
                 'downloads_count' => 67,
-                'comments_count' => 5,
                 'tags' => ['caminho-de-ferro', 'benguela', 'colonialismo', 'angola'],
             ],
             [
@@ -185,7 +184,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 567,
                 'likes_count' => 45,
                 'downloads_count' => 123,
-                'comments_count' => 12,
                 'tags' => ['comercio-de-escravos', 'luanda', 'colonialismo', 'angola'],
             ],
             [
@@ -211,7 +209,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 189,
                 'likes_count' => 15,
                 'downloads_count' => 34,
-                'comments_count' => 3,
                 'tags' => ['cafe', 'angola', 'colonialismo'],
             ],
             [
@@ -237,7 +234,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 412,
                 'likes_count' => 33,
                 'downloads_count' => 89,
-                'comments_count' => 7,
                 'tags' => ['diamantes', 'angola', 'colonialismo'],
             ],
             [
@@ -263,7 +259,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 95,
                 'likes_count' => 8,
                 'downloads_count' => 12,
-                'comments_count' => 1,
                 'tags' => ['kwanza', 'angola', 'independencia'],
             ],
             [
@@ -289,7 +284,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 678,
                 'likes_count' => 52,
                 'downloads_count' => 145,
-                'comments_count' => 18,
                 'tags' => ['independencia', 'angola', 'desenvolvimento'],
             ],
             [
@@ -315,7 +309,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 156,
                 'likes_count' => 11,
                 'downloads_count' => 28,
-                'comments_count' => 2,
                 'tags' => ['colonialismo', 'angola'],
             ],
             [
@@ -341,7 +334,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 523,
                 'likes_count' => 41,
                 'downloads_count' => 98,
-                'comments_count' => 14,
                 'tags' => ['petroleo', 'angola', 'desenvolvimento'],
             ],
             [
@@ -367,7 +359,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 234,
                 'likes_count' => 19,
                 'downloads_count' => 56,
-                'comments_count' => 4,
                 'tags' => ['comercio-de-escravos', 'benguela', 'angola'],
             ],
             [
@@ -393,7 +384,6 @@ class DocumentSeeder extends Seeder
                 'views_count' => 87,
                 'likes_count' => 6,
                 'downloads_count' => 9,
-                'comments_count' => 2,
                 'tags' => ['desenvolvimento', 'petroleo', 'angola'],
             ],
         ];
