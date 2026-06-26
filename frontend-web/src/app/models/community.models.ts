@@ -66,6 +66,8 @@ export interface DiscussionTopic {
   views_count: number;
   likes_count: number;
   followers_count: number;
+  is_liked?: boolean;
+  is_following?: boolean;
   created_at: string;
   updated_at: string;
   author?: CommunityUser;
@@ -82,6 +84,7 @@ export interface TopicReply {
   is_accepted: boolean;
   is_flagged: boolean;
   likes_count: number;
+  is_liked?: boolean;
   created_at: string;
   updated_at: string;
   author?: CommunityUser;

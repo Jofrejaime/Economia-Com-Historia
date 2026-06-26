@@ -281,7 +281,7 @@ p, span, div, button, input, textarea, label {
 }
 
 /* ============================================
-   PRIVACY - NOVO
+   VISIBILITY / PRIVACY
    ============================================ */
 
 .create-topic-privacy {
@@ -349,7 +349,7 @@ p, span, div, button, input, textarea, label {
 }
 
 /* ============================================
-   PARTICIPANTS - NOVO
+   PARTICIPANTS
    ============================================ */
 
 .create-topic-participants {
@@ -361,30 +361,56 @@ p, span, div, button, input, textarea, label {
 
 .create-topic-participants-search {
   position: relative;
-  padding: 12px 16px;
+  display: flex;
+  align-items: center;
   border-bottom: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  overflow: hidden;
 }
 
 .create-topic-participants-search-icon {
   position: absolute;
-  left: 28px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .create-topic-participants-input {
-  width: 100%;
-  padding: 8px 12px 8px 36px;
+  flex: 1;
+  padding: 12px 12px 12px 42px;
   border: none;
   outline: none;
   font-size: 14px;
   font-family: 'Source Sans 3', sans-serif;
   color: #1F2937;
   background: transparent;
+  min-width: 0;
 }
 
 .create-topic-participants-input::placeholder {
   color: #9CA3AF;
+}
+
+.create-topic-search-btn {
+  flex-shrink: 0;
+  padding: 0 20px;
+  height: 44px;
+  background: #8B1E2D;
+  color: #FFFFFF;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.create-topic-search-btn:hover {
+  background: #6B0119;
 }
 
 .create-topic-participants-list {
@@ -559,7 +585,6 @@ p, span, div, button, input, textarea, label {
   gap: 4px;
 }
 
-/* Preview */
 .create-topic-preview {
   min-height: 350px;
   padding: 16px 20px;
@@ -590,7 +615,7 @@ p, span, div, button, input, textarea, label {
 }
 
 /* ============================================
-   FORM ACTIONS - BOTÕES
+   FORM ACTIONS
    ============================================ */
 
 .create-topic-actions {
@@ -678,7 +703,6 @@ p, span, div, button, input, textarea, label {
   top: 100px;
 }
 
-/* Guidelines */
 .create-topic-guidelines {
   background: #F5F5F5;
   border-radius: 8px;
@@ -728,7 +752,6 @@ p, span, div, button, input, textarea, label {
   font-family: 'Source Sans 3', sans-serif;
 }
 
-/* Tips */
 .create-topic-tips {
   background: #FFFFFF;
   border-radius: 8px;
@@ -780,7 +803,6 @@ p, span, div, button, input, textarea, label {
   line-height: 1.7;
 }
 
-/* Selected Category */
 .create-topic-selected {
   background: #FFFFFF;
   border-radius: 8px;
@@ -830,11 +852,11 @@ p, span, div, button, input, textarea, label {
   .create-topic-container {
     padding: 32px 24px;
   }
-  
+
   .create-topic-grid {
     gap: 32px;
   }
-  
+
   .create-topic-header-title {
     font-size: 32px;
   }
@@ -844,51 +866,51 @@ p, span, div, button, input, textarea, label {
   .create-topic-container {
     padding: 24px 16px;
   }
-  
+
   .create-topic-grid {
     grid-template-columns: 1fr;
     gap: 32px;
   }
-  
+
   .create-topic-header-title {
     font-size: 28px;
   }
-  
+
   .create-topic-header-description {
     font-size: 14px;
   }
-  
+
   .create-topic-form-card {
     padding: 24px;
   }
-  
+
   .create-topic-categories {
     grid-template-columns: 1fr;
   }
-  
+
   .create-topic-privacy {
     grid-template-columns: 1fr;
   }
-  
+
   .create-topic-sidebar {
     position: static;
   }
-  
+
   .create-topic-actions {
     flex-direction: column;
   }
-  
+
   .btn-primary,
   .btn-secondary,
   .btn-ghost {
     width: 100%;
     justify-content: center;
   }
-  
+
   .create-topic-breadcrumb-btn {
     font-size: 12px;
   }
-  
+
   .create-topic-breadcrumb-current {
     font-size: 12px;
   }
@@ -898,34 +920,39 @@ p, span, div, button, input, textarea, label {
   .create-topic-container {
     padding: 16px 12px;
   }
-  
+
   .create-topic-header-title {
     font-size: 24px;
   }
-  
+
   .create-topic-form-card {
     padding: 16px;
   }
-  
+
   .create-topic-textarea {
     min-height: 200px;
   }
-  
+
   .create-topic-preview {
     min-height: 200px;
   }
-  
+
   .create-topic-textarea-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .create-topic-category-btn {
     padding: 12px;
   }
-  
+
   .create-topic-participants-list {
     max-height: 180px;
+  }
+
+  .create-topic-search-btn {
+    padding: 0 12px;
+    font-size: 12px;
   }
 }

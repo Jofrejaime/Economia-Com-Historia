@@ -119,21 +119,21 @@
 
                 <div class="create-topic-participants">
                   <div class="create-topic-participants-search">
-                    <svg class="create-topic-participants-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
-                      <circle cx="11" cy="11" r="8"/>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                    <input
-                      type="text"
-                      [ngModel]="memberSearch"
-                      name="memberSearch"
-                      (ngModelChange)="onMemberSearchInput($event)"
-                      (keyup.enter)="searchMembers()"
-                      placeholder="Pesquisar utilizadores por nome..."
-                      class="create-topic-participants-input"
-                    >
-                    <button type="button" class="create-topic-preview-btn" (click)="searchMembers()">Pesquisar</button>
-                  </div>
+  <svg class="create-topic-participants-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+    <circle cx="11" cy="11" r="8"/>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+  <input
+    type="text"
+    [ngModel]="memberSearch"
+    name="memberSearch"
+    (ngModelChange)="onMemberSearchInput($event)"
+    (keyup.enter)="searchMembers()"
+    placeholder="Pesquisar utilizadores por nome..."
+    class="create-topic-participants-input"
+  >
+  <button type="button" class="create-topic-search-btn" (click)="searchMembers()">Pesquisar</button>
+</div>
 
                   <div *ngIf="memberSearchError" class="create-topic-error" style="padding: 12px 16px 0;">{{ memberSearchError }}</div>
 

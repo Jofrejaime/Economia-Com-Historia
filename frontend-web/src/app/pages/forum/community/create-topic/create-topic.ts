@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
@@ -22,15 +22,12 @@ interface SelectedMember {
   role: MemberRole;
 }
 
-interface Participant {
+interface UserSearchResult {
   id: string;
-  name: string;
-  display_name?: string | null;
-  full_name?: string | null;
-  email: string;
-  initials: string;
-  avatarColor: string;
-  institution?: string;
+  display_name: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  institution: string | null;
 }
 
 @Component({
@@ -55,29 +52,25 @@ export class CreateTopicComponent implements OnInit {
   visibility: TopicVisibility = 'PUBLIC';
   selectedMembers: SelectedMember[] = [];
   memberSearch = '';
-  memberSearchResults: Participant[] = [];
+  memberSearchResults: UserSearchResult[] = [];
   memberSearchLoading = false;
   memberSearchError: string | null = null;
 
-  allParticipants: Participant[] = [
-    { id: '1', name: 'Ana Silva', email: 'ana.silva@universidade.ao', initials: 'AS', avatarColor: '#8B1E2D' },
-    { id: '2', name: 'Carlos Santos', email: 'carlos.santos@universidade.ao', initials: 'CS', avatarColor: '#1F2937' },
-    { id: '3', name: 'Maria Costa', email: 'maria.costa@universidade.ao', initials: 'MC', avatarColor: '#9CA3AF' },
-    { id: '4', name: 'João Mendes', email: 'joao.mendes@universidade.ao', initials: 'JM', avatarColor: '#8B1E2D' },
-    { id: '5', name: 'Paula Ferreira', email: 'paula.ferreira@universidade.ao', initials: 'PF', avatarColor: '#1F2937' },
-    { id: '6', name: 'Miguel Rodrigues', email: 'miguel.rodrigues@universidade.ao', initials: 'MR', avatarColor: '#9CA3AF' },
-  ];
+  private searchTimer: any = null;
 
   constructor(
     private router: Router,
     private communityService: CommunityService,
     private http: HttpClient,
-    private authService: AuthService
-  ) {
-    this.memberSearchResults = [...this.allParticipants];
-  }
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async ngOnInit(): Promise<void> {
+    this.loadCategories();
+  }
+
+  private async loadCategories(): Promise<void> {
     try {
       const result = await firstValueFrom(this.communityService.getCategories());
       this.categories = result.ok && result.data ? result.data : [];
@@ -85,11 +78,12 @@ export class CreateTopicComponent implements OnInit {
       this.categories = [];
     } finally {
       this.isLoadingCategories = false;
+      this.cdr.detectChanges();
     }
   }
 
   get selectedCategoryData(): CommunityCategory | undefined {
-    return this.categories.find((cat) => cat.id === this.selectedCategory);
+    return this.categories.find(cat => cat.id === this.selectedCategory);
   }
 
   get selectedMemberCount(): number {
@@ -102,112 +96,141 @@ export class CreateTopicComponent implements OnInit {
 
   get visibilityLabel(): string {
     switch (this.visibility) {
-      case 'PUBLIC':
-        return 'Público: qualquer utilizador pode ver o tópico';
-      case 'CATEGORY':
-        return 'Categoria: visibilidade herdada do acesso da categoria';
-      case 'INVITE_ONLY':
-        return 'Por convite: apenas owner, moderadores e membros convidados';
-      default:
-        return this.visibility;
+      case 'PUBLIC':      return 'Público: qualquer utilizador pode ver o tópico';
+      case 'CATEGORY':    return 'Categoria: visibilidade herdada do acesso da categoria';
+      case 'INVITE_ONLY': return 'Por convite: apenas owner, moderadores e membros convidados';
+      default:            return this.visibility;
     }
   }
 
   setVisibility(visibility: TopicVisibility): void {
     this.visibility = visibility;
     this.message = null;
-
     if (visibility !== 'INVITE_ONLY') {
       this.selectedMembers = [];
       this.memberSearch = '';
       this.memberSearchResults = [];
       this.memberSearchError = null;
-      return;
     }
-
-    this.filterParticipants();
+    this.cdr.detectChanges();
   }
 
   onMemberSearchInput(value: string): void {
     this.memberSearch = value;
     this.memberSearchError = null;
-    this.filterParticipants();
+    clearTimeout(this.searchTimer);
+
+    if (value.trim().length < 2) {
+      this.memberSearchResults = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.searchTimer = setTimeout(() => this.searchMembers(), 400);
   }
 
-  searchMembers(): void {
-    const search = this.memberSearch.trim();
-    if (search.length > 0 && search.length < 2) {
+  async searchMembers(): Promise<void> {
+    const q = this.memberSearch.trim();
+    if (q.length < 2) {
       this.memberSearchError = 'A pesquisa requer pelo menos 2 caracteres.';
       this.memberSearchResults = [];
+      this.cdr.detectChanges();
       return;
     }
 
-    this.filterParticipants();
+    this.memberSearchLoading = true;
+    this.memberSearchError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const token = this.authService.getToken();
+      const headers = token ? this.authService.getAuthHeaders(token) : {};
+
+      // endpoint devolve array directo, não { data: [] }
+      const results = await firstValueFrom(
+        this.http.get<UserSearchResult[]>(
+          `${environment.apiBaseUrl}/api/users/search?q=${encodeURIComponent(q)}`,
+          { headers }
+        )
+      );
+
+      const selectedIds = new Set(this.selectedMembers.map(m => m.user.id));
+      this.memberSearchResults = (results ?? []).filter(u => !selectedIds.has(u.id));
+    } catch {
+      this.memberSearchError = 'Erro ao pesquisar utilizadores.';
+      this.memberSearchResults = [];
+    } finally {
+      this.memberSearchLoading = false;
+      this.cdr.detectChanges();
+    }
   }
 
-  addMember(user: Participant): void {
-    if (this.selectedMembers.some((member) => member.user.id === user.id)) {
-      return;
-    }
-
+  addMember(user: UserSearchResult): void {
+    if (this.selectedMembers.some(m => m.user.id === user.id)) return;
     this.selectedMembers = [
       ...this.selectedMembers,
       {
         user: {
           id: user.id,
-          display_name: user.name,
-          full_name: user.name,
-          institution: user.institution ?? null,
+          display_name: user.display_name,
+          full_name: user.full_name,
+          institution: user.institution,
         },
         role: 'member',
       },
     ];
+    this.memberSearchResults = this.memberSearchResults.filter(u => u.id !== user.id);
+    this.cdr.detectChanges();
   }
 
   removeMember(userId: string): void {
-    this.selectedMembers = this.selectedMembers.filter((member) => member.user.id !== userId);
+    this.selectedMembers = this.selectedMembers.filter(m => m.user.id !== userId);
+    this.cdr.detectChanges();
   }
 
   updateMemberRole(userId: string, role: MemberRole): void {
-    const member = this.selectedMembers.find((item) => item.user.id === userId);
-    if (member) {
-      member.role = role;
-    }
+    const member = this.selectedMembers.find(m => m.user.id === userId);
+    if (member) member.role = role;
   }
 
   togglePreview(): void {
     this.showPreview = !this.showPreview;
   }
 
+  getUserInitials(user: { display_name?: string | null; full_name?: string | null }): string {
+    const name = user.display_name || user.full_name || '?';
+    return name.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
+  }
+
   validate(): boolean {
-    const newErrors: { title?: string; category?: string; content?: string; members?: string } = {};
+    const errs: { title?: string; category?: string; content?: string; members?: string } = {};
 
     if (!this.title.trim()) {
-      newErrors.title = 'O título é obrigatório';
+      errs.title = 'O título é obrigatório';
     } else if (this.title.length < 10) {
-      newErrors.title = 'O título deve ter pelo menos 10 caracteres';
+      errs.title = 'O título deve ter pelo menos 10 caracteres';
     } else if (this.title.length > 255) {
-      newErrors.title = 'O título não pode exceder 255 caracteres';
+      errs.title = 'O título não pode exceder 255 caracteres';
     }
 
     if (!this.selectedCategory) {
-      newErrors.category = 'Por favor, selecione uma categoria';
+      errs.category = 'Por favor, selecione uma categoria';
     }
 
     if (!this.content.trim()) {
-      newErrors.content = 'O conteúdo é obrigatório';
+      errs.content = 'O conteúdo é obrigatório';
     } else if (this.content.length < 50) {
-      newErrors.content = 'O conteúdo deve ter pelo menos 50 caracteres';
+      errs.content = 'O conteúdo deve ter pelo menos 50 caracteres';
     } else if (this.content.length > 5000) {
-      newErrors.content = 'O conteúdo não pode exceder 5000 caracteres';
+      errs.content = 'O conteúdo não pode exceder 5000 caracteres';
     }
 
     if (this.visibility === 'INVITE_ONLY' && this.selectedMembers.length === 0) {
-      newErrors.members = 'Adicione pelo menos um membro para tópicos por convite.';
+      errs.members = 'Adicione pelo menos um membro para tópicos por convite.';
     }
 
-    this.errors = newErrors;
-    return Object.keys(newErrors).length === 0;
+    this.errors = errs;
+    return Object.keys(errs).length === 0;
   }
 
   async handleSubmit(event: Event): Promise<void> {
@@ -216,6 +239,7 @@ export class CreateTopicComponent implements OnInit {
 
     this.isSubmitting = true;
     this.message = null;
+    this.cdr.detectChanges();
 
     try {
       const token = this.authService.getToken();
@@ -229,10 +253,7 @@ export class CreateTopicComponent implements OnInit {
             content: this.content,
             visibility: this.toBackendVisibility(this.visibility),
             members: this.visibility === 'INVITE_ONLY'
-              ? this.selectedMembers.map((member) => ({
-                  user_id: member.user.id,
-                  role: member.role,
-                }))
+              ? this.selectedMembers.map(m => ({ user_id: m.user.id, role: m.role }))
               : undefined,
           },
           { headers }
@@ -241,13 +262,16 @@ export class CreateTopicComponent implements OnInit {
       this.router.navigate(['/forum/community/discussao', res.data.id]);
     } catch (err: any) {
       this.message = err?.error?.message ?? 'Erro ao publicar tópico.';
+      this.cdr.detectChanges();
     } finally {
       this.isSubmitting = false;
+      this.cdr.detectChanges();
     }
   }
 
   saveDraft(): void {
-    this.message = 'Rascunho guardado localmente.';
+    this.message = 'Funcionalidade de rascunho ainda não disponível.';
+    this.cdr.detectChanges();
   }
 
   navigateTo(path: string): void {
@@ -258,35 +282,12 @@ export class CreateTopicComponent implements OnInit {
     return { bg: cat.color_bg ?? '#E5E7EB', text: cat.color_text ?? '#1F2937' };
   }
 
-  private filterParticipants(): void {
-    const search = this.memberSearch.toLowerCase().trim();
-    const selectedIds = new Set(this.selectedMembers.map((member) => member.user.id));
-
-    if (!search) {
-      this.memberSearchResults = this.allParticipants.filter((participant) => !selectedIds.has(participant.id));
-      return;
-    }
-
-    this.memberSearchResults = this.allParticipants.filter((participant) => {
-      if (selectedIds.has(participant.id)) {
-        return false;
-      }
-
-      return participant.name.toLowerCase().includes(search)
-        || participant.email.toLowerCase().includes(search)
-        || (participant.institution ?? '').toLowerCase().includes(search);
-    });
-  }
-
   private toBackendVisibility(value: TopicVisibility): 'PUBLIC' | 'RESTRICTED' | 'PRIVATE' {
     switch (value) {
-      case 'PUBLIC':
-        return 'PUBLIC';
-      case 'INVITE_ONLY':
-        return 'PRIVATE';
+      case 'PUBLIC':      return 'PUBLIC';
+      case 'INVITE_ONLY': return 'PRIVATE';
       case 'CATEGORY':
-      default:
-        return 'RESTRICTED';
+      default:            return 'RESTRICTED';
     }
   }
 }

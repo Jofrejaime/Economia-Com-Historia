@@ -2,18 +2,12 @@ import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { MarkdownPipe } from '../../../pipes/markdown.pipe';
-import { CommunityService, TopicDetail, TopicReply } from '../../../services/community.service';
+import { CommunityService, DiscussionTopic, TopicReply } from '../../../services/community.service';
 import { AuthService } from '../../../services/auth.service';
-
-interface RelatedTopic {
-  id: string;
-  title: string;
-  replies: number;
-  views: number;
-}
 
 @Component({
   selector: 'app-discussion-thread',
@@ -24,18 +18,16 @@ interface RelatedTopic {
 })
 export class DiscussionThreadComponent implements OnInit {
 
-  topic: TopicDetail | null = null;
+  topic: DiscussionTopic | null = null;
   replies: TopicReply[] = [];
   error: string | null = null;
   isAuthenticated = false;
 
   replyText = '';
   showReplyForm = false;
-
   showReplyFormForReply: { [key: number]: boolean } = {};
   replyReplyText: { [key: number]: string } = {};
 
-  // Modais
   showReportDiscussionModal = false;
   showReportReplyModal = false;
   reportDiscussionReason = '';
@@ -52,8 +44,7 @@ export class DiscussionThreadComponent implements OnInit {
   showDeleteReplyModal = false;
   deleteReplyIndex: number | null = null;
 
-  // Tópicos relacionados (mock — não há endpoint para isso)
-  relatedTopics: RelatedTopic[] = [];
+  relatedTopics: { id: string; title: string; replies: number; views: number }[] = [];
 
   constructor(
     private router: Router,
@@ -66,21 +57,26 @@ export class DiscussionThreadComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.isAuthenticated = this.authService.isAuthenticated();
     const topicId = this.route.snapshot.paramMap.get('id');
-    if (!topicId) {
-      this.router.navigate(['/forum/community']);
-      return;
-    }
+    if (!topicId) { this.router.navigate(['/forum/community']); return; }
     this.loadData(topicId);
   }
 
   private async loadData(topicId: string): Promise<void> {
     try {
-      const [topic, replies] = await Promise.all([
-        this.communityService.getTopic(topicId),
-        this.communityService.getReplies(topicId),
+      const [topicResult, repliesResult] = await Promise.all([
+        firstValueFrom(this.communityService.getTopic(topicId)),
+        firstValueFrom(this.communityService.getReplies(topicId)),
       ]);
-      this.topic = topic;
-      this.replies = replies;
+
+      if (topicResult.ok && topicResult.data) {
+        this.topic = topicResult.data;
+      } else {
+        this.error = topicResult.message ?? 'Erro ao carregar discussão.';
+      }
+
+      if (repliesResult.ok && repliesResult.data) {
+        this.replies = repliesResult.data;
+      }
     } catch {
       this.error = 'Erro ao carregar discussão.';
     } finally {
@@ -88,13 +84,13 @@ export class DiscussionThreadComponent implements OnInit {
     }
   }
 
-  // ===== GETTERS para o template =====
+  // ===== GETTERS =====
   get discussionTitle(): string { return this.topic?.title ?? '—'; }
   get discussionContent(): string { return this.topic?.content ?? ''; }
   get discussionAuthor(): string { return this.topic?.author?.display_name ?? '—'; }
   get discussionAuthorInitials(): string {
     const name = this.topic?.author?.display_name ?? '?';
-    return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+    return name.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
   }
   get discussionAvatarColor(): string {
     const id = this.topic?.author_id ?? '';
@@ -116,7 +112,7 @@ export class DiscussionThreadComponent implements OnInit {
 
   getReplyAuthorInitials(reply: TopicReply): string {
     const name = reply.author?.display_name ?? '?';
-    return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+    return name.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
   }
 
   getReplyAvatarColor(reply: TopicReply): string {
@@ -126,8 +122,7 @@ export class DiscussionThreadComponent implements OnInit {
 
   getParentAuthor(parentId: string | null): string {
     if (!parentId) return '';
-    const parent = this.replies.find(r => r.id === parentId);
-    return parent?.author?.display_name ?? '—';
+    return this.replies.find(r => r.id === parentId)?.author?.display_name ?? '—';
   }
 
   formatTimeAgo(dateStr: string): string {
@@ -146,12 +141,16 @@ export class DiscussionThreadComponent implements OnInit {
     event.preventDefault();
     if (!this.replyText.trim() || !this.topic) return;
     try {
-      const newReply = await this.communityService.postReply(this.topic.id, this.replyText);
-      this.replies.push(newReply);
-      this.replyText = '';
-      this.showReplyForm = false;
-      if (this.topic) this.topic.replies_count++;
-      this.cdr.detectChanges();
+      const result = await firstValueFrom(
+        this.communityService.createReply(this.topic.id, { content: this.replyText })
+      );
+      if (result.ok && result.data) {
+        this.replies.push(result.data);
+        this.replyText = '';
+        this.showReplyForm = false;
+        if (this.topic) this.topic.replies_count++;
+        this.cdr.detectChanges();
+      }
     } catch {
       alert('Erro ao publicar resposta.');
     }
@@ -161,12 +160,19 @@ export class DiscussionThreadComponent implements OnInit {
     if (!text?.trim() || !this.topic) return;
     const parentReply = this.replies[index];
     try {
-      const newReply = await this.communityService.postReply(this.topic.id, text, parentReply.id);
-      this.replies.splice(index + 1, 0, newReply);
-      this.showReplyFormForReply[index] = false;
-      this.replyReplyText[index] = '';
-      if (this.topic) this.topic.replies_count++;
-      this.cdr.detectChanges();
+      const result = await firstValueFrom(
+        this.communityService.createReply(this.topic.id, {
+          content: text,
+          parent_reply_id: parentReply.id
+        })
+      );
+      if (result.ok && result.data) {
+        this.replies.splice(index + 1, 0, result.data);
+        this.showReplyFormForReply[index] = false;
+        this.replyReplyText[index] = '';
+        if (this.topic) this.topic.replies_count++;
+        this.cdr.detectChanges();
+      }
     } catch {
       alert('Erro ao publicar resposta.');
     }
@@ -182,11 +188,11 @@ export class DiscussionThreadComponent implements OnInit {
     if (!this.topic || !this.isAuthenticated) return;
     try {
       if (this.topic.is_liked) {
-        await this.communityService.unlikeTopic(this.topic.id);
+        await firstValueFrom(this.communityService.unlikeTopic(this.topic.id));
         this.topic.is_liked = false;
         this.topic.likes_count--;
       } else {
-        await this.communityService.likeTopic(this.topic.id);
+        await firstValueFrom(this.communityService.likeTopic(this.topic.id));
         this.topic.is_liked = true;
         this.topic.likes_count++;
       }
@@ -199,11 +205,11 @@ export class DiscussionThreadComponent implements OnInit {
     const reply = this.replies[index];
     try {
       if (reply.is_liked) {
-        await this.communityService.unlikeReply(reply.id);
+        await firstValueFrom(this.communityService.unlikeReply(reply.id));
         reply.is_liked = false;
         reply.likes_count--;
       } else {
-        await this.communityService.likeReply(reply.id);
+        await firstValueFrom(this.communityService.likeReply(reply.id));
         reply.is_liked = true;
         reply.likes_count++;
       }
@@ -211,16 +217,14 @@ export class DiscussionThreadComponent implements OnInit {
     } catch {}
   }
 
-  // ===== MENU =====
+  // ===== MENUS =====
   toggleDiscussionMenu(event: Event): void {
     event.stopPropagation();
     this.showDiscussionMenu = !this.showDiscussionMenu;
     this.showReplyMenuIndex = null;
   }
 
-  editDiscussion(): void {
-    this.showDiscussionMenu = false;
-  }
+  editDiscussion(): void { this.showDiscussionMenu = false; }
 
   toggleReplyMenu(index: number, event: Event): void {
     event.stopPropagation();
@@ -228,24 +232,20 @@ export class DiscussionThreadComponent implements OnInit {
     this.showDiscussionMenu = false;
   }
 
-  editReply(index: number): void {
-    this.showReplyMenuIndex = null;
-  }
+  editReply(_index: number): void { this.showReplyMenuIndex = null; }
 
-  // ===== ELIMINAR =====
+  // ===== ELIMINAR DISCUSSÃO =====
   openDeleteDiscussionModal(): void {
     this.showDiscussionMenu = false;
     this.showDeleteDiscussionModal = true;
   }
 
-  closeDeleteDiscussionModal(): void {
-    this.showDeleteDiscussionModal = false;
-  }
+  closeDeleteDiscussionModal(): void { this.showDeleteDiscussionModal = false; }
 
   async confirmDeleteDiscussion(): Promise<void> {
     if (!this.topic) return;
     try {
-      await this.communityService.deleteTopic(this.topic.id);
+      await firstValueFrom(this.communityService.deleteTopic(this.topic.id));
       this.showDeleteDiscussionModal = false;
       this.router.navigate(['/forum/community']);
     } catch {
@@ -253,6 +253,7 @@ export class DiscussionThreadComponent implements OnInit {
     }
   }
 
+  // ===== ELIMINAR RESPOSTA =====
   openDeleteReplyModal(index: number): void {
     this.showReplyMenuIndex = null;
     this.deleteReplyIndex = index;
@@ -268,7 +269,7 @@ export class DiscussionThreadComponent implements OnInit {
     if (this.deleteReplyIndex === null) return;
     const reply = this.replies[this.deleteReplyIndex];
     try {
-      await this.communityService.deleteReply(reply.id);
+      await firstValueFrom(this.communityService.deleteReply(reply.id));
       this.replies.splice(this.deleteReplyIndex, 1);
       if (this.topic) this.topic.replies_count--;
       this.showDeleteReplyModal = false;
@@ -286,9 +287,7 @@ export class DiscussionThreadComponent implements OnInit {
     this.reportDiscussionDescription = '';
   }
 
-  closeReportDiscussionModal(): void {
-    this.showReportDiscussionModal = false;
-  }
+  closeReportDiscussionModal(): void { this.showReportDiscussionModal = false; }
 
   submitReportDiscussion(): void {
     if (!this.reportDiscussionReason) return;
@@ -320,7 +319,6 @@ export class DiscussionThreadComponent implements OnInit {
     navigator.clipboard?.writeText(window.location.href).catch(() => {});
   }
 
-  // ===== CLICK FORA =====
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: Event): void {
     const target = event.target as HTMLElement;

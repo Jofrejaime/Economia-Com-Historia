@@ -1572,4 +1572,6 @@ class CommunityController extends Controller
             'data' => $reply->load(['author.profile']),
         ]);
     }
+
+    
 }
