@@ -4,31 +4,27 @@
 
   <main class="quiz-main">
 
-    <!-- Loading -->
-    <div *ngIf="isLoading" style="text-align:center;padding:80px">
-      A carregar perguntas...
-    </div>
-
     <!-- Erro -->
-    <div *ngIf="error" style="text-align:center;padding:80px;color:red">
+    <div *ngIf="error" style="text-align:center;padding:80px;color:#991B1B">
       {{ error }}
     </div>
 
-    <ng-container *ngIf="!isLoading && !error && question">
+    <!-- Esqueleto enquanto perguntas carregam -->
+    <div *ngIf="!question && !error" style="text-align:center;padding:80px;color:#9CA3AF;font-size:15px;font-family:'Source Sans 3',sans-serif">
+      A preparar quiz...
+    </div>
+
+    <ng-container *ngIf="question && !error">
       <div class="quiz-container">
         <div class="quiz-grid">
           
           <!-- Question Section -->
           <div>
-            <!-- Module Tag -->
             <div class="quiz-question-section">
               <span class="quiz-module-tag">{{ question.module_label }}</span>
             </div>
 
-            <!-- Question Title -->
             <h1 class="quiz-title">{{ question.title }}</h1>
-
-            <!-- Subtitle -->
             <p class="quiz-subtitle">{{ question.subtitle }}</p>
 
             <!-- Options -->
@@ -46,11 +42,9 @@
                        [class.quiz-option-radio-correct]="getOptionState(option.id) === 'correct'"
                        [class.quiz-option-radio-wrong]="getOptionState(option.id) === 'wrong'">
                     <div *ngIf="getOptionState(option.id) === 'selected'" class="quiz-option-radio-dot"></div>
-                    <!-- Check para correcta -->
                     <svg *ngIf="getOptionState(option.id) === 'correct'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
-                    <!-- X para errada -->
                     <svg *ngIf="getOptionState(option.id) === 'wrong'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3">
                       <line x1="18" y1="6" x2="6" y2="18"/>
                       <line x1="6" y1="6" x2="18" y2="18"/>
@@ -63,7 +57,7 @@
               </button>
             </div>
 
-            <!-- Feedback de resposta -->
+            <!-- Feedback -->
             <div *ngIf="answered" class="quiz-feedback"
                  [class.quiz-feedback-correct]="isCorrect"
                  [class.quiz-feedback-wrong]="!isCorrect">
@@ -106,7 +100,6 @@
           <!-- Sidebar -->
           <div class="quiz-sidebar">
             
-            <!-- Hint Card -->
             <div class="quiz-hint-card" *ngIf="question.hint_title || question.hint_quote">
               <div class="quiz-hint-header">
                 <div class="quiz-hint-icon">
@@ -116,15 +109,12 @@
                 </div>
                 <h3 class="quiz-hint-title">{{ question.hint_title }}</h3>
               </div>
-
               <div class="quiz-hint-image">
                 <div class="quiz-hint-image-inner"></div>
               </div>
-
               <p class="quiz-hint-quote" *ngIf="question.hint_quote">
                 "{{ question.hint_quote }}"
               </p>
-
               <div class="quiz-hint-expert" *ngIf="question.expert_name">
                 <div class="quiz-hint-expert-avatar"></div>
                 <div>
@@ -134,7 +124,6 @@
               </div>
             </div>
 
-            <!-- Reading Card -->
             <div class="quiz-reading-card" *ngIf="question.reading_title || question.reading_text">
               <div class="quiz-reading-header">
                 <svg width="16" height="16" viewBox="0 0 12 10" fill="#8B1E2D">

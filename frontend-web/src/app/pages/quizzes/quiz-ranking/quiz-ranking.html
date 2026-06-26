@@ -17,17 +17,17 @@
         <p class="ranking-subtitle">Todos os participantes do arquivo digital</p>
       </div>
 
-      <!-- Loading -->
-      <div *ngIf="isLoading" style="text-align:center;padding:80px">
-        A carregar ranking...
-      </div>
-
       <!-- Erro -->
-      <div *ngIf="error" style="text-align:center;padding:40px;color:red">
+      <div *ngIf="error" style="text-align:center;padding:40px;color:#991B1B">
         {{ error }}
       </div>
 
-      <ng-container *ngIf="!isLoading && !error">
+      <!-- Skeleton enquanto carrega -->
+      <div *ngIf="!error && players.length === 0" style="text-align:center;padding:80px;color:#9CA3AF;font-size:15px;font-family:'Source Sans 3',sans-serif">
+        A carregar ranking...
+      </div>
+
+      <ng-container *ngIf="players.length > 0 || error">
 
         <!-- Filters -->
         <div class="ranking-filters">
@@ -65,7 +65,7 @@
 
         <!-- Ranking List -->
         <div class="ranking-list">
-          <div *ngFor="let player of filteredRanking; let i = index" 
+          <div *ngFor="let player of filteredRanking; let i = index"
                class="ranking-item"
                [class.ranking-item-top3]="i < 3">
             
@@ -104,8 +104,8 @@
           </div>
         </div>
 
-        <!-- Empty state -->
-        <div *ngIf="filteredRanking.length === 0" class="ranking-empty">
+        <!-- Empty state (só após carregar e sem resultados no filtro) -->
+        <div *ngIf="players.length > 0 && filteredRanking.length === 0" class="ranking-empty">
           <p class="ranking-empty-title">Nenhum resultado encontrado</p>
           <p class="ranking-empty-sub">Tente ajustar os filtros da pesquisa</p>
         </div>

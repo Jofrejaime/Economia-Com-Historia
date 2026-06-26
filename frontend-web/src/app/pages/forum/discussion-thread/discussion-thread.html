@@ -4,175 +4,67 @@
 
   <main class="discussion-main">
     <div class="discussion-container">
-      
-      <!-- Breadcrumb -->
-      <nav class="discussion-breadcrumb">
-        <button (click)="navigateTo('/forum/community')" class="discussion-breadcrumb-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Comunidade
-        </button>
-        <span class="discussion-breadcrumb-separator">/</span>
-        <span class="discussion-breadcrumb-current">Análise de Políticas</span>
-      </nav>
 
-      <!-- Main Content Grid -->
-      <div class="discussion-grid">
-        
-        <!-- Main Thread Content -->
-        <div>
+      <!-- Erro -->
+      <div *ngIf="error" style="text-align:center;padding:80px;color:#991B1B">{{ error }}</div>
+
+      <!-- Skeleton -->
+      <div *ngIf="!topic && !error" style="text-align:center;padding:80px;color:#9CA3AF;font-size:15px;font-family:'Source Sans 3',sans-serif">
+        A carregar discussão...
+      </div>
+
+      <ng-container *ngIf="topic && !error">
+
+        <!-- Breadcrumb -->
+        <nav class="discussion-breadcrumb">
+          <button (click)="navigateTo('/forum/community')" class="discussion-breadcrumb-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Comunidade
+          </button>
+          <span class="discussion-breadcrumb-separator">/</span>
+          <span class="discussion-breadcrumb-current">{{ discussionCategoryName }}</span>
+        </nav>
+
+        <!-- Main Content Grid -->
+        <div class="discussion-grid">
           
-          <!-- Discussion Header -->
-          <div class="discussion-header">
-            
-            <!-- Category & Meta -->
-            <div class="discussion-meta">
-              <div class="discussion-category" [style.backgroundColor]="discussion.categoryColor.bg" (click)="navigateTo('/forum/categoria/' + discussion.categoryId)">
-                <span class="discussion-category-text" [style.color]="discussion.categoryColor.text">{{ discussion.category }}</span>
-              </div>
-              <div *ngIf="discussion.isPinned" class="discussion-pinned">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="#8B1E2D"><path d="M9 2L10 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L6 5L7 2H9Z"/></svg>
-                <span class="discussion-pinned-text">Fixado</span>
-              </div>
-              
-              <!-- Menu de três pontinhos - DISCUSSÃO -->
-              <div class="discussion-menu-wrapper">
-                <button class="discussion-menu-btn" (click)="toggleDiscussionMenu($event)">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
-                    <circle cx="12" cy="5" r="1.5"/>
-                    <circle cx="12" cy="12" r="1.5"/>
-                    <circle cx="12" cy="19" r="1.5"/>
-                  </svg>
-                </button>
-                <div class="discussion-menu-dropdown" [class.discussion-menu-open]="showDiscussionMenu">
-                  <button (click)="editDiscussion()" class="discussion-menu-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                    Editar
-                  </button>
-                  <button (click)="openDeleteDiscussionModal()" class="discussion-menu-item discussion-menu-item-danger">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
-                    Excluir
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Title -->
-            <h1 class="discussion-title">{{ discussion.title }}</h1>
-
-            <!-- Author Info -->
-            <div class="discussion-author-info" (click)="navigateTo('/auth/perfil/' + discussion.authorId)">
-              <div class="discussion-avatar" [style.backgroundColor]="discussion.avatar">
-                <span class="discussion-avatar-text">{{ discussion.authorInitials }}</span>
-              </div>
-              <div>
-                <div class="discussion-author-name">{{ discussion.author }}</div>
-                <div class="discussion-author-meta">{{ discussion.authorRole }} • {{ discussion.date }}</div>
-              </div>
-            </div>
-
-            <!-- Content -->
-            <div class="discussion-content" [innerHTML]="discussion.content | markdown">
-              {{ discussion.content }}
-            </div>
-
-            <!-- Actions -->
-            <div class="discussion-actions">
-              <button class="discussion-action-btn" (click)="toggleLikeDiscussion()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" [attr.stroke]="discussion.isLiked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-                <span class="discussion-action-text" [style.color]="discussion.isLiked ? '#8B1E2D' : '#9CA3AF'">{{ discussion.likes }}</span>
-              </button>
-              
-              <button (click)="showReplyForm = !showReplyForm" class="discussion-action-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                <span class="discussion-action-text">Responder</span>
-              </button>
-              
-              <button class="discussion-action-btn" (click)="shareDiscussion()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v15"/>
-                </svg>
-                <span class="discussion-action-text">Partilhar</span>
-              </button>
-
-              <button class="discussion-action-btn" (click)="openReportDiscussionModal()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-                  <path d="M12 2L1 21h22L12 2z"/>
-                  <circle cx="12" cy="16" r="1.5"/>
-                  <path d="M12 9v4"/>
-                </svg>
-                <span class="discussion-action-text">Denunciar</span>
-              </button>
-              
-              <div class="discussion-views">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <span class="discussion-views-text">{{ discussion.views }} visualizações</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Reply Form (principal) -->
-          <div *ngIf="showReplyForm" class="reply-form">
-            <h3 class="reply-form-title">Adicionar Resposta</h3>
-            <form (ngSubmit)="handleSubmitReply($event)">
-              <textarea [(ngModel)]="replyText" name="replyText" rows="5" placeholder="Partilhe a sua perspectiva, fontes ou sugestões..." class="reply-textarea"></textarea>
-              <div class="reply-form-actions">
-                <button type="submit" class="btn-primary">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                  </svg>
-                  Publicar Resposta
-                </button>
-                <button type="button" (click)="showReplyForm = false" class="btn-secondary">Cancelar</button>
-              </div>
-            </form>
-          </div>
-
-          <!-- Replies Section -->
+          <!-- Main Thread Content -->
           <div>
-            <div class="replies-header">
-              <h2 class="replies-title">{{ replies.length }} Respostas</h2>
-              <div class="replies-divider"></div>
-            </div>
-
-            <div>
-              <!-- Loop das respostas -->
-              <div *ngFor="let reply of replies; let i = index" 
-                   class="reply-card"
-                   [class.reply-card-nested]="reply.parentId !== null">
+            
+            <!-- Discussion Header -->
+            <div class="discussion-header">
+              
+              <!-- Category & Meta -->
+              <div class="discussion-meta">
+                <div class="discussion-category"
+                     [style.backgroundColor]="discussionCategoryBg"
+                     (click)="navigateTo('/forum/categoria/' + topic.category_id)">
+                  <span class="discussion-category-text" [style.color]="discussionCategoryText">{{ discussionCategoryName }}</span>
+                </div>
+                <div *ngIf="discussionIsPinned" class="discussion-pinned">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="#8B1E2D"><path d="M9 2L10 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L6 5L7 2H9Z"/></svg>
+                  <span class="discussion-pinned-text">Fixado</span>
+                </div>
                 
-                <!-- Menu de três pontinhos - RESPOSTA -->
-                <div class="reply-menu-wrapper">
-                  <button class="reply-menu-btn" (click)="toggleReplyMenu(i, $event)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                <div class="discussion-menu-wrapper">
+                  <button class="discussion-menu-btn" (click)="toggleDiscussionMenu($event)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
                       <circle cx="12" cy="5" r="1.5"/>
                       <circle cx="12" cy="12" r="1.5"/>
                       <circle cx="12" cy="19" r="1.5"/>
                     </svg>
                   </button>
-                  <div class="reply-menu-dropdown" [class.reply-menu-open]="showReplyMenuIndex === i">
-                    <button (click)="editReply(i)" class="reply-menu-item">
+                  <div class="discussion-menu-dropdown" [class.discussion-menu-open]="showDiscussionMenu">
+                    <button (click)="editDiscussion()" class="discussion-menu-item">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                       </svg>
                       Editar
                     </button>
-                    <button (click)="openDeleteReplyModal(i)" class="reply-menu-item reply-menu-item-danger">
+                    <button (click)="openDeleteDiscussionModal()" class="discussion-menu-item discussion-menu-item-danger">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -181,133 +73,246 @@
                     </button>
                   </div>
                 </div>
-
-                <!-- Indicador visual de resposta a comentário -->
-                <div *ngIf="reply.parentId !== null" class="reply-nested-indicator">
-                  <span class="reply-nested-indicator-text">Resposta a <strong>{{ getReplyAuthor(reply.parentId) }}</strong></span>
-                </div>
-
-                <!-- Reply Author -->
-                <div class="reply-author" (click)="navigateTo('/auth/perfil/' + reply.authorId)">
-                  <div class="reply-avatar" [style.backgroundColor]="reply.avatar">
-                    <span class="reply-avatar-text">{{ reply.authorInitials }}</span>
-                  </div>
-                  <div>
-                    <div class="reply-author-name">{{ reply.author }}</div>
-                    <div class="reply-author-meta">{{ reply.authorRole }} • {{ reply.timeAgo }}</div>
-                  </div>
-                </div>
-
-                <!-- Reply Content -->
-                <div class="reply-content" [innerHTML]="reply.content | markdown">
-                  {{ reply.content }}
-                </div>
-
-                <!-- Reply Actions -->
-                <div class="reply-actions">
-                  <button class="reply-action-btn" (click)="toggleLikeReply(i)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="reply.isLiked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                    <span class="reply-action-text" [class.liked]="reply.isLiked" [class.unliked]="!reply.isLiked">{{ reply.likes }}</span>
-                  </button>
-                  
-                  <button class="reply-action-btn-secondary" (click)="toggleReplyForm(i)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    Responder
-                  </button>
-                  
-                  <button class="reply-action-btn-secondary" (click)="openReportReplyModal(i)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-                      <path d="M12 2L1 21h22L12 2z"/>
-                      <circle cx="12" cy="16" r="1.5"/>
-                      <path d="M12 9v4"/>
-                    </svg>
-                  </button>
-                </div>
-
-                <!-- Formulário de resposta para esta reply específica -->
-                <div *ngIf="showReplyFormForReply[i]" class="reply-form nested-reply-form">
-                  <form (ngSubmit)="handleReplyToReply(i, replyReplyText[i])">
-                    <div class="nested-reply-to">
-                      <span class="nested-reply-to-label">Respondendo a </span>
-                      <span class="nested-reply-to-name">{{ reply.author }}</span>
-                    </div>
-                    <textarea [(ngModel)]="replyReplyText[i]" name="replyReplyText" rows="3" placeholder="Escreva a sua resposta..." class="reply-textarea nested-textarea"></textarea>
-                    <div class="reply-form-actions nested-actions">
-                      <button type="submit" class="btn-primary btn-small">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                        </svg>
-                        Responder
-                      </button>
-                      <button type="button" class="btn-secondary btn-small" (click)="toggleReplyForm(i)">Cancelar</button>
-                    </div>
-                  </form>
-                </div>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Sidebar -->
-        <aside>
-          <div class="discussion-sidebar">
-            
-            <!-- Author Card -->
-            <div class="sidebar-card" (click)="navigateTo('/auth/perfil/' + discussion.authorId)">
-              <h3 class="sidebar-title">SOBRE O AUTOR</h3>
-              <div class="author-card">
-                <div class="author-card-avatar" [style.backgroundColor]="discussion.avatar">
-                  <span class="author-card-avatar-text">{{ discussion.authorInitials }}</span>
+              <!-- Title -->
+              <h1 class="discussion-title">{{ discussionTitle }}</h1>
+
+              <!-- Author Info -->
+              <div class="discussion-author-info">
+                <div class="discussion-avatar" [style.backgroundColor]="discussionAvatarColor">
+                  <span class="discussion-avatar-text">{{ discussionAuthorInitials }}</span>
                 </div>
                 <div>
-                  <div class="author-card-name">{{ discussion.author }}</div>
-                  <div class="author-card-role">{{ discussion.authorRole }}</div>
+                  <div class="discussion-author-name">{{ discussionAuthor }}</div>
+                  <div class="discussion-author-meta">{{ discussionDate }}</div>
                 </div>
               </div>
-              <div class="author-card-posts">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-                  <path d="M4 4h16v16H4z"/>
-                  <path d="M8 8h8M8 12h6"/>
-                </svg>
-                {{ discussion.authorPosts }} publicações
+
+              <!-- Content -->
+              <div class="discussion-content" [innerHTML]="discussionContent | markdown"></div>
+
+              <!-- Actions -->
+              <div class="discussion-actions">
+                <button class="discussion-action-btn" (click)="toggleLikeDiscussion()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                       [attr.stroke]="discussionIsLiked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                  <span class="discussion-action-text" [style.color]="discussionIsLiked ? '#8B1E2D' : '#9CA3AF'">{{ discussionLikes }}</span>
+                </button>
+                
+                <button (click)="showReplyForm = !showReplyForm" class="discussion-action-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  <span class="discussion-action-text">Responder</span>
+                </button>
+                
+                <button class="discussion-action-btn" (click)="shareDiscussion()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v15"/>
+                  </svg>
+                  <span class="discussion-action-text">Partilhar</span>
+                </button>
+
+                <button class="discussion-action-btn" (click)="openReportDiscussionModal()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                    <path d="M12 2L1 21h22L12 2z"/>
+                    <circle cx="12" cy="16" r="1.5"/>
+                    <path d="M12 9v4"/>
+                  </svg>
+                  <span class="discussion-action-text">Denunciar</span>
+                </button>
+                
+                <div class="discussion-views">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <span class="discussion-views-text">{{ discussionViews }} visualizações</span>
+                </div>
               </div>
             </div>
 
-            <!-- Related Topics -->
-            <div class="sidebar-card">
-              <h3 class="sidebar-title">TÓPICOS RELACIONADOS</h3>
+            <!-- Reply Form (principal) -->
+            <div *ngIf="showReplyForm" class="reply-form">
+              <h3 class="reply-form-title">Adicionar Resposta</h3>
+              <form (ngSubmit)="handleSubmitReply($event)">
+                <textarea [(ngModel)]="replyText" name="replyText" rows="5"
+                          placeholder="Partilhe a sua perspectiva, fontes ou sugestões..."
+                          class="reply-textarea"></textarea>
+                <div class="reply-form-actions">
+                  <button type="submit" class="btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                    </svg>
+                    Publicar Resposta
+                  </button>
+                  <button type="button" (click)="showReplyForm = false" class="btn-secondary">Cancelar</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Replies Section -->
+            <div>
+              <div class="replies-header">
+                <h2 class="replies-title">{{ replies.length }} Respostas</h2>
+                <div class="replies-divider"></div>
+              </div>
+
               <div>
-                <button *ngFor="let topic of relatedTopics" (click)="navigateToDiscussion(topic.id)" class="related-topic-btn">
-                  <div class="related-topic-title">{{ topic.title }}</div>
-                  <div class="related-topic-meta">
-                    <span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <div *ngFor="let reply of replies; let i = index"
+                     class="reply-card"
+                     [class.reply-card-nested]="reply.parent_reply_id !== null">
+                  
+                  <!-- Menu resposta -->
+                  <div class="reply-menu-wrapper">
+                    <button class="reply-menu-btn" (click)="toggleReplyMenu(i, $event)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                        <circle cx="12" cy="5" r="1.5"/>
+                        <circle cx="12" cy="12" r="1.5"/>
+                        <circle cx="12" cy="19" r="1.5"/>
                       </svg>
-                      {{ topic.replies }} respostas
-                    </span>
-                    <span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                      {{ topic.views }} visualizações
+                    </button>
+                    <div class="reply-menu-dropdown" [class.reply-menu-open]="showReplyMenuIndex === i">
+                      <button (click)="editReply(i)" class="reply-menu-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        Editar
+                      </button>
+                      <button (click)="openDeleteReplyModal(i)" class="reply-menu-item reply-menu-item-danger">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Indicador nested -->
+                  <div *ngIf="reply.parent_reply_id !== null" class="reply-nested-indicator">
+                    <span class="reply-nested-indicator-text">
+                      Resposta a <strong>{{ getParentAuthor(reply.parent_reply_id) }}</strong>
                     </span>
                   </div>
-                </button>
+
+                  <!-- Autor -->
+                  <div class="reply-author">
+                    <div class="reply-avatar" [style.backgroundColor]="getReplyAvatarColor(reply)">
+                      <span class="reply-avatar-text">{{ getReplyAuthorInitials(reply) }}</span>
+                    </div>
+                    <div>
+                      <div class="reply-author-name">{{ reply.author?.display_name ?? '—' }}</div>
+                      <div class="reply-author-meta">{{ formatTimeAgo(reply.created_at) }}</div>
+                    </div>
+                  </div>
+
+                  <!-- Conteúdo -->
+                  <div class="reply-content" [innerHTML]="reply.content | markdown"></div>
+
+                  <!-- Acções -->
+                  <div class="reply-actions">
+                    <button class="reply-action-btn" (click)="toggleLikeReply(i)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                           [attr.stroke]="reply.is_liked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                      </svg>
+                      <span class="reply-action-text"
+                            [class.liked]="reply.is_liked"
+                            [class.unliked]="!reply.is_liked">{{ reply.likes_count }}</span>
+                    </button>
+                    
+                    <button class="reply-action-btn-secondary" (click)="toggleReplyForm(i)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      Responder
+                    </button>
+                    
+                    <button class="reply-action-btn-secondary" (click)="openReportReplyModal(i)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                        <path d="M12 2L1 21h22L12 2z"/>
+                        <circle cx="12" cy="16" r="1.5"/>
+                        <path d="M12 9v4"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <!-- Form resposta aninhada -->
+                  <div *ngIf="showReplyFormForReply[i]" class="reply-form nested-reply-form">
+                    <form (ngSubmit)="handleReplyToReply(i, replyReplyText[i])">
+                      <div class="nested-reply-to">
+                        <span class="nested-reply-to-label">Respondendo a </span>
+                        <span class="nested-reply-to-name">{{ reply.author?.display_name ?? '—' }}</span>
+                      </div>
+                      <textarea [(ngModel)]="replyReplyText[i]" name="replyReplyText" rows="3"
+                                placeholder="Escreva a sua resposta..."
+                                class="reply-textarea nested-textarea"></textarea>
+                      <div class="reply-form-actions nested-actions">
+                        <button type="submit" class="btn-primary btn-small">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                          </svg>
+                          Responder
+                        </button>
+                        <button type="button" class="btn-secondary btn-small" (click)="toggleReplyForm(i)">Cancelar</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Empty replies -->
+              <div *ngIf="replies.length === 0" style="padding:40px;text-align:center;color:#9CA3AF;font-size:14px">
+                Ainda não há respostas. Seja o primeiro a responder!
               </div>
             </div>
           </div>
-        </aside>
-      </div>
+
+          <!-- Sidebar -->
+          <aside>
+            <div class="discussion-sidebar">
+              
+              <!-- Author Card -->
+              <div class="sidebar-card">
+                <h3 class="sidebar-title">SOBRE O AUTOR</h3>
+                <div class="author-card">
+                  <div class="author-card-avatar" [style.backgroundColor]="discussionAvatarColor">
+                    <span class="author-card-avatar-text">{{ discussionAuthorInitials }}</span>
+                  </div>
+                  <div>
+                    <div class="author-card-name">{{ discussionAuthor }}</div>
+                    <div class="author-card-role">{{ discussionCategoryName }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Related Topics (mock) -->
+              <div class="sidebar-card" *ngIf="relatedTopics.length > 0">
+                <h3 class="sidebar-title">TÓPICOS RELACIONADOS</h3>
+                <div>
+                  <button *ngFor="let t of relatedTopics" (click)="navigateToDiscussion(t.id)" class="related-topic-btn">
+                    <div class="related-topic-title">{{ t.title }}</div>
+                    <div class="related-topic-meta">
+                      <span>💬 {{ t.replies }} respostas</span>
+                      <span>👁️ {{ t.views }} visualizações</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+      </ng-container>
     </div>
   </main>
 
-  <!-- ===== MODAL DE CONFIRMAÇÃO - ELIMINAR DISCUSSÃO ===== -->
+  <!-- Modal Eliminar Discussão -->
   <div class="modal-overlay" *ngIf="showDeleteDiscussionModal" (click)="closeDeleteDiscussionModal()">
     <div class="modal-content modal-confirm" (click)="$event.stopPropagation()">
       <div class="modal-header">
@@ -335,15 +340,7 @@
           <p class="confirm-text">Tem certeza que deseja eliminar esta discussão?</p>
           <div class="confirm-item">
             <span class="confirm-item-label">Título</span>
-            <span class="confirm-item-value">{{ discussion.title }}</span>
-          </div>
-          <div class="confirm-item">
-            <span class="confirm-item-label">Autor</span>
-            <span class="confirm-item-value">{{ discussion.author }}</span>
-          </div>
-          <div class="confirm-item">
-            <span class="confirm-item-label">Respostas</span>
-            <span class="confirm-item-value">{{ discussion.replies }} respostas</span>
+            <span class="confirm-item-value">{{ discussionTitle }}</span>
           </div>
           <p class="confirm-warning">⚠️ Todas as respostas associadas também serão eliminadas.</p>
         </div>
@@ -355,7 +352,7 @@
     </div>
   </div>
 
-  <!-- ===== MODAL DE CONFIRMAÇÃO - ELIMINAR RESPOSTA ===== -->
+  <!-- Modal Eliminar Resposta -->
   <div class="modal-overlay" *ngIf="showDeleteReplyModal" (click)="closeDeleteReplyModal()">
     <div class="modal-content modal-confirm" (click)="$event.stopPropagation()">
       <div class="modal-header">
@@ -383,11 +380,11 @@
           <p class="confirm-text">Tem certeza que deseja eliminar esta resposta?</p>
           <div class="confirm-item">
             <span class="confirm-item-label">Autor</span>
-            <span class="confirm-item-value">{{ replies[deleteReplyIndex].author }}</span>
+            <span class="confirm-item-value">{{ replies[deleteReplyIndex].author?.display_name ?? '—' }}</span>
           </div>
           <div class="confirm-item">
             <span class="confirm-item-label">Conteúdo</span>
-            <span class="confirm-item-value confirm-content-preview">{{ replies[deleteReplyIndex].content | slice:0:150 }}{{ replies[deleteReplyIndex].content.length > 150 ? '...' : '' }}</span>
+            <span class="confirm-item-value">{{ replies[deleteReplyIndex].content | slice:0:150 }}...</span>
           </div>
         </div>
       </div>
@@ -398,11 +395,9 @@
     </div>
   </div>
 
-  <!-- ===== MODAL DE DENÚNCIA DE REPLY ===== -->
+  <!-- Modal Denúncia Reply -->
   <div class="modal-overlay" *ngIf="showReportReplyModal" (click)="closeReportReplyModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
-      
-      <!-- Header com ícone SVG -->
       <div class="modal-header">
         <div class="modal-header-left">
           <div class="modal-header-icon">
@@ -423,18 +418,13 @@
           </svg>
         </button>
       </div>
-
-      <!-- Aviso -->
       <div class="report-warning">
         <div class="report-warning-content">
           <span class="report-warning-title">Denúncia anónima e confidencial</span>
-          <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação. O denunciante permanecerá anónimo.</span>
+          <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação.</span>
         </div>
       </div>
-      
       <div class="modal-body">
-        
-        <!-- Informação da Resposta -->
         <div class="report-info-card" *ngIf="selectedReply">
           <div class="report-info-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
@@ -444,21 +434,16 @@
           <div class="report-info-content">
             <div class="report-info-row">
               <span class="report-info-label">Resposta de</span>
-              <span class="report-info-value">{{ selectedReply.author }}</span>
+              <span class="report-info-value">{{ selectedReply.author?.display_name ?? '—' }}</span>
             </div>
             <div class="report-info-row">
               <span class="report-info-label">Conteúdo</span>
-              <span class="report-info-value report-content-preview">{{ selectedReply.content | slice:0:100 }}{{ selectedReply.content.length > 100 ? '...' : '' }}</span>
+              <span class="report-info-value report-content-preview">{{ selectedReply.content | slice:0:100 }}...</span>
             </div>
           </div>
         </div>
-
-        <!-- Motivo -->
         <div class="form-group">
-          <label class="form-label">
-            Motivo da Denúncia
-            <span class="required">*</span>
-          </label>
+          <label class="form-label">Motivo da Denúncia <span class="required">*</span></label>
           <div class="select-wrapper">
             <select [(ngModel)]="reportReplyReason" class="form-input">
               <option value="">Selecione um motivo...</option>
@@ -477,37 +462,22 @@
             </div>
           </div>
         </div>
-
-        <!-- Descrição -->
         <div class="form-group">
           <label class="form-label">Descrição Detalhada</label>
-          <textarea [(ngModel)]="reportReplyDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo da denúncia..."></textarea>
+          <textarea [(ngModel)]="reportReplyDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo..."></textarea>
           <span class="form-hint">{{ reportReplyDescription.length || 0 }}/500 caracteres</span>
         </div>
       </div>
-      
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeReportReplyModal()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
-          Cancelar
-        </button>
-        <button class="btn-report" (click)="submitReportReply()" [disabled]="!reportReplyReason">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L1 21h22L12 2z"/>
-          </svg>
-          Enviar Denúncia
-        </button>
+        <button class="btn-cancel" (click)="closeReportReplyModal()">Cancelar</button>
+        <button class="btn-report" (click)="submitReportReply()" [disabled]="!reportReplyReason">Enviar Denúncia</button>
       </div>
     </div>
   </div>
 
-  <!-- ===== MODAL DE DENÚNCIA DA DISCUSSÃO ===== -->
+  <!-- Modal Denúncia Discussão -->
   <div class="modal-overlay" *ngIf="showReportDiscussionModal" (click)="closeReportDiscussionModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
-      
-      <!-- Header com ícone SVG -->
       <div class="modal-header">
         <div class="modal-header-left">
           <div class="modal-header-icon">
@@ -528,18 +498,13 @@
           </svg>
         </button>
       </div>
-      
-      <!-- Aviso -->
       <div class="report-warning">
         <div class="report-warning-content">
           <span class="report-warning-title">Denúncia anónima e confidencial</span>
-          <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação. O denunciante permanecerá anónimo.</span>
+          <span class="report-warning-text">Esta denúncia será analisada pela equipa de moderação.</span>
         </div>
       </div>
-      
       <div class="modal-body">
-        
-        <!-- Informação da Discussão -->
         <div class="report-info-card">
           <div class="report-info-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
@@ -550,21 +515,16 @@
           <div class="report-info-content">
             <div class="report-info-row">
               <span class="report-info-label">Discussão</span>
-              <span class="report-info-value">{{ discussion.title }}</span>
+              <span class="report-info-value">{{ discussionTitle }}</span>
             </div>
             <div class="report-info-row">
               <span class="report-info-label">Autor</span>
-              <span class="report-info-value">{{ discussion.author }}</span>
+              <span class="report-info-value">{{ discussionAuthor }}</span>
             </div>
           </div>
         </div>
-
-        <!-- Motivo -->
         <div class="form-group">
-          <label class="form-label">
-            Motivo da Denúncia
-            <span class="required">*</span>
-          </label>
+          <label class="form-label">Motivo da Denúncia <span class="required">*</span></label>
           <div class="select-wrapper">
             <select [(ngModel)]="reportDiscussionReason" class="form-input">
               <option value="">Selecione um motivo...</option>
@@ -583,28 +543,15 @@
             </div>
           </div>
         </div>
-
-        <!-- Descrição -->
         <div class="form-group">
           <label class="form-label">Descrição Detalhada</label>
-          <textarea [(ngModel)]="reportDiscussionDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo da denúncia..."></textarea>
+          <textarea [(ngModel)]="reportDiscussionDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo..."></textarea>
           <span class="form-hint">{{ reportDiscussionDescription.length || 0 }}/500 caracteres</span>
         </div>
       </div>
-      
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeReportDiscussionModal()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
-          Cancelar
-        </button>
-        <button class="btn-report" (click)="submitReportDiscussion()" [disabled]="!reportDiscussionReason">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L1 21h22L12 2z"/>
-          </svg>
-          Enviar Denúncia
-        </button>
+        <button class="btn-cancel" (click)="closeReportDiscussionModal()">Cancelar</button>
+        <button class="btn-report" (click)="submitReportDiscussion()" [disabled]="!reportDiscussionReason">Enviar Denúncia</button>
       </div>
     </div>
   </div>

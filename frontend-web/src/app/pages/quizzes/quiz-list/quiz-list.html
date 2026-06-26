@@ -11,17 +11,12 @@
         <p class="quizzes-subtitle">Teste os seus conhecimentos sobre a história económica de Angola</p>
       </div>
 
-      <!-- Loading -->
-      <div *ngIf="isLoading" style="text-align:center;padding:80px">
-        A carregar quizzes...
-      </div>
+     <!-- Erro (só aparece se houver erro, sem bloquear o resto) -->
+<div *ngIf="error" style="background:rgba(239,68,68,0.08);color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:24px;font-size:14px;border:1px solid rgba(239,68,68,0.15)">
+  {{ error }}
+</div>
 
-      <!-- Erro -->
-      <div *ngIf="error" style="text-align:center;padding:40px;color:red">
-        {{ error }}
-      </div>
-
-      <ng-container *ngIf="!isLoading && !error">
+<ng-container>
 
         <!-- User Level Card -->
         <div class="quizzes-level-card">

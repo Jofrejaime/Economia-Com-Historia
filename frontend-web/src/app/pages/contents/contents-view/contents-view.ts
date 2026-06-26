@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
@@ -14,8 +14,7 @@ import { AuthService } from '../../../services/auth.service';
   styleUrls: ['./contents-view.css']
 })
 export class ContentsViewComponent implements OnInit {
-  document: DocumentDetail | null = null;
-  isLoading = true;
+  doc: DocumentDetail | null = null;
   error: string | null = null;
   isAuthenticated = false;
 
@@ -23,7 +22,8 @@ export class ContentsViewComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private documentService: DocumentService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -33,72 +33,72 @@ export class ContentsViewComponent implements OnInit {
       this.router.navigate(['/contents']);
       return;
     }
-    await this.loadDocument(id);
+    this.loadDocument(id);
   }
 
-  async loadDocument(id: string): Promise<void> {
+  private async loadDocument(id: string): Promise<void> {
     try {
-      this.document = await this.documentService.getDocument(id);
+      this.doc = await this.documentService.getDocument(id);
     } catch (err: any) {
       this.error = err?.message ?? 'Erro ao carregar documento.';
     } finally {
-      this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
   async toggleLike(): Promise<void> {
-    if (!this.document || !this.isAuthenticated) return;
+    if (!this.doc || !this.isAuthenticated) return;
     try {
-      if (this.document.is_liked) {
-        await this.documentService.unlikeDocument(this.document.id);
-        this.document.is_liked = false;
-        this.document.likes_count--;
+      if (this.doc.is_liked) {
+        await this.documentService.unlikeDocument(this.doc.id);
+        this.doc.is_liked = false;
+        this.doc.likes_count--;
       } else {
-        await this.documentService.likeDocument(this.document.id);
-        this.document.is_liked = true;
-        this.document.likes_count++;
+        await this.documentService.likeDocument(this.doc.id);
+        this.doc.is_liked = true;
+        this.doc.likes_count++;
       }
+      this.cdr.detectChanges();
     } catch {}
   }
 
   async toggleFavorite(): Promise<void> {
-    if (!this.document || !this.isAuthenticated) return;
+    if (!this.doc || !this.isAuthenticated) return;
     try {
-      if (this.document.is_favorited) {
-        await this.documentService.unfavoriteDocument(this.document.id);
-        this.document.is_favorited = false;
+      if (this.doc.is_favorited) {
+        await this.documentService.unfavoriteDocument(this.doc.id);
+        this.doc.is_favorited = false;
       } else {
-        await this.documentService.favoriteDocument(this.document.id);
-        this.document.is_favorited = true;
+        await this.documentService.favoriteDocument(this.doc.id);
+        this.doc.is_favorited = true;
       }
+      this.cdr.detectChanges();
     } catch {}
   }
 
-async onDownload(): Promise<void> {
-  if (!this.document || !this.isAuthenticated) return;
-  try {
-    const pdfUrl = await this.documentService.downloadDocument(this.document.id);
-    const url = pdfUrl ?? this.document.pdf_url;
-    if (url) {
-      window.open(url, '_blank');
-    }
-  } catch {}
-}
+  async onDownload(): Promise<void> {
+    if (!this.doc || !this.isAuthenticated) return;
+    try {
+      const pdfUrl = await this.documentService.downloadDocument(this.doc.id);
+      const url = pdfUrl ?? this.doc.pdf_url;
+      if (url) window.open(url, '_blank');
+    } catch {}
+  }
 
   navigateTo(path: string): void {
     this.router.navigate([path]);
   }
 
   getDocumentImage(): string {
-    return this.document?.cover_image_url ?? 'assets/images/document-placeholder.jpg';
+    return this.doc?.cover_image_url ?? 'assets/images/document-placeholder.jpg';
   }
 
   getAcademicLevelLabel(): string {
-    switch (this.document?.academic_level) {
-      case 'intro': return 'Introdutório';
-      case 'advanced': return 'Investigação Avançada';
+    switch (this.doc?.academic_level) {
+      case 'intro':     return 'Introdutório';
+      case 'advanced':  return 'Investigação Avançada';
       case 'doctorate': return 'Arquivo de Doutoramento';
-      default: return '—';
+      default:          return '—';
     }
   }
 

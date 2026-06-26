@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,11 +7,7 @@ import { HeaderComponent } from '../../components/header/header';
 import { DocumentService, Document, DocumentCategory } from '../../services/document.service';
 
 type AccessCategory = 'all' | 'public' | 'jindungo' | 'restricted';
-
-interface AccessOption {
-  id: AccessCategory;
-  label: string;
-}
+interface AccessOption { id: AccessCategory; label: string; }
 
 @Component({
   selector: 'app-contents',
@@ -50,9 +46,9 @@ export class ContentsComponent implements OnInit, OnDestroy {
   ];
 
   levels = [
-    { id: 'intro',      label: 'Introdutório' },
-    { id: 'advanced',   label: 'Investigação Avançada' },
-    { id: 'doctorate',  label: 'Arquivo de Doutoramento' },
+    { id: 'intro',     label: 'Introdutório' },
+    { id: 'advanced',  label: 'Investigação Avançada' },
+    { id: 'doctorate', label: 'Arquivo de Doutoramento' },
   ];
 
   accessOptions: AccessOption[] = [
@@ -67,6 +63,7 @@ export class ContentsComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private documentService: DocumentService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -84,12 +81,15 @@ export class ContentsComponent implements OnInit, OnDestroy {
       this.themes = this.categories.map(c => c.name);
     } catch {
       this.themes = [];
+    } finally {
+      this.cdr.detectChanges();
     }
   }
 
   async loadDocuments(): Promise<void> {
     if (this.isLoading) return;
     this.isLoading = true;
+    this.cdr.detectChanges();
 
     try {
       const hasSearch = this.searchQuery.trim().length > 0;
@@ -116,12 +116,12 @@ export class ContentsComponent implements OnInit, OnDestroy {
 
       this.totalDocuments = this.displayedDocuments.length;
       this.hasMore = false;
-    } catch (err) {
-      console.error('Erro ao carregar documentos', err);
+    } catch {
       this.displayedDocuments = [];
       this.totalDocuments = 0;
     } finally {
       this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -130,7 +130,6 @@ export class ContentsComponent implements OnInit, OnDestroy {
     this.searchTimer = setTimeout(() => this.loadDocuments(), 400);
   }
 
-  // ===== FILTROS =====
   getAccessCategoryLabel(): string {
     return this.accessOptions.find(o => o.id === this.selectedAccessCategory)?.label ?? 'Todos os Documentos';
   }
@@ -188,20 +187,19 @@ export class ContentsComponent implements OnInit, OnDestroy {
     this.loadDocuments();
   }
 
-  // ===== BADGES =====
   getAccessLabel(accessLevelId: string): string {
     switch (accessLevelId) {
-      case 'jindungo':  return 'Jindungo';
+      case 'jindungo':   return 'Jindungo';
       case 'restricted': return 'Restrito';
-      default:          return 'Público';
+      default:           return 'Público';
     }
   }
 
   getAccessBadgeStyle(accessLevelId: string): { bg: string; text: string } {
     switch (accessLevelId) {
-      case 'jindungo':  return { bg: '#ffd6a5', text: '#4a2c00' };
+      case 'jindungo':   return { bg: '#ffd6a5', text: '#4a2c00' };
       case 'restricted': return { bg: '#ffb3ba', text: '#5c0011' };
-      default:          return { bg: '#d1fae5', text: '#065f46' };
+      default:           return { bg: '#d1fae5', text: '#065f46' };
     }
   }
 

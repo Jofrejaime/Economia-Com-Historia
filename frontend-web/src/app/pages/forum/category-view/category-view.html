@@ -60,7 +60,7 @@
       </div>
 
       <!-- Loading -->
-      <div *ngIf="isLoading" style="text-align:center;padding:60px">
+      <div *ngIf="categories.length === 0 && !error" style="text-align:center;padding:60px">
         A carregar categorias...
       </div>
 
@@ -70,7 +70,7 @@
       </div>
 
       <!-- Categories Grid -->
-      <div class="category-view-categories-grid" *ngIf="!isLoading && !error">
+      <div class="category-view-categories-grid" *ngIf="categories.length > 0">
         <div *ngFor="let category of categories" class="category-view-category-card">
           
           <!-- Category Card -->

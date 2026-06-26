@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
@@ -17,11 +17,10 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
   questions: QuizQuestion[] = [];
   currentIndex = 0;
   selectedOptionId: string | null = null;
-  isLoading = true;
+  isLoading = false;
   isSubmitting = false;
   error: string | null = null;
 
-  // Feedback de resposta
   answered = false;
   isCorrect = false;
   correctOptionId: string | null = null;
@@ -34,7 +33,8 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private quizService: QuizService
+    private quizService: QuizService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -46,16 +46,20 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.loadQuestions();
+  }
+
+  private async loadQuestions(): Promise<void> {
     try {
       this.questions = await this.quizService.getQuestions(this.quizId);
       if (this.questions.length === 0) {
         this.error = 'Este quiz não tem perguntas.';
       }
+      this.questionStartTime = Date.now();
     } catch {
       this.error = 'Erro ao carregar perguntas.';
     } finally {
-      this.isLoading = false;
-      this.questionStartTime = Date.now();
+      this.cdr.detectChanges();
     }
   }
 
@@ -80,18 +84,16 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
   }
 
   selectOption(optionId: string): void {
-    // Não permite trocar depois de responder
     if (!this.isSubmitting && !this.answered) {
       this.selectedOptionId = optionId;
+      this.cdr.detectChanges();
     }
   }
 
-  // Classe visual de cada opção após responder
   getOptionState(optionId: string): 'correct' | 'wrong' | 'selected' | 'normal' {
     if (!this.answered) {
       return this.selectedOptionId === optionId ? 'selected' : 'normal';
     }
-    // Já respondeu
     if (this.correctOptionId && optionId === this.correctOptionId) {
       return 'correct';
     }
@@ -101,31 +103,40 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
     return 'normal';
   }
 
-  // Primeiro clique em "Avançar" = submeter resposta e mostrar feedback
   async submitAnswer(): Promise<void> {
     if (!this.selectedOptionId || !this.question || this.isSubmitting || this.answered) return;
 
     this.isSubmitting = true;
+    this.cdr.detectChanges();
+
     const timeSpent = Math.round((Date.now() - this.questionStartTime) / 1000);
 
     try {
-      const res: any = await this.quizService.answerAttempt(
-        this.attemptId,
-        this.question.id,
-        this.selectedOptionId,
-        timeSpent
-      );
-      this.isCorrect = !!res?.is_correct;
-      this.correctOptionId = res?.correct_option_id ?? null;
-      this.answered = true;
-    } catch {
-      alert('Erro ao registar resposta. Tente novamente.');
-    } finally {
+  const res: any = await this.quizService.answerAttempt(
+    this.attemptId,
+    this.question.id,
+    this.selectedOptionId,
+    timeSpent
+  );
+  this.isCorrect = !!res?.is_correct;
+
+  if (this.isCorrect) {
+    // quando acerta, a opção seleccionada é a correcta
+    this.correctOptionId = this.selectedOptionId;
+  } else {
+    // quando erra, o backend pode (ou não) devolver a correcta
+    this.correctOptionId = res?.correct_option_id ?? null;
+  }
+
+  this.answered = true;
+} catch {
+  alert('Erro ao registar resposta. Tente novamente.');
+} finally {
       this.isSubmitting = false;
+      this.cdr.detectChanges();
     }
   }
 
-  // Segundo clique = avançar para a próxima pergunta (ou finalizar)
   async proceed(): Promise<void> {
     if (this.isLastQuestion) {
       await this.finishQuiz();
@@ -137,9 +148,9 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
     this.isCorrect = false;
     this.correctOptionId = null;
     this.questionStartTime = Date.now();
+    this.cdr.detectChanges();
   }
 
-  // Handler único do botão
   async handleNext(): Promise<void> {
     if (!this.answered) {
       await this.submitAnswer();
@@ -150,6 +161,7 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
 
   private async finishQuiz(): Promise<void> {
     this.isSubmitting = true;
+    this.cdr.detectChanges();
     try {
       await this.quizService.completeAttempt(this.attemptId);
       this.router.navigate(['/quiz/resultado'], {
@@ -158,10 +170,10 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
     } catch {
       alert('Erro ao finalizar quiz.');
       this.isSubmitting = false;
+      this.cdr.detectChanges();
     }
   }
 
-  // Texto do botão consoante o estado
   get buttonLabel(): string {
     if (this.isSubmitting) return 'Aguarde...';
     if (!this.answered) return 'Confirmar';

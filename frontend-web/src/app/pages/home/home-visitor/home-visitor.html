@@ -107,13 +107,8 @@
         <a (click)="navigateTo('/contents')" class="home-section-link">Ver todos →</a>
       </div>
 
-      <!-- Loading -->
-      <div *ngIf="isLoading" style="padding:40px;text-align:center;color:#9CA3AF">
-        A carregar conteúdos...
-      </div>
-
       <!-- Empty -->
-      <div *ngIf="!isLoading && featuredContents.length === 0" style="padding:40px;text-align:center;color:#9CA3AF">
+      <div  *ngIf="featuredContents.length === 0" style="padding:40px;text-align:center;color:#9CA3AF">
         Ainda não há conteúdos disponíveis.
       </div>
 
@@ -197,7 +192,7 @@
       </div>
 
       <!-- Loading -->
-      <div *ngIf="isLoading" style="padding:40px;text-align:center;color:#9CA3AF">
+      <div style="padding:40px;text-align:center;color:#9CA3AF">
         A carregar ranking...
       </div>
 

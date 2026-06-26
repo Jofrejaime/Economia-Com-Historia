@@ -4,17 +4,17 @@
 
   <main class="quiz-result-main">
 
-    <!-- Loading -->
-    <div *ngIf="isLoading" style="text-align:center;padding:80px">
-      A carregar resultado...
-    </div>
-
     <!-- Erro -->
-    <div *ngIf="error" style="text-align:center;padding:80px;color:red">
+    <div *ngIf="error" style="text-align:center;padding:80px;color:#991B1B">
       {{ error }}
     </div>
 
-    <ng-container *ngIf="!isLoading && !error && attempt">
+    <!-- Skeleton enquanto carrega -->
+    <div *ngIf="!attempt && !error" style="text-align:center;padding:80px;color:#9CA3AF;font-size:15px;font-family:'Source Sans 3',sans-serif">
+      A preparar resultado...
+    </div>
+
+    <ng-container *ngIf="attempt && !error">
       <div class="quiz-result-container">
         
         <!-- Success Banner -->
@@ -88,7 +88,7 @@
           </div>
         </div>
 
-        <!-- Question Review -->
+        <!-- Resumo -->
         <div class="quiz-result-review">
           <h2 class="quiz-result-review-title">Resumo</h2>
           <div class="quiz-result-review-grid">
@@ -114,6 +114,9 @@
           </button>
           <button (click)="nextQuiz()" class="btn-primary">
             Próximo Quizz →
+          </button>
+          <button (click)="goToRanking()" class="btn-primary">
+            Ir para o Ranking
           </button>
         </div>
 

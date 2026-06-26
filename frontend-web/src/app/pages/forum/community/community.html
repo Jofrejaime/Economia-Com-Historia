@@ -5,17 +5,12 @@
   <main style="flex: 1; width: 100%;">
     <div style="max-width: 1536px; margin: 0 auto; padding: 48px 48px;">
 
-      <!-- Loading -->
-      <div *ngIf="isLoading" style="text-align:center;padding:80px">
-        A carregar comunidade...
-      </div>
-
       <!-- Erro -->
       <div *ngIf="error" style="text-align:center;padding:40px;color:red">
         {{ error }}
       </div>
 
-      <ng-container *ngIf="!isLoading && !error">
+      <ng-container >
 
         <!-- Hero Section -->
         <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; margin-bottom: 64px; flex-wrap: wrap;">

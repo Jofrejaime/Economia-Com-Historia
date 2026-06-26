@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
@@ -18,48 +18,59 @@ export class QuizListComponent implements OnInit {
   featuredQuizzes: Quiz[] = [];
   quizzes: Quiz[] = [];
   topPlayers: LeaderboardEntry[] = [];
-  isLoading = true;
   error: string | null = null;
 
   userLevel = {
-    current: 0,
-    name: '—',
+    current: 1,
+    name: 'Investigador',
     points: 0,
-    nextLevel: 0,
+    nextLevel: 1000,
     progress: 0
   };
 
   constructor(
     private router: Router,
     private quizService: QuizService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
-    try {
-      const [quizzes, leaderboard] = await Promise.all([
-        this.quizService.getQuizzes(),
-        this.quizService.getNationalLeaderboard(),
-      ]);
+    const user = this.authService.getUser() as any;
+    if (user) {
+      this.userLevel = {
+        current: user.level ?? 1,
+        name: user.level_name ?? 'Investigador',
+        points: user.total_points ?? 0,
+        nextLevel: user.next_level_points ?? 1000,
+        progress: user.level_progress_pct ?? 0,
+      };
+      this.cdr.detectChanges();
+    }
 
+    this.loadQuizzes();
+    this.loadLeaderboard();
+  }
+
+  private async loadQuizzes(): Promise<void> {
+    try {
+      const quizzes = await this.quizService.getQuizzes();
       this.featuredQuizzes = quizzes.filter(q => q.is_featured);
       this.quizzes = quizzes.filter(q => !q.is_featured);
-      this.topPlayers = leaderboard.slice(0, 3);
-
-      const user = this.authService.getUser() as any;
-      if (user) {
-        this.userLevel = {
-          current: user.level ?? 1,
-          name: user.level_name ?? 'Investigador',
-          points: user.total_points ?? 0,
-          nextLevel: user.next_level_points ?? 1000,
-          progress: user.level_progress_pct ?? 0,
-        };
-      }
-    } catch (err: any) {
+      this.cdr.detectChanges();
+    } catch {
       this.error = 'Erro ao carregar quizzes.';
-    } finally {
-      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadLeaderboard(): Promise<void> {
+    try {
+      const leaderboard = await this.quizService.getNationalLeaderboard();
+      this.topPlayers = leaderboard.slice(0, 3);
+      this.cdr.detectChanges();
+    } catch {
+      // falha silenciosamente
     }
   }
 
@@ -83,7 +94,11 @@ export class QuizListComponent implements OnInit {
         queryParams: { quiz: quizId, attempt: attemptId }
       });
     } catch (err: any) {
-      alert('Erro ao iniciar quiz. Tente novamente.');
+      if (err?.status === 409) {
+        alert('Já tens uma tentativa em curso para este quiz. Completa-a primeiro.');
+      } else {
+        alert('Erro ao iniciar quiz. Tente novamente.');
+      }
     }
   }
 

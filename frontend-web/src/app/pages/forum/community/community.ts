@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -20,7 +20,6 @@ export class CommunityComponent implements OnInit {
   activeTab: TabType = 'recent';
   categories: CommunityCategory[] = [];
   discussions: DiscussionTopic[] = [];
-  isLoading = true;
   error: string | null = null;
 
   featuredResearches = [
@@ -31,10 +30,15 @@ export class CommunityComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private communityService: CommunityService
+    private communityService: CommunityService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.loadData();
+  }
+
+  private async loadData(): Promise<void> {
     try {
       const [categories, topics] = await Promise.all([
         this.communityService.getCategories(),
@@ -42,35 +46,25 @@ export class CommunityComponent implements OnInit {
       ]);
       this.categories = categories;
       this.discussions = topics;
-    } catch (err) {
+    } catch {
       this.error = 'Erro ao carregar a comunidade.';
     } finally {
-      this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
   get filteredDiscussions(): DiscussionTopic[] {
-    if (this.activeTab === 'pinned') {
-      return this.discussions.filter(d => d.is_pinned);
-    }
-    if (this.activeTab === 'popular') {
-      return [...this.discussions].sort((a, b) => b.views_count - a.views_count);
-    }
-    return [...this.discussions].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    if (this.activeTab === 'pinned') return this.discussions.filter(d => d.is_pinned);
+    if (this.activeTab === 'popular') return [...this.discussions].sort((a, b) => b.views_count - a.views_count);
+    return [...this.discussions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
-  get totalMembers(): number {
-    return this.categories.reduce((t, c) => t + c.members_count, 0);
-  }
-
-  get totalTopics(): number {
-    return this.categories.reduce((t, c) => t + c.topics_count, 0);
-  }
+  get totalMembers(): number { return this.categories.reduce((t, c) => t + c.members_count, 0); }
+  get totalTopics(): number { return this.categories.reduce((t, c) => t + c.topics_count, 0); }
 
   setActiveTab(tab: TabType): void {
     this.activeTab = tab;
+    this.cdr.detectChanges();
   }
 
   getAccessBadge(accessLevelId: string): { label: string; bg: string; text: string } {
@@ -100,17 +94,9 @@ export class CommunityComponent implements OnInit {
   }
 
   getCategoryColor(cat: CommunityCategory | null): { bg: string; text: string } {
-    return {
-      bg: cat?.color_bg ?? '#E5E7EB',
-      text: cat?.color_text ?? '#1F2937',
-    };
+    return { bg: cat?.color_bg ?? '#E5E7EB', text: cat?.color_text ?? '#1F2937' };
   }
 
-  navigateTo(path: string): void {
-    this.router.navigate([path]);
-  }
-
-  navigateToDiscussion(id: string): void {
-    this.router.navigate(['/forum/community/discussao', id]);
-  }
+  navigateTo(path: string): void { this.router.navigate([path]); }
+  navigateToDiscussion(id: string): void { this.router.navigate(['/forum/community/discussao', id]); }
 }

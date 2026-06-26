@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
@@ -15,13 +15,13 @@ import { QuizService, QuizAttempt } from '../../../services/quiz.service';
 export class QuizResultComponent implements OnInit {
 
   attempt: QuizAttempt | null = null;
-  isLoading = true;
   error: string | null = null;
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private quizService: QuizService
+    private quizService: QuizService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -30,13 +30,16 @@ export class QuizResultComponent implements OnInit {
       this.router.navigate(['/quiz']);
       return;
     }
+    this.loadResult(attemptId);
+  }
 
+  private async loadResult(attemptId: string): Promise<void> {
     try {
       this.attempt = await this.quizService.getAttempt(attemptId);
     } catch {
       this.error = 'Erro ao carregar resultado.';
     } finally {
-      this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -76,6 +79,10 @@ export class QuizResultComponent implements OnInit {
   }
 
   nextQuiz(): void {
-    this.router.navigate(['/quiz']);
+    this.router.navigate(['/quiz/pergunta']);
+  }
+
+  goToRanking(): void {
+    this.router.navigate(['/quiz/ranking']);
   }
 }

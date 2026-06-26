@@ -19,6 +19,27 @@ export interface CommunityCategory {
   topics_count: number;
 }
 
+// Adiciona ao community.service.ts existente
+
+export interface TopicReply {
+  id: string;
+  topic_id: string;
+  author_id: string;
+  parent_reply_id: string | null;
+  content: string;
+  is_accepted: boolean;
+  likes_count: number;
+  created_at: string;
+  updated_at: string;
+  author: TopicAuthor | null;
+  is_liked?: boolean;
+}
+
+export interface TopicDetail extends DiscussionTopic {
+  is_liked?: boolean;
+  is_following?: boolean;
+}
+
 export interface TopicAuthor {
   id: string;
   display_name: string;
@@ -74,4 +95,69 @@ export class CommunityService {
     );
     return res.data;
   }
+
+  async getTopic(id: string): Promise<TopicDetail> {
+  const res = await firstValueFrom(
+    this.http.get<{ data: TopicDetail }>(`${this.base}/topics/${id}`, {
+      headers: this.headers,
+    })
+  );
+  return res.data;
+}
+
+async getReplies(topicId: string): Promise<TopicReply[]> {
+  const res = await firstValueFrom(
+    this.http.get<{ data: TopicReply[] }>(`${this.base}/topics/${topicId}/replies`, {
+      headers: this.headers,
+    })
+  );
+  return res.data;
+}
+
+async postReply(topicId: string, content: string, parentReplyId?: string): Promise<TopicReply> {
+  const body: any = { content };
+  if (parentReplyId) body.parent_reply_id = parentReplyId;
+  const res = await firstValueFrom(
+    this.http.post<{ data: TopicReply }>(`${this.base}/topics/${topicId}/replies`, body, {
+      headers: this.headers,
+    })
+  );
+  return res.data;
+}
+
+async likeTopic(topicId: string): Promise<void> {
+  await firstValueFrom(
+    this.http.post(`${this.base}/topics/${topicId}/like`, {}, { headers: this.headers })
+  );
+}
+
+async unlikeTopic(topicId: string): Promise<void> {
+  await firstValueFrom(
+    this.http.delete(`${this.base}/topics/${topicId}/like`, { headers: this.headers })
+  );
+}
+
+async likeReply(replyId: string): Promise<void> {
+  await firstValueFrom(
+    this.http.post(`${this.base}/replies/${replyId}/like`, {}, { headers: this.headers })
+  );
+}
+
+async unlikeReply(replyId: string): Promise<void> {
+  await firstValueFrom(
+    this.http.delete(`${this.base}/replies/${replyId}/like`, { headers: this.headers })
+  );
+}
+
+async deleteTopic(topicId: string): Promise<void> {
+  await firstValueFrom(
+    this.http.delete(`${this.base}/topics/${topicId}`, { headers: this.headers })
+  );
+}
+
+async deleteReply(replyId: string): Promise<void> {
+  await firstValueFrom(
+    this.http.delete(`${this.base}/replies/${replyId}`, { headers: this.headers })
+  );
+}
 }

@@ -6,7 +6,7 @@
     <div class="category-detail-container">
 
       <!-- Loading -->
-      <div *ngIf="isLoading" style="text-align:center;padding:80px">
+      <div *ngIf="!category && !error" style="text-align:center;padding:80px">
         A carregar categoria...
       </div>
 
@@ -15,7 +15,7 @@
         {{ error }}
       </div>
 
-      <ng-container *ngIf="!isLoading && !error">
+      <ng-container *ngIf="category && !error">
 
         <!-- Breadcrumb -->
         <nav class="category-detail-breadcrumb">

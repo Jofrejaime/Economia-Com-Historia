@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -18,21 +18,25 @@ export class RankingComponent implements OnInit {
   searchTerm = '';
   selectedProvince = '';
   players: LeaderboardEntry[] = [];
-  isLoading = true;
   error: string | null = null;
 
   constructor(
     private router: Router,
-    private quizService: QuizService
+    private quizService: QuizService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.loadRanking();
+  }
+
+  private async loadRanking(): Promise<void> {
     try {
       this.players = await this.quizService.getNationalLeaderboard();
     } catch {
       this.error = 'Erro ao carregar ranking.';
     } finally {
-      this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 

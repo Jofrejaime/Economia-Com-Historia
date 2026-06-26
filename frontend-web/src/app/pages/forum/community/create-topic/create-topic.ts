@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -48,7 +48,8 @@ export class CreateTopicComponent implements OnInit {
     private router: Router,
     private communityService: CommunityService,
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -58,6 +59,7 @@ export class CreateTopicComponent implements OnInit {
       this.categories = [];
     } finally {
       this.isLoadingCategories = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -143,6 +145,7 @@ export class CreateTopicComponent implements OnInit {
       alert(msg);
     } finally {
       this.isSubmitting = false;
+      this.cdr.detectChanges();
     }
   }
 
