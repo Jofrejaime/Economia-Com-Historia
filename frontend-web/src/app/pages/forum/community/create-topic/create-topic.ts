@@ -1,23 +1,24 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { debounceTime, distinctUntilChanged, firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { HeaderComponent } from '../../../../components/header/header';
 import { FooterComponent } from '../../../../components/footer/footer';
+import {
+  CommunityCategory,
+  CreateTopicPayload,
+  TopicMemberPayload,
+  UserLookupResult,
+} from '../../../../models/community.models';
+import { CommunityService } from '../../../../services/community.service';
 
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  color: { bg: string; text: string };
-}
+type TopicVisibility = 'PUBLIC' | 'RESTRICTED' | 'PRIVATE';
+type MemberRole = 'member' | 'moderator';
 
-interface Participant {
-  id: string;
-  name: string;
-  email: string;
-  initials: string;
-  avatarColor: string;
+interface SelectedMember {
+  user: UserLookupResult;
+  role: MemberRole;
 }
 
 @Component({
@@ -27,109 +28,174 @@ interface Participant {
   templateUrl: './create-topic.html',
   styleUrls: ['./create-topic.css']
 })
-export class CreateTopicComponent {
+export class CreateTopicComponent implements OnDestroy {
   title = '';
   selectedCategory = '';
   content = '';
   showPreview = false;
-  topicPrivacy: 'public' | 'private' = 'public';
-  selectedParticipants: string[] = [];
-  participantSearch = '';
-  errors: { title?: string; category?: string; content?: string; participants?: string } = {};
+  visibility: TopicVisibility = 'RESTRICTED';
+  selectedMembers: SelectedMember[] = [];
+  memberSearch = '';
+  memberSearchLoading = false;
+  memberSearchError: string | null = null;
+  memberSearchResults: UserLookupResult[] = [];
+  canSearchUsers = false;
+  private readonly memberSearchInput$ = new Subject<string>();
+  private readonly destroy$ = new Subject<void>();
+  submitting = false;
+  message: string | null = null;
+  errors: { title?: string; category?: string; content?: string; members?: string } = {};
 
-  categories: Category[] = [
-    {
-      id: 'policy-analysis',
-      name: 'Análise de Políticas',
-      description: 'Discussões sobre políticas económicas e fiscais',
-      color: { bg: '#acf0e0', text: '#003a32' },
-    },
-    {
-      id: 'trade-routes',
-      name: 'Rotas Comerciais',
-      description: 'História e impacto das rotas comerciais',
-      color: { bg: '#ffd6a5', text: '#4a2c00' },
-    },
-    {
-      id: 'fiscal-history',
-      name: 'História Fiscal',
-      description: 'Evolução dos sistemas fiscais angolanos',
-      color: { bg: '#d4c5f9', text: '#2d1b69' },
-    },
-    {
-      id: 'monetary-system',
-      name: 'Sistema Monetário',
-      description: 'Desenvolvimento e reformas monetárias',
-      color: { bg: '#ffb3ba', text: '#5c0011' },
-    },
-    {
-      id: 'banking',
-      name: 'Sistema Bancário',
-      description: 'Instituições bancárias e regulação',
-      color: { bg: '#bae1ff', text: '#003a5d' },
-    },
-    {
-      id: 'sources',
-      name: 'Fontes e Arquivos',
-      description: 'Partilha de fontes primárias e documentação',
-      color: { bg: '#c7ceea', text: '#1e2952' },
-    },
-  ];
+  categories: CommunityCategory[] = [];
 
-  // Lista de participantes disponíveis (mock)
-  allParticipants: Participant[] = [
-    { id: '1', name: 'Ana Silva', email: 'ana.silva@universidade.ao', initials: 'AS', avatarColor: '#8B1E2D' },
-    { id: '2', name: 'Carlos Santos', email: 'carlos.santos@universidade.ao', initials: 'CS', avatarColor: '#1F2937' },
-    { id: '3', name: 'Maria Costa', email: 'maria.costa@universidade.ao', initials: 'MC', avatarColor: '#9CA3AF' },
-    { id: '4', name: 'João Mendes', email: 'joao.mendes@universidade.ao', initials: 'JM', avatarColor: '#8B1E2D' },
-    { id: '5', name: 'Paula Ferreira', email: 'paula.ferreira@universidade.ao', initials: 'PF', avatarColor: '#1F2937' },
-    { id: '6', name: 'Miguel Rodrigues', email: 'miguel.rodrigues@universidade.ao', initials: 'MR', avatarColor: '#9CA3AF' },
-  ];
+  constructor(
+    private router: Router,
+    private communityService: CommunityService,
+  ) {}
 
-  filteredParticipants: Participant[] = [...this.allParticipants];
+  async ngOnInit(): Promise<void> {
+    await this.loadCategories();
+    this.loadDraft();
 
-  constructor(private router: Router) {}
+    this.canSearchUsers = true;
 
-  get selectedCategoryData(): Category | undefined {
-    return this.categories.find(cat => cat.id === this.selectedCategory);
+    this.memberSearchInput$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((value) => {
+        void this.performMemberSearch(value);
+      });
   }
 
-  // ===== FILTRO DE PARTICIPANTES =====
-  filterParticipants(): void {
-    const search = this.participantSearch.toLowerCase().trim();
-    if (!search) {
-      this.filteredParticipants = [...this.allParticipants];
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.memberSearchInput$.complete();
+  }
+
+  get selectedCategoryData(): CommunityCategory | undefined {
+    return this.categories.find((category) => category.id === this.selectedCategory);
+  }
+
+  get selectedMemberCount(): number {
+    return this.selectedMembers.length;
+  }
+
+  get visibilityLabel(): string {
+    switch (this.visibility) {
+      case 'PUBLIC':
+        return 'Público';
+      case 'PRIVATE':
+        return 'Privado';
+      default:
+        return 'Restrito à Categoria';
+    }
+  }
+
+  async loadCategories(): Promise<void> {
+    const result = await firstValueFrom(this.communityService.getCategories());
+
+    if (result.ok && result.data) {
+      this.categories = result.data;
       return;
     }
-    this.filteredParticipants = this.allParticipants.filter(p => 
-      p.name.toLowerCase().includes(search) || 
-      p.email.toLowerCase().includes(search)
-    );
+
+    this.message = result.message || 'Não foi possível carregar as categorias.';
   }
 
-  toggleParticipant(id: string): void {
-    const index = this.selectedParticipants.indexOf(id);
-    if (index === -1) {
-      this.selectedParticipants.push(id);
-    } else {
-      this.selectedParticipants.splice(index, 1);
+  setVisibility(visibility: TopicVisibility): void {
+    this.visibility = visibility;
+
+    if (visibility !== 'PRIVATE') {
+      this.selectedMembers = [];
+      this.memberSearchResults = [];
+      this.memberSearchError = null;
+      this.memberSearch = '';
     }
   }
 
-  isParticipantSelected(id: string): boolean {
-    return this.selectedParticipants.includes(id);
+  async searchMembers(): Promise<void> {
+    this.memberSearchInput$.next(this.memberSearch);
   }
 
-  // ===== VALIDAÇÃO =====
+  onMemberSearchInput(value: string): void {
+    this.memberSearch = value;
+    this.memberSearchInput$.next(value);
+  }
+
+  private async performMemberSearch(searchValue: string): Promise<void> {
+    this.memberSearchError = null;
+
+    if (this.visibility !== 'PRIVATE') {
+      this.memberSearchResults = [];
+      return;
+    }
+
+    if (!this.canSearchUsers) {
+      this.memberSearchError = 'A API atual não expõe pesquisa pública de utilizadores. Registe esta pendência antes de usar convites avançados.';
+      return;
+    }
+
+    const search = searchValue.trim();
+
+    if (search.length < 2) {
+      this.memberSearchResults = [];
+      return;
+    }
+
+    this.memberSearchLoading = true;
+    const result = await firstValueFrom(this.communityService.searchUsers(search, 10));
+    this.memberSearchLoading = false;
+
+    if (!result.ok || !result.data) {
+      this.memberSearchResults = [];
+      this.memberSearchError = result.message || 'Não foi possível pesquisar utilizadores.';
+      return;
+    }
+
+    const selectedIds = new Set(this.selectedMembers.map((member) => member.user.id));
+    this.memberSearchResults = result.data.filter((user) => !selectedIds.has(user.id));
+  }
+
+  addMember(user: UserLookupResult): void {
+    if (this.selectedMembers.some((member) => member.user.id === user.id)) {
+      return;
+    }
+
+    this.selectedMembers.push({ user, role: 'member' });
+    this.memberSearchResults = this.memberSearchResults.filter((candidate) => candidate.id !== user.id);
+    this.memberSearch = '';
+    this.memberSearchError = null;
+  }
+
+  removeMember(userId: string): void {
+    this.selectedMembers = this.selectedMembers.filter((member) => member.user.id !== userId);
+  }
+
+  updateMemberRole(userId: string, role: MemberRole): void {
+    const member = this.selectedMembers.find((item) => item.user.id === userId);
+
+    if (member) {
+      member.role = role;
+    }
+  }
+
+  togglePreview(): void {
+    this.showPreview = !this.showPreview;
+  }
+
   validate(): boolean {
-    const newErrors: { title?: string; category?: string; content?: string; participants?: string } = {};
+    const newErrors: { title?: string; category?: string; content?: string; members?: string } = {};
 
     if (!this.title.trim()) {
       newErrors.title = 'O título é obrigatório';
     } else if (this.title.length < 10) {
       newErrors.title = 'O título deve ter pelo menos 10 caracteres';
-    } else if (this.title.length > 150) {
-      newErrors.title = 'O título não pode exceder 150 caracteres';
+    } else if (this.title.length > 255) {
+      newErrors.title = 'O título não pode exceder 255 caracteres';
     }
 
     if (!this.selectedCategory) {
@@ -139,82 +205,108 @@ export class CreateTopicComponent {
     if (!this.content.trim()) {
       newErrors.content = 'O conteúdo é obrigatório';
     } else if (this.content.length < 50) {
-      newErrors.content = 'O conteúdo deve ter pelo menos 50 caracteres para uma discussão significativa';
+      newErrors.content = 'O conteúdo deve ter pelo menos 50 caracteres';
     }
 
-    if (this.topicPrivacy === 'private' && this.selectedParticipants.length === 0) {
-      newErrors.participants = 'Selecione pelo menos um participante para um tópico privado';
+    if (this.visibility === 'PRIVATE' && this.selectedMembers.length === 0) {
+      newErrors.members = 'Adicione pelo menos um membro para um tópico privado';
     }
 
     this.errors = newErrors;
     return Object.keys(newErrors).length === 0;
   }
 
-  // ===== SUBMISSÃO =====
-  handleSubmit(event: Event): void {
+  async handleSubmit(event: Event): Promise<void> {
     event.preventDefault();
-    if (this.validate()) {
-      console.log({
-        title: this.title,
-        category: this.selectedCategory,
-        content: this.content,
-        privacy: this.topicPrivacy,
-        participants: this.topicPrivacy === 'private' ? this.selectedParticipants : []
-      });
-      this.router.navigate(['/forum/community/discussao']);
+
+    if (!this.validate()) {
+      return;
     }
+
+    this.submitting = true;
+    this.message = null;
+
+    const payload: CreateTopicPayload = {
+      category_id: this.selectedCategory,
+      title: this.title.trim(),
+      content: this.content.trim(),
+      visibility: this.visibility,
+    };
+
+    if (this.visibility === 'PRIVATE') {
+      const members: TopicMemberPayload[] = this.selectedMembers.map((member) => ({
+        user_id: member.user.id,
+        role: member.role,
+      }));
+      payload.members = members;
+      payload.member_ids = members.map((member) => member.user_id);
+    }
+
+    const result = await firstValueFrom(this.communityService.createTopic(payload));
+    this.submitting = false;
+
+    if (!result.ok || !result.data) {
+      this.message = result.message || 'Não foi possível criar o tópico.';
+      return;
+    }
+
+    this.clearDraft();
+    await this.router.navigate(['/forum/community/discussao', result.data.id]);
   }
 
-  // ===== GUARDAR RASCUNHO =====
   saveDraft(): void {
-    if (this.title.trim() || this.content.trim() || this.selectedCategory) {
-      const draft = {
-        title: this.title,
-        category: this.selectedCategory,
-        content: this.content,
-        privacy: this.topicPrivacy,
-        participants: this.selectedParticipants,
-        savedAt: new Date().toISOString()
-      };
-      console.log('Rascunho salvo:', draft);
-      
-      // Salvar no localStorage
-      try {
-        localStorage.setItem('topicDraft', JSON.stringify(draft));
-        alert('Rascunho guardado com sucesso!');
-      } catch (e) {
-        alert('Rascunho guardado com sucesso!');
-      }
-    } else {
-      alert('Não há conteúdo para guardar como rascunho.');
+    if (!this.title.trim() && !this.content.trim() && !this.selectedCategory) {
+      this.message = 'Não há conteúdo para guardar como rascunho.';
+      return;
     }
+
+    const draft = {
+      title: this.title,
+      category: this.selectedCategory,
+      content: this.content,
+      visibility: this.visibility,
+      members: this.selectedMembers.map((member) => ({
+        user: member.user,
+        role: member.role,
+      })),
+      savedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem('topicDraft', JSON.stringify(draft));
+    this.message = 'Rascunho guardado com sucesso.';
   }
 
-  // ===== CARREGAR RASCUNHO (opcional) =====
   loadDraft(): void {
+    const draft = localStorage.getItem('topicDraft');
+
+    if (!draft) {
+      return;
+    }
+
     try {
-      const draft = localStorage.getItem('topicDraft');
-      if (draft) {
-        const data = JSON.parse(draft);
-        this.title = data.title || '';
-        this.selectedCategory = data.category || '';
-        this.content = data.content || '';
-        this.topicPrivacy = data.privacy || 'public';
-        this.selectedParticipants = data.participants || [];
-      }
-    } catch (e) {
-      // Ignorar erro
+      const data = JSON.parse(draft) as {
+        title?: string;
+        category?: string;
+        content?: string;
+        visibility?: TopicVisibility;
+        members?: SelectedMember[];
+      };
+
+      this.title = data.title || '';
+      this.selectedCategory = data.category || '';
+      this.content = data.content || '';
+      this.visibility = data.visibility || 'RESTRICTED';
+      this.selectedMembers = Array.isArray(data.members) ? data.members : [];
+    } catch {
+      this.clearDraft();
     }
   }
 
-  // ===== NAVEGAÇÃO =====
+  clearDraft(): void {
+    localStorage.removeItem('topicDraft');
+  }
+
   navigateTo(path: string): void {
     this.router.navigate([path]);
-  }
-
-  // ===== LIFECYCLE =====
-  ngOnInit(): void {
-    this.loadDraft();
-    this.filteredParticipants = [...this.allParticipants];
   }
 }

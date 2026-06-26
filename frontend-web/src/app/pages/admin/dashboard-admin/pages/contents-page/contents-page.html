@@ -1,415 +1,352 @@
 <div class="contents-container">
-  
-  <!-- Page Header -->
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Conteúdos</h1>
-      <p class="page-subtitle">Gestão de documentos, artigos, imagens, áudios e vídeos do arquivo.</p>
-    </div>
-    <button class="btn-primary" (click)="openAddContentModal()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Novo Conteúdo
-    </button>
+  <div *ngIf="loading" class="empty-state banner banner-info">
+    <p>A carregar documentos...</p>
   </div>
 
-  <!-- Stats Cards - TODOS BORDEAUX -->
+  <div *ngIf="errorMessage" class="empty-state banner banner-error">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="successMessage" class="empty-state banner banner-success">
+    <p>{{ successMessage }}</p>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Documentos</h1>
+      <p class="page-subtitle">Gestão real de documentos com estados do backend: draft, published e archived.</p>
+    </div>
+
+    <div class="page-actions">
+      <button class="btn-secondary" type="button" (click)="goToReports()">Ver denúncias</button>
+      <button class="btn-primary" type="button" (click)="refreshDocuments()">Actualizar</button>
+    </div>
+  </div>
+
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">📄</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">📄</span></div>
       <div>
         <p class="stat-label">TOTAL</p>
         <p class="stat-number">{{ getStats().total }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">✓</span>
-      </div>
-      <div>
-        <p class="stat-label">PUBLICADOS</p>
-        <p class="stat-number">{{ getStats().published }}</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">📝</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">📝</span></div>
       <div>
         <p class="stat-label">RASCUNHOS</p>
         <p class="stat-number">{{ getStats().draft }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">
-        <span class="stat-icon-emoji">🔄</span>
-      </div>
+      <div class="stat-icon"><span class="stat-icon-emoji">✓</span></div>
       <div>
-        <p class="stat-label">EM REVISÃO</p>
-        <p class="stat-number">{{ getStats().review }}</p>
+        <p class="stat-label">PUBLICADOS</p>
+        <p class="stat-number">{{ getStats().published }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span class="stat-icon-emoji">🗂️</span></div>
+      <div>
+        <p class="stat-label">ARQUIVADOS</p>
+        <p class="stat-number">{{ getStats().archived }}</p>
       </div>
     </div>
   </div>
 
-  <!-- Filters -->
   <div class="filters-bar">
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar por título, autor ou descrição..." class="search-input">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()"
+        placeholder="Pesquisar por título, resumo, conteúdo ou categoria..."
+        class="search-input"
+      />
     </div>
+
     <div class="filter-select">
-      <select [(ngModel)]="filterStatus" class="select">
-        <option value="todos">Todos os status</option>
-        <option value="published">✓ Publicado</option>
-        <option value="draft">📝 Rascunho</option>
-        <option value="review">🔄 Em Revisão</option>
+      <select [(ngModel)]="filterStatus" class="select" (ngModelChange)="onFilterChange()">
+        <option value="todos">Todos os estados</option>
+        <option value="draft">Rascunho</option>
+        <option value="published">Publicado</option>
+        <option value="archived">Arquivado</option>
       </select>
     </div>
+
     <div class="filter-select">
-      <select [(ngModel)]="filterCategory" class="select">
+      <select [(ngModel)]="filterCategory" class="select" (ngModelChange)="onFilterChange()">
         <option value="todos">Todas as categorias</option>
-        <option *ngFor="let cat of getCategories()" [value]="cat">{{ cat }}</option>
+        <option *ngFor="let category of getCategoryOptions()" [value]="category.id">
+          {{ category.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-select">
+      <input
+        type="text"
+        [(ngModel)]="filterAuthor"
+        (ngModelChange)="currentPage = 1"
+        placeholder="Filtrar por autor..."
+        class="search-input search-input--compact"
+      />
+    </div>
+
+    <div class="filter-select">
+      <select [(ngModel)]="pageSize" class="select" (ngModelChange)="onPageSizeChange($event)">
+        <option *ngFor="let size of pageSizeOptions" [ngValue]="size">
+          {{ size }} por página
+        </option>
       </select>
     </div>
   </div>
 
-  <!-- Contents Table -->
   <div class="table-wrapper">
     <table class="contents-table">
       <thead>
         <tr>
           <th>Título</th>
-          <th>Tipo</th>
-          <th>Média</th>
           <th>Categoria</th>
           <th>Autor</th>
+          <th>Estado</th>
+          <th>Views</th>
+          <th>Likes</th>
+          <th>Downloads</th>
           <th>Data</th>
-          <th>Status</th>
-          <th>Visualizações</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngIf="filteredContents.length === 0">
-          <td colspan="9" class="empty-row">Nenhum conteúdo encontrado</td>
+        <tr *ngIf="!loading && filteredDocuments.length === 0">
+          <td colspan="9" class="empty-row">Nenhum documento encontrado.</td>
         </tr>
-        <tr *ngFor="let content of filteredContents">
+        <tr *ngFor="let document of pagedDocuments">
           <td class="title-cell">
             <div class="title-content">
-              <div class="title-row">
-                <span class="title-text">{{ content.title }}</span>
-                <div *ngIf="content.cover_image_url" class="has-media-badge">📷</div>
-              </div>
-              <div class="title-tags" *ngIf="content.tags && content.tags.length">
-                <span *ngFor="let tag of content.tags.slice(0,2)" class="tag-badge">{{ tag }}</span>
-                <span *ngIf="content.tags.length > 2" class="tag-badge">+{{ content.tags.length - 2 }}</span>
-              </div>
+              <span class="title-text">{{ document.title }}</span>
+              <span class="title-tags" *ngIf="document.summary">{{ document.summary }}</span>
             </div>
           </td>
-          <td class="type-cell">{{ content.document_type }}</td>
-          <td class="media-cell">
-            <div class="media-icons">
-              <span *ngIf="content.mediaFiles?.some(m => m.type === 'image')" class="media-icon" title="Imagens">🖼️</span>
-              <span *ngIf="content.mediaFiles?.some(m => m.type === 'audio')" class="media-icon" title="Áudios">🎵</span>
-              <span *ngIf="content.mediaFiles?.some(m => m.type === 'video')" class="media-icon" title="Vídeos">🎬</span>
-              <span *ngIf="!content.mediaFiles?.length" class="media-icon empty">—</span>
-            </div>
-          </td>
-          <td class="category-cell">{{ content.category_name || content.category_id }}</td>
-          <td class="author-cell">{{ content.author }}</td>
-          <td class="date-cell">{{ content.publication_date || content.created_at | date:'dd MMM yyyy' }}</td>
+          <td class="category-cell">{{ document.category_name }}</td>
+          <td class="author-cell">{{ document.author_name }}</td>
           <td>
             <span class="status-badge">
-              {{ getStatusIcon(content.status) }} {{ getStatusLabel(content.status) }}
+              {{ getStatusIcon(document.status) }} {{ getStatusLabel(document.status) }}
             </span>
           </td>
-          <td class="views-cell">{{ content.views_count | number }}</td>
+          <td class="views-cell">{{ document.views_count | number }}</td>
+          <td class="views-cell">{{ document.likes_count | number }}</td>
+          <td class="views-cell">{{ document.downloads_count | number }}</td>
+          <td class="date-cell">{{ (document.published_at || document.updated_at) | date:'dd MMM yyyy' }}</td>
           <td class="actions-cell">
-            <button class="action-btn" (click)="openEditContentModal(content)" title="Editar">✏️</button>
-            <button *ngIf="content.status !== 'published'" class="action-btn" (click)="publishContent(content.id)" title="Publicar">📤</button>
-            <button *ngIf="content.status === 'published'" class="action-btn" (click)="archiveContent(content.id)" title="Arquivar">📥</button>
-            <button class="action-btn" (click)="deleteContent(content.id)" title="Eliminar">🗑️</button>
+            <button class="action-btn" type="button" (click)="openDocument(document, 'view')">Ver</button>
+            <button class="action-btn" type="button" (click)="openDocument(document, 'edit')">Editar</button>
+            <button class="action-btn action-btn-danger" type="button" (click)="deleteDocument(document)">Eliminar</button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Modal de Criar/Editar Conteúdo -->
-  <div class="modal-overlay" *ngIf="showContentModal" (click)="closeContentModal()">
-    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>{{ editingContent ? 'Editar Conteúdo' : 'Novo Conteúdo' }}</h2>
-        <button class="modal-close" (click)="closeContentModal()">✕</button>
-      </div>
-      
-      <div class="modal-body">
-        <!-- Tabs -->
-        <div class="form-tabs">
-          <button class="form-tab" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">📝 Informações</button>
-          <button class="form-tab" [class.active]="activeTab === 'media'" (click)="activeTab = 'media'">🖼️ Multimédia ({{ contentForm.mediaFiles?.length || 0 }})</button>
-        </div>
-        
-        <!-- Informações Gerais -->
-        <div *ngIf="activeTab === 'info'" class="tab-pane">
-          <div class="form-group">
-            <label>Título <span class="required">*</span></label>
-            <input type="text" [(ngModel)]="contentForm.title" class="form-input" placeholder="Ex: O Ciclo do Café em Angola">
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>Tipo de Conteúdo</label>
-              <select [(ngModel)]="contentForm.document_type" class="form-input">
-                <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Categoria</label>
-              <select [(ngModel)]="contentForm.category_id" class="form-input">
-                <option [value]="null">Sem categoria</option>
-                <option *ngFor="let cat of categoriesList" [value]="cat.id">{{ cat.name }}</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>Autor <span class="required">*</span></label>
-              <input type="text" [(ngModel)]="contentForm.author" class="form-input" placeholder="Nome do autor">
-            </div>
-            <div class="form-group">
-              <label>Instituição</label>
-              <input type="text" [(ngModel)]="contentForm.institution" class="form-input" placeholder="Instituição do autor">
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>Data de Publicação</label>
-              <input type="date" [(ngModel)]="contentForm.publication_date" class="form-input">
-            </div>
-            <div class="form-group">
-              <label>Nível Académico</label>
-              <select [(ngModel)]="contentForm.academic_level" class="form-input">
-                <option value="intro">Introdução</option>
-                <option value="intermediate">Intermédio</option>
-                <option value="advanced">Avançado</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>Período (início)</label>
-              <input type="number" [(ngModel)]="contentForm.period_start" class="form-input" placeholder="Ano início">
-            </div>
-            <div class="form-group">
-              <label>Período (fim)</label>
-              <input type="number" [(ngModel)]="contentForm.period_end" class="form-input" placeholder="Ano fim">
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>Status</label>
-              <select [(ngModel)]="contentForm.status" class="form-input">
-                <option value="published">✓ Publicado</option>
-                <option value="draft">📝 Rascunho</option>
-                <option value="review">🔄 Em Revisão</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Nível de Acesso</label>
-              <select [(ngModel)]="contentForm.access_level_id" class="form-input">
-                <option value="public">🌐 Público</option>
-                <option value="jindungo">🔥 Jindungo</option>
-                <option value="restricted">🔒 Restrito</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>URL do PDF</label>
-              <input type="text" [(ngModel)]="contentForm.pdf_url" class="form-input" placeholder="https://...">
-            </div>
-            <div class="form-group">
-              <label>Localização Física</label>
-              <input type="text" [(ngModel)]="contentForm.physical_location" class="form-input" placeholder="Arquivo Central, Prateleira 3">
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>ID Único</label>
-              <input type="text" [(ngModel)]="contentForm.unique_id" class="form-input" placeholder="Ex: DOC-2024-001">
-            </div>
-            <div class="form-group">
-              <label>Tipo de Registo</label>
-              <input type="text" [(ngModel)]="contentForm.record_type" class="form-input" placeholder="Ex: Carta, Relatório, Decreto">
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Resumo <span class="required">*</span></label>
-            <textarea [(ngModel)]="contentForm.summary" rows="3" class="form-input" placeholder="Resumo do conteúdo..."></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>Conteúdo Completo</label>
-            <textarea [(ngModel)]="contentForm.content" rows="5" class="form-input" placeholder="Texto completo do documento..."></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>Tags</label>
-            <div class="tags-input">
-              <div class="tags-list">
-                <span *ngFor="let tag of contentForm.tags" class="tag-item">
-                  {{ tag }}
-                  <button type="button" class="tag-remove" (click)="removeTag(tag)">×</button>
-                </span>
-                <input type="text" [(ngModel)]="newTag" (keyup.enter)="addTag()" placeholder="Adicionar tag..." class="tag-input">
-              </div>
-            </div>
-            <div class="suggested-tags">
-              <span class="suggested-label">Sugestões:</span>
-              <span *ngFor="let tag of tagOptions" class="suggested-tag" (click)="selectTag(tag)">{{ tag }}</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Multimédia -->
-        <div *ngIf="activeTab === 'media'" class="tab-pane">
-          <!-- Media Gallery -->
-          <div class="media-gallery" *ngIf="contentForm.mediaFiles && contentForm.mediaFiles.length > 0">
-            <div class="media-section-title">Ficheiros Multimédia</div>
-            <div class="media-grid">
-              <div *ngFor="let media of contentForm.mediaFiles; let i = index" class="media-card">
-                <div class="media-preview">
-                  <div *ngIf="media.type === 'image'" class="media-image">
-                    <img [src]="media.url" [alt]="media.name" class="preview-img">
-                  </div>
-                  <div *ngIf="media.type === 'audio'" class="media-audio">
-                    <div class="media-placeholder">🎵</div>
-                    <audio controls [src]="media.url" class="audio-player"></audio>
-                  </div>
-                  <div *ngIf="media.type === 'video'" class="media-video">
-                    <video controls [src]="media.url" class="video-player"></video>
-                  </div>
-                </div>
-                <div class="media-info">
-                  <span class="media-name">{{ media.name }}</span>
-                  <span class="media-type">{{ getMediaIcon(media.type) }}</span>
-                </div>
-                <div class="media-actions">
-                  <button class="media-btn" (click)="setFeaturedImage(media.url)" title="Definir como imagem destacada">⭐</button>
-                  <button class="media-btn" (click)="openMediaModal(media.type, i)" title="Editar">✏️</button>
-                  <button class="media-btn" (click)="removeMedia(i)" title="Remover">🗑️</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Add Media Buttons -->
-          <div class="add-media-section">
-            <div class="media-section-title">Adicionar Multimédia</div>
-            <div class="add-media-buttons">
-              <input #fileImageInput type="file" id="file-input-image" accept="image/*" style="display: none" (change)="onFileSelected($event, 'image')">
-              <input #fileAudioInput type="file" id="file-input-audio" accept="audio/*" style="display: none" (change)="onFileSelected($event, 'audio')">
-              <input #fileVideoInput type="file" id="file-input-video" accept="video/*" style="display: none" (change)="onFileSelected($event, 'video')">
-              
-              <button type="button" class="add-media-btn" (click)="triggerFileInput('image')">
-                <span class="media-icon-large">🖼️</span>
-                <span>Carregar Imagem</span>
-              </button>
-              <button type="button" class="add-media-btn" (click)="triggerFileInput('audio')">
-                <span class="media-icon-large">🎵</span>
-                <span>Carregar Áudio</span>
-              </button>
-              <button type="button" class="add-media-btn" (click)="triggerFileInput('video')">
-                <span class="media-icon-large">🎬</span>
-                <span>Carregar Vídeo</span>
-              </button>
-            </div>
-            <div class="media-info-text">
-              <p>Ou insira uma URL externa clicando no botão de adicionar (✏️) após selecionar o tipo de multimédia</p>
-            </div>
-          </div>
-          
-          <!-- Featured Image Preview -->
-          <div class="featured-image-section" *ngIf="contentForm.cover_image_url">
-            <div class="media-section-title">Imagem de Capa</div>
-            <div class="featured-preview">
-              <img [src]="contentForm.cover_image_url" class="featured-img">
-              <button class="remove-featured" (click)="contentForm.cover_image_url = ''">✕ Remover</button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="info-box">
-          <div class="info-icon">ℹ️</div>
-          <div class="info-text">
-            <strong>Informação</strong><br>
-            <span>Para adicionar multimédia, clique nos botões "Carregar Imagem/Áudio/Vídeo" ou use o botão de edição (✏️) para inserir URL externo.</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeContentModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveContent()">💾 Guardar Conteúdo</button>
-      </div>
+  <div class="pagination" *ngIf="filteredDocuments.length > 0">
+    <div class="pagination-info">
+      Mostrando {{ pageStart }}-{{ pageEnd }} de {{ filteredDocuments.length }}
+    </div>
+    <div class="pagination-controls">
+      <button class="pagination-button" type="button" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">Anterior</button>
+      <button
+        class="pagination-button"
+        type="button"
+        *ngFor="let page of pageNumbers"
+        [class.active]="currentPage === page"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+      <button class="pagination-button" type="button" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">Seguinte</button>
     </div>
   </div>
 
-  <!-- Modal de Adicionar/Editar Multimédia -->
-  <div class="modal-overlay" *ngIf="showMediaModal" (click)="closeMediaModal()">
-    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" *ngIf="showDocumentModal" (click)="closeDocumentModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ editingMediaIndex !== null ? 'Editar' : 'Adicionar' }} {{ currentMediaType === 'image' ? 'Imagem' : currentMediaType === 'audio' ? 'Áudio' : 'Vídeo' }}</h2>
-        <button class="modal-close" (click)="closeMediaModal()">✕</button>
+        <h2>{{ documentModalMode === 'edit' ? 'Editar Documento' : 'Detalhes do Documento' }}</h2>
+        <button class="modal-close" type="button" (click)="closeDocumentModal()">✕</button>
       </div>
-      
+
       <div class="modal-body">
-        <div class="upload-area" (click)="triggerFileInput(currentMediaType)">
-          <div class="upload-icon">{{ currentMediaType === 'image' ? '🖼️' : currentMediaType === 'audio' ? '🎵' : '🎬' }}</div>
-          <div class="upload-text">Clique para selecionar ficheiro</div>
-          <div class="upload-hint">{{ currentMediaType === 'image' ? 'JPG, PNG, GIF até 10MB' : currentMediaType === 'audio' ? 'MP3, WAV até 20MB' : 'MP4, MOV até 100MB' }}</div>
-        </div>
-        
-        <div class="form-divider">ou</div>
-        
-        <div class="form-group">
-          <label>URL externo</label>
-          <input type="text" [(ngModel)]="mediaUrl" class="form-input" [placeholder]="'URL do ' + (currentMediaType === 'image' ? 'imagem' : currentMediaType === 'audio' ? 'áudio' : 'vídeo')">
-        </div>
-        
-        <div class="form-group">
-          <label>Nome <span class="required">*</span></label>
-          <input type="text" [(ngModel)]="mediaName" class="form-input" placeholder="Ex: Foto da plantação de café">
-        </div>
-        
-        <div class="preview-container" *ngIf="mediaPreviewUrl || mediaUrl">
-          <div class="preview-title">Pré-visualização</div>
-          <div *ngIf="currentMediaType === 'image'" class="preview-image">
-            <img [src]="mediaPreviewUrl || mediaUrl" class="preview-img">
+        <ng-container *ngIf="editingDocument">
+          <div *ngIf="documentModalMode === 'view'" class="detail-grid">
+            <div class="detail-card">
+              <div class="detail-label">Título</div>
+              <div class="detail-value">{{ editingDocument.title }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Autor</div>
+              <div class="detail-value">{{ editingDocument.author_name }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Categoria</div>
+              <div class="detail-value">{{ editingDocument.category_name }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Access level</div>
+              <div class="detail-value">{{ getAccessLevelName(editingDocument.access_level_id) }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Estado</div>
+              <div class="detail-value">{{ getStatusLabel(editingDocument.status) }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Views</div>
+              <div class="detail-value">{{ editingDocument.views_count }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Likes</div>
+              <div class="detail-value">{{ editingDocument.likes_count }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Downloads</div>
+              <div class="detail-value">{{ editingDocument.downloads_count }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Criado em</div>
+              <div class="detail-value">{{ editingDocument.created_at | date:'dd MMM yyyy, HH:mm' }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Actualizado em</div>
+              <div class="detail-value">{{ editingDocument.updated_at | date:'dd MMM yyyy, HH:mm' }}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-label">Publicado em</div>
+              <div class="detail-value">{{ editingDocument.published_at ? (editingDocument.published_at | date:'dd MMM yyyy, HH:mm') : 'Ainda não publicado' }}</div>
+            </div>
+            <div class="detail-card detail-card--full">
+              <div class="detail-label">Resumo</div>
+              <div class="detail-value detail-value--pre">{{ editingDocument.summary }}</div>
+            </div>
+            <div class="detail-card detail-card--full">
+              <div class="detail-label">Conteúdo</div>
+              <div class="detail-value detail-value--pre">{{ editingDocument.content || 'Sem conteúdo disponível.' }}</div>
+            </div>
           </div>
-          <div *ngIf="currentMediaType === 'audio'" class="preview-audio">
-            <audio controls [src]="mediaPreviewUrl || mediaUrl" class="audio-preview"></audio>
-          </div>
-          <div *ngIf="currentMediaType === 'video'" class="preview-video">
-            <video controls [src]="mediaPreviewUrl || mediaUrl" class="video-preview"></video>
-          </div>
-        </div>
+
+          <ng-container *ngIf="documentModalMode === 'edit'">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Título</label>
+                <input type="text" [(ngModel)]="documentForm.title" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label>Autor</label>
+                <input type="text" [(ngModel)]="documentForm.author" class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Resumo</label>
+              <textarea [(ngModel)]="documentForm.summary" rows="4" class="form-input"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Conteúdo</label>
+              <textarea [(ngModel)]="documentForm.content" rows="8" class="form-input"></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tipo de documento</label>
+                <select [(ngModel)]="documentForm.document_type" class="form-input">
+                  <option value="manuscript">manuscript</option>
+                  <option value="article">article</option>
+                  <option value="report">report</option>
+                  <option value="thesis">thesis</option>
+                  <option value="archive">archive</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Nível académico</label>
+                <select [(ngModel)]="documentForm.academic_level" class="form-input">
+                  <option value="intro">intro</option>
+                  <option value="advanced">advanced</option>
+                  <option value="doctorate">doctorate</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Categoria</label>
+                <select [(ngModel)]="documentForm.category_id" class="form-input">
+                  <option [ngValue]="null">Sem categoria</option>
+                  <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Access level</label>
+                <select [(ngModel)]="documentForm.access_level_id" class="form-input">
+                  <option value="">Selecione um nível</option>
+                  <option *ngFor="let accessLevel of accessLevels" [value]="accessLevel.id">
+                    {{ accessLevel.name }} ({{ accessLevel.id }})
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Instituição</label>
+                <input type="text" [(ngModel)]="documentForm.institution" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label>Status</label>
+                <select [(ngModel)]="documentForm.status" class="form-input">
+                  <option value="draft">draft</option>
+                  <option value="published">published</option>
+                  <option value="archived">archived</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Data de publicação</label>
+                <input type="date" [(ngModel)]="documentForm.publication_date" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label>Período inicial</label>
+                <input type="number" [(ngModel)]="documentForm.period_start" class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Período final</label>
+                <input type="number" [(ngModel)]="documentForm.period_end" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label>PDF URL</label>
+                <input type="text" [(ngModel)]="documentForm.pdf_url" class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Cover image URL</label>
+              <input type="text" [(ngModel)]="documentForm.cover_image_url" class="form-input" />
+            </div>
+          </ng-container>
+        </ng-container>
       </div>
-      
+
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeMediaModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveMedia()">💾 Guardar</button>
+        <button *ngIf="documentModalMode === 'view'" class="btn-cancel" type="button" (click)="closeDocumentModal()">Fechar</button>
+        <button *ngIf="documentModalMode === 'view'" class="btn-save" type="button" (click)="enableEditMode()">Editar</button>
+        <button *ngIf="documentModalMode === 'edit'" class="btn-cancel" type="button" (click)="closeDocumentModal()">Cancelar</button>
+        <button *ngIf="documentModalMode === 'edit'" class="btn-save" type="button" (click)="saveDocument()" [disabled]="saving">
+          {{ saving ? 'A guardar...' : 'Guardar' }}
+        </button>
       </div>
     </div>
   </div>

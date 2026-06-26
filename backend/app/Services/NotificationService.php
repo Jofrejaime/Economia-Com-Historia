@@ -41,4 +41,43 @@ class NotificationService
 
         return $notification;
     }
+
+    public function sendTopicInvitation(User $user, string $topicTitle, ?string $referenceId = null): array
+    {
+        return $this->send(
+            $user,
+            'topic_invitation',
+            'You were invited to a private topic',
+            $topicTitle,
+            $referenceId,
+            'discussion_topic',
+            ['topic_invitation']
+        );
+    }
+
+    public function sendTopicJoined(User $user, string $topicTitle, ?string $referenceId = null): array
+    {
+        return $this->send(
+            $user,
+            'topic_joined',
+            'A topic member joined',
+            $topicTitle,
+            $referenceId,
+            'discussion_topic',
+            ['topic_joined']
+        );
+    }
+
+    public function sendTopicRemoved(User $user, string $topicTitle, ?string $referenceId = null): array
+    {
+        return $this->send(
+            $user,
+            'topic_removed',
+            'You were removed from a topic',
+            $topicTitle,
+            $referenceId,
+            'discussion_topic',
+            ['topic_removed']
+        );
+    }
 }

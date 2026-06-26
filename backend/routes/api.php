@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\LeaderboardController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\QuizController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Middleware\AuthenticateApiSession;
@@ -43,6 +44,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/me/point-transactions', [GamificationController::class, 'pointTransactions']);
     Route::get('/me/favorites', [DocumentController::class, 'myFavorites']);
+    Route::get('/users/search', [UserController::class, 'search']);
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'show']);
@@ -93,6 +95,12 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::post('/topics', [CommunityController::class, 'storeTopic']);
     Route::patch('/topics/{id}', [CommunityController::class, 'updateTopic']);
     Route::delete('/topics/{id}', [CommunityController::class, 'destroyTopic']);
+    Route::get('/topics/{id}/members', [CommunityController::class, 'topicMembers']);
+    Route::post('/topics/{id}/members', [CommunityController::class, 'storeTopicMember']);
+    Route::patch('/topics/{id}/members/{user}', [CommunityController::class, 'updateTopicMember']);
+    Route::delete('/topics/{id}/members/{user}', [CommunityController::class, 'destroyTopicMember']);
+    Route::post('/topics/{id}/join', [CommunityController::class, 'joinTopic']);
+    Route::post('/topics/{id}/leave', [CommunityController::class, 'leaveTopic']);
     Route::post('/topics/{id}/replies', [CommunityController::class, 'storeReply']);
     Route::patch('/replies/{id}', [CommunityController::class, 'updateReply']);
     Route::delete('/replies/{id}', [CommunityController::class, 'destroyReply']);

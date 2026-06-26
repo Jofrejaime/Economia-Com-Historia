@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\CommunityCategory;
 use App\Models\DiscussionTopic;
+use App\Models\DiscussionTopicMember;
 use App\Models\TopicReply;
 use App\Models\TopicLike;
 use App\Models\ReplyLike;
 use App\Models\TopicFollower;
 use App\Models\CategoryMember;
 use App\Services\AccessGateService;
+use App\Services\CommunityAuthorizationService;
 use App\Services\GamificationService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
@@ -22,6 +24,7 @@ class CommunityController extends Controller
 {
     public function __construct(
         private readonly AccessGateService $accessGate,
+        private readonly CommunityAuthorizationService $communityAuthorization,
         private readonly GamificationService $gamification,
         private readonly NotificationService $notificationService,
     ) {}
@@ -160,15 +163,56 @@ class CommunityController extends Controller
      *      )
      * )
      */
-    public function indexTopics(): JsonResponse
+    public function indexTopics(Request $request): JsonResponse
     {
-        $topics = DiscussionTopic::with(['author', 'category'])
-            ->where('status', 'published')
-            ->orderByDesc('created_at')
-            ->limit(20)
-            ->get();
+        $validated = $request->validate([
+            'search' => ['sometimes', 'string', 'max:255'],
+            'category_id' => ['sometimes', 'uuid', 'exists:community_categories,id'],
+            'status' => ['sometimes', 'string', 'in:open,locked,archived,published,draft'],
+            'visibility' => ['sometimes', 'string', 'in:PUBLIC,RESTRICTED,PRIVATE'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
 
-        return response()->json(['data' => $topics]);
+        $query = DiscussionTopic::query()->with(['author.profile', 'category'])
+            ->whereIn('status', ['open', 'locked', 'published'])
+            ->orderByDesc('is_pinned')
+            ->orderByDesc('created_at');
+
+        $this->communityAuthorization->applyVisibleTopicsFilter($query, $request->user());
+
+        if (! empty($validated['search'])) {
+            $search = '%'.trim($validated['search']).'%';
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('title', 'like', $search)
+                    ->orWhere('content', 'like', $search);
+            });
+        }
+
+        if (! empty($validated['category_id'])) {
+            $query->where('category_id', $validated['category_id']);
+        }
+
+        if (! empty($validated['status'])) {
+            $query->where('status', $validated['status']);
+        }
+
+        if (! empty($validated['visibility'])) {
+            $query->where('visibility', $validated['visibility']);
+        }
+
+        $perPage = $validated['per_page'] ?? 20;
+        $topics = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $topics->items(),
+            'meta' => [
+                'current_page' => $topics->currentPage(),
+                'per_page' => $topics->perPage(),
+                'total' => $topics->total(),
+                'last_page' => $topics->lastPage(),
+            ],
+        ]);
     }
 
     /**
@@ -216,22 +260,30 @@ class CommunityController extends Controller
             'category_id' => ['required', 'uuid', 'exists:community_categories,id'],
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:5000'],
+            'visibility' => ['sometimes', 'string', 'in:PUBLIC,RESTRICTED,PRIVATE'],
+            'member_ids' => ['sometimes', 'array'],
+            'member_ids.*' => ['uuid', 'exists:users,id'],
+            'members' => ['sometimes', 'array'],
+            'members.*.user_id' => ['required', 'uuid', 'exists:users,id'],
+            'members.*.role' => ['sometimes', 'string', 'in:member,moderator'],
         ]);
 
         $category = CommunityCategory::findOrFail($validated['category_id']);
+        $visibility = $validated['visibility'] ?? 'RESTRICTED';
 
         // Check access to category
         if (!$this->accessGate->canAccess($request->user(), $category->access_level_id)) {
             abort(403, 'Access denied to this category.');
         }
 
-        $topic = DB::transaction(function () use ($validated, $request, $category) {
+        $topic = DB::transaction(function () use ($validated, $request, $category, $visibility) {
             $topic = DiscussionTopic::create([
                 'id' => (string) Str::uuid(),
                 'category_id' => $validated['category_id'],
                 'author_id' => $request->user()->id,
                 'title' => $validated['title'],
                 'content' => $validated['content'],
+                'visibility' => $visibility,
                 'status' => 'published',
                 'is_pinned' => false,
                 'is_featured' => false,
@@ -243,6 +295,70 @@ class CommunityController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            DiscussionTopicMember::create([
+                'id' => (string) Str::uuid(),
+                'topic_id' => $topic->id,
+                'user_id' => $request->user()->id,
+                'role' => 'owner',
+                'invited_by' => $request->user()->id,
+                'accepted_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $invitedMembers = [];
+
+            if (! empty($validated['members'])) {
+                foreach ($validated['members'] as $memberData) {
+                    $invitedMembers[] = [
+                        'user_id' => $memberData['user_id'],
+                        'role' => $memberData['role'] ?? 'member',
+                    ];
+                }
+            } elseif (! empty($validated['member_ids'])) {
+                foreach ($validated['member_ids'] as $memberId) {
+                    $invitedMembers[] = [
+                        'user_id' => $memberId,
+                        'role' => 'member',
+                    ];
+                }
+            }
+
+            if ($visibility === 'PRIVATE' && $invitedMembers !== []) {
+                $seenMemberIds = [];
+
+                foreach ($invitedMembers as $memberData) {
+                    $memberId = $memberData['user_id'];
+
+                    if ($memberId === $request->user()->id || in_array($memberId, $seenMemberIds, true)) {
+                        continue;
+                    }
+
+                    $seenMemberIds[] = $memberId;
+
+                    if ($memberId === $request->user()->id) {
+                        continue;
+                    }
+
+                    DiscussionTopicMember::create([
+                        'id' => (string) Str::uuid(),
+                        'topic_id' => $topic->id,
+                        'user_id' => $memberId,
+                        'role' => $memberData['role'],
+                        'invited_by' => $request->user()->id,
+                        'accepted_at' => null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    $member = \App\Models\User::find($memberId);
+
+                    if ($member) {
+                        $this->notificationService->sendTopicInvitation($member, $topic->title, $topic->id);
+                    }
+                }
+            }
 
             // Increment category topics_count
             $category->increment('topics_count');
@@ -260,7 +376,7 @@ class CommunityController extends Controller
             // Increment counter
             $this->gamification->incrementCounters($request->user(), ['topics_created' => 1]);
 
-            return $topic->load(['author', 'category']);
+            return $topic->load(['author.profile', 'category', 'members.user.profile']);
         });
 
         return response()->json([
@@ -303,7 +419,7 @@ class CommunityController extends Controller
      */
     public function showTopic(string $id): JsonResponse
     {
-        $topic = DiscussionTopic::with(['author', 'category'])->findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($id, request(), ['author.profile', 'category', 'members.user.profile']);
 
         // Increment views
         $topic->increment('views_count');
@@ -359,10 +475,8 @@ class CommunityController extends Controller
      */
     public function updateTopic(string $id, Request $request): JsonResponse
     {
-        $topic = DiscussionTopic::findOrFail($id);
-
-        // Check ownership or admin
-        if ($topic->author_id !== $request->user()->id && $request->user()->role !== 'admin') {
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members.user.profile']);
+        if (! $this->communityAuthorization->canUpdateTopic($request->user(), $topic)) {
             abort(403, 'Unauthorized.');
         }
 
@@ -370,18 +484,20 @@ class CommunityController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:5000'],
             'status' => ['nullable', 'string', 'in:published,draft,archived'],
+            'visibility' => ['sometimes', 'string', 'in:PUBLIC,RESTRICTED,PRIVATE'],
         ]);
 
         $topic->update([
             'title' => $validated['title'],
             'content' => $validated['content'],
             'status' => $validated['status'] ?? $topic->status,
+            'visibility' => $validated['visibility'] ?? $topic->visibility,
             'updated_at' => now(),
         ]);
 
         return response()->json([
             'message' => 'Topic updated successfully.',
-            'data' => $topic->load(['author', 'category']),
+            'data' => $topic->load(['author.profile', 'category', 'members.user.profile']),
         ]);
     }
 
@@ -423,10 +539,8 @@ class CommunityController extends Controller
      */
     public function destroyTopic(string $id, Request $request): JsonResponse
     {
-        $topic = DiscussionTopic::findOrFail($id);
-
-        // Check ownership or admin
-        if ($topic->author_id !== $request->user()->id && $request->user()->role !== 'admin') {
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members.user.profile']);
+        if (! $this->communityAuthorization->canDeleteTopic($request->user(), $topic)) {
             abort(403, 'Unauthorized.');
         }
 
@@ -445,6 +559,293 @@ class CommunityController extends Controller
         });
 
         return response()->json(['message' => 'Topic deleted successfully.']);
+    }
+
+    // ─── TOPIC MEMBERS ─────────────────────────────────────────────────────
+
+    private function resolveTopicForUserOrFail(string $id, Request $request, array $relations = ['category']): DiscussionTopic
+    {
+        $topic = DiscussionTopic::with($relations)->findOrFail($id);
+
+        if (! $this->communityAuthorization->canViewTopic($request->user(), $topic)) {
+            abort(404, 'Topic not found.');
+        }
+
+        return $topic;
+    }
+
+    /**
+     * @OA\Get(
+     *      path="/topics/{id}/members",
+     *      operationId="topicMembers",
+     *      tags={"Community"},
+     *      summary="Listar membros de um tópico",
+     *      description="Devolve os membros visíveis do tópico autenticado.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(response=200, description="Membros obtidos"),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=404, description="Tópico não encontrado")
+     * )
+     */
+    public function topicMembers(string $id, Request $request): JsonResponse
+    {
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members.user.profile', 'members.inviter.profile']);
+
+        return response()->json([
+            'data' => $topic->members->values(),
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *      path="/topics/{id}/members",
+     *      operationId="storeTopicMember",
+     *      tags={"Community"},
+     *      summary="Convidar membro para tópico privado",
+     *      description="Convida um utilizador autenticado para um tópico privado.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          required=true,
+     *          description="ID do tópico",
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"user_id"},
+     *              @OA\Property(property="user_id", type="string", format="uuid"),
+     *              @OA\Property(property="role", type="string", enum={"member", "moderator"}, example="member")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="Membro convidado",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Member invited successfully."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Sem permissões"),
+     *      @OA\Response(response=404, description="Tópico não encontrado"),
+     *      @OA\Response(response=409, description="Membro já existe"),
+     *      @OA\Response(response=422, description="Erro de validação")
+     * )
+     */
+    public function storeTopicMember(string $id, Request $request): JsonResponse
+    {
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
+        if (! $this->communityAuthorization->canInviteMembers($request->user(), $topic)) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $validated = $request->validate([
+            'user_id' => ['required', 'uuid', 'exists:users,id'],
+            'role' => ['sometimes', 'string', 'in:member,moderator'],
+        ]);
+
+        if (DiscussionTopicMember::where('topic_id', $topic->id)->where('user_id', $validated['user_id'])->exists()) {
+            return response()->json(['message' => 'Member already exists.'], 409);
+        }
+
+        $member = DiscussionTopicMember::create([
+            'id' => (string) Str::uuid(),
+            'topic_id' => $topic->id,
+            'user_id' => $validated['user_id'],
+            'role' => $validated['role'] ?? 'member',
+            'invited_by' => $request->user()->id,
+            'accepted_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $member->load(['user.profile', 'inviter.profile']);
+
+        $targetUser = \App\Models\User::find($validated['user_id']);
+
+        if ($targetUser) {
+            $this->notificationService->sendTopicInvitation($targetUser, $topic->title, $topic->id);
+        }
+
+        return response()->json([
+            'message' => 'Member invited successfully.',
+            'data' => $member,
+        ], 201);
+    }
+
+    /**
+     * @OA\Patch(
+     *      path="/topics/{id}/members/{user}",
+     *      operationId="updateTopicMember",
+     *      tags={"Community"},
+     *      summary="Atualizar papel de membro",
+     *      description="Promove ou rebaixa um membro do tópico.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Membro atualizado"),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Sem permissões"),
+     *      @OA\Response(response=404, description="Tópico ou membro não encontrado"),
+     *      @OA\Response(response=422, description="Erro de validação")
+     * )
+     */
+    public function updateTopicMember(string $id, string $userId, Request $request): JsonResponse
+    {
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
+        if (! $this->communityAuthorization->canPromoteMember($request->user(), $topic)) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $validated = $request->validate([
+            'role' => ['required', 'string', 'in:member,moderator'],
+        ]);
+
+        $member = DiscussionTopicMember::where('topic_id', $topic->id)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        if ($member->role === 'owner') {
+            abort(422, 'Topic owner role cannot be changed.');
+        }
+
+        $member->update([
+            'role' => $validated['role'],
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Member updated successfully.',
+            'data' => $member->load(['user.profile', 'inviter.profile']),
+        ]);
+    }
+
+    /**
+     * @OA\Delete(
+     *      path="/topics/{id}/members/{user}",
+     *      operationId="destroyTopicMember",
+     *      tags={"Community"},
+     *      summary="Remover membro",
+     *      description="Remove um membro do tópico.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Membro removido"),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Sem permissões"),
+     *      @OA\Response(response=404, description="Tópico ou membro não encontrado"),
+     *      @OA\Response(response=422, description="Erro de validação")
+     * )
+     */
+    public function destroyTopicMember(string $id, string $userId, Request $request): JsonResponse
+    {
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
+        if (! $this->communityAuthorization->canRemoveMembers($request->user(), $topic)) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $member = DiscussionTopicMember::where('topic_id', $topic->id)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        if ($member->role === 'owner') {
+            abort(422, 'Topic owner cannot be removed.');
+        }
+
+        $memberUser = $member->user;
+        $member->delete();
+
+        if ($memberUser) {
+            $this->notificationService->sendTopicRemoved($memberUser, $topic->title, $topic->id);
+        }
+
+        return response()->json(['message' => 'Member removed successfully.']);
+    }
+
+    /**
+     * @OA\Post(
+     *      path="/topics/{id}/join",
+     *      operationId="joinTopic",
+     *      tags={"Community"},
+     *      summary="Aceitar convite",
+     *      description="Permite a um utilizador autenticado aceitar um convite pendente.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Convite aceite"),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Sem permissões"),
+     *      @OA\Response(response=404, description="Tópico ou convite não encontrado"),
+     *      @OA\Response(response=409, description="Já aceito")
+     * )
+     */
+    public function joinTopic(string $id, Request $request): JsonResponse
+    {
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
+        if (! $this->communityAuthorization->canJoinTopic($request->user(), $topic)) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $member = DiscussionTopicMember::where('topic_id', $topic->id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        if ($member->accepted_at !== null) {
+            return response()->json(['message' => 'Topic already joined.'], 409);
+        }
+
+        $member->update([
+            'accepted_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        if ($topic->author_id !== $request->user()->id) {
+            $this->notificationService->sendTopicJoined($topic->author, $topic->title, $topic->id);
+        }
+
+        return response()->json([
+            'message' => 'Topic joined successfully.',
+            'data' => $member->load(['user.profile', 'inviter.profile']),
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *      path="/topics/{id}/leave",
+     *      operationId="leaveTopic",
+     *      tags={"Community"},
+     *      summary="Sair do tópico",
+     *      description="Remove o utilizador autenticado do tópico privado.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Saída concluída"),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Sem permissões"),
+     *      @OA\Response(response=404, description="Tópico ou membro não encontrado")
+     * )
+     */
+    public function leaveTopic(string $id, Request $request): JsonResponse
+    {
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
+        if (! $this->communityAuthorization->canLeaveTopic($request->user(), $topic)) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $member = DiscussionTopicMember::where('topic_id', $topic->id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        $member->delete();
+
+        return response()->json(['message' => 'Topic left successfully.']);
     }
 
     // ─── TOPIC LIKES ────────────────────────────────────────────────────────
@@ -487,7 +888,7 @@ class CommunityController extends Controller
      */
     public function likeTopic(string $id, Request $request): JsonResponse
     {
-        $topic = DiscussionTopic::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
 
         $existing = TopicLike::where('topic_id', $id)
             ->where('user_id', $request->user()->id)
@@ -545,7 +946,7 @@ class CommunityController extends Controller
      */
     public function unlikeTopic(string $id, Request $request): JsonResponse
     {
-        $topic = DiscussionTopic::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
 
         $deleted = TopicLike::where('topic_id', $id)
             ->where('user_id', $request->user()->id)
@@ -599,7 +1000,7 @@ class CommunityController extends Controller
      */
     public function followTopic(string $id, Request $request): JsonResponse
     {
-        $topic = DiscussionTopic::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
 
         $existing = TopicFollower::where('topic_id', $id)
             ->where('user_id', $request->user()->id)
@@ -657,7 +1058,7 @@ class CommunityController extends Controller
      */
     public function unfollowTopic(string $id, Request $request): JsonResponse
     {
-        $topic = DiscussionTopic::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
 
         $deleted = TopicFollower::where('topic_id', $id)
             ->where('user_id', $request->user()->id)
@@ -705,12 +1106,12 @@ class CommunityController extends Controller
      *      )
      * )
      */
-    public function topicReplies(string $id): JsonResponse
+    public function topicReplies(string $id, Request $request): JsonResponse
     {
-        $topic = DiscussionTopic::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
 
         $replies = TopicReply::where('topic_id', $id)
-            ->with(['author'])
+            ->with(['author.profile'])
             ->orderBy('created_at')
             ->get();
 
@@ -764,7 +1165,10 @@ class CommunityController extends Controller
      */
     public function storeReply(string $id, Request $request): JsonResponse
     {
-        $topic = DiscussionTopic::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['category', 'members']);
+        if (! $this->communityAuthorization->canReply($request->user(), $topic)) {
+            abort(403, 'Unauthorized.');
+        }
 
         $validated = $request->validate([
             'content' => ['required', 'string', 'max:3000'],
@@ -814,7 +1218,7 @@ class CommunityController extends Controller
                 );
             }
 
-            return $reply->load(['author']);
+            return $reply->load(['author.profile']);
         });
 
         return response()->json([
@@ -870,8 +1274,8 @@ class CommunityController extends Controller
     public function updateReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($reply->topic_id, $request, ['category', 'members']);
 
-        // Check ownership or admin
         if ($reply->author_id !== $request->user()->id && $request->user()->role !== 'admin') {
             abort(403, 'Unauthorized.');
         }
@@ -887,7 +1291,7 @@ class CommunityController extends Controller
 
         return response()->json([
             'message' => 'Reply updated successfully.',
-            'data' => $reply->load(['author']),
+            'data' => $reply->load(['author.profile']),
         ]);
     }
 
@@ -930,8 +1334,8 @@ class CommunityController extends Controller
     public function destroyReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($reply->topic_id, $request, ['category', 'members']);
 
-        // Check ownership or admin
         if ($reply->author_id !== $request->user()->id && $request->user()->role !== 'admin') {
             abort(403, 'Unauthorized.');
         }
@@ -1005,6 +1409,7 @@ class CommunityController extends Controller
     public function likeReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($reply->topic_id, $request, ['category', 'members']);
 
         $existing = ReplyLike::where('reply_id', $id)
             ->where('user_id', $request->user()->id)
@@ -1063,6 +1468,7 @@ class CommunityController extends Controller
     public function unlikeReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);
+        $topic = $this->resolveTopicForUserOrFail($reply->topic_id, $request, ['category', 'members']);
 
         $deleted = ReplyLike::where('reply_id', $id)
             ->where('user_id', $request->user()->id)
@@ -1122,11 +1528,9 @@ class CommunityController extends Controller
     public function acceptReply(string $id, Request $request): JsonResponse
     {
         $reply = TopicReply::findOrFail($id);
-        $topic = $reply->topic;
-
-        // Only topic author or admin can accept reply
-        if ($topic->author_id !== $request->user()->id && $request->user()->role !== 'admin') {
-            abort(403, 'Only topic author can accept replies.');
+        $topic = $this->resolveTopicForUserOrFail($reply->topic_id, $request, ['category', 'members']);
+        if (! $this->communityAuthorization->canUpdateTopic($request->user(), $topic)) {
+            abort(403, 'Unauthorized.');
         }
 
         if ($reply->is_accepted) {
@@ -1165,7 +1569,7 @@ class CommunityController extends Controller
 
         return response()->json([
             'message' => 'Reply marked as accepted.',
-            'data' => $reply->load(['author']),
+            'data' => $reply->load(['author.profile']),
         ]);
     }
 }

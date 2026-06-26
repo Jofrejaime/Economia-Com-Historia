@@ -1,15 +1,18 @@
-import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { MarkdownPipe } from '../../../pipes/markdown.pipe';
+import { CommunityService } from '../../../services/community.service';
+import { DiscussionTopic, TopicReply } from '../../../models/community.models';
 
 interface Reply {
-  id: number;
-  parentId: number | null;
-  authorId: number;
+  id: string;
+  parentId: string | null;
+  authorId: string;
   author: string;
   authorInitials: string;
   authorRole: string;
@@ -23,7 +26,7 @@ interface Reply {
 }
 
 interface RelatedTopic {
-  id: number;
+  id: string;
   title: string;
   replies: number;
   views: number;
@@ -43,14 +46,13 @@ interface RelatedTopic {
   templateUrl: './discussion-thread.html',
   styleUrls: ['./discussion-thread.css']
 })
-export class DiscussionThreadComponent {
+export class DiscussionThreadComponent implements OnInit {
   replyText = '';
   showReplyForm = false;
-  
-  showReplyFormForReply: { [key: number]: boolean } = {};
-  replyReplyText: { [key: number]: string } = {};
 
-  // Controles para denúncia
+  showReplyFormForReply: { [key: string]: boolean } = {};
+  replyReplyText: { [key: string]: string } = {};
+
   showReportDiscussionModal = false;
   showReportReplyModal = false;
   reportDiscussionReason = '';
@@ -60,182 +62,116 @@ export class DiscussionThreadComponent {
   selectedReplyIndex: number | null = null;
   selectedReply: Reply | null = null;
 
-  // Menu da discussão
   showDiscussionMenu = false;
-
-  // Menu das respostas
   showReplyMenuIndex: number | null = null;
-
-  // Modais de confirmação para eliminar
   showDeleteDiscussionModal = false;
   showDeleteReplyModal = false;
   deleteReplyIndex: number | null = null;
 
+  loading = false;
+  discussionId: string | null = null;
+  relatedSourceTopics: DiscussionTopic[] = [];
+
   discussion = {
-    id: 1,
-    authorId: 1,
-    author: 'Jofre Jaime',
-    authorInitials: 'JJ',
-    authorRole: 'Investigador Sénior',
-    authorPosts: 127,
+    id: '',
+    authorId: '',
+    author: 'Utilizador',
+    authorInitials: 'U',
+    authorRole: 'Membro da Comunidade',
+    authorPosts: 0,
     avatar: '#8b1e2d',
-    categoryId: 1,
-    category: 'ANÁLISE DE POLÍTICAS',
+    categoryId: '',
+    category: 'CATEGORIA',
     categoryColor: { bg: '#acf0e0', text: '#003a32' },
-    timeAgo: 'há 2 horas',
-    date: '10 Mai 2026, 14:30',
-    title: 'Análise da Reforma Monetária de 1976: A Transição do Kwanza',
-    content: `Procuro fontes primárias sobre a logística da troca de moeda em 1976 nas províncias do leste. Especificamente, estou interessado em:
-
-**Questões principais:**
-
-1. Documentação sobre a implementação regional da reforma monetária
-2. Relatórios de contagens regionais, especialmente de Moxico e Cuando Cubango
-3. Correspondência entre o Banco Nacional de Angola e autoridades provinciais
-4. Dados estatísticos sobre a circulação monetária durante o período de transição
-
-Tenho consultado os arquivos do BNA mas a documentação para estas províncias específicas parece estar incompleta ou mal catalogada. Alguém da comunidade teve acesso a fontes primárias deste período?
-
-Também estou interessado em saber se existem relatórios internos sobre os desafios logísticos enfrentados durante a implementação da reforma nas zonas rurais.
-
-Agradeço antecipadamente qualquer orientação ou referências bibliográficas.`,
-    replies: 12,
-    views: 487,
-    likes: 23,
+    timeAgo: 'há instantes',
+    date: '',
+    title: 'A carregar...',
+    content: '',
+    replies: 0,
+    views: 0,
+    likes: 0,
     isLiked: false,
     isPinned: false,
   };
 
-  replies: Reply[] = [
-    {
-      id: 1,
-      parentId: null,
-      authorId: 2,
-      author: 'Ana Correia',
-      authorInitials: 'AC',
-      authorRole: 'Professora Associada',
-      authorPosts: 89,
-      avatar: '#6b0119',
-      timeAgo: 'há 1 hora',
-      date: '10 Mai 2026, 15:30',
-      content: `Olá Jofre, excelente questão de investigação!
+  replies: Reply[] = [];
+  relatedTopics: RelatedTopic[] = [];
 
-Trabalhei recentemente com documentação similar para o meu estudo sobre políticas monetárias pós-coloniais. Posso sugerir algumas fontes que podem ser úteis:
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private communityService: CommunityService,
+  ) {}
 
-1. **Arquivo Histórico do BNA** - Sala 3, Estante 12-B: Contém relatórios trimestrais de 1975-1977. Verifique especialmente o relatório Q4/1976.
+  async ngOnInit(): Promise<void> {
+    this.discussionId = this.route.snapshot.paramMap.get('id');
 
-2. **Biblioteca Nacional** - Secção de Economia: Tem uma colecção de correspondências oficiais entre Luanda e as províncias. Código de catalogação: ECO-MON-1976.
+    if (!this.discussionId) {
+      await this.router.navigate(['/forum/community']);
+      return;
+    }
 
-3. Também recomendo contactar a Dra. Isabel Fernandes na Universidade Agostinho Neto - ela tem investigado extensivamente este período.
+    await this.loadTopic();
+  }
 
-Espero que ajude!`,
-      likes: 15,
-      isLiked: false,
-    },
-    {
-      id: 2,
-      parentId: null,
-      authorId: 3,
-      author: 'Manuel Santos',
-      authorInitials: 'MS',
-      authorRole: 'Estudante de Doutoramento',
-      authorPosts: 34,
-      avatar: '#8b1e2d',
-      timeAgo: 'há 45 min',
-      date: '10 Mai 2026, 15:45',
-      content: `Complementando a resposta da Ana, também sugiro verificar os arquivos digitalizados do Ministério das Finanças desse período.
+  async loadTopic(): Promise<void> {
+    if (!this.discussionId) {
+      return;
+    }
 
-Encontrei alguns documentos interessantes sobre a logística de distribuição da nova moeda. Posso partilhar as referências se precisar.
+    this.loading = true;
 
-Uma observação: muita da documentação de Moxico foi transferida para Luanda em 1978 devido ao conflito armado, por isso pode estar arquivada sob códigos diferentes dos esperados.`,
-      likes: 8,
-      isLiked: true,
-    },
-    {
-      id: 3,
-      parentId: 1,
-      authorId: 4,
-      author: 'Isabel Fernandes',
-      authorInitials: 'IF',
-      authorRole: 'Investigadora Principal',
-      authorPosts: 203,
-      avatar: '#6b0119',
-      timeAgo: 'há 30 min',
-      date: '10 Mai 2026, 16:00',
-      content: `Obrigada pela menção, Ana! 👋
+    const [topicResult, repliesResult, topicsResult] = await Promise.all([
+      firstValueFrom(this.communityService.getTopic(this.discussionId)),
+      firstValueFrom(this.communityService.getReplies(this.discussionId)),
+      firstValueFrom(this.communityService.getTopics({ per_page: 12 })),
+    ]);
 
-Jofre, realmente tenho alguns documentos que podem interessar. Inclusive, tenho cópias digitalizadas de relatórios internos do BNA de 1976 que incluem dados de Moxico.
+    if (!topicResult.ok || !topicResult.data) {
+      this.loading = false;
+      await this.router.navigate(['/forum/community']);
+      return;
+    }
 
-Podes contactar-me através do email institucional (ifernandes@uan.ao) e posso partilhar os PDFs.
+    this.discussion = this.toDiscussionView(topicResult.data);
+    this.replies = repliesResult.ok && repliesResult.data ? repliesResult.data.map((reply) => this.toReplyView(reply)) : [];
+    this.relatedSourceTopics = topicsResult.ok && topicsResult.data ? (topicsResult.data.data ?? []).filter((topic) => topic.id !== this.discussionId) : [];
+    this.relatedTopics = this.relatedSourceTopics.slice(0, 3).map((topic) => ({
+      id: topic.id,
+      title: topic.title,
+      replies: topic.replies_count,
+      views: topic.views_count,
+    }));
+    this.loading = false;
+  }
 
-Também estou a organizar um seminário sobre este tema no próximo mês - seria óptimo ter a tua perspectiva nesta discussão.`,
-      likes: 19,
-      isLiked: false,
-    },
-    {
-      id: 4,
-      parentId: 2,
-      authorId: 5,
-      author: 'Carlos Mendes',
-      authorInitials: 'CM',
-      authorRole: 'Arquivista',
-      authorPosts: 56,
-      avatar: '#8b1e2d',
-      timeAgo: 'há 15 min',
-      date: '10 Mai 2026, 16:15',
-      content: `@Manuel Santos, excelente observação sobre a documentação de Moxico!
-
-Confirmo que muitos documentos foram realmente transferidos em 1978. No arquivo, encontrei uma listagem de documentos transferidos que pode ajudar a localizar o que procura.
-
-Posso disponibilizar a listagem digitalizada. O código de referência é: ARQ-BNA-1978-TRANSF-001.`,
-      likes: 5,
-      isLiked: false,
-    },
-  ];
-
-  relatedTopics: RelatedTopic[] = [
-    { id: 2, title: 'Documentos Fundadores do BNA e Política Fiscal Inicial', replies: 18, views: 612 },
-    { id: 3, title: 'Política Fiscal no Período Pós-Colonial (1975-1985)', replies: 24, views: 891 },
-    { id: 4, title: 'Sistema Monetário Angolano (1975-1985): Desafios e Reformas', replies: 15, views: 543 },
-  ];
-
-  constructor(private router: Router) {}
-
-  // ===== NAVEGAÇÃO PARA TÓPICOS RELACIONADOS =====
-  navigateToDiscussion(topicId: number): void {
+  navigateToDiscussion(topicId: string): void {
     this.router.navigate(['/forum/community/discussao', topicId]);
   }
 
-  // ===== OBTÉM AUTOR DA RESPOSTA PAI =====
-  getReplyAuthor(parentId: number): string {
-    const parent = this.replies.find(r => r.id === parentId);
-    return parent ? parent.author : 'usuário';
+  getReplyAuthor(parentId: string): string {
+    const parent = this.replies.find((reply) => reply.id === parentId);
+    return parent ? parent.author : 'utilizador';
   }
 
-  // ===== RESPOSTAS =====
-  handleSubmitReply(event: Event): void {
+  async handleSubmitReply(event: Event): Promise<void> {
     event.preventDefault();
-    if (!this.replyText.trim()) return;
 
-    const newReply: Reply = {
-      id: this.replies.length + 1,
-      parentId: null,
-      authorId: 0,
-      author: 'Utilizador Atual',
-      authorInitials: 'UA',
-      authorRole: 'Membro da Comunidade',
-      authorPosts: 0,
-      avatar: '#8B1E2D',
-      timeAgo: 'agora mesmo',
-      date: new Date().toLocaleString(),
-      content: this.replyText,
-      likes: 0,
-      isLiked: false,
-    };
+    if (!this.discussionId || !this.replyText.trim()) {
+      return;
+    }
 
-    this.replies.unshift(newReply);
-    this.replyText = '';
-    this.showReplyForm = false;
+    this.loading = true;
+    const result = await firstValueFrom(this.communityService.createReply(this.discussionId, { content: this.replyText.trim() }));
+
+    if (result.ok) {
+      this.replyText = '';
+      this.showReplyForm = false;
+      await this.loadTopic();
+      return;
+    }
+
+    this.loading = false;
   }
 
   toggleReplyForm(index: number): void {
@@ -245,54 +181,67 @@ Posso disponibilizar a listagem digitalizada. O código de referência é: ARQ-B
     }
   }
 
-  handleReplyToReply(index: number, text: string): void {
-    if (!text || !text.trim()) return;
+  async handleReplyToReply(index: number, text: string): Promise<void> {
+    if (!this.discussionId || !text.trim()) {
+      return;
+    }
 
     const parentReply = this.replies[index];
-    const newReply: Reply = {
-      id: this.replies.length + 1,
-      parentId: parentReply.id,
-      authorId: 0,
-      author: 'Utilizador Atual',
-      authorInitials: 'UA',
-      authorRole: 'Membro da Comunidade',
-      authorPosts: 0,
-      avatar: '#8B1E2D',
-      timeAgo: 'agora mesmo',
-      date: new Date().toLocaleString(),
-      content: `@${parentReply.author}: ${text}`,
-      likes: 0,
-      isLiked: false,
-    };
-
-    const insertIndex = this.replies.findIndex(r => r.id === parentReply.id);
-    if (insertIndex !== -1) {
-      this.replies.splice(insertIndex + 1, 0, newReply);
-    } else {
-      this.replies.push(newReply);
+    if (!parentReply) {
+      return;
     }
-    
-    this.showReplyFormForReply[index] = false;
-    this.replyReplyText[index] = '';
+
+    this.loading = true;
+    const result = await firstValueFrom(this.communityService.createReply(this.discussionId, {
+      content: text.trim(),
+      parent_reply_id: parentReply.id,
+    }));
+
+    if (result.ok) {
+      this.showReplyFormForReply[index] = false;
+      this.replyReplyText[index] = '';
+      await this.loadTopic();
+      return;
+    }
+
+    this.loading = false;
   }
 
-  // ===== LIKES =====
-  toggleLikeDiscussion(): void {
-    this.discussion.isLiked = !this.discussion.isLiked;
-    this.discussion.likes += this.discussion.isLiked ? 1 : -1;
+  async toggleLikeDiscussion(): Promise<void> {
+    if (!this.discussionId) {
+      return;
+    }
+
+    const result = this.discussion.isLiked
+      ? await firstValueFrom(this.communityService.unlikeTopic(this.discussionId))
+      : await firstValueFrom(this.communityService.likeTopic(this.discussionId));
+
+    if (result.ok) {
+      this.discussion.isLiked = !this.discussion.isLiked;
+      this.discussion.likes += this.discussion.isLiked ? 1 : -1;
+    }
   }
 
-  toggleLikeReply(index: number): void {
-    this.replies[index].isLiked = !this.replies[index].isLiked;
-    this.replies[index].likes += this.replies[index].isLiked ? 1 : -1;
+  async toggleLikeReply(index: number): Promise<void> {
+    const reply = this.replies[index];
+    if (!reply) {
+      return;
+    }
+
+    const result = reply.isLiked
+      ? await firstValueFrom(this.communityService.unlikeReply(reply.id))
+      : await firstValueFrom(this.communityService.likeReply(reply.id));
+
+    if (result.ok) {
+      reply.isLiked = !reply.isLiked;
+      reply.likes += reply.isLiked ? 1 : -1;
+    }
   }
 
-  // ===== AÇÕES =====
   shareDiscussion(): void {
-    console.log('Partilhar discussão');
+    void navigator.clipboard?.writeText(window.location.href);
   }
 
-  // ===== MENU DA DISCUSSÃO =====
   toggleDiscussionMenu(event: Event): void {
     event.stopPropagation();
     this.showDiscussionMenu = !this.showDiscussionMenu;
@@ -300,11 +249,9 @@ Posso disponibilizar a listagem digitalizada. O código de referência é: ARQ-B
   }
 
   editDiscussion(): void {
-    console.log('Editar discussão:', this.discussion.id);
     this.showDiscussionMenu = false;
   }
 
-  // ===== MODAL DE CONFIRMAÇÃO PARA ELIMINAR DISCUSSÃO =====
   openDeleteDiscussionModal(): void {
     this.showDiscussionMenu = false;
     this.showDeleteDiscussionModal = true;
@@ -314,14 +261,18 @@ Posso disponibilizar a listagem digitalizada. O código de referência é: ARQ-B
     this.showDeleteDiscussionModal = false;
   }
 
-  confirmDeleteDiscussion(): void {
-    console.log('Excluir discussão:', this.discussion.id);
-    this.showDeleteDiscussionModal = false;
-    // Aqui você pode adicionar a lógica de redirecionamento após eliminar
-    // this.router.navigate(['/forum/community']);
+  async confirmDeleteDiscussion(): Promise<void> {
+    if (!this.discussionId) {
+      return;
+    }
+
+    const result = await firstValueFrom(this.communityService.deleteTopic(this.discussionId));
+    if (result.ok) {
+      this.showDeleteDiscussionModal = false;
+      await this.router.navigate(['/forum/community']);
+    }
   }
 
-  // ===== MENU DAS RESPOSTAS =====
   toggleReplyMenu(index: number, event: Event): void {
     event.stopPropagation();
     this.showReplyMenuIndex = this.showReplyMenuIndex === index ? null : index;
@@ -329,11 +280,9 @@ Posso disponibilizar a listagem digitalizada. O código de referência é: ARQ-B
   }
 
   editReply(index: number): void {
-    console.log('Editar resposta:', this.replies[index].id);
     this.showReplyMenuIndex = null;
   }
 
-  // ===== MODAL DE CONFIRMAÇÃO PARA ELIMINAR RESPOSTA =====
   openDeleteReplyModal(index: number): void {
     this.showReplyMenuIndex = null;
     this.deleteReplyIndex = index;
@@ -345,30 +294,37 @@ Posso disponibilizar a listagem digitalizada. O código de referência é: ARQ-B
     this.deleteReplyIndex = null;
   }
 
-  confirmDeleteReply(): void {
-    if (this.deleteReplyIndex !== null) {
-      console.log('Excluir resposta:', this.replies[this.deleteReplyIndex].id);
-      this.replies.splice(this.deleteReplyIndex, 1);
+  async confirmDeleteReply(): Promise<void> {
+    if (this.deleteReplyIndex === null) {
+      return;
+    }
+
+    const reply = this.replies[this.deleteReplyIndex];
+    if (!reply) {
+      return;
+    }
+
+    const result = await firstValueFrom(this.communityService.deleteReply(reply.id));
+    if (result.ok) {
       this.showDeleteReplyModal = false;
       this.deleteReplyIndex = null;
+      await this.loadTopic();
     }
   }
 
-  // ===== FECHAR MENUS AO CLICAR FORA =====
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: Event): void {
     const target = event.target as HTMLElement;
-    
+
     if (!target.closest('.discussion-menu-wrapper')) {
       this.showDiscussionMenu = false;
     }
-    
+
     if (!target.closest('.reply-menu-wrapper')) {
       this.showReplyMenuIndex = null;
     }
   }
 
-  // ===== DENÚNCIAS =====
   openReportDiscussionModal(): void {
     this.showReportDiscussionModal = true;
     this.reportDiscussionReason = '';
@@ -382,16 +338,11 @@ Posso disponibilizar a listagem digitalizada. O código de referência é: ARQ-B
   }
 
   submitReportDiscussion(): void {
-    if (!this.reportDiscussionReason) return;
-    
-    console.log('Denúncia de Discussão:', {
-      discussionId: this.discussion.id,
-      title: this.discussion.title,
-      reason: this.reportDiscussionReason,
-      description: this.reportDiscussionDescription
-    });
-    
-    alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
+    if (!this.reportDiscussionReason) {
+      return;
+    }
+
+    alert('Denúncia registada localmente. O contrato de reports será ligado numa fase seguinte.');
     this.closeReportDiscussionModal();
   }
 
@@ -412,22 +363,105 @@ Posso disponibilizar a listagem digitalizada. O código de referência é: ARQ-B
   }
 
   submitReportReply(): void {
-    if (!this.reportReplyReason || this.selectedReplyIndex === null) return;
-    
-    console.log('Denúncia de Resposta:', {
-      replyId: this.selectedReply?.id,
-      author: this.selectedReply?.author,
-      content: this.selectedReply?.content,
-      reason: this.reportReplyReason,
-      description: this.reportReplyDescription
-    });
-    
-    alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
+    if (!this.reportReplyReason || this.selectedReplyIndex === null) {
+      return;
+    }
+
+    alert('Denúncia registada localmente. O contrato de reports será ligado numa fase seguinte.');
     this.closeReportReplyModal();
   }
 
-  // ===== NAVEGAÇÃO GERAL =====
   navigateTo(path: string): void {
     this.router.navigate([path]);
+  }
+
+  private toDiscussionView(topic: DiscussionTopic) {
+    const authorName = topic.author?.display_name || topic.author?.full_name || topic.author?.email || 'Utilizador';
+    const categoryName = topic.category?.name || 'Categoria';
+    const color = this.pickColor(topic.category?.color_bg, topic.category?.color_text);
+
+    return {
+      id: topic.id,
+      authorId: topic.author_id,
+      author: authorName,
+      authorInitials: this.initialsFromName(authorName),
+      authorRole: topic.author?.role || 'Membro da Comunidade',
+      authorPosts: topic.replies_count,
+      avatar: '#8b1e2d',
+      categoryId: topic.category_id,
+      category: categoryName.toUpperCase(),
+      categoryColor: color,
+      timeAgo: this.formatRelativeTime(topic.created_at),
+      date: this.formatDate(topic.created_at),
+      title: topic.title,
+      content: topic.content,
+      replies: topic.replies_count,
+      views: topic.views_count,
+      likes: topic.likes_count,
+      isLiked: false,
+      isPinned: topic.is_pinned,
+    };
+  }
+
+  private toReplyView(reply: TopicReply): Reply {
+    const authorName = reply.author?.display_name || reply.author?.full_name || reply.author?.email || 'Utilizador';
+
+    return {
+      id: reply.id,
+      parentId: reply.parent_reply_id,
+      authorId: reply.author_id,
+      author: authorName,
+      authorInitials: this.initialsFromName(authorName),
+      authorRole: reply.is_accepted ? 'Resposta aceita' : 'Membro da Comunidade',
+      authorPosts: 0,
+      avatar: '#6b0119',
+      timeAgo: this.formatRelativeTime(reply.created_at),
+      date: this.formatDate(reply.created_at),
+      content: reply.content,
+      likes: reply.likes_count,
+      isLiked: false,
+    };
+  }
+
+  private initialsFromName(value: string): string {
+    return value
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('') || 'U';
+  }
+
+  private pickColor(bg?: string | null, text?: string | null): { bg: string; text: string } {
+    return {
+      bg: bg || '#acf0e0',
+      text: text || '#003a32',
+    };
+  }
+
+  private formatRelativeTime(value: string): string {
+    const created = new Date(value);
+    const diffHours = Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60));
+
+    if (diffHours < 1) {
+      return 'há instantes';
+    }
+
+    if (diffHours < 24) {
+      return `há ${diffHours} hora(s)`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    return `há ${diffDays} dia(s)`;
+  }
+
+  private formatDate(value: string): string {
+    return new Intl.DateTimeFormat('pt-PT', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value));
   }
 }

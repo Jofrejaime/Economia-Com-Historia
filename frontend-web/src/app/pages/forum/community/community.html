@@ -103,8 +103,9 @@
           </div>
 
           <!-- Discussions List -->
-          <div (click)="navigateTo('forum/community/discussao/:id')" style="display: flex; flex-direction: column; gap: 20px;">
+          <div style="display: flex; flex-direction: column; gap: 20px;">
             <div *ngFor="let discussion of filteredDiscussions" 
+                 (click)="navigateTo('/forum/community/discussao/' + discussion.id)"
                  style="background: #FFFFFF; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.3s; border: 1px solid #E5E7EB; font-family: 'Source Sans 3', sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.02); position: relative;"
                  onmouseover="this.style.boxShadow='0 8px 32px rgba(0,0,0,0.08)'; this.style.transform='translateY(-3px)'; this.style.borderColor='rgba(139,30,45,0.15)'" 
                  onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.02)'; this.style.transform='translateY(0)'; this.style.borderColor='#E5E7EB'">
@@ -123,7 +124,7 @@
 
               <!-- Botão Pedir Acesso - Canto Inferior Direito -->
               <div style="position: absolute; bottom: 20px; right: 20px;">
-                <button *ngIf="discussion.isPrivate" 
+                  <button *ngIf="discussion.isPrivate" 
                         (click)="requestAccess(discussion.id); $event.stopPropagation()"
                         style="background: #8B1E2D; color: #FFFFFF; border: none; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Source Sans 3', sans-serif; line-height: 1.7; min-height: 32px; white-space: nowrap; display: flex; align-items: center; gap: 6px;"
                         onmouseover="this.style.background='#6B0119'; this.style.transform='translateY(-1px)'" 
@@ -132,7 +133,7 @@
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     <polyline points="9 12 11 14 15 10"/>
                   </svg>
-                  Pedir Acesso
+                  Abrir
                 </button>
               </div>
 
