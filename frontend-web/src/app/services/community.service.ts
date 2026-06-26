@@ -1,50 +1,29 @@
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { catchError, map, Observable, of, timeout, TimeoutError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+import type {
+  ApiEnvelope,
+  ApiResult,
+  CommunityCategory,
+  DiscussionTopic,
+  PaginatedTopicResponse,
+  ReplyPayload,
+  TopicReply,
+  TopicVisibility,
+} from '../models/community.models';
 
-export interface CommunityCategory {
-  id: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  access_level_id: string;
-  color_bg: string | null;
-  color_text: string | null;
-  cover_image_url: string | null;
-  sort_order: number;
-  is_active: boolean;
-  members_count: number;
-  topics_count: number;
-}
-
-export interface TopicAuthor {
-  id: string;
-  display_name: string;
-  avatar_url: string | null;
-  institution: string | null;
-}
-
-export interface DiscussionTopic {
-  id: string;
-  category_id: string;
-  author_id: string;
-  title: string;
-  content: string;
-  status: string;
-  is_pinned: boolean;
-  is_featured: boolean;
-  created_at: string;
-  updated_at: string;
-  last_reply_at: string | null;
-  replies_count: number;
-  views_count: number;
-  likes_count: number;
-  followers_count: number;
-  author: TopicAuthor | null;
-  category: CommunityCategory | null;
-}
+export type {
+  ApiEnvelope,
+  ApiResult,
+  CommunityCategory,
+  DiscussionTopic,
+  PaginatedTopicResponse,
+  ReplyPayload,
+  TopicReply,
+  TopicVisibility,
+} from '../models/community.models';
 
 @Injectable({ providedIn: 'root' })
 export class CommunityService {
@@ -57,21 +36,221 @@ export class CommunityService {
     return token ? this.auth.getAuthHeaders(token) : { Accept: 'application/json' };
   }
 
-  async getCategories(): Promise<CommunityCategory[]> {
-    const res = await firstValueFrom(
-      this.http.get<{ data: CommunityCategory[] }>(`${this.base}/community/categories`, {
-        headers: this.headers,
-      })
+  getCategories(): Observable<ApiResult<CommunityCategory[]>> {
+    return this.http.get<ApiEnvelope<CommunityCategory[]>>(`${this.base}/community/categories`, {
+      observe: 'response',
+      headers: this.headers,
+    }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        data: response.body?.data ?? [],
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<CommunityCategory[]>(error, 'Erro ao carregar categorias')))
     );
-    return res.data;
   }
 
-  async getTopics(): Promise<DiscussionTopic[]> {
-    const res = await firstValueFrom(
-      this.http.get<{ data: DiscussionTopic[] }>(`${this.base}/topics`, {
-        headers: this.headers,
-      })
+  getTopics(params?: {
+    search?: string;
+    category_id?: string;
+    status?: string;
+    visibility?: TopicVisibility;
+    page?: number;
+    per_page?: number;
+  }): Observable<ApiResult<PaginatedTopicResponse>> {
+    const httpParams = this.cleanParams(params);
+
+    return this.http.get<ApiEnvelope<DiscussionTopic[]>>(`${this.base}/topics`, {
+      observe: 'response',
+      headers: this.headers,
+      params: httpParams,
+    }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+          data: {
+            data: (response.body?.data ?? []).map((topic) => this.normalizeTopic(topic)),
+            meta: response.body?.meta ? {
+            current_page: response.body.meta['current_page'] ?? 1,
+            per_page: response.body.meta['per_page'] ?? (response.body?.data ?? []).length,
+            total: response.body.meta['total'] ?? (response.body?.data ?? []).length,
+            last_page: response.body.meta['last_page'] ?? 1,
+          } : undefined,
+        },
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<PaginatedTopicResponse>(error, 'Erro ao carregar tópicos')))
     );
-    return res.data;
+  }
+
+  getTopic(id: string): Observable<ApiResult<DiscussionTopic>> {
+    return this.http.get<ApiEnvelope<DiscussionTopic>>(`${this.base}/topics/${id}`, {
+      observe: 'response',
+      headers: this.headers,
+    }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        data: response.body?.data ? this.normalizeTopic(response.body.data) : undefined,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<DiscussionTopic>(error, 'Erro ao carregar tópico')))
+    );
+  }
+
+  getReplies(topicId: string): Observable<ApiResult<TopicReply[]>> {
+    return this.http.get<ApiEnvelope<TopicReply[]>>(`${this.base}/topics/${topicId}/replies`, {
+      observe: 'response',
+      headers: this.headers,
+    }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        data: response.body?.data ?? [],
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<TopicReply[]>(error, 'Erro ao carregar respostas')))
+    );
+  }
+
+  createReply(topicId: string, payload: ReplyPayload): Observable<ApiResult<TopicReply>> {
+    return this.http.post<ApiEnvelope<TopicReply>>(`${this.base}/topics/${topicId}/replies`, payload, {
+      observe: 'response',
+      headers: this.headers,
+    }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<TopicReply>(error, 'Erro ao criar resposta')))
+    );
+  }
+
+  likeTopic(id: string): Observable<ApiResult<null>> {
+    return this.simpleMutation(`${this.base}/topics/${id}/like`, 'post', 'Erro ao gostar do tópico');
+  }
+
+  unlikeTopic(id: string): Observable<ApiResult<null>> {
+    return this.simpleMutation(`${this.base}/topics/${id}/like`, 'delete', 'Erro ao retirar gosto do tópico');
+  }
+
+  likeReply(id: string): Observable<ApiResult<null>> {
+    return this.simpleMutation(`${this.base}/replies/${id}/like`, 'post', 'Erro ao gostar da resposta');
+  }
+
+  unlikeReply(id: string): Observable<ApiResult<null>> {
+    return this.simpleMutation(`${this.base}/replies/${id}/like`, 'delete', 'Erro ao retirar gosto da resposta');
+  }
+
+  deleteTopic(id: string): Observable<ApiResult<null>> {
+    return this.simpleMutation(`${this.base}/topics/${id}`, 'delete', 'Erro ao eliminar tópico');
+  }
+
+  deleteReply(id: string): Observable<ApiResult<null>> {
+    return this.simpleMutation(`${this.base}/replies/${id}`, 'delete', 'Erro ao eliminar resposta');
+  }
+
+  private simpleMutation(url: string, method: 'post' | 'delete', fallbackMessage: string): Observable<ApiResult<null>> {
+    const request = method === 'post'
+      ? this.http.post<ApiEnvelope<null>>(url, {}, { observe: 'response', headers: this.headers })
+      : this.http.delete<ApiEnvelope<null>>(url, { observe: 'response', headers: this.headers });
+
+    return request.pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: null,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<null>(error, fallbackMessage)))
+    );
+  }
+
+  private cleanParams(params?: Record<string, string | number | boolean | null | undefined>): HttpParams | undefined {
+    if (!params) {
+      return undefined;
+    }
+
+    let httpParams = new HttpParams();
+
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== '') {
+        httpParams = httpParams.set(key, String(value));
+      }
+    }
+
+    return httpParams.keys().length > 0 ? httpParams : undefined;
+  }
+
+  private normalizeTopic(topic: DiscussionTopic): DiscussionTopic {
+    return {
+      ...topic,
+      visibility: this.normalizeVisibility(topic.visibility),
+    };
+  }
+
+  private normalizeVisibility(value: string | null | undefined): TopicVisibility {
+    switch ((value ?? '').toUpperCase()) {
+      case 'PUBLIC':
+        return 'PUBLIC';
+      case 'INVITE_ONLY':
+      case 'PRIVATE':
+        return 'INVITE_ONLY';
+      case 'CATEGORY':
+      case 'RESTRICTED':
+      default:
+        return 'CATEGORY';
+    }
+  }
+
+  private toFailureResult<T>(error: unknown, fallbackMessage: string): ApiResult<T> {
+    if (error instanceof TimeoutError) {
+      return {
+        ok: false,
+        message: 'O servidor demorou demasiado a responder. Tente novamente em instantes.',
+      };
+    }
+
+    if (error instanceof HttpErrorResponse) {
+      return {
+        ok: false,
+        status: error.status,
+        message: this.extractHttpErrorMessage(error) || error.message || `HTTP ${error.status}`,
+      };
+    }
+
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : fallbackMessage,
+    };
+  }
+
+  private extractHttpErrorMessage(error: HttpErrorResponse): string {
+    const body = error.error;
+
+    if (typeof body === 'string') {
+      return body;
+    }
+
+    if (body && typeof body === 'object') {
+      if (typeof body.message === 'string') {
+        return body.message;
+      }
+
+      if (body.errors && typeof body.errors === 'object') {
+        const firstError = Object.values(body.errors as Record<string, unknown>)[0];
+
+        if (Array.isArray(firstError) && typeof firstError[0] === 'string') {
+          return firstError[0];
+        }
+      }
+    }
+
+    return '';
   }
 }

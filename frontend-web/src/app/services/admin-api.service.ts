@@ -18,7 +18,7 @@ export interface AdminSummary {
   documents: {
     published: number;
     draft: number;
-    review: number;
+    archived: number;
   };
   community: {
     topics_open: number;
@@ -28,8 +28,9 @@ export interface AdminSummary {
   };
   moderation: {
     reports_pending: number;
-    reports_resolved: number;
+    reviewed: number;
     reports_dismissed: number;
+    actioned: number;
   };
   recent_activity: Array<Record<string, unknown>>;
 }
@@ -101,7 +102,28 @@ export class AdminApiService {
   getSummary(): Observable<ApiResult<AdminSummary>> {
     return this.http.get<ApiEnvelope<AdminSummary>>(`${environment.apiBaseUrl}/api/admin/dashboard/summary`, { observe: 'response' }).pipe(
       timeout({ first: 15000 }),
-      map((response): ApiResult<AdminSummary> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data })),
+      map((response): ApiResult<AdminSummary> => {
+        const data = response.body?.data;
+
+        return {
+          ok: response.status >= 200 && response.status < 300,
+          status: response.status,
+          data: data ? {
+            ...data,
+            documents: {
+              published: data.documents?.published ?? 0,
+              draft: data.documents?.draft ?? 0,
+              archived: data.documents?.archived ?? (data.documents as { review?: number } | undefined)?.review ?? 0,
+            },
+            moderation: {
+              reports_pending: data.moderation?.reports_pending ?? 0,
+              reviewed: data.moderation?.reviewed ?? (data.moderation as { reports_resolved?: number } | undefined)?.reports_resolved ?? 0,
+              reports_dismissed: data.moderation?.reports_dismissed ?? 0,
+              actioned: data.moderation?.actioned ?? 0,
+            },
+          } : undefined,
+        };
+      }),
       catchError((error: unknown) => of(this.toFailureResult<AdminSummary>(error, 'Erro ao carregar resumo administrativo')))
     );
   }

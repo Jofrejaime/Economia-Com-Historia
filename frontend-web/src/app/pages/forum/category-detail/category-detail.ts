@@ -4,6 +4,7 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { CommunityService, DiscussionTopic, CommunityCategory } from '../../../services/community.service';
+import { firstValueFrom } from 'rxjs';
 
 interface ReferenceDoc {
   title: string;
@@ -49,13 +50,16 @@ export class CategoryDetailComponent implements OnInit {
     }
 
     try {
-      const [categories, topics] = await Promise.all([
-        this.communityService.getCategories(),
-        this.communityService.getTopics(),
+      const [categoriesResult, topicsResult] = await Promise.all([
+        firstValueFrom(this.communityService.getCategories()),
+        firstValueFrom(this.communityService.getTopics()),
       ]);
 
-      this.category = categories.find(c => c.id === categoryId) ?? null;
-      this.discussions = topics.filter(t => t.category_id === categoryId);
+      const categories = categoriesResult.ok && categoriesResult.data ? categoriesResult.data : [];
+      const topics = topicsResult.ok && topicsResult.data ? topicsResult.data.data : [];
+
+      this.category = categories.find((c) => c.id === categoryId) ?? null;
+      this.discussions = topics.filter((t) => t.category_id === categoryId);
     } catch {
       this.error = 'Erro ao carregar categoria.';
     } finally {

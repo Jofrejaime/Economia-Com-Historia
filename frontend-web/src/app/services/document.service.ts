@@ -50,7 +50,6 @@ export interface Document {
   views_count: number;
   likes_count: number;
   downloads_count: number;
-  comments_count: number;
   is_liked: boolean;
   is_favorited: boolean;
   tags: DocumentTag[];

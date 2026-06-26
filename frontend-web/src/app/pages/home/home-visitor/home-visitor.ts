@@ -6,6 +6,7 @@ import { FooterComponent } from '../../../components/footer/footer';
 import { DocumentService } from '../../../services/document.service';
 import { CommunityService } from '../../../services/community.service';
 import { QuizService } from '../../../services/quiz.service';
+import { firstValueFrom } from 'rxjs';
 
 interface FeaturedContent {
   id: string;
@@ -55,10 +56,10 @@ export class HomeVisitorComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const [docs, scholars, topics] = await Promise.all([
+      const [docs, scholars, topicsResult] = await Promise.all([
         this.documentService.getDocuments().catch(() => ({ data: [] } as any)),
         this.quizService.getNationalLeaderboard().catch(() => []),
-        this.communityService.getTopics().catch(() => []),
+        firstValueFrom(this.communityService.getTopics()).catch(() => ({ ok: false, data: null } as any)),
       ]);
 
       // Documentos em destaque (primeiros 4)
@@ -81,7 +82,8 @@ export class HomeVisitorComponent implements OnInit {
       }));
 
       // Discussões recentes (primeiras 3)
-      this.recentDiscussions = topics.slice(0, 3).map((t: any) => ({
+      const topicList = topicsResult?.ok && topicsResult?.data ? topicsResult.data.data : [];
+      this.recentDiscussions = topicList.slice(0, 3).map((t: any) => ({
         id: t.id,
         title: t.title,
         author: t.author?.display_name ?? '—',

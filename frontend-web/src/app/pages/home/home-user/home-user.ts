@@ -7,6 +7,7 @@ import { DocumentService, Document, DocumentCategory } from '../../../services/d
 import { QuizService, LeaderboardEntry } from '../../../services/quiz.service';
 import { CommunityService, DiscussionTopic } from '../../../services/community.service';
 import { AuthService } from '../../../services/auth.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-home-user',
@@ -34,17 +35,17 @@ export class HomeUser implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const [docs, cats, topics, leaderboard] = await Promise.all([
+      const [docs, cats, topicsResult, leaderboard] = await Promise.all([
         this.documentService.getDocuments(),
         this.documentService.getCategories(),
-        this.communityService.getTopics(),
+        firstValueFrom(this.communityService.getTopics()),
         this.quizService.getNationalLeaderboard(),
       ]);
 
       this.documents = docs.slice(0, 4);
       this.featuredDocument = docs[0] ?? null;
       this.categories = cats;
-      this.discussions = topics.slice(0, 3);
+      this.discussions = topicsResult.ok && topicsResult.data ? topicsResult.data.data.slice(0, 3) : [];
       this.scholars = leaderboard.slice(0, 3);
     } catch (err) {
       console.error('Erro ao carregar home', err);

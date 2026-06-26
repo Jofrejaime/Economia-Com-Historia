@@ -331,12 +331,13 @@ export class ReportsPageComponent implements OnInit {
   private mapSummaryToStats(summary: {
     moderation?: {
       reports_pending?: number;
-      reports_resolved?: number;
+      reviewed?: number;
       reports_dismissed?: number;
+      actioned?: number;
     };
   }): ModerationStats {
     const pending = summary.moderation?.reports_pending ?? 0;
-    const reviewed = summary.moderation?.reports_resolved ?? 0;
+    const reviewed = summary.moderation?.reviewed ?? 0;
     const dismissed = summary.moderation?.reports_dismissed ?? 0;
 
     return {
@@ -344,7 +345,7 @@ export class ReportsPageComponent implements OnInit {
       pending,
       reviewed,
       dismissed,
-      actioned: 0,
+      actioned: summary.moderation?.actioned ?? 0,
     };
   }
 

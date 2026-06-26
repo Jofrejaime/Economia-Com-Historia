@@ -10,6 +10,8 @@ export interface ApiEnvelope<T> {
   message?: string;
 }
 
+export type TopicVisibility = 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY';
+
 export interface Category {
   id: string;
   slug: string;
@@ -55,6 +57,7 @@ export interface DiscussionTopic {
   author_id: string;
   title: string;
   content: string;
+  visibility: TopicVisibility | string;
   status: 'open' | 'locked' | 'archived' | 'published' | 'draft' | string;
   is_pinned: boolean;
   is_featured: boolean;
@@ -76,6 +79,7 @@ export interface DiscussionTopicPayload {
   category_id?: string | null;
   is_pinned?: boolean;
   is_featured?: boolean;
+  visibility?: TopicVisibility;
 }
 
 export interface TopicReplyAuthor {

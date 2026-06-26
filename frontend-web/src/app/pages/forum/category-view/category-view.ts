@@ -34,8 +34,9 @@ export class CategoryViewComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const cats = await this.communityService.getCategories();
-      this.categories = cats.map(c => ({ ...c, requestStatus: 'none' as const }));
+      const result = await firstValueFrom(this.communityService.getCategories());
+      const cats = result.ok && result.data ? result.data : [];
+      this.categories = cats.map((c) => ({ ...c, requestStatus: 'none' as const }));
     } catch {
       this.error = 'Erro ao carregar categorias.';
     } finally {

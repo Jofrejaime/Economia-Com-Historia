@@ -12,6 +12,8 @@ export interface ApiEnvelope<T> {
   meta?: Record<string, number>;
 }
 
+export type TopicVisibility = 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY';
+
 export interface CommunityCategory {
   id: string;
   slug: string;
@@ -55,7 +57,7 @@ export interface DiscussionTopic {
   author_id: string;
   title: string;
   content: string;
-  visibility: 'PUBLIC' | 'RESTRICTED' | 'PRIVATE' | string;
+  visibility: TopicVisibility | string;
   status: 'open' | 'locked' | 'archived' | 'published' | 'draft' | string;
   is_pinned: boolean;
   is_featured: boolean;
@@ -94,7 +96,7 @@ export interface CreateTopicPayload {
   category_id: string;
   title: string;
   content: string;
-  visibility: 'PUBLIC' | 'RESTRICTED' | 'PRIVATE';
+  visibility: TopicVisibility;
   member_ids?: string[];
   members?: TopicMemberPayload[];
 }
@@ -103,7 +105,7 @@ export interface UpdateTopicPayload {
   title: string;
   content: string;
   status?: 'open' | 'locked' | 'archived' | 'published' | 'draft';
-  visibility?: 'PUBLIC' | 'RESTRICTED' | 'PRIVATE';
+  visibility?: TopicVisibility;
 }
 
 export interface ReplyPayload {
