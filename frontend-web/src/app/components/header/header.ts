@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ProfileService } from '../../services/profile.service';
+import { NotificationService } from '../../services/notification.service';
 
 interface HeaderUser {
   display_name?: string;
@@ -28,7 +29,8 @@ export class HeaderComponent implements OnInit {
   constructor(
     private router: Router,
     private auth: AuthService,
-    private profileService: ProfileService
+    private profileService: ProfileService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -67,8 +69,13 @@ export class HeaderComponent implements OnInit {
     }
   }
 
-  private loadUnreadCount(): void {
-    this.unreadCount = 3;
+  private async loadUnreadCount(): Promise<void> {
+    try {
+      const notifications = await this.notificationService.getNotifications();
+      this.unreadCount = notifications.filter(n => !n.is_read).length;
+    } catch {
+      this.unreadCount = 0;
+    }
   }
 
   goToNotifications(): void {

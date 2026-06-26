@@ -319,6 +319,9 @@ p, span, div, button {
   font-size: 12px;
   font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* ============================================
@@ -567,6 +570,9 @@ p, span, div, button {
   transition: all 0.2s;
   font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
+   display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .category-detail-actions-btn:hover {

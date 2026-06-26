@@ -5,18 +5,16 @@
   <main class="quizzes-main">
     <div class="quizzes-container">
       
-      <!-- Header -->
       <div class="quizzes-header">
         <h1 class="quizzes-title">Quizzes</h1>
         <p class="quizzes-subtitle">Teste os seus conhecimentos sobre a história económica de Angola</p>
       </div>
 
-     <!-- Erro (só aparece se houver erro, sem bloquear o resto) -->
-<div *ngIf="error" style="background:rgba(239,68,68,0.08);color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:24px;font-size:14px;border:1px solid rgba(239,68,68,0.15)">
-  {{ error }}
-</div>
+      <div *ngIf="error" style="background:rgba(239,68,68,0.08);color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:24px;font-size:14px;border:1px solid rgba(239,68,68,0.15)">
+        {{ error }}
+      </div>
 
-<ng-container>
+      <ng-container>
 
         <!-- User Level Card -->
         <div class="quizzes-level-card">
@@ -93,10 +91,7 @@
             </h2>
           </div>
           
-          <!-- Pódio - Top 3 -->
           <div class="quizzes-podium" *ngIf="topPlayers.length >= 3">
-
-            <!-- 2º Lugar -->
             <div class="quizzes-podium-item quizzes-podium-item-second" (click)="goToRanking()">
               <div class="quizzes-podium-avatar">
                 <img [src]="getAvatarUrl(topPlayers[1].display_name)" [alt]="topPlayers[1].display_name">
@@ -111,7 +106,6 @@
               <div class="quizzes-podium-points">{{ topPlayers[1].total_points | number }} pts</div>
             </div>
 
-            <!-- 1º Lugar (destacado) -->
             <div class="quizzes-podium-item quizzes-podium-item-first" (click)="goToRanking()">
               <div class="quizzes-podium-crown">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="#FBBF24">
@@ -131,7 +125,6 @@
               <div class="quizzes-podium-points">{{ topPlayers[0].total_points | number }} pts</div>
             </div>
 
-            <!-- 3º Lugar -->
             <div class="quizzes-podium-item quizzes-podium-item-third" (click)="goToRanking()">
               <div class="quizzes-podium-avatar">
                 <img [src]="getAvatarUrl(topPlayers[2].display_name)" [alt]="topPlayers[2].display_name">
@@ -145,15 +138,12 @@
               <div class="quizzes-podium-name">{{ topPlayers[2].display_name }}</div>
               <div class="quizzes-podium-points">{{ topPlayers[2].total_points | number }} pts</div>
             </div>
-
           </div>
 
-          <!-- Sem dados de ranking -->
           <div *ngIf="topPlayers.length === 0" style="text-align:center;padding:40px;color:#64748b">
             <p>Ainda não há dados de ranking disponíveis.</p>
           </div>
 
-          <!-- Ver Ranking Completo -->
           <div class="quizzes-podium-footer">
             <button (click)="goToRanking()" class="quizzes-podium-link">
               Ver Ranking Completo
@@ -164,11 +154,65 @@
           </div>
         </div>
 
-        <!-- All Quizzes -->
-        <div *ngIf="quizzes.length > 0">
-          <h2 class="quizzes-all-title">Todos os Quizzes</h2>
-          <div class="quizzes-all-grid">
-            <div *ngFor="let quiz of quizzes" (click)="startQuiz(quiz.id)" class="quizzes-all-card">
+        <!-- Filtros + Todos os Quizzes -->
+        <div>
+          <div class="quizzes-all-header">
+            <div>
+              <h2 class="quizzes-all-title">Todos os Quizzes</h2>
+              <p class="quizzes-all-count">{{ totalFiltered }} quiz{{ totalFiltered !== 1 ? 'zes' : '' }}</p>
+            </div>
+          </div>
+
+          <!-- Filtros -->
+          <div class="quizzes-filters-card">
+            <div class="quizzes-search-wrapper">
+              <div class="quizzes-search-container">
+                <svg class="quizzes-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" [(ngModel)]="searchQuery" (input)="onSearchInput()"
+                       placeholder="Pesquisar quizzes por título ou módulo..."
+                       class="quizzes-search-input">
+              </div>
+            </div>
+
+            <div class="quizzes-filters-row">
+              <div class="quizzes-filter-group">
+                <label class="quizzes-filter-label">Dificuldade</label>
+                <div class="quizzes-filter-dropdown">
+                  <button (click)="toggleDifficultyDropdown()" class="quizzes-filter-btn">
+                    <span>{{ getSelectedDifficultyLabel() }}</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"
+                         [class.rotated]="showDifficultyDropdown">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  <div *ngIf="showDifficultyDropdown" class="quizzes-filter-dropdown-menu">
+                    <button *ngFor="let d of difficulties"
+                            (click)="selectDifficulty(d.id)"
+                            class="quizzes-filter-option"
+                            [class.selected]="selectedDifficulty === d.id">
+                      <div class="quizzes-featured-dot" [style.backgroundColor]="getDifficultyColor(d.id)"
+                           style="width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px"></div>
+                      {{ d.label }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button class="quizzes-filters-clear" (click)="clearFilters()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+                Limpar
+              </button>
+            </div>
+          </div>
+
+          <!-- Cards -->
+          <div class="quizzes-all-grid" *ngIf="filteredQuizzes.length > 0">
+            <div *ngFor="let quiz of filteredQuizzes" (click)="startQuiz(quiz.id)" class="quizzes-all-card">
               <p class="quizzes-all-module">{{ quiz.module }}</p>
               <h3 class="quizzes-all-title-text">{{ quiz.title }}</h3>
               <div class="quizzes-all-meta">
@@ -196,15 +240,24 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Empty state -->
-        <div *ngIf="quizzes.length === 0 && featuredQuizzes.length === 0" style="text-align:center;padding:60px;color:#64748b">
-          <p>Nenhum quiz disponível de momento.</p>
+          <!-- Empty state -->
+          <div *ngIf="filteredQuizzes.length === 0 && allQuizzes.length > 0"
+               style="text-align:center;padding:60px;color:#64748b;background:#fff;border-radius:8px;border:1px solid #E5E7EB">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5" style="margin-bottom:16px">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <p style="font-weight:600;margin-bottom:4px">Nenhum quiz encontrado</p>
+            <p style="font-size:14px">Tente ajustar os filtros da pesquisa</p>
+          </div>
+
+          <div *ngIf="allQuizzes.length === 0" style="text-align:center;padding:60px;color:#64748b">
+            <p>Nenhum quiz disponível de momento.</p>
+          </div>
         </div>
 
       </ng-container>
-
     </div>
   </main>
 

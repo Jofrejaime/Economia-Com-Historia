@@ -1,5 +1,6 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
@@ -9,17 +10,24 @@ import { AuthService } from '../../../services/auth.service';
 @Component({
   selector: 'app-quiz-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, RouterModule, HeaderComponent, FooterComponent],
   templateUrl: './quiz-list.html',
   styleUrls: ['./quiz-list.css']
 })
 export class QuizListComponent implements OnInit {
 
+  allQuizzes: Quiz[] = [];
   featuredQuizzes: Quiz[] = [];
-  quizzes: Quiz[] = [];
   topPlayers: LeaderboardEntry[] = [];
   error: string | null = null;
 
+  // Filtros
+  searchQuery = '';
+  selectedDifficulty: string | null = null;
+  showDifficultyDropdown = false;
+  private searchTimer: any = null;
+
+  difficulties: { id: string; label: string }[] = [];
   userLevel = {
     current: 1,
     name: 'Investigador',
@@ -47,39 +55,96 @@ export class QuizListComponent implements OnInit {
       };
       this.cdr.detectChanges();
     }
-
     this.loadQuizzes();
     this.loadLeaderboard();
   }
 
-  private async loadQuizzes(): Promise<void> {
-    try {
-      const quizzes = await this.quizService.getQuizzes();
-      this.featuredQuizzes = quizzes.filter(q => q.is_featured);
-      this.quizzes = quizzes.filter(q => !q.is_featured);
-      this.cdr.detectChanges();
-    } catch {
-      this.error = 'Erro ao carregar quizzes.';
-      this.cdr.detectChanges();
-    }
+ private async loadQuizzes(): Promise<void> {
+  try {
+    const quizzes = await this.quizService.getQuizzes();
+    this.allQuizzes = quizzes;
+    this.featuredQuizzes = quizzes.filter(q => q.is_featured);
+
+    // extrai dificuldades únicas da API, ordenadas
+    const seen = new Set<string>();
+    this.difficulties = quizzes
+      .map(q => q.difficulty)
+      .filter(d => d && !seen.has(d) && seen.add(d))
+      .map(d => ({ id: d, label: d }));
+
+    this.cdr.detectChanges();
+  } catch {
+    this.error = 'Erro ao carregar quizzes.';
+    this.cdr.detectChanges();
   }
+}
 
   private async loadLeaderboard(): Promise<void> {
     try {
       const leaderboard = await this.quizService.getNationalLeaderboard();
       this.topPlayers = leaderboard.slice(0, 3);
       this.cdr.detectChanges();
-    } catch {
-      // falha silenciosamente
+    } catch {}
+  }
+
+  // ===== FILTROS =====
+  get filteredQuizzes(): Quiz[] {
+    return this.allQuizzes
+      .filter(q => !q.is_featured)
+      .filter(q => {
+        const matchSearch = this.searchQuery.trim().length === 0
+          || q.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+          || (q.module ?? '').toLowerCase().includes(this.searchQuery.toLowerCase());
+        const matchDifficulty = !this.selectedDifficulty || q.difficulty === this.selectedDifficulty;
+        return matchSearch && matchDifficulty;
+      });
+  }
+
+  get totalFiltered(): number {
+    return this.filteredQuizzes.length;
+  }
+
+  onSearchInput(): void {
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.cdr.detectChanges(), 300);
+  }
+
+  getSelectedDifficultyLabel(): string {
+    return this.difficulties.find(d => d.id === this.selectedDifficulty)?.label ?? 'Todos os Níveis';
+  }
+
+  selectDifficulty(id: string): void {
+    this.selectedDifficulty = this.selectedDifficulty === id ? null : id;
+    this.showDifficultyDropdown = false;
+    this.cdr.detectChanges();
+  }
+
+  toggleDifficultyDropdown(): void {
+    this.showDifficultyDropdown = !this.showDifficultyDropdown;
+  }
+
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.selectedDifficulty = null;
+    this.showDifficultyDropdown = false;
+    this.cdr.detectChanges();
+  }
+
+  @HostListener('document:click', ['$event'])
+  handleClickOutside(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.quizzes-filter-dropdown')) {
+      this.showDifficultyDropdown = false;
     }
   }
 
+  // ===== UTILITÁRIOS =====
   getDifficultyColor(difficulty: string): string {
     switch (difficulty) {
-      case 'Básico': return '#22c55e';
+      case 'Básico':     return '#22c55e';
       case 'Intermédio': return '#d4a574';
-      case 'Avançado': return '#6b0119';
-      default: return '#94a3b8';
+      case 'Avançado':   return '#6b0119';
+      default:           return '#94a3b8';
     }
   }
 

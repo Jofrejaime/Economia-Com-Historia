@@ -1,7 +1,7 @@
 import { Component, HostListener, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FooterComponent } from '../../components/footer/footer';
 import { HeaderComponent } from '../../components/header/header';
 import { DocumentService, Document, DocumentCategory } from '../../services/document.service';
@@ -59,14 +59,20 @@ export class ContentsComponent implements OnInit, OnDestroy {
   ];
 
   private searchTimer: any = null;
+  // guarda o category_id vindo da query param
+  private preselectedCategoryId: string | null = null;
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private documentService: DocumentService,
     private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
+    // lê o category_id da query param antes de carregar
+    this.preselectedCategoryId = this.route.snapshot.queryParamMap.get('category_id');
+
     await this.loadCategories();
     await this.loadDocuments();
   }
@@ -79,6 +85,15 @@ export class ContentsComponent implements OnInit, OnDestroy {
     try {
       this.categories = await this.documentService.getCategories();
       this.themes = this.categories.map(c => c.name);
+
+      // pré-preenche o filtro de tema se vier da home
+      if (this.preselectedCategoryId) {
+        const cat = this.categories.find(c => c.id === this.preselectedCategoryId);
+        if (cat) {
+          this.selectedTheme = cat.name;
+        }
+        this.preselectedCategoryId = null;
+      }
     } catch {
       this.themes = [];
     } finally {

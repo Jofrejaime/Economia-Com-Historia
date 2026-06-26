@@ -66,9 +66,20 @@
 
             <div *ngFor="let d of discussions" class="contents-widget-item" (click)="navigateToDiscussion(d.id)">
               <p class="contents-widget-item-title">{{ d.title }}</p>
-              <p class="contents-widget-item-meta">
-                {{ d.author?.display_name ?? '—' }} • {{ formatReplies(d.replies_count) }}
-              </p>
+              <!-- discussions meta -->
+<p class="contents-widget-item-meta">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </svg>
+  {{ d.author?.display_name ?? '—' }} •
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+  {{ formatReplies(d.replies_count) }}
+</p>
+
+<!-- scholars points label substitui "Pontos" — já é texto, ok -->
             </div>
             <a (click)="navigateTo('/forum/community')" class="contents-widget-btn">ADERIR À COMUNIDADE</a>
           </div>

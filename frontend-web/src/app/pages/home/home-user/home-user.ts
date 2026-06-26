@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
@@ -23,34 +23,59 @@ export class HomeUser implements OnInit {
   discussions: DiscussionTopic[] = [];
   scholars: LeaderboardEntry[] = [];
   featuredDocument: Document | null = null;
-  isLoading = true;
 
   constructor(
     private router: Router,
     private documentService: DocumentService,
     private quizService: QuizService,
     private communityService: CommunityService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.loadDocs();
+    this.loadDiscussions();
+    this.loadLeaderboard();
+  }
+
+  private async loadDocs(): Promise<void> {
     try {
-      const [docs, cats, topicsResult, leaderboard] = await Promise.all([
+      const [docs, cats] = await Promise.all([
         this.documentService.getDocuments(),
         this.documentService.getCategories(),
-        firstValueFrom(this.communityService.getTopics()),
-        this.quizService.getNationalLeaderboard(),
       ]);
-
       this.documents = docs.slice(0, 4);
       this.featuredDocument = docs[0] ?? null;
       this.categories = cats;
-      this.discussions = topicsResult.ok && topicsResult.data ? topicsResult.data.data.slice(0, 3) : [];
-      this.scholars = leaderboard.slice(0, 3);
-    } catch (err) {
-      console.error('Erro ao carregar home', err);
+    } catch {
+      // falha silenciosa
     } finally {
-      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadDiscussions(): Promise<void> {
+    try {
+      const topicsResult = await firstValueFrom(this.communityService.getTopics());
+      this.discussions = topicsResult.ok && topicsResult.data
+        ? topicsResult.data.data.slice(0, 3)
+        : [];
+    } catch {
+      // falha silenciosa
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadLeaderboard(): Promise<void> {
+    try {
+      const leaderboard = await this.quizService.getNationalLeaderboard();
+      this.scholars = leaderboard.slice(0, 3);
+    } catch {
+      // falha silenciosa
+    } finally {
+      this.cdr.detectChanges();
     }
   }
 
@@ -82,19 +107,10 @@ export class HomeUser implements OnInit {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8B1E2D&color=fff&size=48`;
   }
 
-  navigateToContent(id: string): void {
-    this.router.navigate(['/contents/view', id]);
-  }
-
+  navigateToContent(id: string): void { this.router.navigate(['/contents/view', id]); }
   navigateToCategory(id: string): void {
-    this.router.navigate(['/forum/categoria', id]);
-  }
-
-  navigateToDiscussion(id: string): void {
-    this.router.navigate(['/forum/community/discussao', id]);
-  }
-
-  navigateTo(path: string): void {
-    this.router.navigate([path]);
-  }
+  this.router.navigate(['/contents'], { queryParams: { category_id: id } });
+}
+  navigateToDiscussion(id: string): void { this.router.navigate(['/forum/community/discussao', id]); }
+  navigateTo(path: string): void { this.router.navigate([path]); }
 }
