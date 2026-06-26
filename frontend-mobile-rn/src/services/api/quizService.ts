@@ -1,6 +1,6 @@
 import { httpClient } from '../http/client';
 import { API_ENDPOINTS } from '../../constants/api';
-import type { Quiz, QuizQuestion, QuizAttempt, PaginatedResponse } from '../../types/api';
+import type { Quiz, QuizQuestion, QuizAttempt, Document, PaginatedResponse } from '../../types/api';
 
 export interface QuizFilters {
   difficulty?: 'Básico' | 'Intermédio' | 'Avançado';
@@ -39,7 +39,7 @@ export const quizService = {
 
   async submitAnswer(
     attemptId: string,
-    payload: { question_id: string; option_id: string }
+    payload: { question_id: string; selected_option_id: string }
   ): Promise<{ is_correct: boolean; points_earned: number; explanation: string | null }> {
     const { data } = await httpClient.post(API_ENDPOINTS.QUIZ_ATTEMPTS.ANSWER(attemptId), payload);
     return data.data ?? data;
@@ -47,6 +47,11 @@ export const quizService = {
 
   async completeAttempt(attemptId: string): Promise<QuizAttempt> {
     const { data } = await httpClient.post(API_ENDPOINTS.QUIZ_ATTEMPTS.COMPLETE(attemptId));
+    return data.data ?? data;
+  },
+
+  async relatedDocuments(quizId: string): Promise<Document[]> {
+    const { data } = await httpClient.get(API_ENDPOINTS.QUIZZES.RELATED_DOCUMENTS(quizId));
     return data.data ?? data;
   },
 };

@@ -73,6 +73,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::get('/quizzes', [QuizController::class, 'index']);
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);
     Route::get('/quizzes/{id}/questions', [QuizController::class, 'questions']);
+    Route::get('/quizzes/{id}/documents', [QuizController::class, 'relatedDocuments']);
     Route::post('/quizzes/{id}/attempts', [QuizController::class, 'startAttempt']);
     Route::get('/quiz-attempts/{id}', [QuizController::class, 'showAttempt']);
     Route::post('/quiz-attempts/{id}/answers', [QuizController::class, 'answerAttempt']);

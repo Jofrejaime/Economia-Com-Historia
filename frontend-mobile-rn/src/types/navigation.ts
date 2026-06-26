@@ -30,7 +30,7 @@ export type MainStackParamList = {
   Article: { id: string };
   Quiz: { quizId: string; attemptId?: string };
   QuizFeedback: { isCorrect: boolean; explanation: string | null; onNext?: () => void };
-  QuizResult: { attemptId: string };
+  QuizResult: { attemptId: string; quizId: string };
   CreateTopic: { initialTitle?: string };
   TopicDiscussion: { id: string };
   ManageMembers: { topicId: string; initialMembers?: Array<{ id: string; name: string; username: string; avatarUri: string | null }> };

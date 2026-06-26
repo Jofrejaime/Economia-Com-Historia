@@ -9,7 +9,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
 import { appTheme } from "../../constants/theme";
@@ -26,6 +26,8 @@ const DOCUMENT_TYPES: { label: string; value: DocumentType }[] = [
   { label: "Relatório", value: "report" },
   { label: "Manuscrito", value: "manuscript" },
   { label: "Arquivo", value: "archive" },
+  { label: "Vídeo", value: "video" },
+  { label: "Áudio", value: "audio" },
 ];
 
 const ACADEMIC_LEVELS: { label: string; value: AcademicLevel }[] = [
@@ -56,6 +58,7 @@ export function ContentScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
+  const [draftSearch, setDraftSearch] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<DocumentType | undefined>(undefined);
   const [selectedLevel, setSelectedLevel] = useState<AcademicLevel | undefined>(undefined);
@@ -69,27 +72,32 @@ export function ContentScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
 
-  // Apply route params on entry
-  useEffect(() => {
-    const params = route.params as ContentParams | undefined;
-    if (!params) return;
-    if (params.searchQuery) setSearchQuery(params.searchQuery);
-    if (params.document_type) setSelectedType(params.document_type);
-    if (params.access_level_id) setSelectedAccessLevel(params.access_level_id);
-    if (params.academic_level) setSelectedLevel(params.academic_level);
-    navigation.setParams({
-      searchQuery: undefined,
-      document_type: undefined,
-      access_level_id: undefined,
-      academic_level: undefined,
-    });
-  }, [route.params]);
+  // Apply route params every time screen is focused (works correctly with tab navigation)
+  useFocusEffect(
+    useCallback(() => {
+      const params = route.params as ContentParams | undefined;
+      if (!params) return;
+      let hasFilter = false;
+      if (params.searchQuery) { setSearchQuery(params.searchQuery); setDraftSearch(params.searchQuery); }
+      if (params.document_type) { setSelectedType(params.document_type); hasFilter = true; }
+      if (params.access_level_id) { setSelectedAccessLevel(params.access_level_id); hasFilter = true; }
+      if (params.academic_level) { setSelectedLevel(params.academic_level); hasFilter = true; }
+      if (hasFilter) setShowFilters(true);
+      navigation.setParams({
+        searchQuery: undefined,
+        document_type: undefined,
+        access_level_id: undefined,
+        academic_level: undefined,
+      });
+    }, [route.params])
+  );
 
   const fetchDocuments = useCallback(async (reset = false) => {
     setLoading(true);
+    const currentPage = reset ? 1 : page;
     try {
-      const currentPage = reset ? 1 : page;
       const response = await documentService.list({
+        q: searchQuery.trim() || undefined,
         document_type: selectedType,
         academic_level: selectedLevel,
         access_level_id: selectedAccessLevel,
@@ -106,33 +114,23 @@ export function ContentScreen() {
     } finally {
       setLoading(false);
     }
-  }, [selectedType, selectedLevel, selectedAccessLevel, sortBy, page]);
+  }, [searchQuery, selectedType, selectedLevel, selectedAccessLevel, sortBy, page]);
 
   useEffect(() => {
     setPage(1);
     setDocuments([]);
     setHasMore(true);
     fetchDocuments(true);
-  }, [selectedType, selectedLevel, selectedAccessLevel, sortBy]);
+  }, [searchQuery, selectedType, selectedLevel, selectedAccessLevel, sortBy]);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    setLoading(true);
-    try {
-      const response = await documentService.search(searchQuery.trim());
-      setDocuments(response.data);
-      setTotal(response.meta.total);
-      setHasMore(false);
-    } catch (error) {
-      console.warn("Erro na pesquisa", error);
-    } finally {
-      setLoading(false);
-    }
+  const applySearch = () => {
+    const q = draftSearch.trim();
+    if (q !== searchQuery) setSearchQuery(q);
   };
 
   const clearSearch = () => {
+    setDraftSearch("");
     setSearchQuery("");
-    fetchDocuments(true);
   };
 
   const renderDocument = ({ item }: { item: Document }) => {
@@ -188,15 +186,15 @@ export function ContentScreen() {
         <View style={styles.searchContainer}>
           <Feather name="search" size={20} color={appTheme.colors.textMuted} style={styles.searchIcon} />
           <TextInput
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={handleSearch}
+            value={draftSearch}
+            onChangeText={setDraftSearch}
+            onSubmitEditing={applySearch}
             returnKeyType="search"
             placeholder="Pesquisar documentos..."
             placeholderTextColor={appTheme.colors.textMuted}
             style={styles.searchInput}
           />
-          {searchQuery.length > 0 && (
+          {draftSearch.length > 0 && (
             <TouchableOpacity onPress={clearSearch}>
               <Feather name="x" size={18} color={appTheme.colors.textMuted} />
             </TouchableOpacity>
@@ -207,7 +205,15 @@ export function ContentScreen() {
           style={[styles.filterButton, showFilters && styles.filterButtonActive]}
         >
           <Feather name="filter" size={16} color={showFilters ? "white" : appTheme.colors.textSecondary} />
-          <Text style={[styles.filterButtonText, showFilters && styles.filterButtonTextActive]}>Filtros</Text>
+          {[selectedType, selectedLevel, selectedAccessLevel].filter(Boolean).length > 0 ? (
+            <View style={styles.filterBadge}>
+              <Text style={styles.filterBadgeText}>
+                {[selectedType, selectedLevel, selectedAccessLevel].filter(Boolean).length}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.filterButtonText, showFilters && styles.filterButtonTextActive]}>Filtros</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -381,6 +387,19 @@ const styles = StyleSheet.create({
   },
   filterButtonTextActive: {
     color: "white",
+  },
+  filterBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: appTheme.colors.primary,
   },
   listContent: {
     paddingHorizontal: 16,
