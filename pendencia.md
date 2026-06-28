@@ -51,12 +51,15 @@
 - [ ] Adicionar testes de componente para os fluxos principais do painel admin.
 - [ ] Validar o fluxo completo do admin no browser apos a integracao das proximas paginas.
 
-## Sprint 12 - Consolidacao do Dominio
+## Sprint 13 — Domain Simplification (Categories ≠ Authorization) [CONCLUÍDO]
 
-- [ ] O contrato de visibilidade da Community ficou congelado no frontend como `PUBLIC`, `CATEGORY` e `INVITE_ONLY`; o backend ainda usa mapeamento legado para `RESTRICTED` e `PRIVATE` ate a limpeza tecnica futura.
-- [ ] A regra de administracao sobre conteudo de terceiros continua dependente da proxima refatoracao. O frontend ainda mantem edicao por compatibilidade, mas o contrato alvo permanece remover, arquivar, bloquear e mover categoria sem editar conteudo de terceiros.
-- [ ] O contrato de Reports continua dividido entre `GET /reports` para denuncias do proprio utilizador e `GET /reports/pending` para a fila administrativa, ate existir um contrato unico de moderacao.
-- [ ] Os estados `review` e `resolved` continuam registados apenas como legado administrativo; o frontend consome `archived` e `reviewed` no contrato congelado.
+- [x] Refatoração do domínio de Community para desassociar autorização de categorias.
+- [x] O campo `access_level_id` das categorias de comunidade passa a ser nullable e sem qualquer efeito nas políticas de acesso a tópicos.
+- [x] A visibilidade do tópico passa a ditar totalmente as permissões de acesso:
+  - `PUBLIC`: Aberto a todos.
+  - `CATEGORY`: Restrito a utilizadores que sejam explicitamente membros da categoria (`category_members`), eliminando verificação por `AccessLevel` ou `AccessGrant`.
+  - `INVITE_ONLY` (antigo `PRIVATE`): Apenas autores e membros convidados.
+- [x] Swagger documentado sem a herança de acesso pelas categorias.
 
 ## Observacoes de roadmap
 

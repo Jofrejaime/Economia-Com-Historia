@@ -67,7 +67,7 @@ class CommunityController extends Controller
      *      operationId="storeCommunityCategory",
      *      tags={"Community"},
      *      summary="Criar categoria de comunidade (Apenas Admin)",
-     *      description="Cria uma nova categoria no fórum.",
+     *      description="Cria uma nova categoria no fórum. As categorias servem apenas para organizar tópicos — não controlam acesso. O acesso é definido pela visibilidade de cada tópico.",
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\RequestBody(
      *          required=true,
@@ -76,7 +76,6 @@ class CommunityController extends Controller
      *              @OA\Property(property="slug", type="string", maxLength=100, example="discussao-geral"),
      *              @OA\Property(property="name", type="string", maxLength=255, example="Discussão Geral"),
      *              @OA\Property(property="description", type="string", maxLength=500, nullable=true, example="Tópicos gerais..."),
-     *              @OA\Property(property="access_level_id", type="string", example="public"),
      *              @OA\Property(property="color_bg", type="string", example="#800020"),
      *              @OA\Property(property="color_text", type="string", example="#FFFFFF"),
      *              @OA\Property(property="cover_image_url", type="string", format="url", maxLength=500, nullable=true),
@@ -108,35 +107,33 @@ class CommunityController extends Controller
     public function storeCategory(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'slug' => ['required', 'string', 'unique:community_categories', 'max:100'],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:500'],
-            'access_level_id' => ['nullable', 'string', 'exists:access_levels,id'],
-            'color_bg' => ['nullable', 'string', 'regex:/^#[0-9A-F]{6}$/i'],
-            'color_text' => ['nullable', 'string', 'regex:/^#[0-9A-F]{6}$/i'],
+            'slug'            => ['required', 'string', 'unique:community_categories', 'max:100'],
+            'name'            => ['required', 'string', 'max:255'],
+            'description'     => ['nullable', 'string', 'max:500'],
+            'color_bg'        => ['nullable', 'string', 'regex:/^#[0-9A-F]{6}$/i'],
+            'color_text'      => ['nullable', 'string', 'regex:/^#[0-9A-F]{6}$/i'],
             'cover_image_url' => ['nullable', 'string', 'url', 'max:500'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'sort_order'      => ['nullable', 'integer', 'min:0'],
         ]);
 
         $category = CommunityCategory::create([
-            'id' => (string) Str::uuid(),
-            'slug' => $validated['slug'],
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'access_level_id' => $validated['access_level_id'] ?? 'public',
-            'color_bg' => $validated['color_bg'] ?? '#800020',
-            'color_text' => $validated['color_text'] ?? '#FFFFFF',
+            'id'              => (string) Str::uuid(),
+            'slug'            => $validated['slug'],
+            'name'            => $validated['name'],
+            'description'     => $validated['description'] ?? null,
+            'color_bg'        => $validated['color_bg'] ?? '#800020',
+            'color_text'      => $validated['color_text'] ?? '#FFFFFF',
             'cover_image_url' => $validated['cover_image_url'] ?? null,
-            'sort_order' => $validated['sort_order'] ?? 0,
-            'is_active' => true,
-            'members_count' => 0,
-            'topics_count' => 0,
-            'created_at' => now(),
+            'sort_order'      => $validated['sort_order'] ?? 0,
+            'is_active'       => true,
+            'members_count'   => 0,
+            'topics_count'    => 0,
+            'created_at'      => now(),
         ]);
 
         return response()->json([
             'message' => 'Category created successfully.',
-            'data' => $category,
+            'data'    => $category,
         ], 201);
     }
 
@@ -166,12 +163,12 @@ class CommunityController extends Controller
     public function indexTopics(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'search' => ['sometimes', 'string', 'max:255'],
+            'search'      => ['sometimes', 'string', 'max:255'],
             'category_id' => ['sometimes', 'uuid', 'exists:community_categories,id'],
-            'status' => ['sometimes', 'string', 'in:open,locked,archived,published,draft'],
-            'visibility' => ['sometimes', 'string', 'in:PUBLIC,RESTRICTED,PRIVATE'],
-            'page' => ['sometimes', 'integer', 'min:1'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'status'      => ['sometimes', 'string', 'in:open,locked,archived,published,draft'],
+            'visibility'  => ['sometimes', 'string', 'in:PUBLIC,CATEGORY,INVITE_ONLY'],
+            'page'        => ['sometimes', 'integer', 'min:1'],
+            'per_page'    => ['sometimes', 'integer', 'min:1', 'max:100'],
         ]);
 
         $query = DiscussionTopic::query()->with(['author.profile', 'category'])
@@ -257,24 +254,21 @@ class CommunityController extends Controller
     public function storeTopic(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'category_id' => ['required', 'uuid', 'exists:community_categories,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string', 'max:5000'],
-            'visibility' => ['sometimes', 'string', 'in:PUBLIC,RESTRICTED,PRIVATE'],
-            'member_ids' => ['sometimes', 'array'],
-            'member_ids.*' => ['uuid', 'exists:users,id'],
-            'members' => ['sometimes', 'array'],
+            'category_id'      => ['required', 'uuid', 'exists:community_categories,id'],
+            'title'            => ['required', 'string', 'max:255'],
+            'content'          => ['required', 'string', 'max:5000'],
+            'visibility'       => ['sometimes', 'string', 'in:PUBLIC,CATEGORY,INVITE_ONLY'],
+            'member_ids'       => ['sometimes', 'array'],
+            'member_ids.*'     => ['uuid', 'exists:users,id'],
+            'members'          => ['sometimes', 'array'],
             'members.*.user_id' => ['required', 'uuid', 'exists:users,id'],
-            'members.*.role' => ['sometimes', 'string', 'in:member,moderator'],
+            'members.*.role'   => ['sometimes', 'string', 'in:member,moderator'],
         ]);
 
-        $category = CommunityCategory::findOrFail($validated['category_id']);
-        $visibility = $validated['visibility'] ?? 'RESTRICTED';
-
-        // Check access to category
-        if (!$this->accessGate->canAccess($request->user(), $category->access_level_id)) {
-            abort(403, 'Access denied to this category.');
-        }
+        $category   = CommunityCategory::findOrFail($validated['category_id']);
+        // Sprint 13: visibilidade padrão é CATEGORY (membro da categoria).
+        // Categorias não controlam acesso — a visibilidade é responsabilidade do tópico.
+        $visibility = $validated['visibility'] ?? 'CATEGORY';
 
         $topic = DB::transaction(function () use ($validated, $request, $category, $visibility) {
             $topic = DiscussionTopic::create([
@@ -325,7 +319,7 @@ class CommunityController extends Controller
                 }
             }
 
-            if ($visibility === 'PRIVATE' && $invitedMembers !== []) {
+            if ($visibility === 'INVITE_ONLY' && $invitedMembers !== []) {
                 $seenMemberIds = [];
 
                 foreach ($invitedMembers as $memberData) {
@@ -481,10 +475,10 @@ class CommunityController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string', 'max:5000'],
-            'status' => ['nullable', 'string', 'in:published,draft,archived'],
-            'visibility' => ['sometimes', 'string', 'in:PUBLIC,RESTRICTED,PRIVATE'],
+            'title'      => ['required', 'string', 'max:255'],
+            'content'    => ['required', 'string', 'max:5000'],
+            'status'     => ['nullable', 'string', 'in:published,draft,archived'],
+            'visibility' => ['sometimes', 'string', 'in:PUBLIC,CATEGORY,INVITE_ONLY'],
         ]);
 
         $topic->update([

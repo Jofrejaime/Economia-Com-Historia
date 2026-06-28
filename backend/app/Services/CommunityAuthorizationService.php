@@ -2,27 +2,38 @@
 
 namespace App\Services;
 
-use App\Models\CommunityCategory;
 use App\Models\DiscussionTopic;
 use App\Models\DiscussionTopicMember;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * CommunityAuthorizationService
+ *
+ * Sprint 13 — Domain Simplification (Categories ≠ Authorization)
+ *
+ * PRINCÍPIO ARQUITETURAL:
+ * A autorização dos tópicos baseia-se exclusivamente na propriedade
+ * `visibility` do próprio tópico. As categorias são apenas organização.
+ *
+ * Valores oficiais de visibility:
+ *   PUBLIC      — qualquer utilizador autenticado pode ver e responder
+ *   CATEGORY    — apenas membros da categoria (category_members) podem ver e responder
+ *   INVITE_ONLY — apenas owner, moderadores e membros convidados (discussion_topic_members)
+ */
 class CommunityAuthorizationService
 {
-    public function __construct(private readonly AccessGateService $accessGate) {}
-
     public function canViewTopic(User $user, DiscussionTopic $topic): bool
     {
         if ($this->bypassesChecks($user) || $this->isOwner($user, $topic)) {
             return true;
         }
 
-        return match ($this->normalizedVisibility($topic->visibility ?? 'RESTRICTED')) {
-            'PUBLIC' => true,
-            'RESTRICTED' => $this->canAccessCategory($user, $topic),
-            'PRIVATE' => $this->hasAnyMembership($user, $topic),
-            default => false,
+        return match ($this->normalizedVisibility($topic->visibility ?? 'CATEGORY')) {
+            'PUBLIC'      => true,
+            'CATEGORY'    => $this->isCategoryMember($user, $topic),
+            'INVITE_ONLY' => $this->hasAnyMembership($user, $topic),
+            default       => false,
         };
     }
 
@@ -32,11 +43,11 @@ class CommunityAuthorizationService
             return true;
         }
 
-        return match ($this->normalizedVisibility($topic->visibility ?? 'RESTRICTED')) {
-            'PUBLIC' => true,
-            'RESTRICTED' => $this->canAccessCategory($user, $topic),
-            'PRIVATE' => $this->hasAcceptedMembership($user, $topic),
-            default => false,
+        return match ($this->normalizedVisibility($topic->visibility ?? 'CATEGORY')) {
+            'PUBLIC'      => true,
+            'CATEGORY'    => $this->isCategoryMember($user, $topic),
+            'INVITE_ONLY' => $this->hasAcceptedMembership($user, $topic),
+            default       => false,
         };
     }
 
@@ -79,7 +90,7 @@ class CommunityAuthorizationService
             return false;
         }
 
-        return $this->normalizedVisibility($topic->visibility ?? 'RESTRICTED') === 'PRIVATE'
+        return $this->normalizedVisibility($topic->visibility ?? 'CATEGORY') === 'INVITE_ONLY'
             && $this->hasAnyMembership($user, $topic);
     }
 
@@ -92,30 +103,43 @@ class CommunityAuthorizationService
         return $this->hasAnyMembership($user, $topic);
     }
 
+    /**
+     * Aplica filtro de visibilidade à query de tópicos.
+     *
+     * Regras:
+     *   PUBLIC      — sempre visível
+     *   CATEGORY    — visível se o utilizador for membro da categoria
+     *   INVITE_ONLY — visível apenas se o utilizador for membro do tópico
+     */
     public function applyVisibleTopicsFilter(Builder $query, User $user): void
     {
         if ($this->bypassesChecks($user)) {
             return;
         }
 
-        $grantLevels = $this->accessGate->activeGrantLevelIds($user);
         $table = $query->getModel()->getTable();
 
-        $query->where(function (Builder $builder) use ($user, $grantLevels, $table): void {
+        $query->where(function (Builder $builder) use ($user, $table): void {
+            // O próprio autor vê sempre os seus tópicos
             $builder->where("{$table}.author_id", $user->id)
-                ->orWhere("{$table}.visibility", 'PUBLIC')
-                ->orWhere(function (Builder $restricted) use ($grantLevels, $table): void {
-                    $restricted->where("{$table}.visibility", 'RESTRICTED')
-                        ->whereHas('category', function (Builder $categoryQuery) use ($grantLevels): void {
-                            $categoryQuery->where('access_level_id', 'public');
 
-                            if ($grantLevels !== []) {
-                                $categoryQuery->orWhereIn('access_level_id', $grantLevels);
-                            }
+                // Tópicos públicos — acessíveis a todos
+                ->orWhere("{$table}.visibility", 'PUBLIC')
+
+                // Tópicos de categoria — o utilizador tem de ser membro da categoria
+                ->orWhere(function (Builder $category) use ($user, $table): void {
+                    $category->where("{$table}.visibility", 'CATEGORY')
+                        ->whereExists(function ($memberQuery) use ($user, $table): void {
+                            $memberQuery->selectRaw('1')
+                                ->from('category_members as cm')
+                                ->whereColumn('cm.category_id', "{$table}.category_id")
+                                ->where('cm.user_id', $user->id);
                         });
                 })
-                ->orWhere(function (Builder $private) use ($user, $table): void {
-                    $private->where("{$table}.visibility", 'PRIVATE')
+
+                // Tópicos por convite — o utilizador tem de ser membro do tópico
+                ->orWhere(function (Builder $invite) use ($user, $table): void {
+                    $invite->where("{$table}.visibility", 'INVITE_ONLY')
                         ->whereExists(function ($memberQuery) use ($user, $table): void {
                             $memberQuery->selectRaw('1')
                                 ->from('discussion_topic_members as dtm')
@@ -161,7 +185,12 @@ class CommunityAuthorizationService
         return in_array($this->memberRole($user, $topic), ['owner', 'moderator'], true);
     }
 
-    private function canAccessCategory(User $user, DiscussionTopic $topic): bool
+    /**
+     * Verifica se o utilizador é membro da categoria do tópico.
+     * Usado para tópicos com visibility = CATEGORY.
+     * Não consulta access_level_id — apenas a tabela category_members.
+     */
+    private function isCategoryMember(User $user, DiscussionTopic $topic): bool
     {
         $topic->loadMissing('category');
 
@@ -171,7 +200,10 @@ class CommunityAuthorizationService
             return false;
         }
 
-        return $this->accessGate->canAccess($user, $category->access_level_id);
+        return \Illuminate\Support\Facades\DB::table('category_members')
+            ->where('category_id', $category->id)
+            ->where('user_id', $user->id)
+            ->exists();
     }
 
     private function bypassesChecks(User $user): bool
