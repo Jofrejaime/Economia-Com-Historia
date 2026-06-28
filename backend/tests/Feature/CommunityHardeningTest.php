@@ -12,16 +12,26 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
+/**
+ * CommunityHardeningTest — Sprint 13
+ *
+ * Testa o novo contrato de autorização baseado em visibility do tópico.
+ * As categorias NÃO controlam acesso. O acesso é determinado pelo visibility:
+ *
+ *   PUBLIC      — qualquer membro autenticado pode ver e responder
+ *   CATEGORY    — apenas membros da categoria (category_members) podem ver e responder
+ *   INVITE_ONLY — apenas owner, moderadores e membros convidados (discussion_topic_members)
+ */
 class CommunityHardeningTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_public_topic_is_visible_and_replyable(): void
     {
-        $viewer = $this->createAuthenticatedUser('Viewer User');
-        $category = $this->createCategory('public');
-        $author = $this->createAuthenticatedUser('Author User');
-        $topic = $this->createTopic($author, $category, ['visibility' => 'PUBLIC']);
+        $viewer   = $this->createAuthenticatedUser('Viewer User');
+        $category = $this->createCategory();
+        $author   = $this->createAuthenticatedUser('Author User');
+        $topic    = $this->createTopic($author, $category, ['visibility' => 'PUBLIC']);
 
         $list = $this->auth($viewer)->getJson('/api/topics');
         $list->assertOk();
@@ -36,38 +46,46 @@ class CommunityHardeningTest extends TestCase
         $reply->assertCreated();
     }
 
-    public function test_restricted_topic_requires_access_grant(): void
+    /**
+     * Sprint 13 — tópico CATEGORY só é visível a membros da categoria.
+     * A visibilidade não depende de AccessGrant — depende de category_members.
+     */
+    public function test_category_topic_requires_category_membership(): void
     {
-        $viewer = $this->createAuthenticatedUser('Restricted Viewer');
-        $category = $this->createCategory('restricted');
-        $author = $this->createAuthenticatedUser('Restricted Author');
-        $topic = $this->createTopic($author, $category, ['visibility' => 'RESTRICTED']);
+        $viewer   = $this->createAuthenticatedUser('Category Viewer');
+        $category = $this->createCategory();
+        $author   = $this->createAuthenticatedUser('Category Author');
+        $topic    = $this->createTopic($author, $category, ['visibility' => 'CATEGORY']);
 
+        // O author é membro da categoria (criou o tópico); o viewer não é.
         $list = $this->auth($viewer)->getJson('/api/topics');
         $list->assertOk();
+        // viewer não é membro da categoria → não vê o tópico
         $this->assertFalse(collect($list->json('data'))->contains(fn (array $item): bool => $item['id'] === $topic->id));
 
-        $this->grantAccess($viewer, 'restricted');
+        // Adicionar viewer como membro da categoria
+        $this->joinCategory($viewer, $category);
 
         $grantedList = $this->auth($viewer)->getJson('/api/topics');
         $grantedList->assertOk();
+        // agora vê o tópico
         $this->assertTrue(collect($grantedList->json('data'))->contains(fn (array $item): bool => $item['id'] === $topic->id));
 
         $show = $this->auth($viewer)->getJson("/api/topics/{$topic->id}");
         $show->assertOk();
 
         $reply = $this->auth($viewer)->postJson("/api/topics/{$topic->id}/replies", [
-            'content' => 'Resposta restrita',
+            'content' => 'Resposta de membro da categoria',
         ]);
         $reply->assertCreated();
     }
 
-    public function test_private_topic_is_hidden_from_external_users(): void
+    public function test_invite_only_topic_is_hidden_from_external_users(): void
     {
-        $viewer = $this->createAuthenticatedUser('External Viewer');
-        $owner = $this->createAuthenticatedUser('Private Owner');
-        $category = $this->createCategory('public');
-        $topic = $this->createTopic($owner, $category, ['visibility' => 'PRIVATE']);
+        $viewer   = $this->createAuthenticatedUser('External Viewer');
+        $owner    = $this->createAuthenticatedUser('Private Owner');
+        $category = $this->createCategory();
+        $topic    = $this->createTopic($owner, $category, ['visibility' => 'INVITE_ONLY']);
 
         $this->addMember($topic, $owner, 'owner', now());
         $member = $this->createAuthenticatedUser('Private Member');
@@ -89,37 +107,37 @@ class CommunityHardeningTest extends TestCase
         $reply->assertNotFound();
     }
 
-    public function test_private_topic_owner_can_invite_and_block_duplicates(): void
+    public function test_invite_only_topic_owner_can_invite_and_block_duplicates(): void
     {
-        $owner = $this->createAuthenticatedUser('Invite Owner');
-        $category = $this->createCategory('public');
-        $topic = $this->createTopic($owner, $category, ['visibility' => 'PRIVATE']);
+        $owner    = $this->createAuthenticatedUser('Invite Owner');
+        $category = $this->createCategory();
+        $topic    = $this->createTopic($owner, $category, ['visibility' => 'INVITE_ONLY']);
         $this->addMember($topic, $owner, 'owner', now());
 
         $invitee = $this->createAuthenticatedUser('Invitee User');
 
         $first = $this->auth($owner)->postJson("/api/topics/{$topic->id}/members", [
             'user_id' => $invitee->id,
-            'role' => 'member',
+            'role'    => 'member',
         ]);
 
         $first->assertCreated();
 
         $duplicate = $this->auth($owner)->postJson("/api/topics/{$topic->id}/members", [
             'user_id' => $invitee->id,
-            'role' => 'member',
+            'role'    => 'member',
         ]);
 
         $duplicate->assertStatus(409);
     }
 
-    public function test_private_topic_moderator_cannot_promote_owner_but_can_remove_members(): void
+    public function test_invite_only_topic_moderator_cannot_promote_owner_but_can_remove_members(): void
     {
-        $owner = $this->createAuthenticatedUser('Owner User');
+        $owner     = $this->createAuthenticatedUser('Owner User');
         $moderator = $this->createAuthenticatedUser('Moderator User');
-        $member = $this->createAuthenticatedUser('Member User');
-        $category = $this->createCategory('public');
-        $topic = $this->createTopic($owner, $category, ['visibility' => 'PRIVATE']);
+        $member    = $this->createAuthenticatedUser('Member User');
+        $category  = $this->createCategory();
+        $topic     = $this->createTopic($owner, $category, ['visibility' => 'INVITE_ONLY']);
 
         $this->addMember($topic, $owner, 'owner', now());
         $this->addMember($topic, $moderator, 'moderator', now());
@@ -135,36 +153,38 @@ class CommunityHardeningTest extends TestCase
         $remove->assertOk();
     }
 
+    // ── Helpers ─────────────────────────────────────────────────────────────
+
     private function createAuthenticatedUser(string $name): User
     {
         $user = User::factory()->create([
             'email_verified' => true,
-            'is_active' => true,
+            'is_active'      => true,
         ]);
 
         DB::table('user_profiles')->insert([
-            'id' => (string) Str::uuid(),
-            'user_id' => $user->id,
-            'display_name' => $name,
-            'full_name' => $name.' Full',
-            'institution' => 'ISPTEC',
-            'province' => 'Luanda',
-            'avatar_url' => null,
-            'bio' => null,
-            'website_url' => null,
+            'id'             => (string) Str::uuid(),
+            'user_id'        => $user->id,
+            'display_name'   => $name,
+            'full_name'      => $name.' Full',
+            'institution'    => 'ISPTEC',
+            'province'       => 'Luanda',
+            'avatar_url'     => null,
+            'bio'            => null,
+            'website_url'    => null,
             'research_areas' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'created_at'     => now(),
+            'updated_at'     => now(),
         ]);
 
         DB::table('user_sessions')->insert([
-            'id' => (string) Str::uuid(),
-            'user_id' => $user->id,
+            'id'            => (string) Str::uuid(),
+            'user_id'       => $user->id,
             'refresh_token' => Str::random(80),
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'PHPUnit',
-            'expires_at' => now()->addDay(),
-            'created_at' => now(),
+            'ip_address'    => '127.0.0.1',
+            'user_agent'    => 'PHPUnit',
+            'expires_at'    => now()->addDay(),
+            'created_at'    => now(),
         ]);
 
         return $user;
@@ -179,46 +199,50 @@ class CommunityHardeningTest extends TestCase
         return $this->withHeader('Authorization', "Bearer {$token}");
     }
 
-    private function createCategory(string $accessLevelId): CommunityCategory
+    /**
+     * Sprint 13 — categorias são apenas organização; não aceitam access_level_id.
+     */
+    private function createCategory(): CommunityCategory
     {
         return CommunityCategory::factory()->create([
             'is_active' => true,
-            'access_level_id' => $accessLevelId,
         ]);
     }
 
     private function createTopic(User $author, CommunityCategory $category, array $overrides = []): DiscussionTopic
     {
         return DiscussionTopic::factory()->create(array_merge([
-            'author_id' => $author->id,
+            'author_id'  => $author->id,
             'category_id' => $category->id,
-            'status' => 'published',
-            'visibility' => 'RESTRICTED',
+            'status'     => 'published',
+            'visibility' => 'CATEGORY',
         ], $overrides));
     }
 
     private function addMember(DiscussionTopic $topic, User $user, string $role, ?\DateTimeInterface $acceptedAt): DiscussionTopicMember
     {
         return DiscussionTopicMember::query()->create([
-            'id' => (string) Str::uuid(),
-            'topic_id' => $topic->id,
-            'user_id' => $user->id,
-            'role' => $role,
-            'invited_by' => $topic->author_id,
+            'id'          => (string) Str::uuid(),
+            'topic_id'    => $topic->id,
+            'user_id'     => $user->id,
+            'role'        => $role,
+            'invited_by'  => $topic->author_id,
             'accepted_at' => $acceptedAt,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'created_at'  => now(),
+            'updated_at'  => now(),
         ]);
     }
 
-    private function grantAccess(User $user, string $accessLevelId): void
+    /**
+     * Sprint 13 — adiciona utilizador como membro da categoria (não usa AccessGrant).
+     */
+    private function joinCategory(User $user, CommunityCategory $category): void
     {
-        DB::table('user_access_grants')->insert([
-            'id' => (string) Str::uuid(),
-            'user_id' => $user->id,
-            'access_level_id' => $accessLevelId,
-            'granted_at' => now(),
-            'is_active' => true,
+        DB::table('category_members')->insert([
+            'id'          => (string) Str::uuid(),
+            'category_id' => $category->id,
+            'user_id'     => $user->id,
+            'joined_at'   => now(),
         ]);
     }
 }

@@ -18,7 +18,6 @@ class CommunityCategory extends Model
         'slug',
         'name',
         'description',
-        'access_level_id',
         'color_bg',
         'color_text',
         'cover_image_url',

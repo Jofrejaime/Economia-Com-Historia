@@ -24,7 +24,13 @@ class CommunityTest extends TestCase
         $this->user = User::factory()->create(['role' => 'estudante']);
         $this->category = CommunityCategory::factory()->create([
             'is_active' => true,
-            'access_level_id' => 'public',
+        ]);
+
+        \Illuminate\Support\Facades\DB::table('category_members')->insert([
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'category_id' => $this->category->id,
+            'user_id' => $this->user->id,
+            'joined_at' => now(),
         ]);
 
         // Login para obter token
@@ -63,7 +69,6 @@ class CommunityTest extends TestCase
                 'slug' => 'test-category',
                 'name' => 'Test Category',
                 'description' => 'A test category',
-                'access_level_id' => 'public',
                 'color_bg' => '#800020',
                 'sort_order' => 1,
             ]);
@@ -332,7 +337,11 @@ class CommunityTest extends TestCase
 
     public function test_update_own_reply(): void
     {
+        $topic = DiscussionTopic::factory()->create([
+            'category_id' => $this->category->id,
+        ]);
         $reply = TopicReply::factory()->create([
+            'topic_id' => $topic->id,
             'author_id' => $this->user->id,
         ]);
 
@@ -350,7 +359,11 @@ class CommunityTest extends TestCase
 
     public function test_delete_own_reply(): void
     {
+        $topic = DiscussionTopic::factory()->create([
+            'category_id' => $this->category->id,
+        ]);
         $reply = TopicReply::factory()->create([
+            'topic_id' => $topic->id,
             'author_id' => $this->user->id,
         ]);
 
@@ -365,7 +378,11 @@ class CommunityTest extends TestCase
 
     public function test_like_reply(): void
     {
+        $topic = DiscussionTopic::factory()->create([
+            'category_id' => $this->category->id,
+        ]);
         $reply = TopicReply::factory()->create([
+            'topic_id' => $topic->id,
             'likes_count' => 0,
         ]);
 
@@ -380,7 +397,11 @@ class CommunityTest extends TestCase
 
     public function test_unlike_reply(): void
     {
+        $topic = DiscussionTopic::factory()->create([
+            'category_id' => $this->category->id,
+        ]);
         $reply = TopicReply::factory()->create([
+            'topic_id' => $topic->id,
             'likes_count' => 1,
         ]);
 

@@ -1192,7 +1192,7 @@
                     "Community"
                 ],
                 "summary": "Criar categoria de comunidade (Apenas Admin)",
-                "description": "Cria uma nova categoria no fórum.",
+                "description": "Cria uma nova categoria no fórum. As categorias servem apenas para organizar tópicos — não controlam acesso. O acesso é definido pela visibilidade de cada tópico.",
                 "operationId": "storeCommunityCategory",
                 "requestBody": {
                     "required": true,
@@ -1219,10 +1219,6 @@
                                         "example": "Tópicos gerais...",
                                         "nullable": true,
                                         "maxLength": 500
-                                    },
-                                    "access_level_id": {
-                                        "type": "string",
-                                        "example": "public"
                                     },
                                     "color_bg": {
                                         "type": "string",
