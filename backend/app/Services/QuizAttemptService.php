@@ -35,7 +35,7 @@ class QuizAttemptService
             ->first();
 
         if ($activeAttempt !== null) {
-            abort(409, 'Attempt already in progress.');
+            return $activeAttempt->id;
         }
 
         $attemptId = (string) Str::uuid();

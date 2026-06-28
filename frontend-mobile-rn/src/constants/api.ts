@@ -64,6 +64,10 @@ export const API_ENDPOINTS = {
     TOPIC_LIKE: (id: string) => `/topics/${id}/like`,
     TOPIC_FOLLOW: (id: string) => `/topics/${id}/follow`,
     TOPIC_REPLIES: (id: string) => `/topics/${id}/replies`,
+    TOPIC_MEMBERS: (id: string) => `/topics/${id}/members`,
+    TOPIC_MEMBER: (topicId: string, userId: string) => `/topics/${topicId}/members/${userId}`,
+    TOPIC_JOIN: (id: string) => `/topics/${id}/join`,
+    TOPIC_LEAVE: (id: string) => `/topics/${id}/leave`,
   },
 
   REPLIES: {
@@ -95,6 +99,15 @@ export const API_ENDPOINTS = {
     REQUESTS: '/access-requests',
     REQUEST_DETAIL: (id: string) => `/access-requests/${id}`,
     GRANTS: '/access-grants',
+  },
+
+  // /users/search
+  USERS: {
+    SEARCH: '/users/search',
+  },
+
+  REPORTS: {
+    CREATE: '/reports',
   },
 
 } as const;

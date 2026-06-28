@@ -1,6 +1,6 @@
 import { httpClient } from '../http/client';
 import { API_ENDPOINTS } from '../../constants/api';
-import type { MeResponse, UserProfile, PointTransaction, QuizAttempt, UserBadge, PaginatedResponse } from '../../types/api';
+import type { MeResponse, UserProfile, UserSearchResult, PointTransaction, QuizAttempt, UserBadge, PaginatedResponse } from '../../types/api';
 
 export const userService = {
   async me(): Promise<MeResponse> {
@@ -42,6 +42,11 @@ export const userService = {
 
   async quizAttempts(params?: { status?: 'in_progress' | 'completed'; page?: number }): Promise<PaginatedResponse<QuizAttempt>> {
     const { data } = await httpClient.get(API_ENDPOINTS.ME.QUIZ_ATTEMPTS, { params });
+    return data;
+  },
+
+  async search(query: string, limit = 10): Promise<UserSearchResult[]> {
+    const { data } = await httpClient.get(API_ENDPOINTS.USERS.SEARCH, { params: { q: query, limit } });
     return data;
   },
 };

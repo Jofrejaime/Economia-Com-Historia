@@ -195,7 +195,7 @@ export interface QuizOption {
   id: string;
   question_id: string;
   option_key: string;
-  text: string;
+  option_text: string;
   is_correct: boolean;
   explanation: string | null;
 }
@@ -233,6 +233,29 @@ export interface CommunityCategory {
   topics_count: number;
 }
 
+// discussion_topic_members table
+export interface DiscussionTopicMember {
+  id: string;
+  topic_id: string;
+  user_id: string;
+  role: 'owner' | 'moderator' | 'member';
+  invited_by: string | null;
+  accepted_at: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: UserProfile;
+  inviter?: UserProfile;
+}
+
+// Result from GET /users/search
+export interface UserSearchResult {
+  id: string;
+  display_name: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  institution: string | null;
+}
+
 // discussion_topics table
 export interface DiscussionTopic {
   id: string;
@@ -240,6 +263,7 @@ export interface DiscussionTopic {
   author_id: string;
   title: string;
   content: string;
+  visibility: 'PUBLIC' | 'RESTRICTED' | 'PRIVATE';
   status: 'open' | 'closed';
   is_pinned: boolean;
   is_featured: boolean;
@@ -252,6 +276,7 @@ export interface DiscussionTopic {
   followers_count: number;
   category?: CommunityCategory;
   author?: UserProfile;
+  members?: DiscussionTopicMember[];
   is_liked?: boolean;
   is_followed?: boolean;
 }
@@ -293,8 +318,9 @@ export interface Notification {
   user_id: string;
   type: string;
   title: string;
-  body: string;
-  data: Record<string, unknown> | null;
+  message: string;
+  reference_id: string | null;
+  reference_type: string | null;
   is_read: boolean;
   created_at: string;
   read_at: string | null;

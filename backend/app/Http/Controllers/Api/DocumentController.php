@@ -183,6 +183,15 @@ class DocumentController extends Controller
                 'up.avatar_url as author_avatar_url'
             );
 
+        if ($request->filled('q')) {
+            $term = $request->string('q')->toString();
+            $query->where(function ($builder) use ($term): void {
+                $builder->where('d.title', 'like', "%{$term}%")
+                    ->orWhere('d.summary', 'like', "%{$term}%")
+                    ->orWhere('d.author', 'like', "%{$term}%");
+            });
+        }
+
         if ($request->filled('category_id')) {
             $query->where('d.category_id', $request->input('category_id'));
         }
@@ -207,9 +216,24 @@ class DocumentController extends Controller
 
         $this->accessGate->applyDocumentVisibilityFilter($query, $user);
 
-        $documents = $query->orderByDesc('d.created_at')->limit(50)->get();
+        if ($request->input('sort') === 'popular') {
+            $query->orderByDesc('d.likes_count')->orderByDesc('d.views_count');
+        } else {
+            $query->orderByDesc('d.created_at');
+        }
 
-        return response()->json(['data' => $documents]);
+        $perPage = min((int) $request->input('per_page', 15), 50);
+        $paginator = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $paginator->items(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page'    => $paginator->lastPage(),
+                'per_page'     => $paginator->perPage(),
+                'total'        => $paginator->total(),
+            ],
+        ]);
     }
 
     /**

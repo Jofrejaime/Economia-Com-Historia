@@ -115,14 +115,12 @@ export function HomeScreen({
           <ContentCard
             title="Independência e Reconstrução Económica (1975–1985)"
             image="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=200&q=80"
-            difficulty="Introdução"
             duration="8 min de leitura"
             onPress={onViewArticle}
           />
           <ContentCard
             title="Kwanza: História e Desafios da Moeda Nacional"
             image="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&q=80"
-            difficulty="Intermédio"
             duration="14 min · áudio disponível"
             onPress={onViewPodcast}
           />

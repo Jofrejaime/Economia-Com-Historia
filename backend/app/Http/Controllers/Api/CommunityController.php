@@ -175,7 +175,7 @@ class CommunityController extends Controller
         ]);
 
         $query = DiscussionTopic::query()->with(['author.profile', 'category'])
-            ->whereIn('status', ['open', 'locked', 'published'])
+            ->whereIn('status', ['open', 'locked', 'published', 'closed'])
             ->orderByDesc('is_pinned')
             ->orderByDesc('created_at');
 
@@ -270,11 +270,6 @@ class CommunityController extends Controller
 
         $category = CommunityCategory::findOrFail($validated['category_id']);
         $visibility = $validated['visibility'] ?? 'RESTRICTED';
-
-        // Check access to category
-        if (!$this->accessGate->canAccess($request->user(), $category->access_level_id)) {
-            abort(403, 'Access denied to this category.');
-        }
 
         $topic = DB::transaction(function () use ($validated, $request, $category, $visibility) {
             $topic = DiscussionTopic::create([
@@ -481,16 +476,16 @@ class CommunityController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string', 'max:5000'],
-            'status' => ['nullable', 'string', 'in:published,draft,archived'],
+            'title'      => ['sometimes', 'string', 'max:255'],
+            'content'    => ['sometimes', 'string', 'max:5000'],
+            'status'     => ['sometimes', 'string', 'in:published,draft,archived,open,closed,locked,archived'],
             'visibility' => ['sometimes', 'string', 'in:PUBLIC,RESTRICTED,PRIVATE'],
         ]);
 
         $topic->update([
-            'title' => $validated['title'],
-            'content' => $validated['content'],
-            'status' => $validated['status'] ?? $topic->status,
+            'title'      => $validated['title']      ?? $topic->title,
+            'content'    => $validated['content']    ?? $topic->content,
+            'status'     => $validated['status']     ?? $topic->status,
             'visibility' => $validated['visibility'] ?? $topic->visibility,
             'updated_at' => now(),
         ]);
@@ -663,7 +658,7 @@ class CommunityController extends Controller
             'user_id' => $validated['user_id'],
             'role' => $validated['role'] ?? 'member',
             'invited_by' => $request->user()->id,
-            'accepted_at' => null,
+            'accepted_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -673,7 +668,12 @@ class CommunityController extends Controller
         $targetUser = \App\Models\User::find($validated['user_id']);
 
         if ($targetUser) {
-            $this->notificationService->sendTopicInvitation($targetUser, $topic->title, $topic->id);
+            $this->notificationService->sendTopicInvitation(
+                $targetUser,
+                $topic->title,
+                $request->user()->display_name,
+                $topic->id
+            );
         }
 
         return response()->json([

@@ -9,13 +9,13 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { documentService } from "../../services/api/documentService";
-import type { Document, DocumentType, AccessLevelId, AcademicLevel } from "../../types/api";
+import type { Document, DocumentType, AccessLevelId } from "../../types/api";
 import type { ContentParams } from "../../types/navigation";
 
 type SortType = "recent" | "popular";
@@ -30,11 +30,6 @@ const DOCUMENT_TYPES: { label: string; value: DocumentType }[] = [
   { label: "Áudio", value: "audio" },
 ];
 
-const ACADEMIC_LEVELS: { label: string; value: AcademicLevel }[] = [
-  { label: "Introdução", value: "intro" },
-  { label: "Avançado", value: "advanced" },
-  { label: "Doutoramento", value: "doctorate" },
-];
 
 function formatDate(dateString: string | null): string {
   if (!dateString) return "";
@@ -61,7 +56,6 @@ export function ContentScreen() {
   const [draftSearch, setDraftSearch] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<DocumentType | undefined>(undefined);
-  const [selectedLevel, setSelectedLevel] = useState<AcademicLevel | undefined>(undefined);
   const [selectedAccessLevel, setSelectedAccessLevel] = useState<AccessLevelId | undefined>(undefined);
   const [sortBy, setSortBy] = useState<SortType>("recent");
   const [showFilters, setShowFilters] = useState(false);
@@ -72,25 +66,23 @@ export function ContentScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
 
-  // Apply route params every time screen is focused (works correctly with tab navigation)
-  useFocusEffect(
-    useCallback(() => {
-      const params = route.params as ContentParams | undefined;
-      if (!params) return;
-      let hasFilter = false;
-      if (params.searchQuery) { setSearchQuery(params.searchQuery); setDraftSearch(params.searchQuery); }
-      if (params.document_type) { setSelectedType(params.document_type); hasFilter = true; }
-      if (params.access_level_id) { setSelectedAccessLevel(params.access_level_id); hasFilter = true; }
-      if (params.academic_level) { setSelectedLevel(params.academic_level); hasFilter = true; }
-      if (hasFilter) setShowFilters(true);
-      navigation.setParams({
-        searchQuery: undefined,
-        document_type: undefined,
-        access_level_id: undefined,
-        academic_level: undefined,
-      });
-    }, [route.params])
-  );
+  useEffect(() => {
+    const params = route.params as ContentParams | undefined;
+    const hasAny = !!(params?.document_type || params?.access_level_id || params?.searchQuery);
+    if (!hasAny) return;
+
+    if (params!.document_type) { setSelectedType(params!.document_type); }
+    if (params!.access_level_id) { setSelectedAccessLevel(params!.access_level_id); }
+    if (params!.searchQuery) { setSearchQuery(params!.searchQuery); setDraftSearch(params!.searchQuery); }
+    setShowFilters(true);
+
+    navigation.setParams({
+      document_type: undefined,
+      access_level_id: undefined,
+      academic_level: undefined,
+      searchQuery: undefined,
+    });
+  }, [route.params]);
 
   const fetchDocuments = useCallback(async (reset = false) => {
     setLoading(true);
@@ -99,7 +91,6 @@ export function ContentScreen() {
       const response = await documentService.list({
         q: searchQuery.trim() || undefined,
         document_type: selectedType,
-        academic_level: selectedLevel,
         access_level_id: selectedAccessLevel,
         sort: sortBy,
         page: currentPage,
@@ -114,14 +105,15 @@ export function ContentScreen() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedType, selectedLevel, selectedAccessLevel, sortBy, page]);
+  }, [searchQuery, selectedType, selectedAccessLevel, sortBy, page]);
 
   useEffect(() => {
     setPage(1);
     setDocuments([]);
+    setTotal(0);
     setHasMore(true);
     fetchDocuments(true);
-  }, [searchQuery, selectedType, selectedLevel, selectedAccessLevel, sortBy]);
+  }, [searchQuery, selectedType, selectedAccessLevel, sortBy]);
 
   const applySearch = () => {
     const q = draftSearch.trim();
@@ -193,6 +185,8 @@ export function ContentScreen() {
             placeholder="Pesquisar documentos..."
             placeholderTextColor={appTheme.colors.textMuted}
             style={styles.searchInput}
+            underlineColorAndroid="transparent"
+            selectionColor={appTheme.colors.primary}
           />
           {draftSearch.length > 0 && (
             <TouchableOpacity onPress={clearSearch}>
@@ -205,10 +199,10 @@ export function ContentScreen() {
           style={[styles.filterButton, showFilters && styles.filterButtonActive]}
         >
           <Feather name="filter" size={16} color={showFilters ? "white" : appTheme.colors.textSecondary} />
-          {[selectedType, selectedLevel, selectedAccessLevel].filter(Boolean).length > 0 ? (
+          {[selectedType, selectedAccessLevel].filter(Boolean).length > 0 ? (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>
-                {[selectedType, selectedLevel, selectedAccessLevel].filter(Boolean).length}
+                {[selectedType, selectedAccessLevel].filter(Boolean).length}
               </Text>
             </View>
           ) : (
@@ -217,8 +211,72 @@ export function ContentScreen() {
         </TouchableOpacity>
       </View>
 
+      {showFilters && (
+        <View style={styles.filtersPanel}>
+          <Text style={styles.filterLabel}>Tipo de Documento</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+            <TouchableOpacity
+              onPress={() => setSelectedType(undefined)}
+              style={[styles.chip, !selectedType && styles.chipActive]}
+            >
+              <Text style={[styles.chipText, !selectedType && styles.chipTextActive]}>Todos</Text>
+            </TouchableOpacity>
+            {DOCUMENT_TYPES.map((t) => (
+              <TouchableOpacity
+                key={t.value}
+                onPress={() => setSelectedType(selectedType === t.value ? undefined : t.value)}
+                style={[styles.chip, selectedType === t.value && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, selectedType === t.value && styles.chipTextActive]}>
+                  {t.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <Text style={[styles.filterLabel, { marginTop: 12 }]}>Acesso</Text>
+          <View style={styles.chipsRow}>
+            <TouchableOpacity
+              onPress={() => setSelectedAccessLevel(undefined)}
+              style={[styles.chip, !selectedAccessLevel && styles.chipActive]}
+            >
+              <Text style={[styles.chipText, !selectedAccessLevel && styles.chipTextActive]}>Todos</Text>
+            </TouchableOpacity>
+            {(["public", "jindungo", "restricted"] as AccessLevelId[]).map((id) => (
+              <TouchableOpacity
+                key={id}
+                onPress={() => setSelectedAccessLevel(selectedAccessLevel === id ? undefined : id)}
+                style={[styles.chip, selectedAccessLevel === id && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, selectedAccessLevel === id && styles.chipTextActive]}>
+                  {accessLevelLabel(id).label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={[styles.filterLabel, { marginTop: 12 }]}>Ordenar por</Text>
+          <View style={styles.chipsRow}>
+            <TouchableOpacity
+              onPress={() => setSortBy("recent")}
+              style={[styles.chip, sortBy === "recent" && styles.chipActive]}
+            >
+              <Feather name="calendar" size={13} color={sortBy === "recent" ? "white" : appTheme.colors.textSecondary} style={{ marginRight: 4 }} />
+              <Text style={[styles.chipText, sortBy === "recent" && styles.chipTextActive]}>Recentes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setSortBy("popular")}
+              style={[styles.chip, sortBy === "popular" && styles.chipActive]}
+            >
+              <Feather name="trending-up" size={13} color={sortBy === "popular" ? "white" : appTheme.colors.textSecondary} style={{ marginRight: 4 }} />
+              <Text style={[styles.chipText, sortBy === "popular" && styles.chipTextActive]}>Populares</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       <FlatList
-        data={documents}
+        data={!loading && total === 0 ? [] : documents}
         keyExtractor={(item) => item.id}
         renderItem={renderDocument}
         contentContainerStyle={styles.listContent}
@@ -226,115 +284,52 @@ export function ContentScreen() {
         onEndReached={() => { if (hasMore && !loading) fetchDocuments(false); }}
         onEndReachedThreshold={0.4}
         ListHeaderComponent={() => (
-          <>
-            {showFilters && (
-              <View style={styles.filtersPanel}>
-                {/* Document Type */}
-                <Text style={styles.filterLabel}>Tipo de Documento</Text>
-                <View style={styles.chipsRow}>
-                  <TouchableOpacity
-                    onPress={() => setSelectedType(undefined)}
-                    style={[styles.chip, !selectedType && styles.chipActive]}
-                  >
-                    <Text style={[styles.chipText, !selectedType && styles.chipTextActive]}>Todos</Text>
-                  </TouchableOpacity>
-                  {DOCUMENT_TYPES.map((t) => (
-                    <TouchableOpacity
-                      key={t.value}
-                      onPress={() => setSelectedType(selectedType === t.value ? undefined : t.value)}
-                      style={[styles.chip, selectedType === t.value && styles.chipActive]}
-                    >
-                      <Text style={[styles.chipText, selectedType === t.value && styles.chipTextActive]}>
-                        {t.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {/* Academic Level */}
-                <Text style={[styles.filterLabel, { marginTop: 12 }]}>Nível Académico</Text>
-                <View style={styles.chipsRow}>
-                  <TouchableOpacity
-                    onPress={() => setSelectedLevel(undefined)}
-                    style={[styles.chip, !selectedLevel && styles.chipActive]}
-                  >
-                    <Text style={[styles.chipText, !selectedLevel && styles.chipTextActive]}>Todos</Text>
-                  </TouchableOpacity>
-                  {ACADEMIC_LEVELS.map((l) => (
-                    <TouchableOpacity
-                      key={l.value}
-                      onPress={() => setSelectedLevel(selectedLevel === l.value ? undefined : l.value)}
-                      style={[styles.chip, selectedLevel === l.value && styles.chipActive]}
-                    >
-                      <Text style={[styles.chipText, selectedLevel === l.value && styles.chipTextActive]}>
-                        {l.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {/* Access Level */}
-                <Text style={[styles.filterLabel, { marginTop: 12 }]}>Acesso</Text>
-                <View style={styles.chipsRow}>
-                  <TouchableOpacity
-                    onPress={() => setSelectedAccessLevel(undefined)}
-                    style={[styles.chip, !selectedAccessLevel && styles.chipActive]}
-                  >
-                    <Text style={[styles.chipText, !selectedAccessLevel && styles.chipTextActive]}>Todos</Text>
-                  </TouchableOpacity>
-                  {(["public", "jindungo", "restricted"] as AccessLevelId[]).map((id) => (
-                    <TouchableOpacity
-                      key={id}
-                      onPress={() => setSelectedAccessLevel(selectedAccessLevel === id ? undefined : id)}
-                      style={[styles.chip, selectedAccessLevel === id && styles.chipActive]}
-                    >
-                      <Text style={[styles.chipText, selectedAccessLevel === id && styles.chipTextActive]}>
-                        {accessLevelLabel(id).label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {/* Sort */}
-                <Text style={[styles.filterLabel, { marginTop: 12 }]}>Ordenar por</Text>
-                <View style={styles.chipsRow}>
-                  <TouchableOpacity
-                    onPress={() => setSortBy("recent")}
-                    style={[styles.chip, sortBy === "recent" && styles.chipActive]}
-                  >
-                    <Feather name="calendar" size={13} color={sortBy === "recent" ? "white" : appTheme.colors.textSecondary} style={{ marginRight: 4 }} />
-                    <Text style={[styles.chipText, sortBy === "recent" && styles.chipTextActive]}>Recentes</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => setSortBy("popular")}
-                    style={[styles.chip, sortBy === "popular" && styles.chipActive]}
-                  >
-                    <Feather name="trending-up" size={13} color={sortBy === "popular" ? "white" : appTheme.colors.textSecondary} style={{ marginRight: 4 }} />
-                    <Text style={[styles.chipText, sortBy === "popular" && styles.chipTextActive]}>Populares</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-            <Text style={styles.resultsCount}>
-              {loading && documents.length === 0 ? "A carregar..." : `${total} ${total === 1 ? "documento" : "documentos"}`}
-            </Text>
-          </>
+          <Text style={styles.resultsCount}>
+            {loading && documents.length === 0
+              ? "A carregar..."
+              : `${total} ${total === 1 ? "documento encontrado" : "documentos encontrados"}`}
+          </Text>
         )}
         ListFooterComponent={() =>
           loading && documents.length > 0 ? (
             <ActivityIndicator size="small" color={appTheme.colors.primary} style={{ marginVertical: 16 }} />
           ) : null
         }
-        ListEmptyComponent={() =>
-          !loading ? (
+        ListEmptyComponent={() => {
+          if (loading) {
+            return <ActivityIndicator size="large" color={appTheme.colors.primary} style={{ marginTop: 40 }} />;
+          }
+          const hasFilters = !!(searchQuery || selectedType || selectedAccessLevel);
+          return (
             <View style={styles.emptyState}>
-              <Ionicons name="document-outline" size={48} color={appTheme.colors.textMuted} />
-              <Text style={styles.emptyStateText}>Nenhum documento encontrado</Text>
+              <Feather name="inbox" size={52} color={appTheme.colors.textMuted} />
+              <Text style={styles.emptyStateTitle}>Nenhum documento encontrado</Text>
+              {hasFilters ? (
+                <>
+                  <Text style={styles.emptyStateText}>
+                    {searchQuery
+                      ? `Não há resultados para "${searchQuery}"${selectedType ? ` do tipo ${DOCUMENT_TYPES.find((t) => t.value === selectedType)?.label}` : ""}.`
+                      : "Não há documentos que correspondam aos filtros seleccionados."}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.clearFiltersButton}
+                    onPress={() => {
+                      setSearchQuery("");
+                      setDraftSearch("");
+                      setSelectedType(undefined);
+                      setSelectedAccessLevel(undefined);
+                    }}
+                  >
+                    <Feather name="x-circle" size={15} color={appTheme.colors.primary} />
+                    <Text style={styles.clearFiltersText}>Limpar filtros</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <Text style={styles.emptyStateText}>Ainda não há documentos publicados.</Text>
+              )}
             </View>
-          ) : (
-            <ActivityIndicator size="large" color={appTheme.colors.primary} style={{ marginTop: 40 }} />
-          )
-        }
+          );
+        }}
       />
     </ScreenContainer>
   );
@@ -364,6 +359,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: appTheme.colors.textPrimary,
+    // @ts-ignore
+    outlineWidth: 0,
   },
   filterButton: {
     flexDirection: "row",
@@ -407,10 +404,10 @@ const styles = StyleSheet.create({
   },
   filtersPanel: {
     backgroundColor: appTheme.colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 12,
-    marginBottom: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: appTheme.colors.border,
   },
   filterLabel: {
     fontSize: 12,
@@ -543,10 +540,35 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: "center",
     paddingVertical: 48,
+    paddingHorizontal: 24,
     gap: 12,
   },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    fontFamily: "IBM_Plex_Sans",
+  },
   emptyStateText: {
-    fontSize: 16,
+    fontSize: 14,
     color: appTheme.colors.textMuted,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  clearFiltersButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: appTheme.colors.primary,
+  },
+  clearFiltersText: {
+    fontSize: 14,
+    color: appTheme.colors.primary,
+    fontWeight: "600",
   },
 });

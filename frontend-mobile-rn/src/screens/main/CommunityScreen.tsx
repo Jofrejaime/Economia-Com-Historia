@@ -9,7 +9,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
@@ -42,33 +42,34 @@ export function CommunityScreen() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
 
-  const fetchTopics = useCallback(async (reset = false) => {
+  const fetchTopics = useCallback(async (pageNum: number, reset: boolean) => {
     setLoading(true);
-    const currentPage = reset ? 1 : page;
     try {
       const response = await communityService.topics({
         category_id: selectedCategoryId ?? undefined,
         sort: "recent",
-        page: currentPage,
+        page: pageNum,
         per_page: 20,
       });
       setTopics((prev) => (reset ? response.data : [...prev, ...response.data]));
       setTotal(response.meta.total);
       setHasMore(response.meta.current_page < response.meta.last_page);
-      setPage(currentPage + 1);
+      setPage(pageNum + 1);
     } catch (e) {
       console.warn("Erro ao carregar tópicos", e);
     } finally {
       setLoading(false);
     }
-  }, [selectedCategoryId, page]);
-
-  useEffect(() => {
-    setPage(1);
-    setTopics([]);
-    setHasMore(true);
-    void fetchTopics(true);
   }, [selectedCategoryId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setTopics([]);
+      setHasMore(true);
+      setPage(1);
+      void fetchTopics(1, true);
+    }, [fetchTopics])
+  );
 
   useEffect(() => {
     communityService.categories()
@@ -79,8 +80,8 @@ export function CommunityScreen() {
   const renderDiscussion = ({ item }: { item: DiscussionTopic }) => {
     const authorName = item.author?.display_name ?? "Autor";
     const initials = authorName.slice(0, 2).toUpperCase();
-    const isOpen = item.status === "open";
-    const isPrivate = isOpen && item.category?.access_level_id === "restricted";
+    const isOpen = item.status !== "closed";
+    const isPrivate = item.visibility === "PRIVATE";
 
     return (
       <Pressable
@@ -214,7 +215,7 @@ export function CommunityScreen() {
         {hasMore && !loading && (
           <View style={styles.loadMoreWrap}>
             <Text style={styles.viewMoreLabel}>VER MAIS TÓPICOS</Text>
-            <TouchableOpacity style={styles.loadMoreBtn} onPress={() => void fetchTopics(false)}>
+            <TouchableOpacity style={styles.loadMoreBtn} onPress={() => void fetchTopics(page, false)}>
               <Feather name="chevrons-down" size={18} color={appTheme.colors.textPrimary} />
             </TouchableOpacity>
           </View>
