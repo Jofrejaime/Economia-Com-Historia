@@ -7,7 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
@@ -29,9 +29,12 @@ function difficultyColor(d: string): string {
 
 export function QuizListScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { user } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>("quizzes");
+  const [activeTab, setActiveTab] = useState<ActiveTab>(
+    route.params?.initialTab === "ranking" ? "ranking" : "quizzes"
+  );
   const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>("all");
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -152,10 +155,12 @@ export function QuizListScreen() {
         ]}
       >
         <View style={styles.rankPositionWrap}>
-          {item.rank_position <= 3 ? (
-            <Text style={styles.rankMedal}>
-              {item.rank_position === 1 ? "🥇" : item.rank_position === 2 ? "🥈" : "🥉"}
-            </Text>
+          {item.rank_position === 1 ? (
+            <Ionicons name="trophy" size={26} color="#F59E0B" />
+          ) : item.rank_position === 2 ? (
+            <Ionicons name="medal" size={26} color="#9CA3AF" />
+          ) : item.rank_position === 3 ? (
+            <Ionicons name="medal" size={26} color="#CD7F32" />
           ) : (
             <Text style={[styles.rankNumber, isCurrentUser && { color: "white" }]}>
               #{item.rank_position}
@@ -478,9 +483,6 @@ const styles = StyleSheet.create({
   rankPositionWrap: {
     width: 40,
     alignItems: "center",
-  },
-  rankMedal: {
-    fontSize: 24,
   },
   rankNumber: {
     fontFamily: "IBM_Plex_Sans",

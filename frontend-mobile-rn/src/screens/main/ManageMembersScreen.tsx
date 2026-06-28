@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,112 +6,131 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
   Platform,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useCommunity } from "../../hooks/useCommunity";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { UserSearchBar } from "../../components/UserSearchBar";
 import { UserList } from "../../components/UserList";
 import { appTheme } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
+import { communityService } from "../../services/api/communityService";
+import { userService } from "../../services/api/userService";
 import { MainStackParamList } from "../../types/navigation";
 import { UserProfile } from "../../types/room";
 
 type ManageMembersNavigationProp = NativeStackNavigationProp<MainStackParamList, "ManageMembers">;
 type ManageMembersRouteProp = RouteProp<MainStackParamList, "ManageMembers">;
 
-const memberCatalog: UserProfile[] = [
-  { id: "u1", name: "Ana Silva", username: "ana.silva", avatarUri: null },
-  { id: "u2", name: "Artur Mendes", username: "artur.m", avatarUri: null },
-  { id: "u3", name: "Benedito Neves", username: "bneves", avatarUri: null },
-  { id: "u4", name: "Carla Domingos", username: "carla.dom", avatarUri: null },
-  { id: "u5", name: "Catarina Neto", username: "catarina_n", avatarUri: null },
-  { id: "u6", name: "Daniel Gonçalves", username: "dgoncalves", avatarUri: null },
-  { id: "u7", name: "Eduardo Loureiro", username: "eduardo_l", avatarUri: null },
-  { id: "u8", name: "Fernanda Costa", username: "fernanda.c", avatarUri: null },
-  { id: "u9", name: "Gonçalo Silva", username: "goncalo.s", avatarUri: null },
-  { id: "u10", name: "João Diogo", username: "joao.diogo", avatarUri: null },
-];
-
 export function ManageMembersScreen() {
   const navigation = useNavigation<ManageMembersNavigationProp>();
   const route = useRoute<ManageMembersRouteProp>();
-  const { getTopicById } = useCommunity();
 
-  const { topicId, initialMembers } = route.params;
-  const topic = getTopicById(topicId);
+  const { topicId, topicTitle } = route.params;
 
-  const [selectedMembers, setSelectedMembers] = useState<UserProfile[]>([]);
-  const [searchMemberText, setSearchMemberText] = useState("");
-  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [members, setMembers] = useState<UserProfile[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(true);
+  const [searchText, setSearchText] = useState("");
+  const [suggestions, setSuggestions] = useState<UserProfile[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (initialMembers?.length) {
-      setSelectedMembers(initialMembers as UserProfile[]);
-    }
-  }, []);
-
-  const suggestedMembers = useMemo(() => {
-    const search = searchMemberText.trim().toLowerCase();
-    return memberCatalog
-      .filter((member) => {
-        const alreadySelected = selectedMembers.some((item) => item.id === member.id);
-        const matchesSearch = `${member.name} ${member.username}`.toLowerCase().includes(search);
-        return !alreadySelected && matchesSearch;
-      })
-      .slice(0, 5);
-  }, [searchMemberText, selectedMembers]);
+  // Tracks IDs that existed when the screen loaded (to compute removals on save)
+  const originalIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!searchMemberText) {
-      setLoadingMembers(false);
-      return;
+    const load = async () => {
+      setLoadingMembers(true);
+      try {
+        const data = await communityService.topicMembers(topicId);
+        // Exclude owner — owner cannot be removed
+        const nonOwners = data.filter((m) => m.role !== "owner");
+        const mapped: UserProfile[] = nonOwners.map((m) => ({
+          id: m.user_id,
+          name: m.user?.display_name ?? "Membro",
+          username: m.user?.full_name ?? m.user?.display_name ?? "membro",
+          avatarUri: m.user?.avatar_url ?? null,
+        }));
+        setMembers(mapped);
+        originalIdsRef.current = new Set(mapped.map((m) => m.id));
+      } catch {
+        Alert.alert("Erro", "Não foi possível carregar os membros.");
+      } finally {
+        setLoadingMembers(false);
+      }
+    };
+    void load();
+  }, [topicId]);
+
+  const searchUsers = useCallback(async (query: string) => {
+    if (query.trim().length < 2) { setSuggestions([]); return; }
+    setSearching(true);
+    try {
+      const results = await userService.search(query.trim(), 8);
+      const currentIds = new Set(members.map((m) => m.id));
+      setSuggestions(
+        results
+          .filter((r) => !currentIds.has(r.id))
+          .map((r) => ({ id: r.id, name: r.display_name, username: r.full_name ?? r.display_name, avatarUri: r.avatar_url }))
+      );
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setSearching(false);
     }
+  }, [members]);
 
-    setLoadingMembers(true);
-    const timeout = setTimeout(() => {
-      setLoadingMembers(false);
-    }, 220);
+  useEffect(() => {
+    const timer = setTimeout(() => { void searchUsers(searchText); }, 300);
+    return () => clearTimeout(timer);
+  }, [searchText, searchUsers]);
 
-    return () => clearTimeout(timeout);
-  }, [searchMemberText]);
-
-  const handleAddMember = useCallback((member: UserProfile) => {
-    setSelectedMembers((prev) => [...prev, member]);
-    setSearchMemberText("");
+  const handleAdd = useCallback((member: UserProfile) => {
+    setMembers((prev) => [...prev, member]);
+    setSearchText("");
+    setSuggestions([]);
   }, []);
 
-  const handleRemoveMember = (id: string) => {
-    setSelectedMembers((prev) => prev.filter((m) => m.id !== id));
+  const handleRemove = (id: string) => {
+    setMembers((prev) => prev.filter((m) => m.id !== id));
   };
 
-  const handleSaveChanges = () => {
-    const confirm = () => navigation.navigate("TopicDiscussion", { id: topicId });
-    if (Platform.OS === "web") {
-      window.alert("Círculo de diálogo atualizado com sucesso!");
-      confirm();
-    } else {
-      Alert.alert("Sucesso", "Círculo de diálogo atualizado com sucesso!", [
-        { text: "OK", onPress: confirm },
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const currentIds = new Set(members.map((m) => m.id));
+
+      const toAdd = members.filter((m) => !originalIdsRef.current.has(m.id));
+      const toRemove = [...originalIdsRef.current].filter((id) => !currentIds.has(id));
+
+      await Promise.all([
+        ...toAdd.map((m) =>
+          communityService.inviteMember(topicId, { user_id: m.id, role: "member" }).catch(() => null)
+        ),
+        ...toRemove.map((id) =>
+          communityService.removeMember(topicId, id).catch(() => null)
+        ),
       ]);
+
+      // Update baseline so a second save doesn't re-invite/re-remove
+      originalIdsRef.current = currentIds;
+
+      const confirm = () => navigation.navigate("TopicDiscussion", { id: topicId });
+      if (Platform.OS === "web") {
+        window.alert("Círculo de diálogo atualizado com sucesso!");
+        confirm();
+      } else {
+        Alert.alert("Sucesso", "Círculo de diálogo atualizado com sucesso!", [{ text: "OK", onPress: confirm }]);
+      }
+    } catch {
+      Alert.alert("Erro", "Não foi possível guardar as alterações. Tente novamente.");
+    } finally {
+      setSaving(false);
     }
   };
-
-  if (!topic) {
-    return (
-      <ScreenContainer style={styles.screen}>
-        <View style={styles.notFoundContainer}>
-          <Text style={styles.notFoundText}>Discussão não encontrada</Text>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>Voltar</Text>
-          </TouchableOpacity>
-        </View>
-      </ScreenContainer>
-    );
-  }
 
   return (
     <ScreenContainer style={styles.screen}>
@@ -126,46 +145,37 @@ export function ManageMembersScreen() {
         <View style={styles.introHeader}>
           <Text style={styles.introTitle}>Círculo de Diálogo</Text>
           <Text style={styles.introDesc}>
-            Gerencie os membros da discussão "{topic.title}". Apenas os membros deste círculo poderão participar ativamente se o fórum for privado.
+            Gerencie os membros da discussão{topicTitle ? ` "${topicTitle}"` : ""}. Apenas os membros deste círculo poderão participar ativamente se o fórum for privado.
           </Text>
         </View>
 
-        {/* 1. Membros Atuais (visíveis no topo para fácil remoção) */}
+        {/* Membros Actuais */}
         <View style={styles.formGroup}>
-          <Text style={styles.sectionSubtitle}>Membros Atuais no Círculo ({selectedMembers.length})</Text>
-          
-          {selectedMembers.length === 0 ? (
+          <Text style={styles.sectionSubtitle}>
+            Membros Atuais no Círculo ({loadingMembers ? "…" : members.length})
+          </Text>
+
+          {loadingMembers ? (
+            <ActivityIndicator size="small" color={appTheme.colors.primary} style={{ marginVertical: 16 }} />
+          ) : members.length === 0 ? (
             <View style={styles.emptyMembersContainer}>
               <Ionicons name="people-outline" size={36} color={appTheme.colors.textMuted} />
               <Text style={styles.emptyMembersText}>Nenhum membro adicionado a esta sala privada.</Text>
             </View>
           ) : (
-            <ScrollView 
-              style={styles.currentMembersScroll}
-              nestedScrollEnabled={true}
-              showsVerticalScrollIndicator={true}
-            >
-              {selectedMembers.map((member) => (
+            <ScrollView style={styles.currentMembersScroll} nestedScrollEnabled showsVerticalScrollIndicator>
+              {members.map((member) => (
                 <View key={member.id} style={styles.selectedMemberCard}>
                   <View style={styles.memberAvatar}>
                     <Text style={styles.memberAvatarText}>
-                      {member.name
-                        .split(" ")
-                        .map((part) => part[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
+                      {member.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
                     </Text>
                   </View>
                   <View style={styles.memberInfo}>
                     <Text style={styles.memberName}>{member.name}</Text>
                     <Text style={styles.memberUsername}>@{member.username}</Text>
                   </View>
-                  <TouchableOpacity 
-                    onPress={() => handleRemoveMember(member.id)} 
-                    style={styles.removeMemberButton}
-                    activeOpacity={0.7}
-                  >
+                  <TouchableOpacity onPress={() => handleRemove(member.id)} style={styles.removeMemberButton} activeOpacity={0.7}>
                     <Ionicons name="trash-outline" size={20} color={appTheme.colors.danger} />
                   </TouchableOpacity>
                 </View>
@@ -174,29 +184,35 @@ export function ManageMembersScreen() {
           )}
         </View>
 
-        {/* 2. Adicionar Novos Membros */}
+        {/* Adicionar Novos Membros */}
         <View style={styles.formGroup}>
           <Text style={styles.sectionSubtitle}>Adicionar Novos Membros</Text>
           <UserSearchBar
-            value={searchMemberText}
-            onChangeText={setSearchMemberText}
-            loading={loadingMembers}
-            placeholder="Pesquisar por nome ou @username..."
+            value={searchText}
+            onChangeText={setSearchText}
+            loading={searching}
+            placeholder="Pesquisar por nome..."
           />
-
-          {/* Suggestions list */}
           <View style={styles.userListWrapper}>
             <UserList
-              users={suggestedMembers}
-              selectedUserIds={selectedMembers.map((member) => member.id)}
-              onAddUser={handleAddMember}
-              loading={loadingMembers}
+              users={suggestions}
+              selectedUserIds={members.map((m) => m.id)}
+              onAddUser={handleAdd}
+              loading={searching}
             />
           </View>
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
-          <Text style={styles.saveButtonText}>Salvar Alterações</Text>
+        <TouchableOpacity
+          style={[styles.saveButton, (saving || loadingMembers) && { opacity: 0.6 }]}
+          onPress={() => void handleSave()}
+          disabled={saving || loadingMembers}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text style={styles.saveButtonText}>Salvar Alterações</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </ScreenContainer>
@@ -207,26 +223,6 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: "#F8F9FF",
     paddingHorizontal: 0,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backHeaderButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  backHeaderText: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#7F1D1D",
   },
   scrollContainer: {
     flex: 1,
@@ -324,27 +320,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
-  notFoundContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  notFoundText: {
-    fontSize: 18,
-    color: appTheme.colors.textSecondary,
-    marginBottom: 16,
-  },
-  backButton: {
-    backgroundColor: appTheme.colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    color: "white",
-    fontWeight: "700",
-  },
   emptyMembersContainer: {
     alignItems: "center",
     justifyContent: "center",
@@ -357,6 +332,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   currentMembersScroll: {
-    maxHeight: 290, // fits exactly 5 items
+    maxHeight: 290,
   },
 });

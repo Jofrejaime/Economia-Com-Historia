@@ -41,12 +41,6 @@ function formatRelativeDate(dateString: string): string {
   return date.toLocaleDateString("pt-AO", { day: "numeric", month: "short" });
 }
 
-function academicLevelLabel(level: string): string {
-  if (level === "intro") return "Introdução";
-  if (level === "advanced") return "Avançado";
-  if (level === "doctorate") return "Doutoramento";
-  return level;
-}
 
 function getFormattedDate(): string {
   const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -60,6 +54,7 @@ export function DashboardScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { unreadCount } = useNotifications();
   const [searchText, setSearchText] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const [jindungoDocuments, setJindungoDocuments] = useState<Document[]>([]);
   const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
@@ -73,7 +68,7 @@ export function DashboardScreen() {
       const [jindungoRes, recentRes, topicsRes, rankingRes] = await Promise.allSettled([
         documentService.list({ access_level_id: "jindungo", per_page: 3 }),
         documentService.list({ sort: "recent", per_page: 4 }),
-        communityService.topics({ sort: "recent", per_page: 2 }),
+        communityService.topics({ sort: "recent", per_page: 2, status: "published" }),
         leaderboardService.national({ per_page: 5 }),
       ]);
 
@@ -146,9 +141,14 @@ export function DashboardScreen() {
         </View>
 
         {/* Search Bar */}
-        <View style={styles.searchBar}>
-          <TouchableOpacity onPress={handleSearchSubmit}>
-            <Ionicons name="search" size={20} color={appTheme.colors.primary} style={styles.searchIcon} />
+        <View style={[styles.searchBar, searchFocused && styles.searchBarFocused]}>
+          <TouchableOpacity onPress={handleSearchSubmit} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+            <Ionicons
+              name="search"
+              size={18}
+              color={searchFocused ? appTheme.colors.primary : appTheme.colors.textMuted}
+              style={styles.searchIcon}
+            />
           </TouchableOpacity>
           <TextInput
             style={styles.searchInput}
@@ -157,8 +157,20 @@ export function DashboardScreen() {
             value={searchText}
             onChangeText={setSearchText}
             onSubmitEditing={handleSearchSubmit}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
             returnKeyType="search"
+            underlineColorAndroid="transparent"
+            selectionColor={appTheme.colors.primary}
           />
+          {searchText.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchText("")}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}
+            >
+              <Ionicons name="close-circle" size={18} color={appTheme.colors.textMuted} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Jindungo Section */}
@@ -224,8 +236,9 @@ export function DashboardScreen() {
                 key={doc.id}
                 title={doc.title}
                 image={doc.cover_image_url ?? undefined}
-                difficulty={academicLevelLabel(doc.academic_level)}
                 duration={doc.author}
+                documentType={doc.document_type}
+                accessLevelId={doc.access_level_id}
                 onPress={() => handleOpenDocument(doc.id)}
               />
             ))}
@@ -404,20 +417,36 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    height: 48,
-    backgroundColor: appTheme.colors.surface,
-    borderRadius: 24,
+    paddingHorizontal: 14,
+    height: 50,
+    backgroundColor: "white",
+    borderRadius: 12,
     marginBottom: 20,
+    borderWidth: 1.5,
+    borderColor: appTheme.colors.border,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  searchBarFocused: {
+    borderColor: appTheme.colors.primary,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
   searchIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
     height: "100%",
-    fontSize: 16,
+    fontSize: 15,
     color: appTheme.colors.textPrimary,
+    fontFamily: "Source_Sans_3",
+    // @ts-ignore — remove focus outline on web/new arch
+    outlineWidth: 0,
   },
   section: {
     marginBottom: 24,

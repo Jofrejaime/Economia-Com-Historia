@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Modal,
+  FlatList,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -17,22 +19,12 @@ import { appTheme } from "../../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { communityService } from "../../services/api/communityService";
+import { userService } from "../../services/api/userService";
 import type { CommunityCategory } from "../../types/api";
 import { MainStackParamList } from "../../types/navigation";
 import { UserSearchBar } from "../../components/UserSearchBar";
 import { UserList } from "../../components/UserList";
 import type { UserProfile } from "../../types/room";
-
-const MEMBER_CATALOG: UserProfile[] = [
-  { id: "u1", name: "Ana Silva", username: "ana.silva", avatarUri: null },
-  { id: "u2", name: "Artur Mendes", username: "artur.m", avatarUri: null },
-  { id: "u3", name: "Benedito Neves", username: "bneves", avatarUri: null },
-  { id: "u4", name: "Carla Domingos", username: "carla.dom", avatarUri: null },
-  { id: "u5", name: "Catarina Neto", username: "catarina_n", avatarUri: null },
-  { id: "u6", name: "Daniel Gonçalves", username: "dgoncalves", avatarUri: null },
-  { id: "u7", name: "Eduardo Loureiro", username: "eduardo_l", avatarUri: null },
-  { id: "u8", name: "Fernanda Costa", username: "fernanda.c", avatarUri: null },
-];
 
 type CreateTopicNavigationProp = NativeStackNavigationProp<MainStackParamList, "CreateTopic">;
 type CreateTopicRouteProp = RouteProp<MainStackParamList, "CreateTopic">;
@@ -48,6 +40,8 @@ export function CreateTopicScreen() {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState("");
   const [accessLevel, setAccessLevel] = useState<"public" | "restricted">("public");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
   const [categories, setCategories] = useState<CommunityCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -56,15 +50,31 @@ export function CreateTopicScreen() {
 
   const [selectedMembers, setSelectedMembers] = useState<UserProfile[]>([]);
   const [searchMemberText, setSearchMemberText] = useState("");
+  const [suggestedMembers, setSuggestedMembers] = useState<UserProfile[]>([]);
+  const [searchingMembers, setSearchingMembers] = useState(false);
 
-  const suggestedMembers = useMemo(() => {
-    const search = searchMemberText.trim().toLowerCase();
-    return MEMBER_CATALOG.filter((m) => {
-      const taken = selectedMembers.some((s) => s.id === m.id);
-      const matches = `${m.name} ${m.username}`.toLowerCase().includes(search);
-      return !taken && (search === "" || matches);
-    }).slice(0, 5);
-  }, [searchMemberText, selectedMembers]);
+  const searchUsers = useCallback(async (query: string) => {
+    if (query.trim().length < 2) { setSuggestedMembers([]); return; }
+    setSearchingMembers(true);
+    try {
+      const results = await userService.search(query.trim(), 8);
+      const selectedIds = new Set(selectedMembers.map((m) => m.id));
+      setSuggestedMembers(
+        results
+          .filter((r) => !selectedIds.has(r.id))
+          .map((r) => ({ id: r.id, name: r.display_name, username: r.full_name ?? r.display_name, avatarUri: r.avatar_url }))
+      );
+    } catch {
+      setSuggestedMembers([]);
+    } finally {
+      setSearchingMembers(false);
+    }
+  }, [selectedMembers]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { void searchUsers(searchMemberText); }, 300);
+    return () => clearTimeout(timer);
+  }, [searchMemberText, searchUsers]);
 
   useEffect(() => {
     communityService.categories()
@@ -73,34 +83,34 @@ export function CreateTopicScreen() {
       .finally(() => setLoadingCategories(false));
   }, []);
 
-  const resolvedCategoryId = categories.find(
-    (c) => c.access_level_id === accessLevel
-  )?.id ?? null;
+  const activeCategories = categories.filter((c) => c.is_active);
+
+  const resolvedCategoryId = selectedCategoryId;
 
   const canSubmit =
     title.trim().length > 0 &&
     content.trim().length > 0 &&
-    !loadingCategories;
+    !loadingCategories &&
+    resolvedCategoryId !== null &&
+    (accessLevel !== "restricted" || selectedMembers.length >= 1);
 
   const handlePublish = async () => {
-    if (!canSubmit || !user) return;
-    if (!resolvedCategoryId) {
-      console.warn("Categoria para o nível de acesso selecionado não encontrada. Corre a migração no backend.");
-      return;
-    }
+    if (!canSubmit || !user || !resolvedCategoryId) return;
     setSubmitting(true);
     try {
       const newTopic = await communityService.createTopic({
         title: title.trim(),
         content: content.trim(),
         category_id: resolvedCategoryId,
+        visibility: accessLevel === "restricted" ? "PRIVATE" : "PUBLIC",
       });
       addTopicOptimistic(newTopic);
-      if (accessLevel === "restricted") {
-        navigation.navigate("ManageMembers", { topicId: newTopic.id, initialMembers: selectedMembers });
-      } else {
-        navigation.navigate("TopicDiscussion", { id: newTopic.id });
+      if (accessLevel === "restricted" && selectedMembers.length > 0) {
+        selectedMembers.forEach((m) => {
+          void communityService.inviteMember(newTopic.id, { user_id: m.id, role: "member" }).catch(() => null);
+        });
       }
+      navigation.navigate("TopicDiscussion", { id: newTopic.id });
     } catch (error) {
       console.warn("Erro ao criar tópico", error);
     } finally {
@@ -148,7 +158,7 @@ export function CreateTopicScreen() {
             <View style={styles.accessToggle}>
               <TouchableOpacity
                 style={[styles.accessCard, accessLevel === "public" && styles.accessCardSelected]}
-                onPress={() => setAccessLevel("public")}
+                onPress={() => { setAccessLevel("public"); }}
                 activeOpacity={0.8}
               >
                 <Ionicons
@@ -180,10 +190,99 @@ export function CreateTopicScreen() {
             </View>
           </View>
 
+          <View style={styles.inputWrap}>
+              <Text style={styles.inputLabel}>Categoria</Text>
+              {loadingCategories ? (
+                <ActivityIndicator size="small" color={appTheme.colors.primary} style={{ marginTop: 8 }} />
+              ) : (
+                <TouchableOpacity
+                  style={[styles.selectField, selectedCategoryId && styles.selectFieldFilled]}
+                  onPress={() => setCategoryModalVisible(true)}
+                  activeOpacity={0.8}
+                >
+                  {selectedCategoryId ? (
+                    <View style={styles.selectFieldContent}>
+                      {activeCategories.find((c) => c.id === selectedCategoryId)?.color_bg && (
+                        <View style={[styles.selectDot, { backgroundColor: activeCategories.find((c) => c.id === selectedCategoryId)!.color_bg! }]} />
+                      )}
+                      <Text style={styles.selectFieldText}>
+                        {activeCategories.find((c) => c.id === selectedCategoryId)?.name}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.selectPlaceholder}>Seleccionar categoria...</Text>
+                  )}
+                  <Ionicons name="chevron-down" size={18} color={appTheme.colors.textMuted} />
+                </TouchableOpacity>
+              )}
+
+              <Modal
+                visible={categoryModalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setCategoryModalVisible(false)}
+              >
+                <TouchableOpacity
+                  style={styles.modalOverlay}
+                  activeOpacity={1}
+                  onPress={() => setCategoryModalVisible(false)}
+                >
+                  <View style={styles.modalSheet}>
+                    <View style={styles.modalHandle} />
+                    <Text style={styles.modalTitle}>Escolher Categoria</Text>
+                    {activeCategories.length === 0 ? (
+                      <Text style={styles.categoryEmptyText}>Nenhuma categoria disponível.</Text>
+                    ) : (
+                      <FlatList
+                        data={activeCategories}
+                        keyExtractor={(item) => item.id}
+                        ItemSeparatorComponent={() => <View style={styles.modalSeparator} />}
+                        renderItem={({ item }) => {
+                          const isSelected = selectedCategoryId === item.id;
+                          return (
+                            <TouchableOpacity
+                              style={[styles.modalOption, isSelected && styles.modalOptionSelected]}
+                              onPress={() => { setSelectedCategoryId(item.id); setCategoryModalVisible(false); }}
+                              activeOpacity={0.7}
+                            >
+                              <View style={styles.modalOptionLeft}>
+                                {item.color_bg && (
+                                  <View style={[styles.modalDot, { backgroundColor: item.color_bg }]} />
+                                )}
+                                <View style={{ flex: 1 }}>
+                                  <Text style={[styles.modalOptionText, isSelected && styles.modalOptionTextSelected]}>
+                                    {item.name}
+                                  </Text>
+                                  {item.description ? (
+                                    <Text style={styles.modalOptionDesc} numberOfLines={1}>{item.description}</Text>
+                                  ) : null}
+                                </View>
+                              </View>
+                              {isSelected && (
+                                <Ionicons name="checkmark" size={20} color={appTheme.colors.primary} />
+                              )}
+                            </TouchableOpacity>
+                          );
+                        }}
+                      />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+            </View>
+
           {accessLevel === "restricted" && (
             <View style={styles.inputWrap}>
               <Text style={styles.inputLabel}>Círculo de Diálogo</Text>
-              <Text style={styles.membersHint}>Adicione os membros que poderão participar nesta sala privada.</Text>
+              <Text style={styles.membersHint}>
+                Uma sala privada requer pelo menos um membro além de si. Adicione os participantes abaixo.
+              </Text>
+              {selectedMembers.length === 0 && (
+                <View style={styles.membersWarning}>
+                  <Ionicons name="alert-circle-outline" size={15} color="#B45309" />
+                  <Text style={styles.membersWarningText}>Adicione pelo menos 1 membro para poder criar a sala.</Text>
+                </View>
+              )}
 
               {selectedMembers.length > 0 && (
                 <View style={styles.selectedChips}>
@@ -203,14 +302,16 @@ export function CreateTopicScreen() {
               <UserSearchBar
                 value={searchMemberText}
                 onChangeText={setSearchMemberText}
-                placeholder="Pesquisar por nome ou @username..."
+                loading={searchingMembers}
+                placeholder="Pesquisar por nome..."
               />
 
               <View style={styles.memberListWrap}>
                 <UserList
                   users={suggestedMembers}
                   selectedUserIds={selectedMembers.map((m) => m.id)}
-                  onAddUser={(m) => { setSelectedMembers((prev) => [...prev, m]); setSearchMemberText(""); }}
+                  onAddUser={(m) => { setSelectedMembers((prev) => [...prev, m]); setSearchMemberText(""); setSuggestedMembers([]); }}
+                  loading={searchingMembers}
                 />
               </View>
             </View>
@@ -363,8 +464,26 @@ const styles = StyleSheet.create({
     fontFamily: "Source_Sans_3",
     fontSize: 13,
     color: appTheme.colors.textMuted,
-    marginBottom: 12,
+    marginBottom: 8,
     lineHeight: 18,
+  },
+  membersWarning: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#FFFBEB",
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  membersWarningText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
+    color: "#B45309",
+    flex: 1,
   },
   selectedChips: {
     flexDirection: "row",
@@ -392,6 +511,120 @@ const styles = StyleSheet.create({
   memberListWrap: {
     maxHeight: 240,
     marginTop: 8,
+  },
+  selectField: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 2,
+    borderColor: "#E5E7EB",
+    borderRadius: appTheme.radius.sm,
+    backgroundColor: "white",
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  selectFieldFilled: {
+    borderColor: appTheme.colors.primary,
+  },
+  selectFieldContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  selectDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  selectFieldText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 15,
+    color: "#1F2937",
+    flex: 1,
+  },
+  selectPlaceholder: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 15,
+    color: appTheme.colors.textMuted,
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
+  },
+  modalSheet: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 12,
+    paddingBottom: 32,
+    maxHeight: "70%",
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#E5E7EB",
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 17,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  modalSeparator: {
+    height: 1,
+    backgroundColor: "#F3F4F6",
+    marginHorizontal: 20,
+  },
+  modalOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+  },
+  modalOptionSelected: {
+    backgroundColor: "#FDF3F4",
+  },
+  modalOptionLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  modalDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  modalOptionText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 15,
+    fontWeight: "600",
+    color: appTheme.colors.textPrimary,
+  },
+  modalOptionTextSelected: {
+    color: appTheme.colors.primary,
+  },
+  modalOptionDesc: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 12,
+    color: appTheme.colors.textMuted,
+    marginTop: 2,
+  },
+  categoryEmptyText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
+    color: appTheme.colors.textMuted,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
   actionButtonsContainer: {
     gap: 16,

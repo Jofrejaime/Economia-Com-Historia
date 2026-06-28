@@ -187,22 +187,6 @@ export function ProfileScreen() {
 
           <TouchableOpacity
             style={styles.settingsItem}
-            onPress={() => navigation.navigate("Notifications")}
-          >
-            <View style={styles.settingsItemLeft}>
-              <View style={styles.settingsIconBg}>
-                <Feather name="bell" size={16} color="#6B0119" />
-              </View>
-              <View>
-                <Text style={styles.settingsItemTitle}>Notificações</Text>
-                <Text style={styles.settingsItemDesc}>Ver todas as notificações recebidas</Text>
-              </View>
-            </View>
-            <Feather name="chevron-right" size={16} color="#DEBFBF" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.settingsItem}
             onPress={() => navigation.navigate("Privacy")}
           >
             <View style={styles.settingsItemLeft}>

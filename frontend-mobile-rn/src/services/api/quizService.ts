@@ -27,7 +27,7 @@ export const quizService = {
     return data.data ?? data;
   },
 
-  async startAttempt(quizId: string): Promise<QuizAttempt> {
+  async startAttempt(quizId: string): Promise<{ id: string }> {
     const { data } = await httpClient.post(API_ENDPOINTS.QUIZZES.START_ATTEMPT(quizId));
     return data.data ?? data;
   },
@@ -39,14 +39,17 @@ export const quizService = {
 
   async submitAnswer(
     attemptId: string,
-    payload: { question_id: string; selected_option_id: string }
+    payload: { question_id: string; selected_option_id: string; time_spent_secs?: number }
   ): Promise<{ is_correct: boolean; points_earned: number; explanation: string | null }> {
     const { data } = await httpClient.post(API_ENDPOINTS.QUIZ_ATTEMPTS.ANSWER(attemptId), payload);
     return data.data ?? data;
   },
 
-  async completeAttempt(attemptId: string): Promise<QuizAttempt> {
-    const { data } = await httpClient.post(API_ENDPOINTS.QUIZ_ATTEMPTS.COMPLETE(attemptId));
+  async completeAttempt(attemptId: string, timeSpentSecs?: number): Promise<QuizAttempt> {
+    const { data } = await httpClient.post(
+      API_ENDPOINTS.QUIZ_ATTEMPTS.COMPLETE(attemptId),
+      timeSpentSecs != null ? { time_spent_secs: timeSpentSecs } : {}
+    );
     return data.data ?? data;
   },
 

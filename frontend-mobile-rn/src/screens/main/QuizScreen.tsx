@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -33,6 +34,9 @@ export function QuizScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [initError, setInitError] = useState(false);
 
+  const quizStartTimeRef = useRef<number>(0);
+  const questionStartTimeRef = useRef<number>(Date.now());
+
   const initQuiz = useCallback(async () => {
     setLoading(true);
     setInitError(false);
@@ -45,6 +49,8 @@ export function QuizScreen() {
       }
       const qs = await quizService.questions(quizId);
       setQuestions(qs);
+      quizStartTimeRef.current = Date.now();
+      questionStartTimeRef.current = Date.now();
     } catch (error) {
       console.warn("Erro ao iniciar quiz", error);
       setInitError(true);
@@ -64,37 +70,46 @@ export function QuizScreen() {
     if (!selectedOptionId || !attemptId || !currentQuestion) return;
     setSubmitting(true);
 
+    const timeSpentSecs = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
+
     try {
       const result = await quizService.submitAnswer(attemptId, {
         question_id: currentQuestion.id,
         selected_option_id: selectedOptionId,
+        time_spent_secs: timeSpentSecs,
       });
-
-      const isCorrect = result.is_correct;
-      const explanation = result.explanation;
 
       const isLast = currentIndex === totalQuestions - 1;
 
       if (isLast) {
-        await quizService.completeAttempt(attemptId);
+        const totalSecs = Math.round((Date.now() - quizStartTimeRef.current) / 1000);
+        try {
+          await quizService.completeAttempt(attemptId, totalSecs);
+        } catch {
+          // attempt may already be completed; proceed to result
+        }
         navigation.navigate("QuizFeedback", {
-          isCorrect,
-          explanation,
-          onNext: () => navigation.navigate("QuizResult", { attemptId, quizId }),
+          isCorrect: result.is_correct,
+          explanation: result.explanation ?? null,
+          isLast: true,
+          attemptId,
+          quizId,
         });
       } else {
+        setCurrentIndex((i) => i + 1);
+        setSelectedOptionId(null);
+        questionStartTimeRef.current = Date.now();
         navigation.navigate("QuizFeedback", {
-          isCorrect,
-          explanation,
-          onNext: () => {
-            setCurrentIndex((i) => i + 1);
-            setSelectedOptionId(null);
-            navigation.goBack();
-          },
+          isCorrect: result.is_correct,
+          explanation: result.explanation ?? null,
+          isLast: false,
+          attemptId,
+          quizId,
         });
       }
     } catch (error) {
       console.warn("Erro ao submeter resposta", error);
+      Alert.alert("Erro", "Não foi possível registar a resposta. Tente novamente.");
     } finally {
       setSubmitting(false);
     }
@@ -196,7 +211,7 @@ export function QuizScreen() {
                       isSelected ? styles.optionTextSelected : styles.optionTextDefault,
                     ]}
                   >
-                    {option.text}
+                    {option.option_text}
                   </Text>
                   {isSelected && (
                     <Feather name="check" size={20} color="#6B0119" style={styles.checkIcon} />

@@ -17,12 +17,6 @@ import { HeaderBar } from "../../components/HeaderBar";
 import { documentService } from "../../services/api/documentService";
 import type { Document } from "../../types/api";
 
-function academicLevelLabel(level: string): string {
-  if (level === "intro") return "Introdução";
-  if (level === "advanced") return "Avançado";
-  if (level === "doctorate") return "Doutoramento";
-  return level;
-}
 
 function documentTypeLabel(type: string): string {
   if (type === "article") return "Artigo";
@@ -179,9 +173,6 @@ export function ArticleScreen() {
               <Text style={styles.metaChipText}>{document.category.name}</Text>
             </View>
           )}
-          <View style={styles.metaChip}>
-            <Text style={styles.metaChipText}>{academicLevelLabel(document.academic_level)}</Text>
-          </View>
           {document.tags?.map((tag) => (
             <View key={tag.id} style={styles.metaChip}>
               <Text style={styles.metaChipText}>#{tag.name}</Text>
@@ -222,16 +213,8 @@ export function ArticleScreen() {
             <Text style={styles.statText}>{likesCount}</Text>
           </TouchableOpacity>
           <View style={styles.statBtn}>
-            <Ionicons name="chatbubble-outline" size={20} color={appTheme.colors.textSecondary} />
-            <Text style={styles.statText}>{document.comments_count}</Text>
-          </View>
-          <View style={styles.statBtn}>
             <Ionicons name="eye-outline" size={20} color={appTheme.colors.textSecondary} />
             <Text style={styles.statText}>{document.views_count}</Text>
-          </View>
-          <View style={styles.statBtn}>
-            <Ionicons name="download-outline" size={20} color={appTheme.colors.textSecondary} />
-            <Text style={styles.statText}>{document.downloads_count}</Text>
           </View>
         </View>
 

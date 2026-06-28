@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
+  Alert,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
@@ -20,6 +21,8 @@ import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { communityService } from "../../services/api/communityService";
+import { reportService, REPORT_REASONS } from "../../services/api/reportService";
+import type { ReportReason } from "../../services/api/reportService";
 import type { DiscussionTopic, TopicReply } from "../../types/api";
 import { MainStackParamList } from "../../types/navigation";
 
@@ -54,6 +57,10 @@ export function TopicDiscussionScreen() {
   const [composerFocused, setComposerFocused] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ type: "topic" | "reply"; id: string } | null>(null);
+  const [reportReason, setReportReason] = useState<ReportReason | null>(null);
+  const [reportDescription, setReportDescription] = useState("");
+  const [submittingReport, setSubmittingReport] = useState(false);
 
   const topicId = route.params.id;
 
@@ -81,7 +88,7 @@ export function TopicDiscussionScreen() {
 
   const isTerminated = topic?.status === "closed";
   const isAuthor = !!user && !!topic && user.id === topic.author_id;
-  const isPrivateTopic = topic?.category?.access_level_id === "restricted";
+  const isPrivateTopic = topic?.visibility === "PRIVATE";
 
   const handleToggleStatus = async () => {
     if (!topic) return;
@@ -92,6 +99,71 @@ export function TopicDiscussionScreen() {
       setTopic((prev) => prev ? { ...prev, status: newStatus } : prev);
     } catch (error) {
       console.warn("Erro ao atualizar estado da discussão", error);
+    }
+  };
+
+  const handleLeaveTopic = () => {
+    Alert.alert(
+      "Abandonar fórum",
+      "Tens a certeza que queres sair deste fórum? Perderás o acesso a esta discussão privada.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sair",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await communityService.leaveTopic(topicId);
+              navigation.navigate("MainTabs", { screen: "Community" });
+            } catch {
+              Alert.alert("Erro", "Não foi possível sair do fórum. Tente novamente.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleToggleVisibility = async () => {
+    if (!topic) return;
+    setMenuVisible(false);
+    const newVisibility = topic.visibility === "PRIVATE" ? "PUBLIC" : "PRIVATE";
+    try {
+      await communityService.updateTopic(topicId, { visibility: newVisibility });
+      setTopic((prev) => prev ? { ...prev, visibility: newVisibility } : prev);
+    } catch (error) {
+      console.warn("Erro ao alterar visibilidade", error);
+    }
+  };
+
+  const openReport = (type: "topic" | "reply", id: string) => {
+    setReportReason(null);
+    setReportDescription("");
+    setReportTarget({ type, id });
+  };
+
+  const closeReport = () => {
+    setReportTarget(null);
+    setReportReason(null);
+    setReportDescription("");
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportTarget || !reportReason || reportDescription.trim().length < 5) return;
+    setSubmittingReport(true);
+    try {
+      await reportService.submit({
+        content_type: reportTarget.type,
+        content_id: reportTarget.id,
+        reason: reportReason,
+        description: reportDescription.trim(),
+      });
+      closeReport();
+      Alert.alert("Denúncia enviada", "A sua denúncia foi enviada e será analisada pelos administradores. Obrigado.");
+    } catch {
+      Alert.alert("Erro", "Não foi possível enviar a denúncia. Tente novamente.");
+    } finally {
+      setSubmittingReport(false);
     }
   };
 
@@ -215,6 +287,7 @@ export function TopicDiscussionScreen() {
         <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
         <HeaderBar
           title="Discussão do Fórum"
+          onBackPress={() => navigation.navigate("MainTabs", { screen: "Community" })}
           rightElement={
             isAuthor ? (
               <TouchableOpacity
@@ -222,6 +295,13 @@ export function TopicDiscussionScreen() {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Feather name="more-vertical" size={22} color={appTheme.colors.textPrimary} />
+              </TouchableOpacity>
+            ) : isPrivateTopic && !!user ? (
+              <TouchableOpacity
+                onPress={handleLeaveTopic}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Feather name="log-out" size={20} color={appTheme.colors.textSecondary} />
               </TouchableOpacity>
             ) : undefined
           }
@@ -269,11 +349,7 @@ export function TopicDiscussionScreen() {
                 <Feather name="message-circle" size={18} color={appTheme.colors.primary} />
                 <Text style={styles.commentCountText}>{topic.replies_count} COMENTÁRIOS</Text>
               </View>
-              <TouchableOpacity
-                onPress={() => void handleTopicLike()}
-                style={styles.likeStatsRow}
-                disabled={isTerminated}
-              >
+              <View style={styles.likeStatsRow}>
                 <Feather
                   name="thumbs-up"
                   size={18}
@@ -282,26 +358,33 @@ export function TopicDiscussionScreen() {
                 <Text style={[styles.likeCountText, topicLiked && styles.likeCountActive]}>
                   {topicLikes}
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
 
-            {/* Actions */}
-            <View style={styles.topicActionsRow}>
-              <TouchableOpacity
-                onPress={() => void handleTopicLike()}
-                style={[
-                  styles.topicActionBtn,
-                  topicLiked && styles.topicActionBtnActive,
-                  isTerminated && { opacity: 0.6 },
-                ]}
-                disabled={isTerminated}
-              >
-                <Feather name="thumbs-up" size={14} color={topicLiked ? "white" : appTheme.colors.textSecondary} />
-                <Text style={[styles.topicActionBtnText, topicLiked && styles.topicActionBtnTextActive]}>
-                  {topicLiked ? "Gostei" : "Gostar"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {/* Actions — hidden when terminated */}
+            {!isTerminated && (
+              <View style={styles.topicActionsRow}>
+                <TouchableOpacity
+                  onPress={() => void handleTopicLike()}
+                  style={[styles.topicActionBtn, topicLiked && styles.topicActionBtnActive]}
+                >
+                  <Feather name="thumbs-up" size={14} color={topicLiked ? "white" : appTheme.colors.textSecondary} />
+                  <Text style={[styles.topicActionBtnText, topicLiked && styles.topicActionBtnTextActive]}>
+                    {topicLiked ? "Gostei" : "Gostar"}
+                  </Text>
+                </TouchableOpacity>
+
+                {user && !isAuthor && (
+                  <TouchableOpacity
+                    onPress={() => openReport("topic", topic.id)}
+                    style={styles.topicActionBtn}
+                  >
+                    <Feather name="flag" size={14} color={appTheme.colors.textSecondary} />
+                    <Text style={styles.topicActionBtnText}>Denunciar</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </View>
 
           {/* Comments */}
@@ -350,6 +433,16 @@ export function TopicDiscussionScreen() {
                       >
                         <Feather name="message-square" size={14} color={appTheme.colors.textMuted} />
                         <Text style={styles.actionLinkText}>Responder</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {user && reply.author_id !== user.id && (
+                      <TouchableOpacity
+                        onPress={() => openReport("reply", reply.id)}
+                        style={styles.actionLink}
+                      >
+                        <Feather name="flag" size={14} color={appTheme.colors.textMuted} />
+                        <Text style={styles.actionLinkText}>Denunciar</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -427,12 +520,26 @@ export function TopicDiscussionScreen() {
               {isPrivateTopic && (
                 <TouchableOpacity
                   style={styles.menuItem}
-                  onPress={() => { setMenuVisible(false); navigation.navigate("ManageMembers", { topicId }); }}
+                  onPress={() => { setMenuVisible(false); navigation.navigate("ManageMembers", { topicId, topicTitle: topic.title }); }}
                 >
                   <Feather name="users" size={20} color={appTheme.colors.textPrimary} />
                   <Text style={styles.menuItemText}>Gerir Membros</Text>
                 </TouchableOpacity>
               )}
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => void handleToggleVisibility()}
+              >
+                <Feather
+                  name={isPrivateTopic ? "unlock" : "lock"}
+                  size={20}
+                  color={appTheme.colors.textPrimary}
+                />
+                <Text style={styles.menuItemText}>
+                  {isPrivateTopic ? "Tornar Público" : "Tornar Privado"}
+                </Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.menuItem}
@@ -452,6 +559,72 @@ export function TopicDiscussionScreen() {
 
               <TouchableOpacity style={styles.menuItem} onPress={() => setMenuVisible(false)}>
                 <Text style={[styles.menuItemText, { color: appTheme.colors.textMuted }]}>Cancelar</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+
+        {/* Report Modal */}
+        <Modal
+          visible={reportTarget !== null}
+          transparent
+          animationType="slide"
+          onRequestClose={closeReport}
+        >
+          <Pressable style={styles.modalOverlay} onPress={closeReport}>
+            <Pressable style={styles.reportSheet} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.menuHandle} />
+              <Text style={styles.reportTitle}>
+                Denunciar {reportTarget?.type === "topic" ? "Tópico" : "Comentário"}
+              </Text>
+              <Text style={styles.reportSubtitle}>Selecione a categoria e descreva o motivo</Text>
+
+              {/* Reason chips */}
+              <View style={styles.reasonGrid}>
+                {REPORT_REASONS.map((r) => (
+                  <TouchableOpacity
+                    key={r.value}
+                    style={[styles.reasonChip, reportReason === r.value && styles.reasonChipSelected]}
+                    onPress={() => setReportReason(r.value)}
+                  >
+                    <Text style={[styles.reasonChipText, reportReason === r.value && styles.reasonChipTextSelected]}>
+                      {r.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Description */}
+              <TextInput
+                style={styles.reportInput}
+                placeholder="Descreva o motivo da denúncia... (obrigatório)"
+                placeholderTextColor={appTheme.colors.textMuted}
+                value={reportDescription}
+                onChangeText={setReportDescription}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                maxLength={1000}
+              />
+              <Text style={styles.reportCharCount}>{reportDescription.length}/1000</Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.reportSubmitBtn,
+                  (!reportReason || reportDescription.trim().length < 5 || submittingReport) && { opacity: 0.45 },
+                ]}
+                onPress={() => void handleSubmitReport()}
+                disabled={!reportReason || reportDescription.trim().length < 5 || submittingReport}
+              >
+                {submittingReport ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.reportSubmitBtnText}>Enviar Denúncia</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.reportCancelBtn} onPress={closeReport}>
+                <Text style={styles.reportCancelBtnText}>Cancelar</Text>
               </TouchableOpacity>
             </Pressable>
           </Pressable>
@@ -937,5 +1110,98 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: appTheme.colors.border,
     marginVertical: 4,
+  },
+  reportSheet: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Platform.OS === "ios" ? 32 : 20,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+  },
+  reportTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 18,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    marginBottom: 4,
+    marginTop: 8,
+  },
+  reportSubtitle: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
+    color: appTheme.colors.textMuted,
+    marginBottom: 16,
+  },
+  reasonGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 16,
+  },
+  reasonChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: appTheme.colors.border,
+    backgroundColor: "#F8F9FF",
+  },
+  reasonChipSelected: {
+    borderColor: appTheme.colors.danger,
+    backgroundColor: appTheme.colors.danger + "12",
+  },
+  reasonChipText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
+    fontWeight: "600",
+    color: appTheme.colors.textSecondary,
+  },
+  reasonChipTextSelected: {
+    color: appTheme.colors.danger,
+  },
+  reportInput: {
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
+    color: appTheme.colors.textPrimary,
+    minHeight: 100,
+    fontFamily: "Source_Sans_3",
+    backgroundColor: "#FAFAFA",
+  },
+  reportCharCount: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 11,
+    color: appTheme.colors.textMuted,
+    textAlign: "right",
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  reportSubmitBtn: {
+    backgroundColor: appTheme.colors.danger,
+    height: 48,
+    borderRadius: appTheme.radius.button,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  reportSubmitBtnText: {
+    color: "white",
+    fontFamily: "Source_Sans_3",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  reportCancelBtn: {
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  reportCancelBtnText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 14,
+    fontWeight: "600",
+    color: appTheme.colors.textMuted,
   },
 });

@@ -74,7 +74,7 @@ export function QuizResultScreen() {
   if (loading) {
     return (
       <ScreenContainer style={{ paddingHorizontal: 0 }}>
-        <HeaderBar title="Resultado Final" />
+        <HeaderBar title="Resultado Final" onBackPress={() => navigation.navigate("MainTabs", { screen: "QuizList" })} />
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="large" color={appTheme.colors.primary} />
         </View>
@@ -85,7 +85,7 @@ export function QuizResultScreen() {
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
       <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
-      <HeaderBar title="Resultado Final" />
+      <HeaderBar title="Resultado Final" onBackPress={() => navigation.navigate("MainTabs", { screen: "QuizList" })} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
@@ -129,7 +129,7 @@ export function QuizResultScreen() {
         <View style={styles.actionSection}>
           <TouchableOpacity
             style={styles.primaryBtn}
-            onPress={() => navigation.navigate("MainTabs", { screen: "QuizList" })}
+            onPress={() => navigation.navigate("MainTabs", { screen: "QuizList", params: { initialTab: "ranking" } })}
           >
             <Feather name="trending-up" size={16} color="white" style={{ marginRight: 8 }} />
             <Text style={styles.primaryBtnText}>Ver Ranking</Text>

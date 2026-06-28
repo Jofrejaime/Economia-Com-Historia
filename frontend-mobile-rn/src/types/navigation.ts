@@ -18,7 +18,7 @@ export type MainTabParamList = {
   Home: undefined;
   Content: ContentParams | undefined;
   Community: undefined;
-  QuizList: undefined;
+  QuizList: { initialTab?: 'quizzes' | 'ranking' } | undefined;
   Profile: undefined;
 };
 
@@ -29,11 +29,11 @@ export type MainStackParamList = {
   Register: undefined;
   Article: { id: string };
   Quiz: { quizId: string; attemptId?: string };
-  QuizFeedback: { isCorrect: boolean; explanation: string | null; onNext?: () => void };
+  QuizFeedback: { isCorrect: boolean; explanation: string | null; isLast: boolean; attemptId: string; quizId: string };
   QuizResult: { attemptId: string; quizId: string };
   CreateTopic: { initialTitle?: string };
   TopicDiscussion: { id: string };
-  ManageMembers: { topicId: string; initialMembers?: Array<{ id: string; name: string; username: string; avatarUri: string | null }> };
+  ManageMembers: { topicId: string; topicTitle?: string; initialMembers?: Array<{ id: string; name: string; username: string; avatarUri: string | null }> };
   PersonalInfo: undefined;
   Notifications: undefined;
   NotificationPreferences: undefined;

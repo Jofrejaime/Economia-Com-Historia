@@ -7,6 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -29,6 +30,12 @@ function iconForType(type: string): { name: keyof typeof Feather.glyphMap; bg: s
     case "access_granted":
     case "access_requested":
       return { name: "shield", bg: "#F0FDF4", color: appTheme.colors.success };
+    case "topic_invitation":
+      return { name: "user-plus", bg: "#FDF3F4", color: "#8B1E2D" };
+    case "topic_joined":
+      return { name: "users", bg: "#FDF3F4", color: "#8B1E2D" };
+    case "topic_removed":
+      return { name: "user-x", bg: "#FEF2F2", color: "#DC2626" };
     default:
       return { name: "bell", bg: "#F3F4F6", color: "#6B7280" };
   }
@@ -49,7 +56,17 @@ function relativeTime(dateStr: string): string {
 }
 
 export function NotificationsScreen() {
+  const navigation = useNavigation<any>();
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+
+  const handlePress = (item: Notification) => {
+    if (!item.is_read) {
+      void markAsRead(item.id);
+    }
+    if (item.type === "topic_invitation" && item.reference_id) {
+      navigation.navigate("TopicDiscussion", { id: item.reference_id });
+    }
+  };
 
   const renderItem = ({ item }: { item: Notification }) => {
     const icon = iconForType(item.type);
@@ -57,11 +74,7 @@ export function NotificationsScreen() {
       <TouchableOpacity
         style={[styles.card, !item.is_read ? styles.cardUnread : styles.cardRead]}
         activeOpacity={0.7}
-        onPress={() => {
-          if (!item.is_read) {
-            void markAsRead(item.id);
-          }
-        }}
+        onPress={() => handlePress(item)}
       >
         <View style={styles.cardRow}>
           <View style={[styles.iconContainer, { backgroundColor: !item.is_read ? appTheme.colors.primary : icon.bg }]}>
@@ -77,7 +90,7 @@ export function NotificationsScreen() {
               <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
               {!item.is_read && <View style={styles.unreadDot} />}
             </View>
-            <Text style={styles.cardBody} numberOfLines={2}>{item.body}</Text>
+            <Text style={styles.cardBody} numberOfLines={2}>{item.message}</Text>
             <Text style={styles.cardTime}>{relativeTime(item.created_at)}</Text>
           </View>
         </View>

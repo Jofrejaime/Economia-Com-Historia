@@ -7,38 +7,36 @@ import {
   ScrollView,
   StatusBar,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
+import { MainStackParamList } from "../../types/navigation";
+
+type QuizFeedbackRouteProp = RouteProp<MainStackParamList, "QuizFeedback">;
 
 export function QuizFeedbackScreen() {
   const navigation = useNavigation<any>();
-  const route = useRoute();
-  const { isCorrect, explanation, onNext } = route.params as {
-    isCorrect: boolean;
-    explanation: string | null;
-    onNext?: () => void;
-  };
+  const route = useRoute<QuizFeedbackRouteProp>();
+  const { isCorrect, explanation, isLast, attemptId, quizId } = route.params;
 
   const handleNext = () => {
-    if (onNext) {
-      onNext();
+    if (isLast) {
+      navigation.navigate("QuizResult", { attemptId, quizId });
     } else {
-      navigation.navigate("QuizResult");
+      navigation.goBack();
     }
   };
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
       <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
-      <HeaderBar title="Resultado" />
+      <HeaderBar title="Resultado" showBackButton={false} />
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Result Header */}
         <View style={styles.resultHeader}>
-          {/* Icon */}
           <View style={[styles.iconWrap, isCorrect ? styles.iconWrapCorrect : styles.iconWrapIncorrect]}>
             <Ionicons
               name={isCorrect ? "checkmark-circle" : "close-circle"}
@@ -47,7 +45,6 @@ export function QuizFeedbackScreen() {
             />
           </View>
 
-          {/* Status */}
           <View style={styles.statusTextContainer}>
             <Text style={styles.feedbackLabel}>Feedback do Sistema</Text>
             <Text style={[styles.statusTitle, isCorrect ? styles.statusTitleCorrect : styles.statusTitleIncorrect]}>
@@ -59,7 +56,6 @@ export function QuizFeedbackScreen() {
         {/* Explanation Card */}
         <View style={[styles.card, isCorrect ? styles.cardCorrect : styles.cardIncorrect]}>
           <View style={styles.cardBody}>
-            {/* Title */}
             <View style={styles.cardTitleRow}>
               <Feather name={isCorrect ? "check" : "info"} size={14} color={isCorrect ? "#047857" : appTheme.colors.primary} />
               <Text style={[styles.cardTitle, isCorrect ? styles.cardTitleCorrect : styles.cardTitleIncorrect]}>
@@ -67,7 +63,6 @@ export function QuizFeedbackScreen() {
               </Text>
             </View>
 
-            {/* Explanation */}
             <Text style={styles.explanationText}>
               {explanation
                 ? explanation
@@ -82,13 +77,12 @@ export function QuizFeedbackScreen() {
         <View style={styles.footerSection}>
           <TouchableOpacity
             onPress={handleNext}
-            style={[
-              styles.nextBtn,
-              isCorrect ? styles.nextBtnCorrect : styles.nextBtnIncorrect,
-            ]}
+            style={[styles.nextBtn, isCorrect ? styles.nextBtnCorrect : styles.nextBtnIncorrect]}
           >
-            <Text style={styles.nextBtnLabel}>Próxima Pergunta</Text>
-            <Feather name="chevron-right" size={18} color="white" />
+            <Text style={styles.nextBtnLabel}>
+              {isLast ? "Ver Resultado" : "Próxima Pergunta"}
+            </Text>
+            <Feather name={isLast ? "award" : "chevron-right"} size={18} color="white" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -99,30 +93,6 @@ export function QuizFeedbackScreen() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#F8F9FF",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: appTheme.colors.border,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  appTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: appTheme.colors.primary,
-    fontFamily: "IBM_Plex_Sans",
-  },
-  closeButton: {
-    padding: 4,
   },
   scrollContainer: {
     flex: 1,

@@ -42,13 +42,13 @@ class NotificationService
         return $notification;
     }
 
-    public function sendTopicInvitation(User $user, string $topicTitle, ?string $referenceId = null): array
+    public function sendTopicInvitation(User $user, string $topicTitle, string $inviterName, ?string $referenceId = null): array
     {
         return $this->send(
             $user,
             'topic_invitation',
-            'You were invited to a private topic',
-            $topicTitle,
+            'Convite para fórum privado',
+            "{$inviterName} convidou-te para participar do fórum \"{$topicTitle}\"",
             $referenceId,
             'discussion_topic',
             ['topic_invitation']
