@@ -289,8 +289,18 @@ class NotificationTest extends TestCase
 
     public function test_topic_reply_creates_notification_for_topic_author(): void
     {
+        $category = \App\Models\CommunityCategory::factory()->create();
+        
+        // Adicionar utilizadores à categoria para acesso ao tópico com visibilidade CATEGORY
+        DB::table('category_members')->insert([
+            ['id' => (string) \Illuminate\Support\Str::uuid(), 'category_id' => $category->id, 'user_id' => $this->admin->id, 'joined_at' => now()],
+            ['id' => (string) \Illuminate\Support\Str::uuid(), 'category_id' => $category->id, 'user_id' => $this->user->id, 'joined_at' => now()]
+        ]);
+
         $topic = DiscussionTopic::factory()->create([
+            'category_id' => $category->id,
             'author_id' => $this->admin->id,
+            'visibility' => 'CATEGORY',
         ]);
 
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->userToken}"])
@@ -309,8 +319,16 @@ class NotificationTest extends TestCase
 
     public function test_topic_reply_does_not_notify_own_topic(): void
     {
+        $category = \App\Models\CommunityCategory::factory()->create();
+        
+        DB::table('category_members')->insert([
+            ['id' => (string) \Illuminate\Support\Str::uuid(), 'category_id' => $category->id, 'user_id' => $this->user->id, 'joined_at' => now()]
+        ]);
+
         $topic = DiscussionTopic::factory()->create([
+            'category_id' => $category->id,
             'author_id' => $this->user->id,
+            'visibility' => 'CATEGORY',
         ]);
 
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->userToken}"])
@@ -328,8 +346,17 @@ class NotificationTest extends TestCase
 
     public function test_reply_accepted_creates_notification_for_reply_author(): void
     {
+        $category = \App\Models\CommunityCategory::factory()->create();
+
+        DB::table('category_members')->insert([
+            ['id' => (string) \Illuminate\Support\Str::uuid(), 'category_id' => $category->id, 'user_id' => $this->admin->id, 'joined_at' => now()],
+            ['id' => (string) \Illuminate\Support\Str::uuid(), 'category_id' => $category->id, 'user_id' => $this->user->id, 'joined_at' => now()]
+        ]);
+
         $topic = DiscussionTopic::factory()->create([
+            'category_id' => $category->id,
             'author_id' => $this->admin->id,
+            'visibility' => 'CATEGORY',
         ]);
 
         $reply = TopicReply::factory()->create([
