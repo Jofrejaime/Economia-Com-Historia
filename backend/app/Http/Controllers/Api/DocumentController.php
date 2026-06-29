@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDocumentRequest;
+use App\Http\Requests\UpdateDocumentRequest;
+use App\Http\Resources\DocumentResource;
+use App\Models\Document;
 use App\Services\AccessGateService;
 use App\Services\GamificationService;
 use App\Support\PointTransactionReason;
@@ -33,10 +37,7 @@ class DocumentController extends Controller
      *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      )
+     *      @OA\Response(response=401, description="Não autenticado")
      * )
      */
     public function categories(): JsonResponse
@@ -64,10 +65,7 @@ class DocumentController extends Controller
      *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      )
+     *      @OA\Response(response=401, description="Não autenticado")
      * )
      */
     public function myFavorites(Request $request): JsonResponse
@@ -80,7 +78,12 @@ class DocumentController extends Controller
             ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
             ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
             ->select(
-                'd.*',
+                'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
+                'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
+                'd.publication_date', 'd.period_start', 'd.period_end',
+                'd.summary', 'd.content', 'd.cover_image_url', 'd.pdf_url',
+                'd.status', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
+                'd.views_count', 'd.likes_count', 'd.downloads_count',
                 'dc.name as category_name',
                 'dc.slug as category_slug',
                 'dc.color_bg as category_color_bg',
@@ -102,7 +105,11 @@ class DocumentController extends Controller
 
         $favorites = $query->orderByDesc('uf.created_at')->limit(50)->get();
 
-        return response()->json(['data' => $favorites]);
+        return response()->json([
+            'data' => collect($favorites)
+                ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
+                ->all(),
+        ]);
     }
 
     /**
@@ -113,52 +120,20 @@ class DocumentController extends Controller
      *      summary="Listar documentos com filtros",
      *      description="Obtém a lista de documentos ativos aos quais o utilizador tem permissões de acesso.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="category_id",
-     *          in="query",
-     *          required=false,
-     *          description="ID da categoria",
-     *          @OA\Schema(type="string", format="uuid")
-     *      ),
-     *      @OA\Parameter(
-     *          name="document_type",
-     *          in="query",
-     *          required=false,
-     *          description="Tipo de documento",
-     *          @OA\Schema(type="string", enum={"manuscript", "article", "report", "thesis", "archive"})
-     *      ),
-     *      @OA\Parameter(
-     *          name="academic_level",
-     *          in="query",
-     *          required=false,
-     *          description="Nível académico",
-     *          @OA\Schema(type="string", enum={"intro", "advanced", "doctorate"})
-     *      ),
-     *      @OA\Parameter(
-     *          name="access_level_id",
-     *          in="query",
-     *          required=false,
-     *          description="ID do nível de acesso",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Parameter(
-     *          name="status",
-     *          in="query",
-     *          required=false,
-     *          description="Estado (apenas admin pode filtrar por outros além de published)",
-     *          @OA\Schema(type="string")
-     *      ),
+     *      @OA\Parameter(name="category_id", in="query", required=false, @OA\Schema(type="string", format="uuid")),
+     *      @OA\Parameter(name="document_type", in="query", required=false, @OA\Schema(type="string", enum={"manuscript", "article", "report", "thesis", "archive"})),
+     *      @OA\Parameter(name="academic_level", in="query", required=false, @OA\Schema(type="string", enum={"intro", "advanced", "doctorate"})),
+     *      @OA\Parameter(name="access_level_id", in="query", required=false, @OA\Schema(type="string")),
+     *      @OA\Parameter(name="status", in="query", required=false, @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Documentos obtidos com sucesso",
      *          @OA\JsonContent(
-     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *              @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *              @OA\Property(property="meta", type="object")
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      )
+     *      @OA\Response(response=401, description="Não autenticado")
      * )
      */
     public function index(Request $request): JsonResponse
@@ -170,7 +145,12 @@ class DocumentController extends Controller
             ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
             ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
             ->select(
-                'd.*',
+                'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
+                'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
+                'd.publication_date', 'd.period_start', 'd.period_end',
+                'd.summary', 'd.content', 'd.cover_image_url', 'd.pdf_url',
+                'd.status', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
+                'd.views_count', 'd.likes_count', 'd.downloads_count',
                 'dc.name as category_name',
                 'dc.slug as category_slug',
                 'dc.color_bg as category_color_bg',
@@ -226,7 +206,9 @@ class DocumentController extends Controller
         $paginator = $query->paginate($perPage);
 
         return response()->json([
-            'data' => $paginator->items(),
+            'data' => collect($paginator->items())
+                ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
+                ->all(),
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page'    => $paginator->lastPage(),
@@ -244,27 +226,9 @@ class DocumentController extends Controller
      *      summary="Pesquisar documentos por texto",
      *      description="Pesquisa em título, sumário e autor dos documentos.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="q",
-     *          in="query",
-     *          required=false,
-     *          description="Termo a pesquisar",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Parameter(
-     *          name="category_id",
-     *          in="query",
-     *          required=false,
-     *          description="Filtrar por ID de categoria",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Parameter(
-     *          name="document_type",
-     *          in="query",
-     *          required=false,
-     *          description="Filtrar por tipo de documento",
-     *          @OA\Schema(type="string")
-     *      ),
+     *      @OA\Parameter(name="q", in="query", required=false, @OA\Schema(type="string")),
+     *      @OA\Parameter(name="category_id", in="query", required=false, @OA\Schema(type="string")),
+     *      @OA\Parameter(name="document_type", in="query", required=false, @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Resultados da pesquisa",
@@ -272,10 +236,7 @@ class DocumentController extends Controller
      *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      )
+     *      @OA\Response(response=401, description="Não autenticado")
      * )
      */
     public function search(Request $request): JsonResponse
@@ -288,7 +249,12 @@ class DocumentController extends Controller
             ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
             ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
             ->select(
-                'd.*',
+                'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
+                'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
+                'd.publication_date', 'd.period_start', 'd.period_end',
+                'd.summary', 'd.content', 'd.cover_image_url', 'd.pdf_url',
+                'd.status', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
+                'd.views_count', 'd.likes_count', 'd.downloads_count',
                 'dc.name as category_name',
                 'dc.slug as category_slug',
                 'al.name as access_level_name',
@@ -317,7 +283,13 @@ class DocumentController extends Controller
 
         $this->accessGate->applyDocumentVisibilityFilter($query, $user);
 
-        return response()->json(['data' => $query->orderByDesc('d.created_at')->limit(50)->get()]);
+        $results = $query->orderByDesc('d.created_at')->limit(50)->get();
+
+        return response()->json([
+            'data' => collect($results)
+                ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
+                ->all(),
+        ]);
     }
 
     /**
@@ -328,13 +300,7 @@ class DocumentController extends Controller
      *      summary="Visualizar detalhes de um documento",
      *      description="Retorna detalhes completos de um documento e regista uma visualização.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do documento",
-     *          @OA\Schema(type="string")
-     *      ),
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Detalhes do documento",
@@ -345,23 +311,14 @@ class DocumentController extends Controller
      *              @OA\Property(property="is_favorited", type="boolean")
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Acesso negado por nível de privilégios insuficiente"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Documento não encontrado ou não publicado"
-     *      )
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Acesso negado por nível de privilégios insuficiente"),
+     *      @OA\Response(response=404, description="Documento não encontrado ou não publicado")
      * )
      */
     public function show(string $id, Request $request): JsonResponse
     {
-        $document = $this->findDocument($id);
+        $document = Document::with(['category', 'accessLevel', 'createdBy.profile'])->find($id);
 
         if ($document === null) {
             return response()->json(['message' => 'Document not found.'], 404);
@@ -386,14 +343,14 @@ class DocumentController extends Controller
         $userId = $request->user()->id;
 
         DB::table('document_views')->insert([
-            'id' => (string) Str::uuid(),
+            'id'          => (string) Str::uuid(),
             'document_id' => $id,
-            'user_id' => $userId,
-            'ip_address' => $request->ip(),
-            'created_at' => now(),
+            'user_id'     => $userId,
+            'ip_address'  => $request->ip(),
+            'created_at'  => now(),
         ]);
 
-        DB::table('documents')->where('id', $id)->increment('views_count');
+        $document->increment('views_count');
 
         $isLiked = DB::table('document_likes')
             ->where('document_id', $id)
@@ -406,9 +363,9 @@ class DocumentController extends Controller
             ->exists();
 
         return response()->json([
-            'data' => $document,
-            'tags' => $tags,
-            'is_liked' => $isLiked,
+            'data'         => (new DocumentResource($document))->toArray($request),
+            'tags'         => $tags,
+            'is_liked'     => $isLiked,
             'is_favorited' => $isFavorited,
         ]);
     }
@@ -425,65 +382,37 @@ class DocumentController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              required={"title", "author", "summary", "document_type", "academic_level", "access_level_id"},
-     *              @OA\Property(property="title", type="string", maxLength=500, example="História Económica do Reino do Kongo"),
-     *              @OA\Property(property="author", type="string", maxLength=255, example="Afonso Silva"),
-     *              @OA\Property(property="summary", type="string", example="Sumário detalhado..."),
-     *              @OA\Property(property="content", type="string", nullable=true, example="Conteúdo integral do documento..."),
-     *              @OA\Property(property="document_type", type="string", enum={"manuscript", "article", "report", "thesis", "archive"}, example="article"),
-     *              @OA\Property(property="academic_level", type="string", enum={"intro", "advanced", "doctorate"}, example="advanced"),
-     *              @OA\Property(property="access_level_id", type="string", example="public"),
-     *              @OA\Property(property="category_id", type="string", format="uuid", nullable=true, example="category-uuid"),
-     *              @OA\Property(property="institution", type="string", maxLength=255, nullable=true, example="ISPTEC"),
-     *              @OA\Property(property="publication_date", type="string", format="date", nullable=true, example="2026-06-23"),
-     *              @OA\Property(property="period_start", type="integer", nullable=true, example=1400),
-     *              @OA\Property(property="period_end", type="integer", nullable=true, example=1600),
-     *              @OA\Property(property="cover_image_url", type="string", format="url", maxLength=500, nullable=true),
-     *              @OA\Property(property="pdf_url", type="string", format="url", maxLength=500, nullable=true),
-     *              @OA\Property(property="tags", type="array", @OA\Items(type="string"), nullable=true, example={"Kongo", "Economia Colonial"})
+     *              @OA\Property(property="title", type="string", maxLength=500),
+     *              @OA\Property(property="author", type="string", maxLength=255),
+     *              @OA\Property(property="summary", type="string"),
+     *              @OA\Property(property="content", type="string", nullable=true),
+     *              @OA\Property(property="document_type", type="string", enum={"manuscript", "article", "report", "thesis", "archive"}),
+     *              @OA\Property(property="academic_level", type="string", enum={"intro", "advanced", "doctorate"}),
+     *              @OA\Property(property="access_level_id", type="string"),
+     *              @OA\Property(property="category_id", type="string", format="uuid", nullable=true),
+     *              @OA\Property(property="institution", type="string", nullable=true),
+     *              @OA\Property(property="publication_date", type="string", format="date", nullable=true),
+     *              @OA\Property(property="period_start", type="integer", nullable=true),
+     *              @OA\Property(property="period_end", type="integer", nullable=true),
+     *              @OA\Property(property="cover_image_url", type="string", nullable=true),
+     *              @OA\Property(property="pdf_url", type="string", nullable=true),
+     *              @OA\Property(property="tags", type="array", @OA\Items(type="string"), nullable=true)
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=201,
-     *          description="Documento criado com sucesso",
+     *      @OA\Response(response=201, description="Documento criado com sucesso",
      *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Document created."),
-     *              @OA\Property(property="id", type="string", format="uuid", example="uuid-string")
+     *              @OA\Property(property="message", type="string"),
+     *              @OA\Property(property="id", type="string", format="uuid")
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Acesso proibido (Requer role admin ou professor)"
-     *      ),
-     *      @OA\Response(
-     *          response=422,
-     *          description="Erros de validação"
-     *      )
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Acesso proibido"),
+     *      @OA\Response(response=422, description="Erros de validação")
      * )
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreDocumentRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:500'],
-            'author' => ['required', 'string', 'max:255'],
-            'summary' => ['required', 'string'],
-            'content' => ['nullable', 'string'],
-            'document_type' => ['required', 'in:manuscript,article,report,thesis,archive'],
-            'academic_level' => ['required', 'in:intro,advanced,doctorate'],
-            'access_level_id' => ['required', 'exists:access_levels,id'],
-            'category_id' => ['nullable', 'exists:document_categories,id'],
-            'institution' => ['nullable', 'string', 'max:255'],
-            'publication_date' => ['nullable', 'date'],
-            'period_start' => ['nullable', 'integer'],
-            'period_end' => ['nullable', 'integer'],
-            'cover_image_url' => ['nullable', 'string', 'max:500'],
-            'pdf_url' => ['nullable', 'string', 'max:500'],
-            'tags' => ['nullable', 'array'],
-            'tags.*' => ['string', 'max:100'],
-        ]);
+        $validated = $request->validated();
 
         $tags = $validated['tags'] ?? [];
         unset($validated['tags']);
@@ -492,27 +421,27 @@ class DocumentController extends Controller
 
         DB::transaction(function () use ($validated, $id, $request, $tags): void {
             DB::table('documents')->insert(array_merge($validated, [
-                'id' => $id,
-                'slug' => Str::slug($validated['title']).'-'.Str::lower(Str::random(6)),
-                'created_by' => $request->user()->id,
-                'created_at' => now(),
-                'updated_at' => now(),
-                'views_count' => 0,
-                'likes_count' => 0,
+                'id'              => $id,
+                'slug'            => Str::slug($validated['title']).'-'.Str::lower(Str::random(6)),
+                'created_by'      => $request->user()->id,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+                'views_count'     => 0,
+                'likes_count'     => 0,
                 'downloads_count' => 0,
-                'status' => 'draft',
+                'status'          => 'draft',
             ]));
 
             foreach ($tags as $tagName) {
                 $slug = Str::slug($tagName);
-                $tag = DB::table('tags')->where('slug', $slug)->first();
+                $tag  = DB::table('tags')->where('slug', $slug)->first();
 
                 if ($tag === null) {
                     $tagId = (string) Str::uuid();
                     DB::table('tags')->insert([
-                        'id' => $tagId,
-                        'name' => $tagName,
-                        'slug' => $slug,
+                        'id'         => $tagId,
+                        'name'       => $tagName,
+                        'slug'       => $slug,
                         'created_at' => now(),
                     ]);
                 } else {
@@ -521,7 +450,7 @@ class DocumentController extends Controller
 
                 DB::table('document_tags')->insert([
                     'document_id' => $id,
-                    'tag_id' => $tagId,
+                    'tag_id'      => $tagId,
                 ]);
             }
         });
@@ -537,78 +466,35 @@ class DocumentController extends Controller
      *      summary="Atualizar documento (Admin/Professor)",
      *      description="Atualiza um documento existente.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do documento",
-     *          @OA\Schema(type="string")
-     *      ),
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
      *      @OA\RequestBody(
      *          required=true,
      *          @OA\JsonContent(
      *              @OA\Property(property="title", type="string", maxLength=500),
-     *              @OA\Property(property="author", type="string", maxLength=255),
-     *              @OA\Property(property="summary", type="string"),
-     *              @OA\Property(property="content", type="string", nullable=true),
-     *              @OA\Property(property="document_type", type="string", enum={"manuscript", "article", "report", "thesis", "archive"}),
-     *              @OA\Property(property="academic_level", type="string", enum={"intro", "advanced", "doctorate"}),
-     *              @OA\Property(property="access_level_id", type="string"),
-     *              @OA\Property(property="category_id", type="string", format="uuid", nullable=true),
      *              @OA\Property(property="status", type="string", enum={"draft", "published", "archived"})
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Documento atualizado com sucesso",
+     *      @OA\Response(response=200, description="Documento atualizado com sucesso",
      *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Document updated."),
+     *              @OA\Property(property="message", type="string"),
      *              @OA\Property(property="data", type="object")
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Acesso proibido (Requer role admin ou professor)"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Documento não encontrado"
-     *      ),
-     *      @OA\Response(
-     *          response=422,
-     *          description="Erros de validação ou campos vazios"
-     *      )
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Acesso proibido"),
+     *      @OA\Response(response=404, description="Documento não encontrado"),
+     *      @OA\Response(response=422, description="Erros de validação")
      * )
      */
-    public function update(string $id, Request $request): JsonResponse
+    public function update(string $id, UpdateDocumentRequest $request): JsonResponse
     {
-        $document = DB::table('documents')->where('id', $id)->first();
+        $document = Document::find($id);
 
         if ($document === null) {
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        $validated = $request->validate([
-            'title' => ['sometimes', 'string', 'max:500'],
-            'author' => ['sometimes', 'string', 'max:255'],
-            'summary' => ['sometimes', 'string'],
-            'content' => ['sometimes', 'nullable', 'string'],
-            'document_type' => ['sometimes', 'in:manuscript,article,report,thesis,archive'],
-            'academic_level' => ['sometimes', 'in:intro,advanced,doctorate'],
-            'access_level_id' => ['sometimes', 'exists:access_levels,id'],
-            'category_id' => ['sometimes', 'nullable', 'exists:document_categories,id'],
-            'institution' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'publication_date' => ['sometimes', 'nullable', 'date'],
-            'period_start' => ['sometimes', 'nullable', 'integer'],
-            'period_end' => ['sometimes', 'nullable', 'integer'],
-            'cover_image_url' => ['sometimes', 'nullable', 'string', 'max:500'],
-            'pdf_url' => ['sometimes', 'nullable', 'string', 'max:500'],
-            'status' => ['sometimes', 'in:draft,published,archived'],
-        ]);
+        $validated = $request->validated();
 
         if (empty($validated)) {
             return response()->json(['message' => 'No fields to update.'], 422);
@@ -622,16 +508,16 @@ class DocumentController extends Controller
 
         if (isset($validated['status']) && $validated['status'] === 'published' && $document->published_at === null) {
             $validated['published_at'] = now();
-            $validated['reviewed_by'] = $request->user()->id;
+            $validated['reviewed_by']  = $request->user()->id;
         }
 
-        DB::table('documents')->where('id', $id)->update($validated);
+        $document->fill($validated)->save();
 
-        $updated = DB::table('documents')->where('id', $id)->first();
+        $document->load(['category', 'accessLevel', 'createdBy.profile']);
 
         return response()->json([
             'message' => 'Document updated.',
-            'data' => $updated,
+            'data'    => (new DocumentResource($document))->toArray($request),
         ]);
     }
 
@@ -643,43 +529,24 @@ class DocumentController extends Controller
      *      summary="Eliminar documento (Admin/Professor)",
      *      description="Elimina permanentemente um documento.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do documento",
-     *          @OA\Schema(type="string")
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Documento eliminado com sucesso",
+     *          @OA\JsonContent(@OA\Property(property="message", type="string"))
      *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Documento eliminado com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Document deleted.")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Acesso proibido"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Documento não encontrado"
-     *      )
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Acesso proibido"),
+     *      @OA\Response(response=404, description="Documento não encontrado")
      * )
      */
     public function destroy(string $id): JsonResponse
     {
-        $document = DB::table('documents')->where('id', $id)->first();
+        $document = Document::find($id);
 
         if ($document === null) {
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        DB::table('documents')->where('id', $id)->delete();
+        $document->delete();
 
         return response()->json(['message' => 'Document deleted.']);
     }
@@ -690,44 +557,22 @@ class DocumentController extends Controller
      *      operationId="likeDocument",
      *      tags={"Documents"},
      *      summary="Gostar de um documento",
-     *      description="Regista um 'like' no documento e atribui pontos ao utilizador.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do documento",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Like registado com sucesso",
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Like registado com sucesso",
      *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Document liked."),
+     *              @OA\Property(property="message", type="string"),
      *              @OA\Property(property="gamification", type="object")
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Proibido se não puder ler o documento"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Documento não encontrado"
-     *      ),
-     *      @OA\Response(
-     *          response=409,
-     *          description="Já gostou anteriormente"
-     *      )
+     *      @OA\Response(response=404, description="Documento não encontrado"),
+     *      @OA\Response(response=403, description="Sem acesso"),
+     *      @OA\Response(response=409, description="Já gostou anteriormente")
      * )
      */
     public function like(string $id, Request $request): JsonResponse
     {
-        $document = DB::table('documents')->where('id', $id)->first();
+        $document = Document::find($id);
 
         if ($document === null) {
             return response()->json(['message' => 'Document not found.'], 404);
@@ -750,15 +595,15 @@ class DocumentController extends Controller
 
         $likeId = (string) Str::uuid();
 
-        DB::transaction(function () use ($id, $userId, $likeId): void {
+        DB::transaction(function () use ($id, $userId, $likeId, $document): void {
             DB::table('document_likes')->insert([
-                'id' => $likeId,
+                'id'          => $likeId,
                 'document_id' => $id,
-                'user_id' => $userId,
-                'created_at' => now(),
+                'user_id'     => $userId,
+                'created_at'  => now(),
             ]);
 
-            DB::table('documents')->where('id', $id)->increment('likes_count');
+            $document->increment('likes_count');
         });
 
         $gamification = $this->gamification->awardPoints(
@@ -771,7 +616,7 @@ class DocumentController extends Controller
         );
 
         return response()->json([
-            'message' => 'Document liked.',
+            'message'      => 'Document liked.',
             'gamification' => $gamification->toArray(),
         ]);
     }
@@ -782,35 +627,15 @@ class DocumentController extends Controller
      *      operationId="unlikeDocument",
      *      tags={"Documents"},
      *      summary="Remover gosto de um documento",
-     *      description="Remove o 'like' previamente registado no documento.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do documento",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Like removido",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Like removed.")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Gosto ou documento não encontrado"
-     *      )
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Like removido"),
+     *      @OA\Response(response=404, description="Gosto ou documento não encontrado")
      * )
      */
     public function unlike(string $id, Request $request): JsonResponse
     {
-        $document = DB::table('documents')->where('id', $id)->first();
+        $document = Document::find($id);
 
         if ($document === null) {
             return response()->json(['message' => 'Document not found.'], 404);
@@ -831,7 +656,7 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Like not found.'], 404);
         }
 
-        DB::table('documents')->where('id', $id)->decrement('likes_count');
+        $document->decrement('likes_count');
 
         return response()->json(['message' => 'Like removed.']);
     }
@@ -842,40 +667,21 @@ class DocumentController extends Controller
      *      operationId="downloadDocument",
      *      tags={"Documents"},
      *      summary="Registar download de documento",
-     *      description="Regista o download de um PDF na base de dados.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do documento",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Download registado com sucesso",
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Download registado com sucesso",
      *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Download recorded."),
-     *              @OA\Property(property="pdf_url", type="string", format="url")
+     *              @OA\Property(property="message", type="string"),
+     *              @OA\Property(property="pdf_url", type="string")
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Acesso proibido ao documento"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Documento não encontrado"
-     *      )
+     *      @OA\Response(response=404, description="Documento não encontrado"),
+     *      @OA\Response(response=403, description="Acesso proibido")
      * )
      */
     public function download(string $id, Request $request): JsonResponse
     {
-        $document = DB::table('documents')->where('id', $id)->first();
+        $document = Document::find($id);
 
         if ($document === null) {
             return response()->json(['message' => 'Document not found.'], 404);
@@ -886,14 +692,14 @@ class DocumentController extends Controller
         }
 
         DB::table('document_downloads')->insert([
-            'id' => (string) Str::uuid(),
+            'id'          => (string) Str::uuid(),
             'document_id' => $id,
-            'user_id' => $request->user()->id,
-            'ip_address' => $request->ip(),
-            'created_at' => now(),
+            'user_id'     => $request->user()->id,
+            'ip_address'  => $request->ip(),
+            'created_at'  => now(),
         ]);
 
-        DB::table('documents')->where('id', $id)->increment('downloads_count');
+        $document->increment('downloads_count');
 
         return response()->json([
             'message' => 'Download recorded.',
@@ -907,43 +713,16 @@ class DocumentController extends Controller
      *      operationId="favoriteDocument",
      *      tags={"Documents"},
      *      summary="Marcar documento como favorito",
-     *      description="Adiciona o documento aos favoritos do utilizador autenticado.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do documento",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Favoritado com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Document added to favorites.")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Sem acesso ao documento"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Documento não encontrado"
-     *      ),
-     *      @OA\Response(
-     *          response=409,
-     *          description="Já favoritado anteriormente"
-     *      )
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Favoritado com sucesso"),
+     *      @OA\Response(response=404, description="Documento não encontrado"),
+     *      @OA\Response(response=409, description="Já favoritado anteriormente")
      * )
      */
     public function favorite(string $id, Request $request): JsonResponse
     {
-        $document = DB::table('documents')->where('id', $id)->first();
+        $document = Document::find($id);
 
         if ($document === null) {
             return response()->json(['message' => 'Document not found.'], 404);
@@ -965,10 +744,10 @@ class DocumentController extends Controller
         }
 
         DB::table('user_favorites')->insert([
-            'id' => (string) Str::uuid(),
-            'user_id' => $userId,
+            'id'          => (string) Str::uuid(),
+            'user_id'     => $userId,
             'document_id' => $id,
-            'created_at' => now(),
+            'created_at'  => now(),
         ]);
 
         return response()->json(['message' => 'Document added to favorites.']);
@@ -980,35 +759,15 @@ class DocumentController extends Controller
      *      operationId="unfavoriteDocument",
      *      tags={"Documents"},
      *      summary="Remover favorito de documento",
-     *      description="Remove o documento dos favoritos do utilizador.",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do documento",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Removido dos favoritos com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Document removed from favorites.")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Documento ou favorito não encontrado"
-     *      )
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Removido dos favoritos com sucesso"),
+     *      @OA\Response(response=404, description="Documento ou favorito não encontrado")
      * )
      */
     public function unfavorite(string $id, Request $request): JsonResponse
     {
-        $document = DB::table('documents')->where('id', $id)->first();
+        $document = Document::find($id);
 
         if ($document === null) {
             return response()->json(['message' => 'Document not found.'], 404);
@@ -1040,49 +799,28 @@ class DocumentController extends Controller
      *      summary="Gerar e registar citação académica",
      *      description="Gera uma citação académica no formato pedido (APA, MLA, Chicago, ABNT).",
      *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do documento",
-     *          @OA\Schema(type="string")
-     *      ),
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
      *      @OA\RequestBody(
      *          required=false,
      *          @OA\JsonContent(
-     *              @OA\Property(property="citation_format", type="string", enum={"apa", "mla", "chicago", "abnt"}, default="apa", example="apa")
+     *              @OA\Property(property="citation_format", type="string", enum={"apa", "mla", "chicago", "abnt"}, default="apa")
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Citação gerada com sucesso",
+     *      @OA\Response(response=200, description="Citação gerada com sucesso",
      *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Citation created."),
-     *              @OA\Property(property="citation", type="string", example="Silva, A. (2026). História Económica do Reino do Kongo."),
-     *              @OA\Property(property="format", type="string", example="apa")
+     *              @OA\Property(property="message", type="string"),
+     *              @OA\Property(property="citation", type="string"),
+     *              @OA\Property(property="format", type="string")
      *          )
      *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Sem acesso ao documento"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Documento não encontrado"
-     *      ),
-     *      @OA\Response(
-     *          response=422,
-     *          description="Formato de citação inválido"
-     *      )
+     *      @OA\Response(response=404, description="Documento não encontrado"),
+     *      @OA\Response(response=403, description="Sem acesso"),
+     *      @OA\Response(response=422, description="Formato inválido")
      * )
      */
     public function createCitation(string $id, Request $request): JsonResponse
     {
-        $document = DB::table('documents')->where('id', $id)->first();
+        $document = Document::find($id);
 
         if ($document === null) {
             return response()->json(['message' => 'Document not found.'], 404);
@@ -1099,49 +837,27 @@ class DocumentController extends Controller
         $format = $validated['citation_format'] ?? 'apa';
 
         DB::table('document_citations')->insert([
-            'id' => (string) Str::uuid(),
-            'document_id' => $id,
-            'user_id' => $request->user()->id,
+            'id'              => (string) Str::uuid(),
+            'document_id'     => $id,
+            'user_id'         => $request->user()->id,
             'citation_format' => $format,
-            'created_at' => now(),
+            'created_at'      => now(),
         ]);
 
         $citation = $this->generateCitation($document, $format);
 
         return response()->json([
-            'message' => 'Citation created.',
+            'message'  => 'Citation created.',
             'citation' => $citation,
-            'format' => $format,
+            'format'   => $format,
         ]);
-    }
-
-    private function findDocument(string $id): ?object
-    {
-        return DB::table('documents as d')
-            ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
-            ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
-            ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
-            ->where('d.id', $id)
-            ->select(
-                'd.*',
-                'dc.name as category_name',
-                'dc.slug as category_slug',
-                'dc.color_bg as category_color_bg',
-                'dc.icon as category_icon',
-                'al.name as access_level_name',
-                'al.icon as access_level_icon',
-                'up.display_name as author_display_name',
-                'up.avatar_url as author_avatar_url',
-                'up.institution as author_institution'
-            )
-            ->first();
     }
 
     private function denyUnlessCanAccessDocument(Request $request, object $document): ?JsonResponse
     {
         if (! $this->accessGate->canAccessDocument($request->user(), $document)) {
             return response()->json([
-                'message' => 'You do not have access to this content.',
+                'message'                  => 'You do not have access to this content.',
                 'required_access_level_id' => $document->access_level_id ?? null,
             ], 403);
         }
@@ -1152,15 +868,15 @@ class DocumentController extends Controller
     private function generateCitation(object $document, string $format): string
     {
         $year = $document->publication_date
-            ? date('Y', strtotime($document->publication_date))
-            : date('Y', strtotime($document->created_at));
+            ? date('Y', strtotime((string) $document->publication_date))
+            : date('Y', strtotime((string) $document->created_at));
 
         return match ($format) {
-            'apa' => "{$document->author} ({$year}). {$document->title}.",
-            'mla' => "{$document->author}. \"{$document->title}.\" {$year}.",
+            'apa'     => "{$document->author} ({$year}). {$document->title}.",
+            'mla'     => "{$document->author}. \"{$document->title}.\" {$year}.",
             'chicago' => "{$document->author}. \"{$document->title}.\" {$year}.",
-            'abnt' => "{$document->author}. {$document->title}. {$year}.",
-            default => "{$document->author} ({$year}). {$document->title}.",
+            'abnt'    => "{$document->author}. {$document->title}. {$year}.",
+            default   => "{$document->author} ({$year}). {$document->title}.",
         };
     }
 }

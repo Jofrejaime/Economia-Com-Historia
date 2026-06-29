@@ -2616,7 +2616,6 @@
                     {
                         "name": "category_id",
                         "in": "query",
-                        "description": "ID da categoria",
                         "required": false,
                         "schema": {
                             "type": "string",
@@ -2626,7 +2625,6 @@
                     {
                         "name": "document_type",
                         "in": "query",
-                        "description": "Tipo de documento",
                         "required": false,
                         "schema": {
                             "type": "string",
@@ -2642,7 +2640,6 @@
                     {
                         "name": "academic_level",
                         "in": "query",
-                        "description": "Nível académico",
                         "required": false,
                         "schema": {
                             "type": "string",
@@ -2656,7 +2653,6 @@
                     {
                         "name": "access_level_id",
                         "in": "query",
-                        "description": "ID do nível de acesso",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -2665,7 +2661,6 @@
                     {
                         "name": "status",
                         "in": "query",
-                        "description": "Estado (apenas admin pode filtrar por outros além de published)",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -2684,6 +2679,9 @@
                                             "items": {
                                                 "type": "object"
                                             }
+                                        },
+                                        "meta": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -2725,26 +2723,21 @@
                                 "properties": {
                                     "title": {
                                         "type": "string",
-                                        "example": "História Económica do Reino do Kongo",
                                         "maxLength": 500
                                     },
                                     "author": {
                                         "type": "string",
-                                        "example": "Afonso Silva",
                                         "maxLength": 255
                                     },
                                     "summary": {
-                                        "type": "string",
-                                        "example": "Sumário detalhado..."
+                                        "type": "string"
                                     },
                                     "content": {
                                         "type": "string",
-                                        "example": "Conteúdo integral do documento...",
                                         "nullable": true
                                     },
                                     "document_type": {
                                         "type": "string",
-                                        "example": "article",
                                         "enum": [
                                             "manuscript",
                                             "article",
@@ -2755,7 +2748,6 @@
                                     },
                                     "academic_level": {
                                         "type": "string",
-                                        "example": "advanced",
                                         "enum": [
                                             "intro",
                                             "advanced",
@@ -2763,58 +2755,43 @@
                                         ]
                                     },
                                     "access_level_id": {
-                                        "type": "string",
-                                        "example": "public"
+                                        "type": "string"
                                     },
                                     "category_id": {
                                         "type": "string",
                                         "format": "uuid",
-                                        "example": "category-uuid",
                                         "nullable": true
                                     },
                                     "institution": {
                                         "type": "string",
-                                        "example": "ISPTEC",
-                                        "nullable": true,
-                                        "maxLength": 255
+                                        "nullable": true
                                     },
                                     "publication_date": {
                                         "type": "string",
                                         "format": "date",
-                                        "example": "2026-06-23",
                                         "nullable": true
                                     },
                                     "period_start": {
                                         "type": "integer",
-                                        "example": 1400,
                                         "nullable": true
                                     },
                                     "period_end": {
                                         "type": "integer",
-                                        "example": 1600,
                                         "nullable": true
                                     },
                                     "cover_image_url": {
                                         "type": "string",
-                                        "format": "url",
-                                        "nullable": true,
-                                        "maxLength": 500
+                                        "nullable": true
                                     },
                                     "pdf_url": {
                                         "type": "string",
-                                        "format": "url",
-                                        "nullable": true,
-                                        "maxLength": 500
+                                        "nullable": true
                                     },
                                     "tags": {
                                         "type": "array",
                                         "items": {
                                             "type": "string"
                                         },
-                                        "example": [
-                                            "Kongo",
-                                            "Economia Colonial"
-                                        ],
                                         "nullable": true
                                     }
                                 },
@@ -2831,13 +2808,11 @@
                                 "schema": {
                                     "properties": {
                                         "message": {
-                                            "type": "string",
-                                            "example": "Document created."
+                                            "type": "string"
                                         },
                                         "id": {
                                             "type": "string",
-                                            "format": "uuid",
-                                            "example": "uuid-string"
+                                            "format": "uuid"
                                         }
                                     },
                                     "type": "object"
@@ -2849,7 +2824,7 @@
                         "description": "Não autenticado"
                     },
                     "403": {
-                        "description": "Acesso proibido (Requer role admin ou professor)"
+                        "description": "Acesso proibido"
                     },
                     "422": {
                         "description": "Erros de validação"
@@ -2875,7 +2850,6 @@
                     {
                         "name": "q",
                         "in": "query",
-                        "description": "Termo a pesquisar",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -2884,7 +2858,6 @@
                     {
                         "name": "category_id",
                         "in": "query",
-                        "description": "Filtrar por ID de categoria",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -2893,7 +2866,6 @@
                     {
                         "name": "document_type",
                         "in": "query",
-                        "description": "Filtrar por tipo de documento",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -2943,7 +2915,6 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID do documento",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3006,7 +2977,6 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID do documento",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3021,8 +2991,7 @@
                                 "schema": {
                                     "properties": {
                                         "message": {
-                                            "type": "string",
-                                            "example": "Document deleted."
+                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -3058,7 +3027,6 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID do documento",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3074,43 +3042,6 @@
                                     "title": {
                                         "type": "string",
                                         "maxLength": 500
-                                    },
-                                    "author": {
-                                        "type": "string",
-                                        "maxLength": 255
-                                    },
-                                    "summary": {
-                                        "type": "string"
-                                    },
-                                    "content": {
-                                        "type": "string",
-                                        "nullable": true
-                                    },
-                                    "document_type": {
-                                        "type": "string",
-                                        "enum": [
-                                            "manuscript",
-                                            "article",
-                                            "report",
-                                            "thesis",
-                                            "archive"
-                                        ]
-                                    },
-                                    "academic_level": {
-                                        "type": "string",
-                                        "enum": [
-                                            "intro",
-                                            "advanced",
-                                            "doctorate"
-                                        ]
-                                    },
-                                    "access_level_id": {
-                                        "type": "string"
-                                    },
-                                    "category_id": {
-                                        "type": "string",
-                                        "format": "uuid",
-                                        "nullable": true
                                     },
                                     "status": {
                                         "type": "string",
@@ -3134,8 +3065,7 @@
                                 "schema": {
                                     "properties": {
                                         "message": {
-                                            "type": "string",
-                                            "example": "Document updated."
+                                            "type": "string"
                                         },
                                         "data": {
                                             "type": "object"
@@ -3150,13 +3080,13 @@
                         "description": "Não autenticado"
                     },
                     "403": {
-                        "description": "Acesso proibido (Requer role admin ou professor)"
+                        "description": "Acesso proibido"
                     },
                     "404": {
                         "description": "Documento não encontrado"
                     },
                     "422": {
-                        "description": "Erros de validação ou campos vazios"
+                        "description": "Erros de validação"
                     }
                 },
                 "security": [
@@ -3173,13 +3103,11 @@
                     "Documents"
                 ],
                 "summary": "Gostar de um documento",
-                "description": "Regista um 'like' no documento e atribui pontos ao utilizador.",
                 "operationId": "likeDocument",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID do documento",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3194,8 +3122,7 @@
                                 "schema": {
                                     "properties": {
                                         "message": {
-                                            "type": "string",
-                                            "example": "Document liked."
+                                            "type": "string"
                                         },
                                         "gamification": {
                                             "type": "object"
@@ -3206,14 +3133,11 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Não autenticado"
-                    },
-                    "403": {
-                        "description": "Proibido se não puder ler o documento"
-                    },
                     "404": {
                         "description": "Documento não encontrado"
+                    },
+                    "403": {
+                        "description": "Sem acesso"
                     },
                     "409": {
                         "description": "Já gostou anteriormente"
@@ -3231,13 +3155,11 @@
                     "Documents"
                 ],
                 "summary": "Remover gosto de um documento",
-                "description": "Remove o 'like' previamente registado no documento.",
                 "operationId": "unlikeDocument",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID do documento",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3246,23 +3168,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Like removido",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Like removed."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Não autenticado"
+                        "description": "Like removido"
                     },
                     "404": {
                         "description": "Gosto ou documento não encontrado"
@@ -3282,13 +3188,11 @@
                     "Documents"
                 ],
                 "summary": "Registar download de documento",
-                "description": "Regista o download de um PDF na base de dados.",
                 "operationId": "downloadDocument",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID do documento",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3303,12 +3207,10 @@
                                 "schema": {
                                     "properties": {
                                         "message": {
-                                            "type": "string",
-                                            "example": "Download recorded."
+                                            "type": "string"
                                         },
                                         "pdf_url": {
-                                            "type": "string",
-                                            "format": "url"
+                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -3316,14 +3218,11 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Não autenticado"
-                    },
-                    "403": {
-                        "description": "Acesso proibido ao documento"
-                    },
                     "404": {
                         "description": "Documento não encontrado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
                     }
                 },
                 "security": [
@@ -3340,13 +3239,11 @@
                     "Documents"
                 ],
                 "summary": "Marcar documento como favorito",
-                "description": "Adiciona o documento aos favoritos do utilizador autenticado.",
                 "operationId": "favoriteDocument",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID do documento",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3355,26 +3252,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Favoritado com sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Document added to favorites."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Não autenticado"
-                    },
-                    "403": {
-                        "description": "Sem acesso ao documento"
+                        "description": "Favoritado com sucesso"
                     },
                     "404": {
                         "description": "Documento não encontrado"
@@ -3395,13 +3273,11 @@
                     "Documents"
                 ],
                 "summary": "Remover favorito de documento",
-                "description": "Remove o documento dos favoritos do utilizador.",
                 "operationId": "unfavoriteDocument",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID do documento",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3410,23 +3286,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Removido dos favoritos com sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Document removed from favorites."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Não autenticado"
+                        "description": "Removido dos favoritos com sucesso"
                     },
                     "404": {
                         "description": "Documento ou favorito não encontrado"
@@ -3452,7 +3312,6 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID do documento",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3467,7 +3326,6 @@
                                 "properties": {
                                     "citation_format": {
                                         "type": "string",
-                                        "example": "apa",
                                         "default": "apa",
                                         "enum": [
                                             "apa",
@@ -3490,16 +3348,13 @@
                                 "schema": {
                                     "properties": {
                                         "message": {
-                                            "type": "string",
-                                            "example": "Citation created."
+                                            "type": "string"
                                         },
                                         "citation": {
-                                            "type": "string",
-                                            "example": "Silva, A. (2026). História Económica do Reino do Kongo."
+                                            "type": "string"
                                         },
                                         "format": {
-                                            "type": "string",
-                                            "example": "apa"
+                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -3507,17 +3362,14 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Não autenticado"
-                    },
-                    "403": {
-                        "description": "Sem acesso ao documento"
-                    },
                     "404": {
                         "description": "Documento não encontrado"
                     },
+                    "403": {
+                        "description": "Sem acesso"
+                    },
                     "422": {
-                        "description": "Formato de citação inválido"
+                        "description": "Formato inválido"
                     }
                 },
                 "security": [
