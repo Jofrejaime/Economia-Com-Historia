@@ -266,7 +266,7 @@ class CommunityController extends Controller
         ]);
 
         $category = CommunityCategory::findOrFail($validated['category_id']);
-        $visibility = $validated['visibility'] ?? 'RESTRICTED';
+        $visibility = $validated['visibility'] ?? 'CATEGORY';
 
         // Check access to category
         if (!$this->accessGate->canAccess($request->user(), $category->access_level_id)) {
@@ -481,7 +481,7 @@ class CommunityController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:5000'],
             'status' => ['nullable', 'string', 'in:published,draft,archived'],
-            'visibility' => ['sometimes', 'string', 'in:PUBLIC,RESTRICTED,PRIVATE'],
+            'visibility' => ['sometimes', 'string', 'in:PUBLIC,CATEGORY,INVITE_ONLY'],
         ]);
 
         $topic->update([
