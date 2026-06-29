@@ -2638,6 +2638,31 @@
                         }
                     },
                     {
+                        "name": "media_type",
+                        "in": "query",
+                        "description": "Filtrar por tipo de media",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "TEXT",
+                                "IMAGE",
+                                "VIDEO",
+                                "AUDIO",
+                                "PDF"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "pinned",
+                        "in": "query",
+                        "description": "Filtrar apenas fixados",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
                         "name": "academic_level",
                         "in": "query",
                         "required": false,
@@ -2783,7 +2808,23 @@
                                         "type": "string",
                                         "nullable": true
                                     },
+                                    "media_type": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "enum": [
+                                            "TEXT",
+                                            "IMAGE",
+                                            "VIDEO",
+                                            "AUDIO",
+                                            "PDF"
+                                        ]
+                                    },
+                                    "media_url": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
                                     "pdf_url": {
+                                        "description": "DEPRECATED — use media_url",
                                         "type": "string",
                                         "nullable": true
                                     },
@@ -3370,6 +3411,273 @@
                     },
                     "422": {
                         "description": "Formato inválido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/documents/{id}/pin": {
+            "post": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Fixar documento (Admin)",
+                "description": "Marca um documento como fixado. Apenas administradores.",
+                "operationId": "pinDocument",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documento fixado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Documento não encontrado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Remover fixação de documento (Admin)",
+                "description": "Remove a fixação de um documento. Apenas administradores.",
+                "operationId": "unpinDocument",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fixação removida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Documento não encontrado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/documents/{id}/subscription": {
+            "get": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Estado da subscrição do utilizador para um documento",
+                "operationId": "documentSubscriptionStatus",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estado da subscrição",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "required": {
+                                            "type": "boolean"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "nullable": true,
+                                            "enum": [
+                                                "ACTIVE",
+                                                "EXPIRED",
+                                                "CANCELLED"
+                                            ]
+                                        },
+                                        "started_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true
+                                        },
+                                        "expires_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Documento não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Cancelar subscrição de um documento",
+                "operationId": "cancelDocumentSubscription",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscrição cancelada"
+                    },
+                    "404": {
+                        "description": "Documento ou subscrição activa não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/documents/{id}/subscribe": {
+            "post": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Criar subscrição para um documento",
+                "description": "Cria ou renova uma subscrição. Admin pode especificar user_id e expires_at.",
+                "operationId": "subscribeDocument",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "user_id": {
+                                        "description": "Admin only — subscrição para outro utilizador",
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "expires_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Subscrição criada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Subscrição já activa"
+                    },
+                    "404": {
+                        "description": "Documento não encontrado"
                     }
                 },
                 "security": [

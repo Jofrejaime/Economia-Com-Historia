@@ -30,8 +30,11 @@ class Document extends Model
         'summary',
         'content',
         'cover_image_url',
-        'pdf_url',
+        'pdf_url',      // legacy — use media_url for new content
+        'media_type',
+        'media_url',
         'status',
+        'is_pinned',
         'created_by',
         'reviewed_by',
         'published_at',
@@ -50,6 +53,7 @@ class Document extends Model
             'views_count' => 'integer',
             'likes_count' => 'integer',
             'downloads_count' => 'integer',
+            'is_pinned' => 'boolean',
         ];
     }
 

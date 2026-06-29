@@ -62,4 +62,12 @@ class DocumentPolicy
     {
         return $user->role === 'admin';
     }
+
+    /**
+     * Only admins may pin or unpin documents.
+     */
+    public function pin(User $user, Document $document): bool
+    {
+        return $user->role === 'admin';
+    }
 }

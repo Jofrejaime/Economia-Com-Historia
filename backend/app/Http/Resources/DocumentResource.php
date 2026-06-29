@@ -19,6 +19,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
  *
  * Dead fields (unique_id, physical_location, record_type, reviewed_by) are
  * intentionally excluded.
+ *
+ * Media fields:
+ *   - media_type: TEXT | IMAGE | VIDEO | AUDIO | PDF (Sprint 14.3 contract)
+ *   - media_url:  unified URL for any media file (Sprint 14.3 contract)
+ *   - pdf_url:    LEGACY — kept for backward compatibility only
  */
 class DocumentResource extends JsonResource
 {
@@ -42,8 +47,11 @@ class DocumentResource extends JsonResource
             'summary'          => $this->summary,
             'content'          => $this->content,
             'cover_image_url'  => $this->cover_image_url,
-            'pdf_url'          => $this->pdf_url,
+            'media_type'       => $this->media_type,
+            'media_url'        => $this->media_url,
+            'pdf_url'          => $this->pdf_url,  // legacy — use media_url for new content
             'status'           => $this->status,
+            'is_pinned'        => (bool) $this->is_pinned,
             'created_by'       => $this->created_by,
             'published_at'     => $this->published_at,
             'created_at'       => $this->created_at,

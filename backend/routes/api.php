@@ -71,6 +71,11 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::delete('/documents/{id}/favorite', [DocumentController::class, 'unfavorite']);
     Route::post('/documents/{id}/citations', [DocumentController::class, 'createCitation']);
 
+    // Documents — subscription management
+    Route::get('/documents/{id}/subscription', [DocumentController::class, 'subscriptionStatus']);
+    Route::post('/documents/{id}/subscribe', [DocumentController::class, 'subscribe']);
+    Route::delete('/documents/{id}/subscription', [DocumentController::class, 'cancelSubscription']);
+
     // Quizzes — read + attempt
     Route::get('/quizzes', [QuizController::class, 'index']);
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);
@@ -139,6 +144,10 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
 
     // ─── Admin only ─────────────────────────────────────────────────────
     Route::middleware('role:admin')->group(function (): void {
+        // Documents — pin management
+        Route::post('/documents/{id}/pin', [DocumentController::class, 'pin']);
+        Route::delete('/documents/{id}/pin', [DocumentController::class, 'unpin']);
+
         // Access management
         Route::patch('/access-requests/{id}', [AccessController::class, 'reviewRequest']);
         Route::post('/access-grants/{id}/revoke', [AccessController::class, 'revokeGrant']);

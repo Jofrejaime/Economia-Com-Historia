@@ -7,7 +7,7 @@ use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
-use App\Services\AccessGateService;
+use App\Services\DocumentAccessService;
 use App\Services\GamificationService;
 use App\Support\PointTransactionReason;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
 class DocumentController extends Controller
 {
     public function __construct(
-        private readonly AccessGateService $accessGate,
+        private readonly DocumentAccessService $documentAccess,
         private readonly GamificationService $gamification,
     ) {}
 
@@ -81,8 +81,9 @@ class DocumentController extends Controller
                 'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
                 'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
                 'd.publication_date', 'd.period_start', 'd.period_end',
-                'd.summary', 'd.content', 'd.cover_image_url', 'd.pdf_url',
-                'd.status', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
+                'd.summary', 'd.content', 'd.cover_image_url',
+                'd.media_type', 'd.media_url', 'd.pdf_url',
+                'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
                 'd.views_count', 'd.likes_count', 'd.downloads_count',
                 'dc.name as category_name',
                 'dc.slug as category_slug',
@@ -101,7 +102,7 @@ class DocumentController extends Controller
             $query->where('d.status', 'published');
         }
 
-        $this->accessGate->applyDocumentVisibilityFilter($query, $user, 'd');
+        $this->documentAccess->applyListingFilter($query, $user, 'd');
 
         $favorites = $query->orderByDesc('uf.created_at')->limit(50)->get();
 
@@ -122,6 +123,8 @@ class DocumentController extends Controller
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\Parameter(name="category_id", in="query", required=false, @OA\Schema(type="string", format="uuid")),
      *      @OA\Parameter(name="document_type", in="query", required=false, @OA\Schema(type="string", enum={"manuscript", "article", "report", "thesis", "archive"})),
+     *      @OA\Parameter(name="media_type", in="query", required=false, description="Filtrar por tipo de media", @OA\Schema(type="string", enum={"TEXT", "IMAGE", "VIDEO", "AUDIO", "PDF"})),
+     *      @OA\Parameter(name="pinned", in="query", required=false, description="Filtrar apenas fixados", @OA\Schema(type="boolean")),
      *      @OA\Parameter(name="academic_level", in="query", required=false, @OA\Schema(type="string", enum={"intro", "advanced", "doctorate"})),
      *      @OA\Parameter(name="access_level_id", in="query", required=false, @OA\Schema(type="string")),
      *      @OA\Parameter(name="status", in="query", required=false, @OA\Schema(type="string")),
@@ -148,8 +151,9 @@ class DocumentController extends Controller
                 'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
                 'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
                 'd.publication_date', 'd.period_start', 'd.period_end',
-                'd.summary', 'd.content', 'd.cover_image_url', 'd.pdf_url',
-                'd.status', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
+                'd.summary', 'd.content', 'd.cover_image_url',
+                'd.media_type', 'd.media_url', 'd.pdf_url',
+                'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
                 'd.views_count', 'd.likes_count', 'd.downloads_count',
                 'dc.name as category_name',
                 'dc.slug as category_slug',
@@ -188,13 +192,21 @@ class DocumentController extends Controller
             $query->where('d.access_level_id', $request->input('access_level_id'));
         }
 
+        if ($request->filled('media_type')) {
+            $query->where('d.media_type', $request->input('media_type'));
+        }
+
+        if ($request->boolean('pinned')) {
+            $query->where('d.is_pinned', true);
+        }
+
         if ($request->filled('status')) {
             $query->where('d.status', $request->input('status'));
         } elseif ($user->role !== 'admin') {
             $query->where('d.status', 'published');
         }
 
-        $this->accessGate->applyDocumentVisibilityFilter($query, $user);
+        $this->documentAccess->applyListingFilter($query, $user);
 
         if ($request->input('sort') === 'popular') {
             $query->orderByDesc('d.likes_count')->orderByDesc('d.views_count');
@@ -252,8 +264,9 @@ class DocumentController extends Controller
                 'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
                 'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
                 'd.publication_date', 'd.period_start', 'd.period_end',
-                'd.summary', 'd.content', 'd.cover_image_url', 'd.pdf_url',
-                'd.status', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
+                'd.summary', 'd.content', 'd.cover_image_url',
+                'd.media_type', 'd.media_url', 'd.pdf_url',
+                'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
                 'd.views_count', 'd.likes_count', 'd.downloads_count',
                 'dc.name as category_name',
                 'dc.slug as category_slug',
@@ -281,7 +294,7 @@ class DocumentController extends Controller
             $query->where('d.status', 'published');
         }
 
-        $this->accessGate->applyDocumentVisibilityFilter($query, $user);
+        $this->documentAccess->applyListingFilter($query, $user);
 
         $results = $query->orderByDesc('d.created_at')->limit(50)->get();
 
@@ -324,8 +337,8 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        if ($denied = $this->denyUnlessCanAccessDocument($request, $document)) {
-            return $denied;
+        if (!$this->documentAccess->canReadDocument($request->user(), $document)) {
+            return $this->denyDocumentAccess($document);
         }
 
         if ($request->user()->role !== 'admin' && $document->status !== 'published') {
@@ -395,7 +408,9 @@ class DocumentController extends Controller
      *              @OA\Property(property="period_start", type="integer", nullable=true),
      *              @OA\Property(property="period_end", type="integer", nullable=true),
      *              @OA\Property(property="cover_image_url", type="string", nullable=true),
-     *              @OA\Property(property="pdf_url", type="string", nullable=true),
+     *              @OA\Property(property="media_type", type="string", enum={"TEXT", "IMAGE", "VIDEO", "AUDIO", "PDF"}, nullable=true),
+     *              @OA\Property(property="media_url", type="string", nullable=true),
+     *              @OA\Property(property="pdf_url", type="string", nullable=true, description="DEPRECATED — use media_url"),
      *              @OA\Property(property="tags", type="array", @OA\Items(type="string"), nullable=true)
      *          )
      *      ),
@@ -578,8 +593,8 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        if ($denied = $this->denyUnlessCanAccessDocument($request, $document)) {
-            return $denied;
+        if (!$this->documentAccess->canReadDocument($request->user(), $document)) {
+            return $this->denyDocumentAccess($document);
         }
 
         $userId = $request->user()->id;
@@ -641,8 +656,8 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        if ($denied = $this->denyUnlessCanAccessDocument($request, $document)) {
-            return $denied;
+        if (!$this->documentAccess->canReadDocument($request->user(), $document)) {
+            return $this->denyDocumentAccess($document);
         }
 
         $userId = $request->user()->id;
@@ -687,8 +702,8 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        if ($denied = $this->denyUnlessCanAccessDocument($request, $document)) {
-            return $denied;
+        if (!$this->documentAccess->canReadDocument($request->user(), $document)) {
+            return $this->denyDocumentAccess($document);
         }
 
         DB::table('document_downloads')->insert([
@@ -728,8 +743,8 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        if ($denied = $this->denyUnlessCanAccessDocument($request, $document)) {
-            return $denied;
+        if (!$this->documentAccess->canReadDocument($request->user(), $document)) {
+            return $this->denyDocumentAccess($document);
         }
 
         $userId = $request->user()->id;
@@ -773,8 +788,8 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        if ($denied = $this->denyUnlessCanAccessDocument($request, $document)) {
-            return $denied;
+        if (!$this->documentAccess->canReadDocument($request->user(), $document)) {
+            return $this->denyDocumentAccess($document);
         }
 
         $userId = $request->user()->id;
@@ -826,8 +841,8 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        if ($denied = $this->denyUnlessCanAccessDocument($request, $document)) {
-            return $denied;
+        if (!$this->documentAccess->canReadDocument($request->user(), $document)) {
+            return $this->denyDocumentAccess($document);
         }
 
         $validated = $request->validate([
@@ -853,16 +868,193 @@ class DocumentController extends Controller
         ]);
     }
 
-    private function denyUnlessCanAccessDocument(Request $request, object $document): ?JsonResponse
+    /**
+     * @OA\Post(
+     *      path="/documents/{id}/pin",
+     *      operationId="pinDocument",
+     *      tags={"Documents"},
+     *      summary="Fixar documento (Admin)",
+     *      description="Marca um documento como fixado. Apenas administradores.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Documento fixado",
+     *          @OA\JsonContent(@OA\Property(property="message", type="string"))
+     *      ),
+     *      @OA\Response(response=404, description="Documento não encontrado"),
+     *      @OA\Response(response=403, description="Apenas administradores")
+     * )
+     */
+    public function pin(string $id): JsonResponse
     {
-        if (! $this->accessGate->canAccessDocument($request->user(), $document)) {
-            return response()->json([
-                'message'                  => 'You do not have access to this content.',
-                'required_access_level_id' => $document->access_level_id ?? null,
-            ], 403);
+        $document = Document::find($id);
+
+        if ($document === null) {
+            return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        return null;
+        $document->update(['is_pinned' => true]);
+
+        return response()->json(['message' => 'Document pinned.']);
+    }
+
+    /**
+     * @OA\Delete(
+     *      path="/documents/{id}/pin",
+     *      operationId="unpinDocument",
+     *      tags={"Documents"},
+     *      summary="Remover fixação de documento (Admin)",
+     *      description="Remove a fixação de um documento. Apenas administradores.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Fixação removida",
+     *          @OA\JsonContent(@OA\Property(property="message", type="string"))
+     *      ),
+     *      @OA\Response(response=404, description="Documento não encontrado"),
+     *      @OA\Response(response=403, description="Apenas administradores")
+     * )
+     */
+    public function unpin(string $id): JsonResponse
+    {
+        $document = Document::find($id);
+
+        if ($document === null) {
+            return response()->json(['message' => 'Document not found.'], 404);
+        }
+
+        $document->update(['is_pinned' => false]);
+
+        return response()->json(['message' => 'Document unpinned.']);
+    }
+
+    /**
+     * @OA\Get(
+     *      path="/documents/{id}/subscription",
+     *      operationId="documentSubscriptionStatus",
+     *      tags={"Documents"},
+     *      summary="Estado da subscrição do utilizador para um documento",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Estado da subscrição",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="required", type="boolean"),
+     *              @OA\Property(property="status", type="string", nullable=true, enum={"ACTIVE", "EXPIRED", "CANCELLED"}),
+     *              @OA\Property(property="started_at", type="string", format="date-time", nullable=true),
+     *              @OA\Property(property="expires_at", type="string", format="date-time", nullable=true)
+     *          )
+     *      ),
+     *      @OA\Response(response=404, description="Documento não encontrado")
+     * )
+     */
+    public function subscriptionStatus(string $id, Request $request): JsonResponse
+    {
+        $document = Document::with(['category'])->find($id);
+
+        if ($document === null) {
+            return response()->json(['message' => 'Document not found.'], 404);
+        }
+
+        $required = $this->documentAccess->isSubscriptionRequired($document);
+        $status   = $this->documentAccess->subscriptionStatus($request->user()->id, $id);
+
+        return response()->json([
+            'required'   => $required,
+            'status'     => $status['status'],
+            'started_at' => $status['started_at'],
+            'expires_at' => $status['expires_at'],
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *      path="/documents/{id}/subscribe",
+     *      operationId="subscribeDocument",
+     *      tags={"Documents"},
+     *      summary="Criar subscrição para um documento",
+     *      description="Cria ou renova uma subscrição. Admin pode especificar user_id e expires_at.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\RequestBody(
+     *          required=false,
+     *          @OA\JsonContent(
+     *              @OA\Property(property="user_id", type="string", format="uuid", nullable=true, description="Admin only — subscrição para outro utilizador"),
+     *              @OA\Property(property="expires_at", type="string", format="date-time", nullable=true)
+     *          )
+     *      ),
+     *      @OA\Response(response=201, description="Subscrição criada",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string"),
+     *              @OA\Property(property="id", type="string", format="uuid")
+     *          )
+     *      ),
+     *      @OA\Response(response=200, description="Subscrição já activa"),
+     *      @OA\Response(response=404, description="Documento não encontrado")
+     * )
+     */
+    public function subscribe(string $id, Request $request): JsonResponse
+    {
+        $document = Document::find($id);
+
+        if ($document === null) {
+            return response()->json(['message' => 'Document not found.'], 404);
+        }
+
+        $validated = $request->validate([
+            'user_id'    => ['sometimes', 'nullable', 'exists:users,id'],
+            'expires_at' => ['sometimes', 'nullable', 'date', 'after:now'],
+        ]);
+
+        $targetUserId = ($request->user()->role === 'admin' && !empty($validated['user_id']))
+            ? $validated['user_id']
+            : $request->user()->id;
+
+        $expiresAt = $validated['expires_at'] ?? null;
+
+        $result = $this->documentAccess->subscribe($targetUserId, $id, $expiresAt);
+
+        $httpStatus = $result['created'] ? 201 : 200;
+        $message    = $result['created'] ? 'Subscription created.' : 'Subscription already active.';
+
+        return response()->json(['message' => $message, 'id' => $result['id']], $httpStatus);
+    }
+
+    /**
+     * @OA\Delete(
+     *      path="/documents/{id}/subscription",
+     *      operationId="cancelDocumentSubscription",
+     *      tags={"Documents"},
+     *      summary="Cancelar subscrição de um documento",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Subscrição cancelada"),
+     *      @OA\Response(response=404, description="Documento ou subscrição activa não encontrada")
+     * )
+     */
+    public function cancelSubscription(string $id, Request $request): JsonResponse
+    {
+        $document = Document::find($id);
+
+        if ($document === null) {
+            return response()->json(['message' => 'Document not found.'], 404);
+        }
+
+        $cancelled = $this->documentAccess->cancel($request->user()->id, $id);
+
+        if (!$cancelled) {
+            return response()->json(['message' => 'No active subscription found.'], 404);
+        }
+
+        return response()->json(['message' => 'Subscription cancelled.']);
+    }
+
+    private function denyDocumentAccess(object $document): JsonResponse
+    {
+        $isSubscriptionRequired = $this->documentAccess->isSubscriptionRequired($document);
+
+        return response()->json([
+            'message'                  => 'You do not have access to this content.',
+            'subscription_required'    => $isSubscriptionRequired,
+            'required_access_level_id' => $isSubscriptionRequired ? null : ($document->access_level_id ?? null),
+        ], 403);
     }
 
     private function generateCitation(object $document, string $format): string

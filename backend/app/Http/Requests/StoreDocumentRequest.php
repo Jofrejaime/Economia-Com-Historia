@@ -27,7 +27,9 @@ class StoreDocumentRequest extends FormRequest
             'period_start'     => ['nullable', 'integer'],
             'period_end'       => ['nullable', 'integer'],
             'cover_image_url'  => ['nullable', 'string', 'max:500'],
-            'pdf_url'          => ['nullable', 'string', 'max:500'],
+            'media_type'       => ['nullable', 'in:TEXT,IMAGE,VIDEO,AUDIO,PDF'],
+            'media_url'        => ['nullable', 'string', 'max:500'],
+            'pdf_url'          => ['nullable', 'string', 'max:500'],  // legacy
             'tags'             => ['nullable', 'array'],
             'tags.*'           => ['string', 'max:100'],
         ];

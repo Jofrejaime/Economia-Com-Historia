@@ -27,7 +27,9 @@ class UpdateDocumentRequest extends FormRequest
             'period_start'     => ['sometimes', 'nullable', 'integer'],
             'period_end'       => ['sometimes', 'nullable', 'integer'],
             'cover_image_url'  => ['sometimes', 'nullable', 'string', 'max:500'],
-            'pdf_url'          => ['sometimes', 'nullable', 'string', 'max:500'],
+            'media_type'       => ['sometimes', 'nullable', 'in:TEXT,IMAGE,VIDEO,AUDIO,PDF'],
+            'media_url'        => ['sometimes', 'nullable', 'string', 'max:500'],
+            'pdf_url'          => ['sometimes', 'nullable', 'string', 'max:500'],  // legacy
             'status'           => ['sometimes', 'in:draft,published,archived'],
         ];
     }

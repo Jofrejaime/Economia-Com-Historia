@@ -25,12 +25,14 @@ class DocumentCategory extends Model
         'icon',
         'parent_id',
         'sort_order',
+        'requires_subscription',
     ];
 
     protected function casts(): array
     {
         return [
-            'sort_order' => 'integer',
+            'sort_order'             => 'integer',
+            'requires_subscription'  => 'boolean',
         ];
     }
 
