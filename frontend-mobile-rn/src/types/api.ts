@@ -263,7 +263,7 @@ export interface DiscussionTopic {
   author_id: string;
   title: string;
   content: string;
-  visibility: 'PUBLIC' | 'RESTRICTED' | 'PRIVATE';
+  visibility: 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY';
   status: 'open' | 'closed';
   is_pinned: boolean;
   is_featured: boolean;

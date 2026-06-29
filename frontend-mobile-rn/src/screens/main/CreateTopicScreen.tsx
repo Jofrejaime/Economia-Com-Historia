@@ -102,7 +102,7 @@ export function CreateTopicScreen() {
         title: title.trim(),
         content: content.trim(),
         category_id: resolvedCategoryId,
-        visibility: accessLevel === "restricted" ? "PRIVATE" : "PUBLIC",
+        visibility: accessLevel === "restricted" ? "INVITE_ONLY" : "PUBLIC",
       });
       addTopicOptimistic(newTopic);
       if (accessLevel === "restricted" && selectedMembers.length > 0) {

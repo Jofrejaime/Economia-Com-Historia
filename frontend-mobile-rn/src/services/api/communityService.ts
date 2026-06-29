@@ -26,12 +26,12 @@ export const communityService = {
     return data.data ?? data;
   },
 
-  async createTopic(payload: { category_id: string; title: string; content: string; visibility?: 'PUBLIC' | 'RESTRICTED' | 'PRIVATE' }): Promise<DiscussionTopic> {
+  async createTopic(payload: { category_id: string; title: string; content: string; visibility?: 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY' }): Promise<DiscussionTopic> {
     const { data } = await httpClient.post(API_ENDPOINTS.COMMUNITY.TOPICS, payload);
     return data.data ?? data;
   },
 
-  async updateTopic(id: string, payload: Partial<{ title: string; content: string; status: string; visibility: 'PUBLIC' | 'RESTRICTED' | 'PRIVATE' }>): Promise<DiscussionTopic> {
+  async updateTopic(id: string, payload: Partial<{ title: string; content: string; status: string; visibility: 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY' }>): Promise<DiscussionTopic> {
     const { data } = await httpClient.patch(API_ENDPOINTS.COMMUNITY.TOPIC_DETAIL(id), payload);
     return data.data ?? data;
   },

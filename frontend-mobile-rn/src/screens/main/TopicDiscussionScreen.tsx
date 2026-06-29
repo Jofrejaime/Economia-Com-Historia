@@ -88,7 +88,7 @@ export function TopicDiscussionScreen() {
 
   const isTerminated = topic?.status === "closed";
   const isAuthor = !!user && !!topic && user.id === topic.author_id;
-  const isPrivateTopic = topic?.visibility === "PRIVATE";
+  const isPrivateTopic = topic?.visibility === "INVITE_ONLY";
 
   const handleToggleStatus = async () => {
     if (!topic) return;
@@ -127,7 +127,7 @@ export function TopicDiscussionScreen() {
   const handleToggleVisibility = async () => {
     if (!topic) return;
     setMenuVisible(false);
-    const newVisibility = topic.visibility === "PRIVATE" ? "PUBLIC" : "PRIVATE";
+    const newVisibility = topic.visibility === "INVITE_ONLY" ? "PUBLIC" : "INVITE_ONLY";
     try {
       await communityService.updateTopic(topicId, { visibility: newVisibility });
       setTopic((prev) => prev ? { ...prev, visibility: newVisibility } : prev);

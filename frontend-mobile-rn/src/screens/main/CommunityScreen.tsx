@@ -81,7 +81,7 @@ export function CommunityScreen() {
     const authorName = item.author?.display_name ?? "Autor";
     const initials = authorName.slice(0, 2).toUpperCase();
     const isOpen = item.status !== "closed";
-    const isPrivate = item.visibility === "PRIVATE";
+    const isPrivate = item.visibility === "INVITE_ONLY";
 
     return (
       <Pressable
