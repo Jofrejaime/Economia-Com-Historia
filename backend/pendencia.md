@@ -108,34 +108,81 @@ PDF    — ficheiro PDF
 
 ---
 
-## Domínio de Subscrições de Documentos (congelado em Sprint 15)
+## Domínio de Subscrições de Documentos (actualizado em Sprint 15.3)
 
-### Arquitectura oficial
+### Arquitectura oficial (separação de responsabilidades)
 
 ```
-Documento → Categoria → requires_subscription?
-  └── NÃO  → autorizar (verificação legada: access_level_id + AccessGrant)
-  └── SIM  → DocumentSubscription ACTIVE? → autorizar | caso contrário 403
+DocumentAccessService      — autorização (canReadDocument, isSubscriptionRequired, applyListingFilter)
+DocumentSubscriptionService — ciclo de vida (requestSubscription, approveSubscription, cancelSubscription, …)
+AdminDocumentSubscriptionController — endpoints admin de gestão de pedidos
+```
+
+### Fluxo de estados
+
+```
+PENDING → ACTIVE     (admin: approveSubscription)
+PENDING → REJECTED   (admin: rejectSubscription)
+PENDING → CANCELLED  (admin ou utilizador: cancelSubscription)
+ACTIVE  → CANCELLED  (admin ou utilizador: cancelSubscription)
 ```
 
 ### Regra de ouro
 
 O `DocumentController` nunca consulta `AccessGateService` directamente.
 Toda a autorização de documentos passa pelo `DocumentAccessService`.
+O `DocumentController` usa `DocumentSubscriptionService` apenas para operações de ciclo de vida.
 
-### Endpoints de subscrição
+### Endpoints de subscrição (utilizador)
 
-| Método   | Path                             | Descrição                              |
-|----------|----------------------------------|----------------------------------------|
-| `GET`    | `/documents/{id}/subscription`   | Estado da subscrição do utilizador     |
-| `POST`   | `/documents/{id}/subscribe`      | Criar subscrição (admin: body user_id) |
-| `DELETE` | `/documents/{id}/subscription`   | Cancelar subscrição activa             |
+| Método   | Path                             | Descrição                                             |
+|----------|----------------------------------|-------------------------------------------------------|
+| `GET`    | `/documents/{id}/subscription`   | Estado da subscrição (inclui `reason`)                |
+| `POST`   | `/documents/{id}/subscribe`      | Criar pedido PENDING (admin: body user_id)            |
+| `DELETE` | `/documents/{id}/subscription`   | Cancelar subscrição ACTIVE ou PENDING                 |
+
+### Endpoints admin
+
+| Método   | Path                                          | Descrição                   |
+|----------|-----------------------------------------------|-----------------------------|
+| `GET`    | `/admin/document-subscriptions`               | Listar pedidos (filtros)    |
+| `PATCH`  | `/admin/document-subscriptions/{id}/approve`  | PENDING → ACTIVE            |
+| `PATCH`  | `/admin/document-subscriptions/{id}/reject`   | PENDING → REJECTED          |
+| `PATCH`  | `/admin/document-subscriptions/{id}/cancel`   | ACTIVE/PENDING → CANCELLED  |
+
+### Campo `reason` no subscriptionStatus
+
+| Estado      | Reason                    |
+|-------------|---------------------------|
+| `PENDING`   | `WAITING_ADMIN_APPROVAL`  |
+| `ACTIVE`    | `ACCESS_GRANTED`          |
+| `REJECTED`  | `REQUEST_REJECTED`        |
+| `CANCELLED` | `SUBSCRIPTION_CANCELLED`  |
 
 ### Compatibilidade legada
 
 Documentos sem `category.requires_subscription=true` continuam a ser controlados
 pelo `access_level_id` (modelo antigo com `AccessGrant`). Isto mantém todos os
 testes de `DocumentAccessTest` verdes sem alterações.
+
+### Campos de auditoria (Sprint 15.3)
+
+| Campo | Preenchido quando |
+|---|---|
+| `approved_by` | Admin aprova (PENDING → ACTIVE) |
+| `rejected_by` | Admin rejeita (PENDING → REJECTED) |
+| `cancelled_by` | Admin cancela (ACTIVE/PENDING → CANCELLED); NULL quando o utilizador cancela |
+
+### Máquina de estados (Sprint 15.3)
+
+Toda validação de transição vive em `DocumentSubscriptionService`. Os controllers nunca tocam em `status`, `approved_by`, `rejected_by` ou `cancelled_by` directamente.
+
+Transições inválidas retornam **409 Conflict** com `current_status` no body.
+
+### Campos removidos
+
+`expires_at` foi removido da tabela `document_subscriptions` em Sprint 15.2.
+Subscrições no MVP não têm prazo de validade. Re-adicionar quando subscriptions pagas/temporárias forem implementadas.
 
 ---
 

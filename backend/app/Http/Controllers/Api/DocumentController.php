@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
 use App\Services\DocumentAccessService;
+use App\Services\DocumentSubscriptionService;
 use App\Services\GamificationService;
 use App\Support\PointTransactionReason;
 use Illuminate\Http\JsonResponse;
@@ -19,6 +20,7 @@ class DocumentController extends Controller
 {
     public function __construct(
         private readonly DocumentAccessService $documentAccess,
+        private readonly DocumentSubscriptionService $subscriptionService,
         private readonly GamificationService $gamification,
     ) {}
 
@@ -937,9 +939,9 @@ class DocumentController extends Controller
      *      @OA\Response(response=200, description="Estado da subscrição",
      *          @OA\JsonContent(
      *              @OA\Property(property="required", type="boolean"),
-     *              @OA\Property(property="status", type="string", nullable=true, enum={"ACTIVE", "EXPIRED", "CANCELLED"}),
-     *              @OA\Property(property="started_at", type="string", format="date-time", nullable=true),
-     *              @OA\Property(property="expires_at", type="string", format="date-time", nullable=true)
+     *              @OA\Property(property="status", type="string", nullable=true, enum={"PENDING", "ACTIVE", "REJECTED", "CANCELLED"}),
+     *              @OA\Property(property="reason", type="string", nullable=true, enum={"WAITING_ADMIN_APPROVAL", "ACCESS_GRANTED", "REQUEST_REJECTED", "SUBSCRIPTION_CANCELLED"}),
+     *              @OA\Property(property="started_at", type="string", format="date-time", nullable=true)
      *          )
      *      ),
      *      @OA\Response(response=404, description="Documento não encontrado")
@@ -954,13 +956,25 @@ class DocumentController extends Controller
         }
 
         $required = $this->documentAccess->isSubscriptionRequired($document);
-        $status   = $this->documentAccess->subscriptionStatus($request->user()->id, $id);
+
+        if (!$required) {
+            return response()->json([
+                'required'        => false,
+                'status'          => null,
+                'reason'          => null,
+                'has_subscription' => false,
+                'started_at'      => null,
+            ]);
+        }
+
+        $statusInfo = $this->subscriptionService->subscriptionStatus($request->user()->id, $id);
 
         return response()->json([
-            'required'   => $required,
-            'status'     => $status['status'],
-            'started_at' => $status['started_at'],
-            'expires_at' => $status['expires_at'],
+            'required'        => true,
+            'status'          => $statusInfo['status'],
+            'reason'          => $statusInfo['reason'],
+            'has_subscription' => $statusInfo['has_subscription'],
+            'started_at'      => $statusInfo['started_at'],
         ]);
     }
 
@@ -969,24 +983,23 @@ class DocumentController extends Controller
      *      path="/documents/{id}/subscribe",
      *      operationId="subscribeDocument",
      *      tags={"Documents"},
-     *      summary="Criar subscrição para um documento",
-     *      description="Cria ou renova uma subscrição. Admin pode especificar user_id e expires_at.",
+     *      summary="Solicitar subscrição para um documento",
+     *      description="Cria um pedido PENDING. Admin pode especificar user_id para solicitar em nome de outro utilizador.",
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
      *      @OA\RequestBody(
      *          required=false,
      *          @OA\JsonContent(
-     *              @OA\Property(property="user_id", type="string", format="uuid", nullable=true, description="Admin only — subscrição para outro utilizador"),
-     *              @OA\Property(property="expires_at", type="string", format="date-time", nullable=true)
+     *              @OA\Property(property="user_id", type="string", format="uuid", nullable=true, description="Admin only")
      *          )
      *      ),
-     *      @OA\Response(response=201, description="Subscrição criada",
+     *      @OA\Response(response=201, description="Pedido criado",
      *          @OA\JsonContent(
      *              @OA\Property(property="message", type="string"),
      *              @OA\Property(property="id", type="string", format="uuid")
      *          )
      *      ),
-     *      @OA\Response(response=200, description="Subscrição já activa"),
+     *      @OA\Response(response=200, description="Pedido já existente (ACTIVE ou PENDING)"),
      *      @OA\Response(response=404, description="Documento não encontrado")
      * )
      */
@@ -999,22 +1012,34 @@ class DocumentController extends Controller
         }
 
         $validated = $request->validate([
-            'user_id'    => ['sometimes', 'nullable', 'exists:users,id'],
-            'expires_at' => ['sometimes', 'nullable', 'date', 'after:now'],
+            'user_id' => ['sometimes', 'nullable', 'exists:users,id'],
         ]);
 
         $targetUserId = ($request->user()->role === 'admin' && !empty($validated['user_id']))
             ? $validated['user_id']
             : $request->user()->id;
 
-        $expiresAt = $validated['expires_at'] ?? null;
+        $result = $this->subscriptionService->requestSubscription($targetUserId, $id);
 
-        $result = $this->documentAccess->subscribe($targetUserId, $id, $expiresAt);
+        if (!$result['created']) {
+            $message = $result['status'] === 'ACTIVE'
+                ? 'Already subscribed.'
+                : 'Subscription request already pending.';
 
-        $httpStatus = $result['created'] ? 201 : 200;
-        $message    = $result['created'] ? 'Subscription created.' : 'Subscription already active.';
+            return response()->json([
+                'id'            => $result['id'],
+                'status'        => $result['status'],
+                'already_exists' => true,
+                'message'       => $message,
+            ], 200);
+        }
 
-        return response()->json(['message' => $message, 'id' => $result['id']], $httpStatus);
+        return response()->json([
+            'id'            => $result['id'],
+            'status'        => $result['status'],
+            'already_exists' => false,
+            'message'       => 'Subscription request created.',
+        ], 201);
     }
 
     /**
@@ -1037,10 +1062,10 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        $cancelled = $this->documentAccess->cancel($request->user()->id, $id);
+        $cancelled = $this->subscriptionService->cancelSubscription($request->user()->id, $id);
 
         if (!$cancelled) {
-            return response()->json(['message' => 'No active subscription found.'], 404);
+            return response()->json(['message' => 'No active or pending subscription found.'], 404);
         }
 
         return response()->json(['message' => 'Subscription cancelled.']);

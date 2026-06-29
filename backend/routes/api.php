@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\AdminDocumentSubscriptionController;
 use App\Http\Controllers\Api\GamificationController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\LeaderboardController;
@@ -35,6 +36,12 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::get('/users', [AdminController::class, 'users']);
         Route::patch('/users/{id}', [AdminController::class, 'updateUser']);
         Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+
+        // Document subscription management
+        Route::get('/document-subscriptions', [AdminDocumentSubscriptionController::class, 'index']);
+        Route::patch('/document-subscriptions/{id}/approve', [AdminDocumentSubscriptionController::class, 'approve']);
+        Route::patch('/document-subscriptions/{id}/reject', [AdminDocumentSubscriptionController::class, 'reject']);
+        Route::patch('/document-subscriptions/{id}/cancel', [AdminDocumentSubscriptionController::class, 'cancel']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);

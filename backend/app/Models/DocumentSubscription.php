@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SubscriptionStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,14 +18,13 @@ class DocumentSubscription extends Model
         'document_id',
         'status',
         'started_at',
-        'expires_at',
     ];
 
     protected function casts(): array
     {
         return [
             'started_at' => 'datetime',
-            'expires_at' => 'datetime',
+            'status'     => SubscriptionStatus::class,
         ];
     }
 
@@ -38,9 +38,23 @@ class DocumentSubscription extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function rejectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
     public function isActive(): bool
     {
-        return $this->status === 'ACTIVE'
-            && ($this->expires_at === null || $this->expires_at->isFuture());
+        return $this->status === SubscriptionStatus::ACTIVE;
     }
 }

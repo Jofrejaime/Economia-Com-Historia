@@ -462,6 +462,356 @@
                 ]
             }
         },
+        "/admin/document-subscriptions": {
+            "get": {
+                "tags": [
+                    "Admin - Subscriptions"
+                ],
+                "summary": "Listar pedidos de subscrição (Admin)",
+                "description": "Lista todos os pedidos de subscrição com paginação. Filtros: status, document_id, user_id.",
+                "operationId": "adminListDocumentSubscriptions",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "PENDING",
+                                "ACTIVE",
+                                "REJECTED",
+                                "CANCELLED"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "document_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de pedidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "user_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "document_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "PENDING",
+                                                            "ACTIVE",
+                                                            "REJECTED",
+                                                            "CANCELLED"
+                                                        ]
+                                                    },
+                                                    "started_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "approved_by": {
+                                                        "type": "string",
+                                                        "format": "uuid",
+                                                        "nullable": true
+                                                    },
+                                                    "rejected_by": {
+                                                        "type": "string",
+                                                        "format": "uuid",
+                                                        "nullable": true
+                                                    },
+                                                    "cancelled_by": {
+                                                        "type": "string",
+                                                        "format": "uuid",
+                                                        "nullable": true
+                                                    },
+                                                    "document_title": {
+                                                        "type": "string"
+                                                    },
+                                                    "user_email": {
+                                                        "type": "string"
+                                                    },
+                                                    "user_display_name": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/document-subscriptions/{id}/approve": {
+            "patch": {
+                "tags": [
+                    "Admin - Subscriptions"
+                ],
+                "summary": "Aprovar pedido de subscrição (Admin)",
+                "description": "Transição: PENDING → ACTIVE. Regista o admin responsável em approved_by.",
+                "operationId": "adminApproveSubscription",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscrição aprovada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Pedido não encontrado"
+                    },
+                    "409": {
+                        "description": "Transição de estado inválida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "current_status": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/document-subscriptions/{id}/reject": {
+            "patch": {
+                "tags": [
+                    "Admin - Subscriptions"
+                ],
+                "summary": "Rejeitar pedido de subscrição (Admin)",
+                "description": "Transição: PENDING → REJECTED. Regista o admin responsável em rejected_by.",
+                "operationId": "adminRejectSubscription",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscrição rejeitada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Pedido não encontrado"
+                    },
+                    "409": {
+                        "description": "Transição de estado inválida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "current_status": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/document-subscriptions/{id}/cancel": {
+            "patch": {
+                "tags": [
+                    "Admin - Subscriptions"
+                ],
+                "summary": "Cancelar subscrição (Admin)",
+                "description": "Transição: ACTIVE ou PENDING → CANCELLED. Regista o admin responsável em cancelled_by.",
+                "operationId": "adminCancelSubscription",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscrição cancelada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Pedido não encontrado"
+                    },
+                    "409": {
+                        "description": "Transição de estado inválida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "current_status": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/auth/register": {
             "post": {
                 "tags": [
@@ -3548,17 +3898,23 @@
                                             "type": "string",
                                             "nullable": true,
                                             "enum": [
+                                                "PENDING",
                                                 "ACTIVE",
-                                                "EXPIRED",
+                                                "REJECTED",
                                                 "CANCELLED"
                                             ]
                                         },
-                                        "started_at": {
+                                        "reason": {
                                             "type": "string",
-                                            "format": "date-time",
-                                            "nullable": true
+                                            "nullable": true,
+                                            "enum": [
+                                                "WAITING_ADMIN_APPROVAL",
+                                                "ACCESS_GRANTED",
+                                                "REQUEST_REJECTED",
+                                                "SUBSCRIPTION_CANCELLED"
+                                            ]
                                         },
-                                        "expires_at": {
+                                        "started_at": {
                                             "type": "string",
                                             "format": "date-time",
                                             "nullable": true
@@ -3617,8 +3973,8 @@
                 "tags": [
                     "Documents"
                 ],
-                "summary": "Criar subscrição para um documento",
-                "description": "Cria ou renova uma subscrição. Admin pode especificar user_id e expires_at.",
+                "summary": "Solicitar subscrição para um documento",
+                "description": "Cria um pedido PENDING. Admin pode especificar user_id para solicitar em nome de outro utilizador.",
                 "operationId": "subscribeDocument",
                 "parameters": [
                     {
@@ -3637,14 +3993,9 @@
                             "schema": {
                                 "properties": {
                                     "user_id": {
-                                        "description": "Admin only — subscrição para outro utilizador",
+                                        "description": "Admin only",
                                         "type": "string",
                                         "format": "uuid",
-                                        "nullable": true
-                                    },
-                                    "expires_at": {
-                                        "type": "string",
-                                        "format": "date-time",
                                         "nullable": true
                                     }
                                 },
@@ -3655,7 +4006,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Subscrição criada",
+                        "description": "Pedido criado",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3674,7 +4025,7 @@
                         }
                     },
                     "200": {
-                        "description": "Subscrição já activa"
+                        "description": "Pedido já existente (ACTIVE ou PENDING)"
                     },
                     "404": {
                         "description": "Documento não encontrado"
@@ -5914,6 +6265,10 @@
         {
             "name": "Leaderboard",
             "description": "Tabela de classificações e ranking"
+        },
+        {
+            "name": "Admin - Subscriptions",
+            "description": "Admin - Subscriptions"
         },
         {
             "name": "Users",

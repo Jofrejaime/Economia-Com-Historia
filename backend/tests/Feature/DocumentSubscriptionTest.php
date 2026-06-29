@@ -84,7 +84,7 @@ class DocumentSubscriptionTest extends TestCase
         return $id;
     }
 
-    private function seedActiveSubscription(string $userId, string $documentId, ?string $expiresAt = null): string
+    private function seedActiveSubscription(string $userId, string $documentId): string
     {
         $id = (string) Str::uuid();
 
@@ -94,27 +94,8 @@ class DocumentSubscriptionTest extends TestCase
             'document_id' => $documentId,
             'status'      => 'ACTIVE',
             'started_at'  => now(),
-            'expires_at'  => $expiresAt,
             'created_at'  => now(),
             'updated_at'  => now(),
-        ]);
-
-        return $id;
-    }
-
-    private function seedExpiredSubscription(string $userId, string $documentId): string
-    {
-        $id = (string) Str::uuid();
-
-        DB::table('document_subscriptions')->insert([
-            'id'          => $id,
-            'user_id'     => $userId,
-            'document_id' => $documentId,
-            'status'      => 'ACTIVE',
-            'started_at'  => now()->subDays(30),
-            'expires_at'  => now()->subDay()->toDateTimeString(),
-            'created_at'  => now()->subDays(30),
-            'updated_at'  => now()->subDays(30),
         ]);
 
         return $id;
@@ -130,7 +111,6 @@ class DocumentSubscriptionTest extends TestCase
             'document_id' => $documentId,
             'status'      => 'CANCELLED',
             'started_at'  => now()->subDays(10),
-            'expires_at'  => null,
             'created_at'  => now()->subDays(10),
             'updated_at'  => now(),
         ]);
@@ -176,20 +156,6 @@ class DocumentSubscriptionTest extends TestCase
             ->assertStatus(200);
     }
 
-    public function test_premium_category_document_denied_with_expired_subscription(): void
-    {
-        $token      = $this->registerStudent();
-        $user       = User::query()->where('email', 'student@example.com')->first();
-        $categoryId = $this->seedCategory(true);
-        $documentId = $this->seedPublishedDocument('public', $categoryId);
-        $this->seedExpiredSubscription($user->id, $documentId);
-
-        $this->withHeader('Authorization', "Bearer {$token}")
-            ->getJson("/api/documents/{$documentId}")
-            ->assertStatus(403)
-            ->assertJsonPath('subscription_required', true);
-    }
-
     public function test_premium_category_document_denied_with_cancelled_subscription(): void
     {
         $token      = $this->registerStudent();
@@ -227,7 +193,7 @@ class DocumentSubscriptionTest extends TestCase
         $this->withHeader('Authorization', "Bearer {$token}")
             ->postJson("/api/documents/{$documentId}/subscribe")
             ->assertStatus(201)
-            ->assertJsonPath('message', 'Subscription created.');
+            ->assertJsonPath('message', 'Subscription request created.');
     }
 
     public function test_subscribe_again_returns_200_when_already_active(): void
@@ -241,7 +207,7 @@ class DocumentSubscriptionTest extends TestCase
         $this->withHeader('Authorization', "Bearer {$token}")
             ->postJson("/api/documents/{$documentId}/subscribe")
             ->assertStatus(200)
-            ->assertJsonPath('message', 'Subscription already active.');
+            ->assertJsonPath('message', 'Already subscribed.');
     }
 
     public function test_admin_can_subscribe_another_user_to_document(): void
@@ -261,7 +227,7 @@ class DocumentSubscriptionTest extends TestCase
         $this->assertDatabaseHas('document_subscriptions', [
             'user_id'     => $student->id,
             'document_id' => $documentId,
-            'status'      => 'ACTIVE',
+            'status'      => 'PENDING',
         ]);
     }
 
@@ -397,5 +363,179 @@ class DocumentSubscriptionTest extends TestCase
         $response->assertStatus(200);
         $ids = collect($response->json('data'))->pluck('id')->all();
         $this->assertContains($documentId, $ids);
+    }
+
+    // ─── New Sprint 15.1: PENDING state and state machine ─────────────────────
+
+    public function test_subscribe_when_pending_returns_200(): void
+    {
+        $token      = $this->registerStudent();
+        $user       = User::query()->where('email', 'student@example.com')->first();
+        $categoryId = $this->seedCategory(true);
+        $documentId = $this->seedPublishedDocument('public', $categoryId);
+
+        // Seed a PENDING subscription (as created by subscribe endpoint)
+        DB::table('document_subscriptions')->insert([
+            'id'          => \Illuminate\Support\Str::uuid(),
+            'user_id'     => $user->id,
+            'document_id' => $documentId,
+            'status'      => 'PENDING',
+            'started_at'  => now(),
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/documents/{$documentId}/subscribe")
+            ->assertStatus(200)
+            ->assertJsonPath('message', 'Subscription request already pending.');
+    }
+
+    public function test_pending_subscription_does_not_grant_document_access(): void
+    {
+        $token      = $this->registerStudent();
+        $user       = User::query()->where('email', 'student@example.com')->first();
+        $categoryId = $this->seedCategory(true);
+        $documentId = $this->seedPublishedDocument('public', $categoryId);
+
+        DB::table('document_subscriptions')->insert([
+            'id'          => \Illuminate\Support\Str::uuid(),
+            'user_id'     => $user->id,
+            'document_id' => $documentId,
+            'status'      => 'PENDING',
+            'started_at'  => now(),
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson("/api/documents/{$documentId}")
+            ->assertStatus(403)
+            ->assertJsonPath('subscription_required', true);
+    }
+
+    public function test_rejected_subscription_does_not_grant_document_access(): void
+    {
+        $token      = $this->registerStudent();
+        $user       = User::query()->where('email', 'student@example.com')->first();
+        $categoryId = $this->seedCategory(true);
+        $documentId = $this->seedPublishedDocument('public', $categoryId);
+
+        DB::table('document_subscriptions')->insert([
+            'id'          => \Illuminate\Support\Str::uuid(),
+            'user_id'     => $user->id,
+            'document_id' => $documentId,
+            'status'      => 'REJECTED',
+            'started_at'  => now(),
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson("/api/documents/{$documentId}")
+            ->assertStatus(403)
+            ->assertJsonPath('subscription_required', true);
+    }
+
+    public function test_subscribe_when_rejected_creates_new_pending(): void
+    {
+        $token      = $this->registerStudent();
+        $user       = User::query()->where('email', 'student@example.com')->first();
+        $categoryId = $this->seedCategory(true);
+        $documentId = $this->seedPublishedDocument('public', $categoryId);
+
+        DB::table('document_subscriptions')->insert([
+            'id'          => \Illuminate\Support\Str::uuid(),
+            'user_id'     => $user->id,
+            'document_id' => $documentId,
+            'status'      => 'REJECTED',
+            'started_at'  => now()->subDays(5),
+            'created_at'  => now()->subDays(5),
+            'updated_at'  => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/documents/{$documentId}/subscribe")
+            ->assertStatus(201)
+            ->assertJsonPath('message', 'Subscription request created.');
+
+        $this->assertDatabaseHas('document_subscriptions', [
+            'user_id'     => $user->id,
+            'document_id' => $documentId,
+            'status'      => 'PENDING',
+        ]);
+    }
+
+    public function test_subscribe_when_cancelled_creates_new_pending(): void
+    {
+        $token      = $this->registerStudent();
+        $user       = User::query()->where('email', 'student@example.com')->first();
+        $categoryId = $this->seedCategory(true);
+        $documentId = $this->seedPublishedDocument('public', $categoryId);
+        $this->seedCancelledSubscription($user->id, $documentId);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/documents/{$documentId}/subscribe")
+            ->assertStatus(201)
+            ->assertJsonPath('message', 'Subscription request created.');
+
+        $this->assertDatabaseHas('document_subscriptions', [
+            'user_id'     => $user->id,
+            'document_id' => $documentId,
+            'status'      => 'PENDING',
+        ]);
+    }
+
+    public function test_user_can_cancel_pending_subscription(): void
+    {
+        $token      = $this->registerStudent();
+        $user       = User::query()->where('email', 'student@example.com')->first();
+        $categoryId = $this->seedCategory(true);
+        $documentId = $this->seedPublishedDocument('public', $categoryId);
+
+        DB::table('document_subscriptions')->insert([
+            'id'          => \Illuminate\Support\Str::uuid(),
+            'user_id'     => $user->id,
+            'document_id' => $documentId,
+            'status'      => 'PENDING',
+            'started_at'  => now(),
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->deleteJson("/api/documents/{$documentId}/subscription")
+            ->assertStatus(200)
+            ->assertJsonPath('message', 'Subscription cancelled.');
+
+        $this->assertDatabaseHas('document_subscriptions', [
+            'user_id'     => $user->id,
+            'document_id' => $documentId,
+            'status'      => 'CANCELLED',
+        ]);
+    }
+
+    public function test_subscription_status_shows_pending(): void
+    {
+        $token      = $this->registerStudent();
+        $user       = User::query()->where('email', 'student@example.com')->first();
+        $categoryId = $this->seedCategory(true);
+        $documentId = $this->seedPublishedDocument('public', $categoryId);
+
+        DB::table('document_subscriptions')->insert([
+            'id'          => \Illuminate\Support\Str::uuid(),
+            'user_id'     => $user->id,
+            'document_id' => $documentId,
+            'status'      => 'PENDING',
+            'started_at'  => now(),
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson("/api/documents/{$documentId}/subscription")
+            ->assertStatus(200)
+            ->assertJsonPath('required', true)
+            ->assertJsonPath('status', 'PENDING');
     }
 }
