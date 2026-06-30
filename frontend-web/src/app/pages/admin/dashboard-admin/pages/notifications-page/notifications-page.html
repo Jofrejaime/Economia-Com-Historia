@@ -4,7 +4,7 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Notificações</h1>
-      <p class="page-subtitle">Histórico de notificações do sistema.</p>
+      <p class="page-subtitle">As suas notificações enquanto administrador.</p>
     </div>
     <button class="btn-primary" (click)="openSendNotificationModal()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -14,11 +14,18 @@
     </button>
   </div>
 
+  <!-- Erro -->
+  <div *ngIf="error" style="background:rgba(239,68,68,0.08);color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px">
+    {{ error }}
+  </div>
+
   <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">📨</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+        </svg>
       </div>
       <div>
         <p class="stat-label">TOTAL</p>
@@ -27,7 +34,9 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">🔴</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <circle cx="12" cy="12" r="6"/>
+        </svg>
       </div>
       <div>
         <p class="stat-label">NÃO LIDAS</p>
@@ -36,7 +45,9 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">✓</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
       </div>
       <div>
         <p class="stat-label">LIDAS</p>
@@ -48,7 +59,10 @@
   <!-- Filters -->
   <div class="filters-bar">
     <div class="search-wrapper">
-      <span class="search-icon">🔍</span>
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
       <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar..." class="search-input">
     </div>
     <div class="filter-select">
@@ -67,7 +81,6 @@
         <tr>
           <th>Título</th>
           <th>Mensagem</th>
-          <th>Destinatário</th>
           <th>Data</th>
           <th>Status</th>
           <th></th>
@@ -75,19 +88,27 @@
       </thead>
       <tbody>
         <tr *ngIf="filteredNotifications.length === 0">
-          <td colspan="6" class="empty-row">Nenhuma notificação encontrada</td>
+          <td colspan="5" class="empty-row">Nenhuma notificação encontrada</td>
         </tr>
         <tr *ngFor="let notif of filteredNotifications">
           <td>{{ notif.title }}</td>
           <td>{{ notif.message | slice:0:60 }}{{ notif.message.length > 60 ? '...' : '' }}</td>
-          <td>{{ notif.user_name || 'Todos' }}</td>
           <td>{{ notif.created_at | date:'dd MMM yyyy HH:mm' }}</td>
           <td>
             <span class="status-badge">{{ notif.is_read ? 'Lida' : 'Não lida' }}</span>
           </td>
           <td class="actions-cell">
-            <button *ngIf="!notif.is_read" class="action-btn" (click)="markAsRead(notif.id)" title="Marcar como lida">✓</button>
-            <button class="action-btn" (click)="deleteNotification(notif.id)" title="Eliminar">🗑️</button>
+            <button *ngIf="!notif.is_read" class="action-btn" (click)="markAsRead(notif.id)" title="Marcar como lida">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </button>
+            <button class="action-btn" (click)="deleteNotification(notif.id)" title="Eliminar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -99,7 +120,11 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>Nova Notificação</h2>
-        <button class="modal-close" (click)="closeSendModal()">✕</button>
+        <button class="modal-close" (click)="closeSendModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -120,17 +145,19 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Destinatário</label>
+            <label>Destinatário <span class="required">*</span></label>
             <select [(ngModel)]="newNotification.user_id" class="form-input">
-              <option value="">Todos os utilizadores</option>
-              <option *ngFor="let user of users" [value]="user.id">{{ user.name }}</option>
+              <option value="">Selecione um utilizador</option>
+              <option *ngFor="let user of users" [value]="user.id">{{ user.display_name || user.email }}</option>
             </select>
           </div>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" (click)="closeSendModal()">Cancelar</button>
-        <button class="btn-save" (click)="sendNotification()">Enviar</button>
+        <button class="btn-save" (click)="sendNotification()" [disabled]="isSending">
+          {{ isSending ? 'A enviar...' : 'Enviar' }}
+        </button>
       </div>
     </div>
   </div>

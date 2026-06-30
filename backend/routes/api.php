@@ -5,7 +5,6 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\DocumentController;
-use App\Http\Controllers\Api\AdminDocumentSubscriptionController;
 use App\Http\Controllers\Api\GamificationController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\LeaderboardController;
@@ -36,12 +35,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::get('/users', [AdminController::class, 'users']);
         Route::patch('/users/{id}', [AdminController::class, 'updateUser']);
         Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
-
-        // Document subscription management
-        Route::get('/document-subscriptions', [AdminDocumentSubscriptionController::class, 'index']);
-        Route::patch('/document-subscriptions/{id}/approve', [AdminDocumentSubscriptionController::class, 'approve']);
-        Route::patch('/document-subscriptions/{id}/reject', [AdminDocumentSubscriptionController::class, 'reject']);
-        Route::patch('/document-subscriptions/{id}/cancel', [AdminDocumentSubscriptionController::class, 'cancel']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -77,12 +70,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::post('/documents/{id}/favorite', [DocumentController::class, 'favorite']);
     Route::delete('/documents/{id}/favorite', [DocumentController::class, 'unfavorite']);
     Route::post('/documents/{id}/citations', [DocumentController::class, 'createCitation']);
-    Route::get('/documents/{id}/quizzes', [DocumentController::class, 'relatedQuizzes']);
-
-    // Documents — subscription management
-    Route::get('/documents/{id}/subscription', [DocumentController::class, 'subscriptionStatus']);
-    Route::post('/documents/{id}/subscribe', [DocumentController::class, 'subscribe']);
-    Route::delete('/documents/{id}/subscription', [DocumentController::class, 'cancelSubscription']);
 
     // Quizzes — read + attempt
     Route::get('/quizzes', [QuizController::class, 'index']);
@@ -148,16 +135,10 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::post('/quizzes', [QuizController::class, 'store']);
         Route::patch('/quizzes/{id}', [QuizController::class, 'update']);
         Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
-        Route::post('/quizzes/{id}/documents', [QuizController::class, 'syncDocuments']);
-        Route::delete('/quizzes/{id}/documents/{documentId}', [QuizController::class, 'detachDocument']);
     });
 
     // ─── Admin only ─────────────────────────────────────────────────────
     Route::middleware('role:admin')->group(function (): void {
-        // Documents — pin management
-        Route::post('/documents/{id}/pin', [DocumentController::class, 'pin']);
-        Route::delete('/documents/{id}/pin', [DocumentController::class, 'unpin']);
-
         // Access management
         Route::patch('/access-requests/{id}', [AccessController::class, 'reviewRequest']);
         Route::post('/access-grants/{id}/revoke', [AccessController::class, 'revokeGrant']);

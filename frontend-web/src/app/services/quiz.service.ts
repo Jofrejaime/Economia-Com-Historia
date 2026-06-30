@@ -19,6 +19,8 @@ export interface Quiz {
   attempts_count: number;
   completions_count: number;
   avg_score: number;
+  category_id: string | null;
+  category?: { id: string; name: string } | null;
 }
 
 export interface QuizQuestion {
@@ -72,6 +74,44 @@ export interface LeaderboardEntry {
   province: string | null;
 }
 
+export interface QuizOptionInput {
+  option_key: string;
+  text: string;
+  is_correct: boolean;
+  explanation?: string;
+}
+
+export interface QuizQuestionInput {
+  question_order: number;
+  title: string;
+  subtitle?: string;
+  module_label?: string;
+  question_type?: string;
+  points?: number;
+  hint_title?: string;
+  hint_quote?: string;
+  expert_name?: string;
+  expert_role?: string;
+  reading_title?: string;
+  reading_text?: string;
+  options: QuizOptionInput[];
+}
+
+export interface QuizPayload {
+  title: string;
+  module?: string | null;
+  description?: string | null;
+  cover_image_url?: string | null;
+  difficulty?: string;
+  base_points?: number;
+  time_limit_secs?: number | null;
+  access_level_id?: string;
+  is_featured?: boolean;
+  status?: string;
+  category_id?: string | null;
+  questions?: QuizQuestionInput[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class QuizService {
   private readonly base = `${environment.apiBaseUrl}/api`;
@@ -105,6 +145,34 @@ export class QuizService {
       )
     );
     return res.data;
+  }
+
+  async createQuiz(payload: QuizPayload): Promise<Quiz> {
+    const res = await firstValueFrom(
+      this.http.post<{ message: string; data: Quiz }>(
+        `${this.base}/quizzes`,
+        payload,
+        { headers: this.headers }
+      )
+    );
+    return res.data;
+  }
+
+  async updateQuiz(id: string, payload: QuizPayload): Promise<Quiz> {
+    const res = await firstValueFrom(
+      this.http.patch<{ message: string; data: Quiz }>(
+        `${this.base}/quizzes/${id}`,
+        payload,
+        { headers: this.headers }
+      )
+    );
+    return res.data;
+  }
+
+  async deleteQuiz(id: string): Promise<void> {
+    await firstValueFrom(
+      this.http.delete(`${this.base}/quizzes/${id}`, { headers: this.headers })
+    );
   }
 
   async startAttempt(quizId: string): Promise<string> {
