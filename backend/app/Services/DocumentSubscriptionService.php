@@ -240,7 +240,17 @@ class DocumentSubscriptionService
     // ─── Listing (admin) ──────────────────────────────────────────────────────
 
     /**
-     * @param array{status?: string, document_id?: string, user_id?: string} $filters
+     * @param array{
+     *   status?: string,
+     *   document_id?: string,
+     *   user_id?: string,
+     *   category_id?: string,
+     *   date_from?: string,
+     *   date_to?: string,
+     *   search?: string,
+     *   sort_by?: string,
+     *   sort_direction?: string,
+     * } $filters
      */
     public function listSubscriptions(array $filters, int $perPage): LengthAwarePaginator
     {
@@ -248,6 +258,7 @@ class DocumentSubscriptionService
             ->join('users as u', 'ds.user_id', '=', 'u.id')
             ->join('documents as d', 'ds.document_id', '=', 'd.id')
             ->leftJoin('user_profiles as up', 'ds.user_id', '=', 'up.user_id')
+            ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
             ->select(
                 'ds.id',
                 'ds.user_id',
@@ -260,6 +271,8 @@ class DocumentSubscriptionService
                 'ds.created_at',
                 'ds.updated_at',
                 'd.title as document_title',
+                'dc.id as category_id',
+                'dc.name as category_name',
                 'u.email as user_email',
                 'up.display_name as user_display_name'
             );
@@ -276,6 +289,42 @@ class DocumentSubscriptionService
             $query->where('ds.user_id', $filters['user_id']);
         }
 
-        return $query->orderByDesc('ds.created_at')->paginate($perPage);
+        if (!empty($filters['category_id'])) {
+            $query->where('dc.id', $filters['category_id']);
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('ds.created_at', '>=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('ds.created_at', '<=', $filters['date_to']);
+        }
+
+        if (!empty($filters['search'])) {
+            $term = '%'.trim($filters['search']).'%';
+            $query->where(function ($builder) use ($term): void {
+                $builder->where('u.email', 'like', $term)
+                    ->orWhere('up.display_name', 'like', $term)
+                    ->orWhere('d.title', 'like', $term);
+            });
+        }
+
+        $sortColumn    = $this->resolveSubscriptionSortColumn($filters['sort_by'] ?? null);
+        $sortDirection = strtolower($filters['sort_direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
+        $query->orderBy($sortColumn, $sortDirection);
+
+        return $query->paginate($perPage);
+    }
+
+    private function resolveSubscriptionSortColumn(?string $sortBy): string
+    {
+        return match ($sortBy) {
+            'status'     => 'ds.status',
+            'started_at' => 'ds.started_at',
+            'updated_at' => 'ds.updated_at',
+            default      => 'ds.created_at',
+        };
     }
 }

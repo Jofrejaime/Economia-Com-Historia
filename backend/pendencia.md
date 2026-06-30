@@ -108,7 +108,7 @@ PDF    — ficheiro PDF
 
 ---
 
-## Domínio de Subscrições de Documentos (actualizado em Sprint 15.3)
+## Domínio de Subscrições de Documentos (actualizado em Sprint 16)
 
 ### Arquitectura oficial (separação de responsabilidades)
 
@@ -164,6 +164,37 @@ O `DocumentController` usa `DocumentSubscriptionService` apenas para operações
 Documentos sem `category.requires_subscription=true` continuam a ser controlados
 pelo `access_level_id` (modelo antigo com `AccessGrant`). Isto mantém todos os
 testes de `DocumentAccessTest` verdes sem alterações.
+
+### Listagem administrativa (Sprint 16)
+
+`GET /admin/document-subscriptions` suporta os seguintes parâmetros:
+
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `status` | string | PENDING / ACTIVE / REJECTED / CANCELLED |
+| `document_id` | uuid | Filtro por documento |
+| `user_id` | uuid | Filtro por utilizador |
+| `category_id` | uuid | Filtro pela categoria do documento |
+| `date_from` | date | Data de início (YYYY-MM-DD) |
+| `date_to` | date | Data de fim (YYYY-MM-DD) |
+| `search` | string | LIKE em email, display_name e título |
+| `sort_by` | string | created_at / started_at / updated_at / status |
+| `sort_direction` | string | asc / desc (default: desc) |
+| `per_page` | integer | Máx. 100 (default: 20) |
+
+A resposta inclui `category_id` e `category_name` por subscrição.
+
+### Dashboard admin — secções (Sprint 16)
+
+`GET /admin/dashboard/summary` inclui:
+- `documents`: total, published, draft, review, archived, pinned
+- `categories`: total, free, requires_subscription
+- `subscriptions`: total, pending, active, rejected, cancelled
+
+### Ordenação pinned-first (Sprint 16)
+
+`GET /documents` garante que documentos com `is_pinned = true` aparecem sempre
+no topo, independentemente do parâmetro `sort` (popular ou created_at).
 
 ### Campos de auditoria (Sprint 15.3)
 

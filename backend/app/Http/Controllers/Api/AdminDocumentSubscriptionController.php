@@ -19,11 +19,17 @@ class AdminDocumentSubscriptionController extends Controller
      *      operationId="adminListDocumentSubscriptions",
      *      tags={"Admin - Subscriptions"},
      *      summary="Listar pedidos de subscrição (Admin)",
-     *      description="Lista todos os pedidos de subscrição com paginação. Filtros: status, document_id, user_id.",
+     *      description="Lista todos os pedidos de subscrição com paginação, filtros e ordenação.",
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\Parameter(name="status", in="query", required=false, @OA\Schema(type="string", enum={"PENDING", "ACTIVE", "REJECTED", "CANCELLED"})),
      *      @OA\Parameter(name="document_id", in="query", required=false, @OA\Schema(type="string", format="uuid")),
      *      @OA\Parameter(name="user_id", in="query", required=false, @OA\Schema(type="string", format="uuid")),
+     *      @OA\Parameter(name="category_id", in="query", required=false, description="Filtrar por categoria do documento", @OA\Schema(type="string", format="uuid")),
+     *      @OA\Parameter(name="date_from", in="query", required=false, description="Data de início (YYYY-MM-DD)", @OA\Schema(type="string", format="date")),
+     *      @OA\Parameter(name="date_to", in="query", required=false, description="Data de fim (YYYY-MM-DD)", @OA\Schema(type="string", format="date")),
+     *      @OA\Parameter(name="search", in="query", required=false, description="Pesquisa em email, nome e título do documento", @OA\Schema(type="string")),
+     *      @OA\Parameter(name="sort_by", in="query", required=false, @OA\Schema(type="string", enum={"created_at", "started_at", "updated_at", "status"}, default="created_at")),
+     *      @OA\Parameter(name="sort_direction", in="query", required=false, @OA\Schema(type="string", enum={"asc", "desc"}, default="desc")),
      *      @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", maximum=100, default=20)),
      *      @OA\Response(response=200, description="Lista de pedidos",
      *          @OA\JsonContent(
@@ -37,6 +43,8 @@ class AdminDocumentSubscriptionController extends Controller
      *                  @OA\Property(property="rejected_by", type="string", format="uuid", nullable=true),
      *                  @OA\Property(property="cancelled_by", type="string", format="uuid", nullable=true),
      *                  @OA\Property(property="document_title", type="string"),
+     *                  @OA\Property(property="category_id", type="string", format="uuid", nullable=true),
+     *                  @OA\Property(property="category_name", type="string", nullable=true),
      *                  @OA\Property(property="user_email", type="string"),
      *                  @OA\Property(property="user_display_name", type="string", nullable=true)
      *              )),
@@ -55,9 +63,15 @@ class AdminDocumentSubscriptionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $filters = array_filter([
-            'status'      => $request->input('status'),
-            'document_id' => $request->input('document_id'),
-            'user_id'     => $request->input('user_id'),
+            'status'         => $request->input('status'),
+            'document_id'    => $request->input('document_id'),
+            'user_id'        => $request->input('user_id'),
+            'category_id'    => $request->input('category_id'),
+            'date_from'      => $request->input('date_from'),
+            'date_to'        => $request->input('date_to'),
+            'search'         => $request->input('search'),
+            'sort_by'        => $request->input('sort_by'),
+            'sort_direction' => $request->input('sort_direction'),
         ]);
 
         $perPage   = min((int) $request->input('per_page', 20), 100);

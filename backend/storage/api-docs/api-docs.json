@@ -468,7 +468,7 @@
                     "Admin - Subscriptions"
                 ],
                 "summary": "Listar pedidos de subscrição (Admin)",
-                "description": "Lista todos os pedidos de subscrição com paginação. Filtros: status, document_id, user_id.",
+                "description": "Lista todos os pedidos de subscrição com paginação, filtros e ordenação.",
                 "operationId": "adminListDocumentSubscriptions",
                 "parameters": [
                     {
@@ -501,6 +501,73 @@
                         "schema": {
                             "type": "string",
                             "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "description": "Filtrar por categoria do documento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "description": "Data de início (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "description": "Data de fim (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Pesquisa em email, nome e título do documento",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "created_at",
+                            "enum": [
+                                "created_at",
+                                "started_at",
+                                "updated_at",
+                                "status"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
                         }
                     },
                     {
@@ -567,6 +634,15 @@
                                                     },
                                                     "document_title": {
                                                         "type": "string"
+                                                    },
+                                                    "category_id": {
+                                                        "type": "string",
+                                                        "format": "uuid",
+                                                        "nullable": true
+                                                    },
+                                                    "category_name": {
+                                                        "type": "string",
+                                                        "nullable": true
                                                     },
                                                     "user_email": {
                                                         "type": "string"

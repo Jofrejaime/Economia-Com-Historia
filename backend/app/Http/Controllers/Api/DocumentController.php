@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\DocumentStatus;
+use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
@@ -101,7 +103,7 @@ class DocumentController extends Controller
             ->where('uf.user_id', $user->id);
 
         if ($user->role !== 'admin') {
-            $query->where('d.status', 'published');
+            $query->where('d.status', DocumentStatus::PUBLISHED->value);
         }
 
         $this->documentAccess->applyListingFilter($query, $user, 'd');
@@ -205,10 +207,12 @@ class DocumentController extends Controller
         if ($request->filled('status')) {
             $query->where('d.status', $request->input('status'));
         } elseif ($user->role !== 'admin') {
-            $query->where('d.status', 'published');
+            $query->where('d.status', DocumentStatus::PUBLISHED->value);
         }
 
         $this->documentAccess->applyListingFilter($query, $user);
+
+        $query->orderByDesc('d.is_pinned');
 
         if ($request->input('sort') === 'popular') {
             $query->orderByDesc('d.likes_count')->orderByDesc('d.views_count');
@@ -293,7 +297,7 @@ class DocumentController extends Controller
         }
 
         if ($user->role !== 'admin') {
-            $query->where('d.status', 'published');
+            $query->where('d.status', DocumentStatus::PUBLISHED->value);
         }
 
         $this->documentAccess->applyListingFilter($query, $user);
@@ -343,7 +347,7 @@ class DocumentController extends Controller
             return $this->denyDocumentAccess($document);
         }
 
-        if ($request->user()->role !== 'admin' && $document->status !== 'published') {
+        if ($request->user()->role !== 'admin' && $document->status !== DocumentStatus::PUBLISHED->value) {
             if ($document->created_by !== $request->user()->id) {
                 return response()->json(['message' => 'Document not found.'], 404);
             }
@@ -446,7 +450,7 @@ class DocumentController extends Controller
                 'views_count'     => 0,
                 'likes_count'     => 0,
                 'downloads_count' => 0,
-                'status'          => 'draft',
+                'status'          => DocumentStatus::DRAFT->value,
             ]));
 
             foreach ($tags as $tagName) {
@@ -523,7 +527,7 @@ class DocumentController extends Controller
             $validated['slug'] = Str::slug($validated['title']).'-'.Str::lower(Str::random(6));
         }
 
-        if (isset($validated['status']) && $validated['status'] === 'published' && $document->published_at === null) {
+        if (isset($validated['status']) && $validated['status'] === DocumentStatus::PUBLISHED->value && $document->published_at === null) {
             $validated['published_at'] = now();
             $validated['reviewed_by']  = $request->user()->id;
         }
@@ -1022,7 +1026,7 @@ class DocumentController extends Controller
         $result = $this->subscriptionService->requestSubscription($targetUserId, $id);
 
         if (!$result['created']) {
-            $message = $result['status'] === 'ACTIVE'
+            $message = $result['status'] === SubscriptionStatus::ACTIVE->value
                 ? 'Already subscribed.'
                 : 'Subscription request already pending.';
 

@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\DocumentStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateDocumentRequest extends FormRequest
 {
@@ -30,7 +32,7 @@ class UpdateDocumentRequest extends FormRequest
             'media_type'       => ['sometimes', 'nullable', 'in:TEXT,IMAGE,VIDEO,AUDIO,PDF'],
             'media_url'        => ['sometimes', 'nullable', 'string', 'max:500'],
             'pdf_url'          => ['sometimes', 'nullable', 'string', 'max:500'],  // legacy
-            'status'           => ['sometimes', 'in:draft,published,archived'],
+            'status'           => ['sometimes', Rule::in(array_column(DocumentStatus::cases(), 'value'))],
         ];
     }
 }
