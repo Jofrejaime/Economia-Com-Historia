@@ -107,12 +107,15 @@ class Document extends Model
         return $this->hasMany(DocumentCitation::class, 'document_id');
     }
 
-    /**
-     * Quiz associations (pivot: quiz_documents).
-     * Quiz model is created in a future sprint.
-     */
     public function quizDocuments(): HasMany
     {
         return $this->hasMany(QuizDocument::class, 'document_id');
+    }
+
+    public function quizzes(): BelongsToMany
+    {
+        return $this->belongsToMany(Quiz::class, 'quiz_documents', 'document_id', 'quiz_id')
+            ->withPivot('sort_order')
+            ->withTimestamps();
     }
 }

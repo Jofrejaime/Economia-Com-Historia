@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Document;
 use App\Models\User;
 use App\Services\AccessGateService;
 use App\Services\GamificationService;
 use App\Services\QuizAttemptService;
+use App\Services\QuizDocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,9 +17,10 @@ use Illuminate\Support\Str;
 class QuizController extends Controller
 {
     public function __construct(
-        private readonly GamificationService $gamification,
-        private readonly AccessGateService $accessGate,
-        private readonly QuizAttemptService $attemptService,
+        private readonly GamificationService  $gamification,
+        private readonly AccessGateService    $accessGate,
+        private readonly QuizAttemptService   $attemptService,
+        private readonly QuizDocumentService  $quizDocuments,
     ) {}
 
     /**
@@ -102,6 +105,7 @@ class QuizController extends Controller
      *              @OA\Property(property="is_featured", type="boolean", default=false),
      *              @OA\Property(property="status", type="string", enum={"published", "draft"}, default="draft"),
      *              @OA\Property(property="category_id", type="string", format="uuid", nullable=true),
+     *              @OA\Property(property="documents", type="array", nullable=true, description="IDs de documentos a associar (índice define sort_order)", @OA\Items(type="string", format="uuid")),
      *              @OA\Property(property="questions", type="array", nullable=true, @OA\Items(
      *                  @OA\Property(property="question_order", type="integer", example=1),
      *                  @OA\Property(property="title", type="string", example="Qual o ano de início de construção do CFB?"),
@@ -176,12 +180,14 @@ class QuizController extends Controller
             'questions.*.options.*.text' => ['required', 'string'],
             'questions.*.options.*.is_correct' => ['required', 'boolean'],
             'questions.*.options.*.explanation' => ['nullable', 'string'],
+            'documents'   => ['nullable', 'array'],
+            'documents.*' => ['nullable', 'uuid', 'exists:documents,id'],
         ]);
 
         $quizId = (string) Str::uuid();
 
         DB::transaction(function () use ($quizId, $validated, $request) {
-            $quizData = collect($validated)->except(['questions'])->all();
+            $quizData = collect($validated)->except(['questions', 'documents'])->all();
             $quizData['id'] = $quizId;
             $quizData['created_by'] = $request->user()->id;
             $quizData['created_at'] = now();
@@ -224,6 +230,10 @@ class QuizController extends Controller
                         ]);
                     }
                 }
+            }
+
+            if (!empty($validated['documents'])) {
+                $this->quizDocuments->attachDocuments($quizId, $validated['documents']);
             }
         });
 
@@ -366,10 +376,12 @@ class QuizController extends Controller
             'questions.*.options.*.text' => ['required', 'string'],
             'questions.*.options.*.is_correct' => ['required', 'boolean'],
             'questions.*.options.*.explanation' => ['nullable', 'string'],
+            'documents'   => ['nullable', 'array'],
+            'documents.*' => ['nullable', 'uuid', 'exists:documents,id'],
         ]);
 
         DB::transaction(function () use ($id, $validated) {
-            $quizData = collect($validated)->except(['questions'])->all();
+            $quizData = collect($validated)->except(['questions', 'documents'])->all();
             $quizData['updated_at'] = now();
 
             DB::table('quizzes')->where('id', $id)->update($quizData);
@@ -427,6 +439,10 @@ class QuizController extends Controller
                     }
                 }
             }
+
+            if (array_key_exists('documents', $validated)) {
+                $this->quizDocuments->syncDocuments($id, $validated['documents'] ?? []);
+            }
         });
 
         $updatedQuiz = DB::table('quizzes')->where('id', $id)->first();
@@ -480,17 +496,11 @@ class QuizController extends Controller
         }
 
         DB::transaction(function () use ($id) {
-            // Delete attempt answers
             $attemptIds = DB::table('quiz_attempts')->where('quiz_id', $id)->pluck('id');
             DB::table('quiz_attempt_answers')->whereIn('attempt_id', $attemptIds)->delete();
-            
-            // Delete attempts
             DB::table('quiz_attempts')->where('quiz_id', $id)->delete();
-            
-            // Delete quiz questions (which cascades to options)
             DB::table('quiz_questions')->where('quiz_id', $id)->delete();
-            
-            // Delete quiz itself
+            DB::table('quiz_documents')->where('quiz_id', $id)->delete();
             DB::table('quizzes')->where('id', $id)->delete();
         });
 
@@ -784,6 +794,31 @@ class QuizController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *      path="/quizzes/{id}/documents",
+     *      operationId="quizRelatedDocuments",
+     *      tags={"Quiz"},
+     *      summary="Listar documentos associados a um quiz",
+     *      description="Retorna os documentos publicados associados ao quiz. Suporta paginação e ordenação opcionais.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string")),
+     *      @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", default=1)),
+     *      @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", default=15, maximum=100)),
+     *      @OA\Parameter(name="sort_by", in="query", required=false, @OA\Schema(type="string", enum={"sort_order","title","published_at"})),
+     *      @OA\Parameter(name="sort_direction", in="query", required=false, @OA\Schema(type="string", enum={"asc","desc"})),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Documentos obtidos com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *              @OA\Property(property="meta", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=404, description="Quiz não encontrado")
+     * )
+     */
     public function relatedDocuments(string $id, Request $request): JsonResponse
     {
         $quiz = DB::table('quizzes')->where('id', $id)->first();
@@ -791,24 +826,33 @@ class QuizController extends Controller
             abort(404, 'Quiz not found.');
         }
 
-        $documents = DB::table('quiz_documents as qd')
-            ->join('documents as d', 'd.id', '=', 'qd.document_id')
-            ->leftJoin('document_categories as dc', 'dc.id', '=', 'd.category_id')
-            ->where('qd.quiz_id', $id)
-            ->where('d.status', 'published')
-            ->orderBy('qd.sort_order')
-            ->select(
-                'd.id', 'd.title', 'd.author', 'd.summary', 'd.document_type',
-                'd.academic_level', 'd.access_level_id', 'd.cover_image_url',
-                'd.views_count', 'd.likes_count', 'd.published_at', 'd.created_at',
-                'dc.name as category_name'
-            )
-            ->get()
-            ->map(fn ($doc) => array_merge((array) $doc, [
-                'category' => $doc->category_name ? ['name' => $doc->category_name] : null,
-            ]));
+        $result = $this->quizDocuments->documentsOfQuiz($id, [
+            'page'           => $request->input('page', 1),
+            'per_page'       => $request->input('per_page', 15),
+            'sort_by'        => $request->input('sort_by'),
+            'sort_direction' => $request->input('sort_direction'),
+        ]);
 
-        return response()->json(['data' => $documents]);
+        return response()->json([
+            'data' => $result['data']->map(fn (Document $doc) => [
+                'id'              => $doc->id,
+                'title'           => $doc->title,
+                'author'          => $doc->author,
+                'summary'         => $doc->summary,
+                'document_type'   => $doc->document_type,
+                'academic_level'  => $doc->academic_level,
+                'access_level_id' => $doc->access_level_id,
+                'cover_image_url' => $doc->cover_image_url,
+                'views_count'     => (int) ($doc->views_count ?? 0),
+                'likes_count'     => (int) ($doc->likes_count ?? 0),
+                'published_at'    => $doc->published_at,
+                'created_at'      => $doc->created_at,
+                'category_name'   => $doc->category?->name,
+                'category'        => $doc->category ? ['name' => $doc->category->name] : null,
+                'sort_order'      => $doc->pivot?->sort_order ?? 0,
+            ]),
+            'meta' => $result['meta'],
+        ]);
     }
 
     /**
@@ -841,6 +885,79 @@ class QuizController extends Controller
                 ->limit(20)
                 ->get()
         ]);
+    }
+
+    /**
+     * @OA\Post(
+     *      path="/quizzes/{id}/documents",
+     *      operationId="syncQuizDocuments",
+     *      tags={"Quiz"},
+     *      summary="Sincronizar documentos de um quiz (Admin/Professor)",
+     *      description="Substitui todas as associações documento-quiz. Enviar array vazio remove todos.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string")),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"documents"},
+     *              @OA\Property(property="documents", type="array", description="IDs de documentos (índice define sort_order)", @OA\Items(type="string", format="uuid"))
+     *          )
+     *      ),
+     *      @OA\Response(response=200, description="Documentos sincronizados"),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Acesso proibido"),
+     *      @OA\Response(response=404, description="Quiz não encontrado"),
+     *      @OA\Response(response=422, description="Erro de validação")
+     * )
+     */
+    public function syncDocuments(string $id, Request $request): JsonResponse
+    {
+        $quiz = DB::table('quizzes')->where('id', $id)->first();
+        if ($quiz === null) {
+            abort(404, 'Quiz not found.');
+        }
+
+        $validated = $request->validate([
+            'documents'   => ['present', 'array'],
+            'documents.*' => ['uuid', 'exists:documents,id'],
+        ]);
+
+        $this->quizDocuments->syncDocuments($id, $validated['documents']);
+
+        return response()->json([
+            'message' => 'Documents synced successfully.',
+            'count'   => count($validated['documents']),
+        ]);
+    }
+
+    /**
+     * @OA\Delete(
+     *      path="/quizzes/{id}/documents/{documentId}",
+     *      operationId="detachQuizDocument",
+     *      tags={"Quiz"},
+     *      summary="Remover documento de um quiz (Admin/Professor)",
+     *      description="Remove a associação entre o documento e o quiz.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string")),
+     *      @OA\Parameter(name="documentId", in="path", required=true, description="ID do documento", @OA\Schema(type="string")),
+     *      @OA\Response(response=200, description="Documento removido do quiz"),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Acesso proibido"),
+     *      @OA\Response(response=404, description="Quiz ou associação não encontrada")
+     * )
+     */
+    public function detachDocument(string $id, string $documentId): JsonResponse
+    {
+        $quiz = DB::table('quizzes')->where('id', $id)->first();
+        if ($quiz === null) {
+            abort(404, 'Quiz not found.');
+        }
+
+        if (!$this->quizDocuments->detachDocument($id, $documentId)) {
+            return response()->json(['message' => 'Document not associated with this quiz.'], 404);
+        }
+
+        return response()->json(['message' => 'Document removed from quiz.']);
     }
 
     private function checkQuizAccess(object $quiz, User $user): void

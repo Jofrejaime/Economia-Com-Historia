@@ -422,5 +422,50 @@ class QuizSeeder extends Seeder
                 }
             }
         }
+
+        // ─── N:N quiz_documents examples ────────────────────────────────────────
+        // Quiz 1 (CFB) → até 2 documentos de industrializacao (multi-document quiz)
+        // Quiz 2 (Escravos) → 1 documento de comercio-atlantico (single-document quiz)
+        // Quiz 3 (Pós-Independência) → 0 documentos (standalone quiz — Fluxo B)
+
+        $quizCFB      = DB::table('quizzes')->where('title', 'Caminho de Ferro de Benguela')->first();
+        $quizEscravos = DB::table('quizzes')->where('title', 'O Comércio de Escravos no Atlântico')->first();
+
+        if ($quizCFB && $industrializacao) {
+            $docsIndustrializacao = DB::table('documents')
+                ->where('category_id', $industrializacao->id)
+                ->where('status', 'published')
+                ->orderBy('created_at')
+                ->take(2)
+                ->pluck('id');
+
+            foreach ($docsIndustrializacao as $sort => $docId) {
+                DB::table('quiz_documents')->insertOrIgnore([
+                    'quiz_id'     => $quizCFB->id,
+                    'document_id' => $docId,
+                    'sort_order'  => $sort,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+            }
+        }
+
+        if ($quizEscravos && $comercio) {
+            $docComercio = DB::table('documents')
+                ->where('category_id', $comercio->id)
+                ->where('status', 'published')
+                ->orderBy('created_at')
+                ->value('id');
+
+            if ($docComercio) {
+                DB::table('quiz_documents')->insertOrIgnore([
+                    'quiz_id'     => $quizEscravos->id,
+                    'document_id' => $docComercio,
+                    'sort_order'  => 0,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+            }
+        }
     }
 }

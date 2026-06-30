@@ -8,10 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Http\Resources\DocumentResource;
+use App\Http\Resources\QuizSummaryResource;
 use App\Models\Document;
 use App\Services\DocumentAccessService;
 use App\Services\DocumentSubscriptionService;
 use App\Services\GamificationService;
+use App\Services\QuizDocumentService;
 use App\Support\PointTransactionReason;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,9 +23,10 @@ use Illuminate\Support\Str;
 class DocumentController extends Controller
 {
     public function __construct(
-        private readonly DocumentAccessService $documentAccess,
+        private readonly DocumentAccessService       $documentAccess,
         private readonly DocumentSubscriptionService $subscriptionService,
-        private readonly GamificationService $gamification,
+        private readonly GamificationService         $gamification,
+        private readonly QuizDocumentService         $quizDocuments,
     ) {}
 
     /**
@@ -1084,6 +1087,51 @@ class DocumentController extends Controller
             'subscription_required'    => $isSubscriptionRequired,
             'required_access_level_id' => $isSubscriptionRequired ? null : ($document->access_level_id ?? null),
         ], 403);
+    }
+
+    /**
+     * @OA\Get(
+     *      path="/documents/{id}/quizzes",
+     *      operationId="documentRelatedQuizzes",
+     *      tags={"Documents"},
+     *      summary="Listar quizzes associados a um documento",
+     *      description="Retorna os quizzes publicados associados ao documento, ordenados por sort_order.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, description="ID do documento", @OA\Schema(type="string")),
+     *      @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", default=1)),
+     *      @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", default=15, maximum=100)),
+     *      @OA\Parameter(name="sort_by", in="query", required=false, @OA\Schema(type="string", enum={"sort_order","title","difficulty","published_at"})),
+     *      @OA\Parameter(name="sort_direction", in="query", required=false, @OA\Schema(type="string", enum={"asc","desc"})),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Quizzes obtidos com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *              @OA\Property(property="meta", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=404, description="Documento não encontrado")
+     * )
+     */
+    public function relatedQuizzes(string $id, Request $request): JsonResponse
+    {
+        $document = DB::table('documents')->where('id', $id)->first();
+        if ($document === null) {
+            return response()->json(['message' => 'Document not found.'], 404);
+        }
+
+        $result = $this->quizDocuments->availableQuizzesForDocument($id, [
+            'page'           => $request->input('page', 1),
+            'per_page'       => $request->input('per_page', 15),
+            'sort_by'        => $request->input('sort_by'),
+            'sort_direction' => $request->input('sort_direction'),
+        ]);
+
+        return response()->json([
+            'data' => QuizSummaryResource::collection($result['data']),
+            'meta' => $result['meta'],
+        ]);
     }
 
     private function generateCitation(object $document, string $format): string

@@ -4115,6 +4115,107 @@
                 ]
             }
         },
+        "/documents/{id}/quizzes": {
+            "get": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Listar quizzes associados a um documento",
+                "description": "Retorna os quizzes publicados associados ao documento, ordenados por sort_order.",
+                "operationId": "documentRelatedQuizzes",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do documento",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "sort_order",
+                                "title",
+                                "difficulty",
+                                "published_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quizzes obtidos com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "404": {
+                        "description": "Documento não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/me/point-transactions": {
             "get": {
                 "tags": [
@@ -5126,6 +5227,15 @@
                                         "format": "uuid",
                                         "nullable": true
                                     },
+                                    "documents": {
+                                        "description": "IDs de documentos a associar (índice define sort_order)",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "nullable": true
+                                    },
                                     "questions": {
                                         "type": "array",
                                         "items": {
@@ -5752,6 +5862,171 @@
                 ]
             }
         },
+        "/quizzes/{id}/documents": {
+            "get": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Listar documentos associados a um quiz",
+                "description": "Retorna os documentos publicados associados ao quiz. Suporta paginação e ordenação opcionais.",
+                "operationId": "quizRelatedDocuments",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do quiz",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "sort_order",
+                                "title",
+                                "published_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documentos obtidos com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "404": {
+                        "description": "Quiz não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Sincronizar documentos de um quiz (Admin/Professor)",
+                "description": "Substitui todas as associações documento-quiz. Enviar array vazio remove todos.",
+                "operationId": "syncQuizDocuments",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do quiz",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "documents"
+                                ],
+                                "properties": {
+                                    "documents": {
+                                        "description": "IDs de documentos (índice define sort_order)",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Documentos sincronizados"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Quiz não encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/me/quiz-attempts": {
             "get": {
                 "tags": [
@@ -5781,6 +6056,56 @@
                     },
                     "401": {
                         "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/quizzes/{id}/documents/{documentId}": {
+            "delete": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Remover documento de um quiz (Admin/Professor)",
+                "description": "Remove a associação entre o documento e o quiz.",
+                "operationId": "detachQuizDocument",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do quiz",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "documentId",
+                        "in": "path",
+                        "description": "ID do documento",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documento removido do quiz"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Quiz ou associação não encontrada"
                     }
                 },
                 "security": [

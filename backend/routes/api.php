@@ -77,6 +77,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::post('/documents/{id}/favorite', [DocumentController::class, 'favorite']);
     Route::delete('/documents/{id}/favorite', [DocumentController::class, 'unfavorite']);
     Route::post('/documents/{id}/citations', [DocumentController::class, 'createCitation']);
+    Route::get('/documents/{id}/quizzes', [DocumentController::class, 'relatedQuizzes']);
 
     // Documents — subscription management
     Route::get('/documents/{id}/subscription', [DocumentController::class, 'subscriptionStatus']);
@@ -147,6 +148,8 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::post('/quizzes', [QuizController::class, 'store']);
         Route::patch('/quizzes/{id}', [QuizController::class, 'update']);
         Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
+        Route::post('/quizzes/{id}/documents', [QuizController::class, 'syncDocuments']);
+        Route::delete('/quizzes/{id}/documents/{documentId}', [QuizController::class, 'detachDocument']);
     });
 
     // ─── Admin only ─────────────────────────────────────────────────────
