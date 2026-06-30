@@ -14,6 +14,8 @@ export interface AppNotification {
   is_read: boolean;
   read_at: string | null;
   created_at: string;
+  user_id?: string;
+  user_name?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -51,6 +53,13 @@ export class NotificationService {
   async deleteNotification(id: string): Promise<void> {
     await firstValueFrom(
       this.http.delete(`${this.base}/notifications/${id}`, { headers: this.headers })
+    );
+  }
+
+  // ── Admin: enviar notificações a outros utilizadores ──
+  async send(payload: { user_id?: string; type: string; title: string; message: string }): Promise<void> {
+    await firstValueFrom(
+      this.http.post(`${this.base}/notifications/send`, payload, { headers: this.headers })
     );
   }
 }

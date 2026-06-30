@@ -1,23 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface Notification {
-  id: string;
-  user_id: string;
-  user_name?: string;
-  type: 'info' | 'success' | 'warning' | 'achievement';
-  title: string;
-  message: string;
-  is_read: boolean;
-  read_at: string | null;
-  created_at: string;
-}
-
-interface User {
-  id: string;
-  name: string;
-}
+import { NotificationService, AppNotification } from '../../../../../services/notification.service';
+import { AdminApiService, AdminUser } from '../../../../../services/admin-api.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-notifications-page',
@@ -26,10 +12,15 @@ interface User {
   templateUrl: './notifications-page.html',
   styleUrls: ['./notifications-page.css']
 })
-export class NotificationsPageComponent {
+export class NotificationsPageComponent implements OnInit {
   searchQuery = '';
   filterRead = 'todos';
   showSendModal = false;
+  error: string | null = null;
+  isSending = false;
+
+  notifications: AppNotification[] = [];
+  users: AdminUser[] = [];
 
   newNotification = {
     title: '',
@@ -38,38 +29,36 @@ export class NotificationsPageComponent {
     user_id: ''
   };
 
-  users: User[] = [
-    { id: '1', name: 'Dr. Manuel Costa' },
-    { id: '2', name: 'Dra. Ana Silva' },
-    { id: '3', name: 'Prof. Carlos Mendes' }
-  ];
+  constructor(
+    private notificationService: NotificationService,
+    private adminApi: AdminApiService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  notifications: Notification[] = [
-    {
-      id: '1',
-      user_id: '1',
-      user_name: 'Dr. Manuel Costa',
-      type: 'achievement',
-      title: 'Badge Conquistado',
-      message: 'Parabéns! Você conquistou o badge "Arquivista Imperial" por alcançar 1500 pontos.',
-      is_read: false,
-      read_at: null,
-      created_at: '2024-06-15T10:30:00Z'
-    },
-    {
-      id: '2',
-      user_id: '2',
-      user_name: 'Dra. Ana Silva',
-      type: 'success',
-      title: 'Conteúdo Publicado',
-      message: 'O seu artigo "Análise da Reforma Monetária" foi publicado com sucesso.',
-      is_read: true,
-      read_at: '2024-06-14T14:00:00Z',
-      created_at: '2024-06-14T10:00:00Z'
+  async ngOnInit(): Promise<void> {
+    this.loadNotifications();
+    this.loadUsers();
+  }
+
+  private async loadNotifications(): Promise<void> {
+    try {
+      this.notifications = await this.notificationService.getNotifications();
+    } catch {
+      this.error = 'Erro ao carregar notificações.';
+    } finally {
+      this.cdr.detectChanges();
     }
-  ];
+  }
 
-  get filteredNotifications(): Notification[] {
+  private async loadUsers(): Promise<void> {
+    const result = await firstValueFrom(this.adminApi.listUsers());
+    if (result.ok && result.data) {
+      this.users = result.data;
+    }
+    this.cdr.detectChanges();
+  }
+
+  get filteredNotifications(): AppNotification[] {
     return this.notifications.filter(n => {
       const matchSearch = this.searchQuery === '' ||
         n.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
@@ -84,21 +73,32 @@ export class NotificationsPageComponent {
     return {
       total: this.notifications.length,
       unread: this.notifications.filter(n => !n.is_read).length,
-      read: this.notifications.filter(n => n.is_read).length
+      read: this.notifications.filter(n => n.is_read).length,
     };
   }
 
-  markAsRead(id: string): void {
-    const notif = this.notifications.find(n => n.id === id);
-    if (notif) {
-      notif.is_read = true;
-      notif.read_at = new Date().toISOString();
+  async markAsRead(id: string): Promise<void> {
+    try {
+      await this.notificationService.markRead(id);
+      const notif = this.notifications.find(n => n.id === id);
+      if (notif) {
+        notif.is_read = true;
+        notif.read_at = new Date().toISOString();
+      }
+      this.cdr.detectChanges();
+    } catch {
+      alert('Erro ao marcar como lida.');
     }
   }
 
-  deleteNotification(id: string): void {
-    if (confirm('Eliminar esta notificação?')) {
+  async deleteNotification(id: string): Promise<void> {
+    if (!confirm('Eliminar esta notificação?')) return;
+    try {
+      await this.notificationService.deleteNotification(id);
       this.notifications = this.notifications.filter(n => n.id !== id);
+      this.cdr.detectChanges();
+    } catch {
+      alert('Erro ao eliminar notificação.');
     }
   }
 
@@ -111,26 +111,34 @@ export class NotificationsPageComponent {
     this.showSendModal = false;
   }
 
-  sendNotification(): void {
+  async sendNotification(): Promise<void> {
     if (!this.newNotification.title.trim() || !this.newNotification.message.trim()) {
       alert('Preencha todos os campos obrigatórios');
       return;
     }
-    
-    const newNotif: Notification = {
-      id: Date.now().toString(),
-      user_id: this.newNotification.user_id || '',
-      user_name: this.newNotification.user_id ? 
-        this.users.find(u => u.id === this.newNotification.user_id)?.name : 'Todos',
-      type: this.newNotification.type,
-      title: this.newNotification.title,
-      message: this.newNotification.message,
-      is_read: false,
-      read_at: null,
-      created_at: new Date().toISOString()
-    };
-    
-    this.notifications.unshift(newNotif);
-    this.closeSendModal();
+
+    if (!this.newNotification.user_id) {
+      alert('Selecione um destinatário. O envio em massa não está disponível.');
+      return;
+    }
+
+    this.isSending = true;
+    this.cdr.detectChanges();
+
+    try {
+      await this.notificationService.send({
+        user_id: this.newNotification.user_id,
+        type: this.newNotification.type,
+        title: this.newNotification.title,
+        message: this.newNotification.message,
+      });
+      this.closeSendModal();
+      this.loadNotifications();
+    } catch (err: any) {
+      alert(err?.error?.message ?? 'Erro ao enviar notificação.');
+    } finally {
+      this.isSending = false;
+      this.cdr.detectChanges();
+    }
   }
 }

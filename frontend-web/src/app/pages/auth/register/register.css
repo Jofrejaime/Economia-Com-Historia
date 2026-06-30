@@ -11,7 +11,6 @@
   padding: 0;
 }
 
-/* Host do componente ocupa toda a viewport */
 :host {
   display: block;
   height: 100vh;
@@ -19,7 +18,6 @@
   overflow: hidden;
 }
 
-/* Container principal */
 .register-container {
   display: flex;
   height: 100%;
@@ -28,13 +26,13 @@
 }
 
 /* ============================================
-   SIDEBAR ESQUERDA - BRANDING
+   SIDEBAR ESQUERDA - IMAGEM DE ANGOLA
    ============================================ */
 
 .register-sidebar {
   flex: 0 0 45%;
   max-width: 45%;
-  background: linear-gradient(135deg, #6B0119, #8B1E2D);
+  background: #6B0119;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -44,40 +42,36 @@
   overflow: hidden;
 }
 
-/* Decorações de fundo */
-.register-decoration-top {
+.register-map-bg {
   position: absolute;
   top: 0;
-  right: 0;
-  width: 300px;
-  height: 300px;
-  background: rgba(139, 30, 45, 0.08);
-  border-radius: 50%;
-}
-
-.register-decoration-bottom {
-  position: absolute;
-  bottom: 0;
   left: 0;
-  width: 200px;
-  height: 200px;
-  background: rgba(139, 30, 45, 0.05);
-  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 1;
 }
 
-/* Logo */
+.register-map-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(107, 1, 25, 0.65), rgba(139, 30, 45, 0.5));
+  z-index: 2;
+}
+
 .register-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   position: relative;
-  z-index: 2;
+  z-index: 3;
 }
 
 .register-logo-icon {
   width: 36px;
   height: 36px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -85,131 +79,26 @@
 }
 
 .register-logo-text {
-  color: #F0E6E8;
+  color: #FFFFFF;
   font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.02em;
   font-family: 'IBM Plex Sans', sans-serif;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Content */
-.register-content {
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 36px;
-}
-
-.register-badge {
-  background: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 9999px;
-  display: inline-block;
-  letter-spacing: 0.5px;
-  font-family: 'Source Sans 3', sans-serif;
-  line-height: 1.7;
-  text-transform: uppercase;
-}
-
-.register-title {
-  font-family: 'IBM Plex Sans', sans-serif;
-  color: #FFFFFF;
-  font-size: 32px;
-  font-weight: 700;
-  margin: 0 0 12px 0;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-}
-
-.register-description {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 15px;
-  line-height: 1.7;
-  margin: 0;
-  font-family: 'Source Sans 3', sans-serif;
-}
-
-.register-divider {
-  width: 40px;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-}
-
-/* Stats */
-.register-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.register-stat-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.register-stat-icon {
-  width: 28px;
-  height: 28px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.register-stat-value {
-  color: #FFFFFF;
-  font-weight: 600;
-  margin: 0;
-  font-size: 13px;
-  font-family: 'IBM Plex Sans', sans-serif;
-  line-height: 1.3;
-}
-
-.register-stat-label {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
-  margin: 2px 0 0 0;
-  font-family: 'Source Sans 3', sans-serif;
-  line-height: 1.7;
-}
-
-/* Quote */
-.register-quote {
-  border-left: 2px solid rgba(255, 255, 255, 0.2);
-  padding-left: 16px;
-}
-
-.register-quote-text {
-  color: rgba(255, 255, 255, 0.6);
-  font-style: italic;
-  font-size: 12px;
-  line-height: 1.7;
-  margin: 0;
-  font-family: 'Source Sans 3', sans-serif;
-}
-
-/* Footer da sidebar */
 .register-sidebar-footer {
   position: relative;
-  z-index: 2;
+  z-index: 3;
 }
 
 .register-sidebar-footer-text {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 11px;
   text-align: left;
   font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* ============================================
@@ -232,7 +121,6 @@
   max-width: 440px;
 }
 
-/* Form Header */
 .register-form-header {
   margin-bottom: 32px;
   text-align: center;
@@ -269,7 +157,6 @@
   font-family: 'Source Sans 3', sans-serif;
 }
 
-/* Form Card */
 .register-form-card {
   background: #FFFFFF;
   border-radius: 8px;
@@ -278,7 +165,6 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Error Message */
 .register-error {
   margin-bottom: 16px;
   background: rgba(185, 28, 28, 0.08);
@@ -320,7 +206,6 @@
   font-family: 'Source Sans 3', sans-serif;
 }
 
-/* Success Message */
 .register-success {
   margin-bottom: 16px;
   background: rgba(22, 163, 74, 0.08);
@@ -362,7 +247,6 @@
   font-family: 'Source Sans 3', sans-serif;
 }
 
-/* Form Group */
 .register-form-group {
   margin-bottom: 20px;
 }
@@ -401,7 +285,6 @@
   color: #9CA3AF;
 }
 
-/* Submit Button */
 .register-btn {
   width: 100%;
   background: #8B1E2D;
@@ -431,7 +314,6 @@
   transform: none;
 }
 
-/* Divider */
 .register-divider-form {
   display: flex;
   align-items: center;
@@ -452,7 +334,6 @@
   line-height: 1.7;
 }
 
-/* Secondary Button */
 .register-secondary-btn {
   width: 100%;
   background: transparent;
@@ -475,7 +356,6 @@
   border-color: #8B1E2D;
 }
 
-/* Footer Notice */
 .register-footer-notice {
   color: #9CA3AF;
   font-size: 12px;
@@ -500,10 +380,6 @@
     flex: 1 1 58%;
   }
 
-  .register-title {
-    font-size: 28px;
-  }
-
   .register-form-card {
     padding: 28px;
   }
@@ -525,27 +401,8 @@
     flex: 0 0 auto;
     max-width: 100%;
     padding: 32px 24px;
-    min-height: 280px;
+    min-height: 220px;
     height: auto;
-  }
-
-  .register-content {
-    justify-content: center;
-    gap: 20px;
-  }
-
-  .register-title {
-    font-size: 24px;
-  }
-
-  .register-decoration-top {
-    width: 150px;
-    height: 150px;
-  }
-
-  .register-decoration-bottom {
-    width: 100px;
-    height: 100px;
   }
 
   .register-form-wrapper {
@@ -567,19 +424,11 @@
 @media (max-width: 480px) {
   .register-sidebar {
     padding: 24px 16px;
-    min-height: 200px;
+    min-height: 180px;
   }
 
   .register-logo-text {
     font-size: 16px;
-  }
-
-  .register-title {
-    font-size: 20px;
-  }
-
-  .register-description {
-    font-size: 13px;
   }
 
   .register-form-wrapper {
