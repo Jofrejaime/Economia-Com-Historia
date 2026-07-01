@@ -8,6 +8,15 @@ import { FooterComponent } from '../../../components/footer/footer';
 import { MarkdownPipe } from '../../../pipes/markdown.pipe';
 import { CommunityService, DiscussionTopic, TopicReply } from '../../../services/community.service';
 import { AuthService } from '../../../services/auth.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { TopicVisibility } from '../../../services/community.service';
+
+interface TopicMemberRow {
+  user_id: string;
+  display_name: string;
+  role: 'member' | 'moderator';
+}
 
 @Component({
   selector: 'app-discussion-thread',
@@ -22,6 +31,7 @@ export class DiscussionThreadComponent implements OnInit {
   replies: TopicReply[] = [];
   error: string | null = null;
   isAuthenticated = false;
+  currentUserId: string | null = null;
 
   replyText = '';
   showReplyForm = false;
@@ -44,6 +54,26 @@ export class DiscussionThreadComponent implements OnInit {
   showDeleteReplyModal = false;
   deleteReplyIndex: number | null = null;
 
+  // Edição da discussão
+  isEditingDiscussion = false;
+  editTitle = '';
+  editContent = '';
+  editVisibility: TopicVisibility = 'PUBLIC';
+  editSaving = false;
+  editError: string | null = null;
+
+  // Gestão de membros (apenas quando visibility = INVITE_ONLY)
+  topicMembers: TopicMemberRow[] = [];
+  private originalTopicMembers: TopicMemberRow[] = [];
+  memberSearchQuery = '';
+  memberSearchResults: { id: string; display_name: string | null; full_name: string | null; institution: string | null }[] = [];
+  memberSearchLoading = false;
+  private memberSearchTimer: any = null;
+
+  // Edição de respostas
+  editingReplyIndex: number | null = null;
+  editReplyText = '';
+
   relatedTopics: { id: string; title: string; replies: number; views: number }[] = [];
 
   constructor(
@@ -51,11 +81,13 @@ export class DiscussionThreadComponent implements OnInit {
     private route: ActivatedRoute,
     private communityService: CommunityService,
     private authService: AuthService,
+    private http: HttpClient,
     private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
     this.isAuthenticated = this.authService.isAuthenticated();
+    this.currentUserId = (this.authService.getUser() as any)?.id ?? null;
     const topicId = this.route.snapshot.paramMap.get('id');
     if (!topicId) { this.router.navigate(['/forum/community']); return; }
     this.loadData(topicId);
@@ -109,6 +141,246 @@ export class DiscussionThreadComponent implements OnInit {
   get discussionViews(): number { return this.topic?.views_count ?? 0; }
   get discussionIsLiked(): boolean { return this.topic?.is_liked ?? false; }
   get discussionIsPinned(): boolean { return this.topic?.is_pinned ?? false; }
+
+  // ===== PERMISSÕES =====
+  get isTopicOwner(): boolean {
+    return !!this.currentUserId && this.topic?.author_id === this.currentUserId;
+  }
+
+  isReplyOwner(reply: TopicReply): boolean {
+    return !!this.currentUserId && reply.author_id === this.currentUserId;
+  }
+
+  canEditReply(reply: TopicReply): boolean {
+    return this.isReplyOwner(reply);
+  }
+
+  canDeleteReply(reply: TopicReply): boolean {
+    return this.isReplyOwner(reply) || this.isTopicOwner;
+  }
+
+  get isInviteOnly(): boolean {
+    return this.topic?.visibility === 'INVITE_ONLY';
+  }
+
+  // ===== EDIÇÃO DA DISCUSSÃO =====
+  async startEditDiscussion(): Promise<void> {
+    if (!this.topic || !this.isTopicOwner) return;
+    this.editTitle = this.topic.title;
+    this.editContent = this.topic.content ?? '';
+    this.editVisibility = this.topic.visibility as TopicVisibility;
+    this.editError = null;
+    this.showDiscussionMenu = false;
+    this.isEditingDiscussion = true;
+
+    if (this.editVisibility === 'INVITE_ONLY') {
+      await this.loadTopicMembers();
+    }
+    this.cdr.detectChanges();
+  }
+
+  cancelEditDiscussion(): void {
+    this.isEditingDiscussion = false;
+    this.editError = null;
+    this.memberSearchResults = [];
+    this.memberSearchQuery = '';
+  }
+
+  setEditVisibility(v: TopicVisibility): void {
+    this.editVisibility = v;
+    if (v === 'INVITE_ONLY' && this.topicMembers.length === 0) {
+      this.loadTopicMembers();
+    }
+  }
+
+  private async loadTopicMembers(): Promise<void> {
+    if (!this.topic) return;
+    try {
+      const result = await firstValueFrom(this.communityService.getTopicMembers(this.topic.id));
+      const rows: TopicMemberRow[] = (result.ok && result.data ? result.data : [])
+        .filter((m: any) => m.role !== 'owner')
+        .map((m: any) => ({
+          user_id: m.user_id ?? m.user?.id,
+          display_name: m.user?.display_name ?? m.display_name ?? 'Utilizador',
+          role: m.role ?? 'member',
+        }));
+      this.topicMembers = rows;
+      this.originalTopicMembers = rows.map(r => ({ ...r }));
+      this.cdr.detectChanges();
+    } catch {
+      this.topicMembers = [];
+      this.originalTopicMembers = [];
+    }
+  }
+
+  onMemberSearchInput(value: string): void {
+    this.memberSearchQuery = value;
+    clearTimeout(this.memberSearchTimer);
+    if (value.trim().length < 2) {
+      this.memberSearchResults = [];
+      return;
+    }
+    this.memberSearchTimer = setTimeout(() => this.searchMembers(), 400);
+  }
+
+  async searchMembers(): Promise<void> {
+    const q = this.memberSearchQuery.trim();
+    if (q.length < 2) return;
+    this.memberSearchLoading = true;
+    this.cdr.detectChanges();
+    try {
+      const token = this.authService.getToken();
+      const headers = token ? this.authService.getAuthHeaders(token) : {};
+      const results = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiBaseUrl}/api/users/search?q=${encodeURIComponent(q)}`, { headers })
+      );
+      const existingIds = new Set(this.topicMembers.map(m => m.user_id));
+      this.memberSearchResults = (results ?? []).filter(u => !existingIds.has(u.id));
+    } catch {
+      this.memberSearchResults = [];
+    } finally {
+      this.memberSearchLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  addTopicMember(user: { id: string; display_name: string | null; full_name: string | null }): void {
+    this.topicMembers = [
+      ...this.topicMembers,
+      { user_id: user.id, display_name: user.display_name || user.full_name || 'Utilizador', role: 'member' },
+    ];
+    this.memberSearchResults = this.memberSearchResults.filter(u => u.id !== user.id);
+  }
+
+  removeTopicMember(userId: string): void {
+    this.topicMembers = this.topicMembers.filter(m => m.user_id !== userId);
+  }
+
+  private get memberHeaders(): Record<string, string> {
+    const token = this.authService.getToken();
+    return token ? this.authService.getAuthHeaders(token) : { Accept: 'application/json' };
+  }
+
+  // Sincroniza this.topicMembers com o backend: adiciona novos, remove excluídos, atualiza roles alterados
+  private async syncTopicMembers(topicId: string): Promise<void> {
+    const before = new Map(this.originalTopicMembers.map(m => [m.user_id, m.role]));
+    const after = new Map(this.topicMembers.map(m => [m.user_id, m.role]));
+
+    const toAdd = this.topicMembers.filter(m => !before.has(m.user_id));
+    const toRemove = this.originalTopicMembers.filter(m => !after.has(m.user_id));
+    const toUpdate = this.topicMembers.filter(m => before.has(m.user_id) && before.get(m.user_id) !== m.role);
+
+    const requests: Promise<any>[] = [];
+
+    for (const m of toAdd) {
+      requests.push(firstValueFrom(
+        this.http.post(`${environment.apiBaseUrl}/api/topics/${topicId}/members`,
+          { user_id: m.user_id, role: m.role },
+          { headers: this.memberHeaders }
+        )
+      ));
+    }
+
+    for (const m of toRemove) {
+      requests.push(firstValueFrom(
+        this.http.delete(`${environment.apiBaseUrl}/api/topics/${topicId}/members/${m.user_id}`,
+          { headers: this.memberHeaders }
+        )
+      ));
+    }
+
+    for (const m of toUpdate) {
+      requests.push(firstValueFrom(
+        this.http.patch(`${environment.apiBaseUrl}/api/topics/${topicId}/members/${m.user_id}`,
+          { role: m.role },
+          { headers: this.memberHeaders }
+        )
+      ));
+    }
+
+    if (requests.length > 0) {
+      await Promise.allSettled(requests);
+    }
+  }
+
+  async saveEditDiscussion(): Promise<void> {
+    if (!this.topic) return;
+    if (!this.editTitle.trim() || this.editTitle.trim().length < 10) {
+      this.editError = 'O título deve ter pelo menos 10 caracteres.';
+      return;
+    }
+    if (!this.editContent.trim() || this.editContent.trim().length < 50) {
+      this.editError = 'O conteúdo deve ter pelo menos 50 caracteres.';
+      return;
+    }
+    if (this.editVisibility === 'INVITE_ONLY' && this.topicMembers.length === 0) {
+      this.editError = 'Adicione pelo menos um membro para tópicos por convite.';
+      return;
+    }
+
+    this.editSaving = true;
+    this.editError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const result = await firstValueFrom(
+        this.communityService.updateTopic(this.topic.id, {
+          title: this.editTitle.trim(),
+          content: this.editContent.trim(),
+          visibility: this.editVisibility,
+        })
+      );
+
+      if (!result.ok || !result.data) {
+        this.editError = result.message ?? 'Erro ao guardar alterações.';
+        this.editSaving = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      if (this.editVisibility === 'INVITE_ONLY') {
+        await this.syncTopicMembers(this.topic.id);
+      }
+
+      this.topic = { ...this.topic, ...result.data };
+      this.isEditingDiscussion = false;
+      this.editSaving = false;
+      this.cdr.detectChanges();
+    } catch {
+      this.editError = 'Erro ao guardar alterações.';
+      this.editSaving = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  // ===== EDIÇÃO DE RESPOSTAS =====
+  startEditReply(index: number): void {
+    this.showReplyMenuIndex = null;
+    this.editingReplyIndex = index;
+    this.editReplyText = this.replies[index].content;
+  }
+
+  cancelEditReply(): void {
+    this.editingReplyIndex = null;
+    this.editReplyText = '';
+  }
+
+  async saveEditReply(index: number): Promise<void> {
+    const reply = this.replies[index];
+    if (!this.editReplyText.trim()) return;
+    try {
+      const result = await firstValueFrom(
+        this.communityService.updateReply(reply.id, { content: this.editReplyText.trim() })
+      );
+      if (result.ok) {
+        this.replies[index] = { ...reply, content: this.editReplyText.trim() };
+      }
+      this.editingReplyIndex = null;
+      this.cdr.detectChanges();
+    } catch {
+      alert('Erro ao guardar a resposta.');
+    }
+  }
 
   getReplyAuthorInitials(reply: TopicReply): string {
     const name = reply.author?.display_name ?? '?';
@@ -224,15 +496,11 @@ export class DiscussionThreadComponent implements OnInit {
     this.showReplyMenuIndex = null;
   }
 
-  editDiscussion(): void { this.showDiscussionMenu = false; }
-
   toggleReplyMenu(index: number, event: Event): void {
     event.stopPropagation();
     this.showReplyMenuIndex = this.showReplyMenuIndex === index ? null : index;
     this.showDiscussionMenu = false;
   }
-
-  editReply(_index: number): void { this.showReplyMenuIndex = null; }
 
   // ===== ELIMINAR DISCUSSÃO =====
   openDeleteDiscussionModal(): void {

@@ -85,105 +85,112 @@
       <!-- Right Column - Sidebar -->
       <div class="contents-view-sidebar">
         
-        <div class="contents-view-doc-card">
-          <h3 class="contents-view-doc-card-title">DOCUMENTO DIGITALIZADO</h3>
-          <div class="contents-view-doc-preview">
-            <img [alt]="doc.title" [src]="getDocumentImage()" />
-          </div>
-          <div class="contents-view-doc-actions">
-            <button class="contents-view-doc-btn contents-view-doc-btn-secondary"
-                    (click)="onDownload()"
-                    [disabled]="!isAuthenticated">
-              <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
-                <path d="M1 6H16M16 6L11 1M16 6L11 11" stroke="#8B1E2D" stroke-width="1.5"/>
-              </svg>
-              <span>{{ isAuthenticated ? 'Descarregar' : 'Login para descarregar' }}</span>
-            </button>
-            <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
-                    (click)="toggleFavorite()"
-                    [disabled]="!isAuthenticated">
-              <svg width="14" height="18" viewBox="0 0 14 18" fill="none">
-                <path d="M1 1H10L13 4V17H1V1Z" stroke="#64748b" stroke-width="1.5"/>
-                <path d="M4 8H10M4 11H8" stroke="#64748b" stroke-width="1.5"/>
-              </svg>
-              <span>{{ doc.is_favorited ? 'Remover Favorito' : 'Adicionar aos Favoritos' }}</span>
-            </button>
-          </div>
-        </div>
+      <div class="contents-view-doc-card">
+  <div class="contents-view-doc-actions">
+    <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
+            [class.active]="doc.is_liked"
+            (click)="toggleLike()"
+            [disabled]="!isAuthenticated">
+      <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="doc.is_liked ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 17.83 12H14V6a2 2 0 0 0-2-2l-3 7H2Z"></path>
+      </svg>
+      <span>{{ doc.is_liked ? 'Gostei' : 'Gostar' }}{{ doc.likes_count ? ' · ' + doc.likes_count : '' }}</span>
+    </button>
+
+    <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
+            [class.active]="doc.is_favorited"
+            (click)="toggleFavorite()"
+            [disabled]="!isAuthenticated">
+      <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="doc.is_favorited ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"></path>
+      </svg>
+      <span>{{ doc.is_favorited ? 'Guardado' : 'Guardar' }}</span>
+    </button>
+  </div>
+</div>
 
         <div class="contents-view-metadata">
-          <h3 class="contents-view-metadata-title">METADADOS DO ARQUIVO</h3>
-          <div class="contents-view-metadata-list">
+  <h3 class="contents-view-metadata-title">METADADOS DO ARQUIVO</h3>
+  <div class="contents-view-metadata-list">
 
-            <div class="contents-view-metadata-item">
-              <div class="contents-view-metadata-label">AUTOR</div>
-              <div class="contents-view-metadata-value">{{ doc.author ?? '—' }}</div>
-            </div>
+    <div class="contents-view-metadata-item contents-view-metadata-item--full">
+      <div class="contents-view-metadata-label">AUTOR</div>
+      <div class="contents-view-metadata-value">{{ doc.author ?? '—' }}</div>
+    </div>
 
-            <div class="contents-view-metadata-item" *ngIf="doc.institution">
-              <div class="contents-view-metadata-label">INSTITUIÇÃO</div>
-              <div class="contents-view-metadata-value">{{ doc.institution }}</div>
-            </div>
+    <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.institution">
+      <div class="contents-view-metadata-label">INSTITUIÇÃO</div>
+      <div class="contents-view-metadata-value">{{ doc.institution }}</div>
+    </div>
 
-            <div class="contents-view-metadata-item">
-              <div class="contents-view-metadata-label">DATA DE EMISSÃO</div>
-              <div class="contents-view-metadata-value">{{ formatDate(doc.publication_date) }}</div>
-            </div>
+    <div class="contents-view-metadata-item">
+      <div class="contents-view-metadata-label">DATA DE EMISSÃO</div>
+      <div class="contents-view-metadata-value">{{ formatDate(doc.publication_date) }}</div>
+    </div>
 
-            <div class="contents-view-metadata-item" *ngIf="doc.period_start">
-              <div class="contents-view-metadata-label">PERÍODO HISTÓRICO</div>
-              <div class="contents-view-metadata-value">
-                {{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}
-              </div>
-            </div>
+    <div class="contents-view-metadata-item" *ngIf="doc.period_start">
+      <div class="contents-view-metadata-label">PERÍODO HISTÓRICO</div>
+      <div class="contents-view-metadata-value">
+        {{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}
+      </div>
+    </div>
 
-            <div class="contents-view-metadata-item">
-              <div class="contents-view-metadata-label">TIPO DE DOCUMENTO</div>
-              <div class="contents-view-metadata-value">{{ doc.document_type ?? '—' }}</div>
-            </div>
+    <div class="contents-view-metadata-item">
+      <div class="contents-view-metadata-label">TIPO DE DOCUMENTO</div>
+      <div class="contents-view-metadata-value">{{ doc.document_type ?? '—' }}</div>
+    </div>
 
-            <div class="contents-view-metadata-item" *ngIf="doc.record_type">
-              <div class="contents-view-metadata-label">TIPO DE REGISTO</div>
-              <div class="contents-view-metadata-value">{{ doc.record_type }}</div>
-            </div>
+    <div class="contents-view-metadata-item" *ngIf="doc.record_type">
+      <div class="contents-view-metadata-label">TIPO DE REGISTO</div>
+      <div class="contents-view-metadata-value">{{ doc.record_type }}</div>
+    </div>
 
-            <div class="contents-view-metadata-item">
-              <div class="contents-view-metadata-label">NÍVEL ACADÉMICO</div>
-              <div class="contents-view-metadata-value">{{ getAcademicLevelLabel() }}</div>
-            </div>
+    <div class="contents-view-metadata-item">
+      <div class="contents-view-metadata-label">NÍVEL ACADÉMICO</div>
+      <div class="contents-view-metadata-value">{{ getAcademicLevelLabel() }}</div>
+    </div>
 
-            <div class="contents-view-metadata-item">
-              <div class="contents-view-metadata-label">NÍVEL DE ACESSO</div>
-              <div class="contents-view-metadata-value">{{ doc.access_level_id ?? '—' }}</div>
-            </div>
+    <div class="contents-view-metadata-item">
+      <div class="contents-view-metadata-label">NÍVEL DE ACESSO</div>
+      <div class="contents-view-metadata-value">{{ doc.access_level_id ?? '—' }}</div>
+    </div>
 
-            <div class="contents-view-metadata-item" *ngIf="doc.physical_location">
-              <div class="contents-view-metadata-label">LOCALIZAÇÃO FÍSICA</div>
-              <div class="contents-view-metadata-value">{{ doc.physical_location }}</div>
-            </div>
+    <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.physical_location">
+      <div class="contents-view-metadata-label">LOCALIZAÇÃO FÍSICA</div>
+      <div class="contents-view-metadata-value">{{ doc.physical_location }}</div>
+    </div>
 
-            <div class="contents-view-metadata-item" *ngIf="doc.unique_id">
-              <div class="contents-view-metadata-label">ID ÚNICO</div>
-              <div class="contents-view-metadata-value" style="font-family:monospace">{{ doc.unique_id }}</div>
-            </div>
+    <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.unique_id">
+      <div class="contents-view-metadata-label">ID ÚNICO</div>
+      <div class="contents-view-metadata-value" style="font-family:monospace">{{ doc.unique_id }}</div>
+    </div>
 
-            <div class="contents-view-metadata-item">
-              <div class="contents-view-metadata-label">GOSTOS</div>
-              <div class="contents-view-metadata-value">{{ doc.likes_count }}</div>
-            </div>
+  </div>
 
-            <div class="contents-view-metadata-item">
-              <div class="contents-view-metadata-label">TRANSFERÊNCIAS</div>
-              <div class="contents-view-metadata-value">{{ doc.downloads_count }}</div>
-            </div>
-
-            <div class="contents-view-metadata-item">
-              <div class="contents-view-metadata-label">VISUALIZAÇÕES</div>
-              <div class="contents-view-metadata-value">{{ doc.views_count }}</div>
-            </div>
-
-          </div>
-        </div>
+  <div class="contents-view-metadata-stats">
+    <div class="contents-view-metadata-stat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 17.83 12H14V6a2 2 0 0 0-2-2l-3 7H2Z"></path>
+      </svg>
+      <span>{{ doc.likes_count }}</span>
+    </div>
+    <div class="contents-view-metadata-stat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12"></path>
+        <path d="m7 10 5 5 5-5"></path>
+        <path d="M5 21h14"></path>
+      </svg>
+      <span>{{ doc.downloads_count }}</span>
+    </div>
+    <div class="contents-view-metadata-stat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+      <span>{{ doc.views_count }}</span>
+    </div>
+  </div>
+</div>
       </div>
     </div>
   </div>

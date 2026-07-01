@@ -154,6 +154,58 @@ export class CommunityService {
     return this.simpleMutation(`${this.base}/replies/${id}`, 'delete', 'Erro ao eliminar resposta');
   }
 
+  updateTopic(id: string, payload: {
+  title?: string;
+  content?: string;
+  visibility?: TopicVisibility;
+  members?: { user_id: string; role: string }[];
+}): Observable<ApiResult<DiscussionTopic>> {
+  return this.http.patch<ApiEnvelope<DiscussionTopic>>(`${this.base}/topics/${id}`, payload, {
+    observe: 'response',
+    headers: this.headers,
+  }).pipe(
+    timeout({ first: 15000 }),
+    map((response) => ({
+      ok: response.status >= 200 && response.status < 300,
+      status: response.status,
+      message: response.body?.message,
+      data: response.body?.data ? this.normalizeTopic(response.body.data) : undefined,
+    })),
+    catchError((error: unknown) => of(this.toFailureResult<DiscussionTopic>(error, 'Erro ao atualizar tópico')))
+  );
+}
+
+updateReply(id: string, payload: { content: string }): Observable<ApiResult<TopicReply>> {
+  return this.http.patch<ApiEnvelope<TopicReply>>(`${this.base}/replies/${id}`, payload, {
+    observe: 'response',
+    headers: this.headers,
+  }).pipe(
+    timeout({ first: 15000 }),
+    map((response) => ({
+      ok: response.status >= 200 && response.status < 300,
+      status: response.status,
+      message: response.body?.message,
+      data: response.body?.data,
+    })),
+    catchError((error: unknown) => of(this.toFailureResult<TopicReply>(error, 'Erro ao atualizar resposta')))
+  );
+}
+
+getTopicMembers(topicId: string): Observable<ApiResult<{ user_id: string; role: string; user?: { id: string; display_name: string | null } }[]>> {
+  return this.http.get<ApiEnvelope<{ user_id: string; role: string; user?: { id: string; display_name: string | null } }[]>>(
+    `${this.base}/topics/${topicId}/members`,
+    { observe: 'response', headers: this.headers }
+  ).pipe(
+    timeout({ first: 15000 }),
+    map((response) => ({
+      ok: response.status >= 200 && response.status < 300,
+      status: response.status,
+      data: response.body?.data ?? [],
+    })),
+    catchError((error: unknown) => of(this.toFailureResult<{ user_id: string; role: string; user?: { id: string; display_name: string | null } }[]>(error, 'Erro ao carregar membros')))
+  );
+}
+
   private simpleMutation(url: string, method: 'post' | 'delete', fallbackMessage: string): Observable<ApiResult<null>> {
     const request = method === 'post'
       ? this.http.post<ApiEnvelope<null>>(url, {}, { observe: 'response', headers: this.headers })

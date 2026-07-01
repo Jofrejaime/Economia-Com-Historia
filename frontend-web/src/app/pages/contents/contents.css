@@ -723,3 +723,39 @@ p, span, div, button, input {
     font-size: 20px;
   }
 }
+
+.contents-doc-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contents-doc-item-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+  color: #9CA3AF;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+  transition: all 0.2s ease;
+}
+
+.contents-doc-item-action-btn:hover {
+  background: rgba(139, 30, 45, 0.08);
+  color: #8B1E2D;
+}
+
+.contents-doc-item-action-btn.active {
+  color: #8B1E2D;
+}
+
+.contents-doc-item-action-btn svg {
+  display: block;
+  flex-shrink: 0;
+}
