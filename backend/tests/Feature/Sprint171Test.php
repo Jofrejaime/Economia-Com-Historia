@@ -606,7 +606,7 @@ class Sprint171Test extends TestCase
         $this->assertDatabaseCount('quiz_documents', 2);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->deleteJson("/api/quizzes/{$quizId}")
+            ->deleteJson("/api/admin/quizzes/{$quizId}")
             ->assertOk();
 
         $this->assertDatabaseCount('quiz_documents', 0);

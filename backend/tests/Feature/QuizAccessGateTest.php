@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\QuizStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -54,7 +55,7 @@ class QuizAccessGateTest extends TestCase
             'base_points' => 100,
             'time_limit_secs' => 600,
             'access_level_id' => $accessLevelId,
-            'status' => 'published',
+            'status' => QuizStatus::PUBLISHED->value,
             'created_by' => $authorId,
             'published_at' => now(),
             'created_at' => now(),

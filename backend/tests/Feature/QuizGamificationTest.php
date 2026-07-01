@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\QuizStatus;
 use App\Models\User;
 use App\Support\PointTransactionReason;
 use Database\Seeders\BadgesSeeder;
@@ -168,7 +169,7 @@ class QuizGamificationTest extends TestCase
             'base_points' => 100,
             'time_limit_secs' => 600,
             'access_level_id' => 'public',
-            'status' => 'published',
+            'status' => QuizStatus::PUBLISHED->value,
             'created_by' => $createdBy,
             'published_at' => now(),
             'created_at' => now(),

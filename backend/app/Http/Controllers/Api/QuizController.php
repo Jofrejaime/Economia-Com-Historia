@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
+use App\Models\Quiz;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Services\AccessGateService;
 use App\Services\GamificationService;
@@ -28,7 +30,7 @@ class QuizController extends Controller
         $perPage = min((int) ($request->input('per_page', 20)), 50);
         $page = max((int) ($request->input('page', 1)), 1);
 
-        $query = DB::table('quizzes')->where('status', 'published');
+        $query = Quiz::published()->getQuery();
         $this->accessGate->applyDocumentVisibilityFilter($query, $request->user(), 'quizzes');
 
         if ($request->filled('difficulty')) {
@@ -73,7 +75,7 @@ class QuizController extends Controller
             'time_limit_secs' => ['nullable', 'integer', 'min:0'],
             'access_level_id' => ['nullable', 'string', 'exists:access_levels,id'],
             'is_featured' => ['nullable', 'boolean'],
-            'status' => ['nullable', 'string', 'in:published,draft'],
+            'status' => ['nullable', \Illuminate\Validation\Rule::enum(\App\Enums\QuizStatus::class)],
             'category_id' => ['nullable', 'uuid', 'exists:document_categories,id'],
             'questions' => ['nullable', 'array'],
             'questions.*.id' => ['nullable', 'uuid'],
@@ -186,7 +188,7 @@ class QuizController extends Controller
             'time_limit_secs' => ['nullable', 'integer', 'min:0'],
             'access_level_id' => ['nullable', 'string', 'exists:access_levels,id'],
             'is_featured' => ['nullable', 'boolean'],
-            'status' => ['nullable', 'string', 'in:published,draft'],
+            'status' => ['nullable', \Illuminate\Validation\Rule::enum(\App\Enums\QuizStatus::class)],
             'category_id' => ['nullable', 'uuid', 'exists:document_categories,id'],
             'questions' => ['nullable', 'array'],
             'questions.*.id' => ['nullable', 'uuid'],
@@ -284,19 +286,12 @@ class QuizController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
-        $quiz = DB::table('quizzes')->where('id', $id)->first();
+        $quiz = Quiz::find($id);
         if ($quiz === null) {
             abort(404, 'Quiz not found.');
         }
 
-        DB::transaction(function () use ($id) {
-            $attemptIds = DB::table('quiz_attempts')->where('quiz_id', $id)->pluck('id');
-            DB::table('quiz_attempt_answers')->whereIn('attempt_id', $attemptIds)->delete();
-            DB::table('quiz_attempts')->where('quiz_id', $id)->delete();
-            DB::table('quiz_questions')->where('quiz_id', $id)->delete();
-            DB::table('quiz_documents')->where('quiz_id', $id)->delete();
-            DB::table('quizzes')->where('id', $id)->delete();
-        });
+        $quiz->delete();
 
         return response()->json(['message' => 'Quiz deleted successfully.']);
     }
@@ -372,7 +367,7 @@ class QuizController extends Controller
 
     public function showAttempt(string $id, Request $request): JsonResponse
     {
-        $attempt = DB::table('quiz_attempts')->where('id', $id)->first();
+        $attempt = QuizAttempt::find($id);
 
         if ($attempt === null || $attempt->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Attempt not found.'], 404);
@@ -470,8 +465,7 @@ class QuizController extends Controller
         $perPage = (int) ($validated['per_page'] ?? 20);
         $page    = (int) ($validated['page'] ?? 1);
 
-        $query = DB::table('quiz_attempts')
-            ->where('user_id', $request->user()->id);
+        $query = QuizAttempt::where('user_id', $request->user()->id);
 
         if (! empty($validated['status'])) {
             $query->where('status', $validated['status']);

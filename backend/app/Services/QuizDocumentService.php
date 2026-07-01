@@ -84,7 +84,7 @@ class QuizDocumentService
         $column = self::QUIZ_SORT_MAP[$options['sort_by'] ?? ''] ?? 'quiz_documents.sort_order';
 
         $paginator = $document->quizzes()
-            ->where('quizzes.status', 'published')
+            ->published()
             ->orderBy($column, $dir)
             ->paginate($perPage, ['quizzes.*'], 'page', $page);
 

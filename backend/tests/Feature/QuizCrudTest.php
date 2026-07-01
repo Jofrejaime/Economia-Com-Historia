@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\QuizStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,7 @@ class QuizCrudTest extends TestCase
             'base_points' => 150,
             'time_limit_secs' => 300,
             'access_level_id' => 'public',
-            'status' => 'published',
+            'status' => QuizStatus::PUBLISHED->value,
             'questions' => [
                 [
                     'question_order' => 1,
@@ -71,7 +72,7 @@ class QuizCrudTest extends TestCase
         ];
 
         $response = $this->withHeader('Authorization', "Bearer {$token}")
-            ->postJson('/api/quizzes', $payload);
+            ->postJson('/api/admin/quizzes', $payload);
 
         $response->assertStatus(201);
         $quizId = $response->json('data.id');
@@ -106,7 +107,7 @@ class QuizCrudTest extends TestCase
         ];
 
         $this->withHeader('Authorization', "Bearer {$token}")
-            ->postJson('/api/quizzes', $payload)
+            ->postJson('/api/admin/quizzes', $payload)
             ->assertStatus(403);
     }
 
@@ -215,7 +216,7 @@ class QuizCrudTest extends TestCase
         ];
 
         $response = $this->withHeader('Authorization', "Bearer {$token}")
-            ->patchJson("/api/quizzes/{$quizId}", $payload);
+            ->patchJson("/api/admin/quizzes/{$quizId}", $payload);
 
         $response->assertStatus(200);
 
@@ -257,7 +258,7 @@ class QuizCrudTest extends TestCase
         ]);
 
         $this->withHeader('Authorization', "Bearer {$token}")
-            ->deleteJson("/api/quizzes/{$quizId}")
+            ->deleteJson("/api/admin/quizzes/{$quizId}")
             ->assertStatus(200);
 
         $this->assertDatabaseMissing('quizzes', ['id' => $quizId]);

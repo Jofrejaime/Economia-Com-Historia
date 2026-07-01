@@ -11,10 +11,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Services\GamificationService;
 use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        private readonly GamificationService $gamification,
+    ) {}
     /**
      * @OA\Get(
      *      path="/profile",
@@ -42,15 +46,43 @@ class ProfileController extends Controller
      */
     public function show(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
-        $profile = DB::table('user_profiles')->where('user_id', $userId)->first();
+        $user = $request->user();
+        $this->gamification->reconcileUserPoints($user);
+
+        $profile = DB::table('user_profiles')->where('user_id', $user->id)->first();
 
         if (! $profile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
+        $userLevel = DB::table('user_levels')->where('user_id', $user->id)->first();
+        $levelDefinition = null;
+        if ($userLevel) {
+            $levelDefinition = DB::table('level_definitions')
+                ->where('level', $userLevel->current_level)
+                ->first();
+        }
+
+        $badges = DB::table('user_badges as ub')
+            ->join('badges as b', 'ub.badge_id', '=', 'b.id')
+            ->where('ub.user_id', $user->id)
+            ->select(
+                'b.id',
+                'b.name',
+                'b.description',
+                'b.icon_url',
+                'b.color_hex',
+                'b.category',
+                'ub.earned_at'
+            )
+            ->orderByDesc('ub.earned_at')
+            ->get();
+
         return response()->json([
             'profile' => ProfilePresenter::presentProfile($profile),
+            'user_level' => $userLevel,
+            'level_definition' => $levelDefinition,
+            'badges' => $badges,
         ]);
     }
 
@@ -132,9 +164,38 @@ class ProfileController extends Controller
 
         $updated = DB::table('user_profiles')->where('user_id', $userId)->first();
 
+        $user = $request->user();
+        $this->gamification->reconcileUserPoints($user);
+
+        $userLevel = DB::table('user_levels')->where('user_id', $user->id)->first();
+        $levelDefinition = null;
+        if ($userLevel) {
+            $levelDefinition = DB::table('level_definitions')
+                ->where('level', $userLevel->current_level)
+                ->first();
+        }
+
+        $badges = DB::table('user_badges as ub')
+            ->join('badges as b', 'ub.badge_id', '=', 'b.id')
+            ->where('ub.user_id', $user->id)
+            ->select(
+                'b.id',
+                'b.name',
+                'b.description',
+                'b.icon_url',
+                'b.color_hex',
+                'b.category',
+                'ub.earned_at'
+            )
+            ->orderByDesc('ub.earned_at')
+            ->get();
+
         return response()->json([
             'message' => 'Profile updated successfully.',
             'profile' => ProfilePresenter::presentProfile($updated),
+            'user_level' => $userLevel,
+            'level_definition' => $levelDefinition,
+            'badges' => $badges,
         ]);
     }
 

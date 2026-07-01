@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\QuizAttemptStatus;
+use App\Models\Quiz;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,7 +18,7 @@ class QuizAttemptService
 
     public function startAttempt(string $quizId, User $user): string
     {
-        $quiz = DB::table('quizzes')->where('id', $quizId)->first();
+        $quiz = Quiz::find($quizId);
         if ($quiz === null) {
             abort(404, 'Quiz not found.');
         }
@@ -24,14 +27,13 @@ class QuizAttemptService
             abort(403, 'Access denied.');
         }
 
-        if ($quiz->status !== 'published' && $user->role !== 'admin' && $quiz->created_by !== $user->id) {
+        if (!$quiz->isPublished() && $user->role !== 'admin' && $quiz->created_by !== $user->id) {
             abort(403, 'Quiz is not published.');
         }
 
-        $activeAttempt = DB::table('quiz_attempts')
-            ->where('quiz_id', $quizId)
+        $activeAttempt = QuizAttempt::where('quiz_id', $quizId)
             ->where('user_id', $user->id)
-            ->where('status', 'in_progress')
+            ->inProgress()
             ->first();
 
         if ($activeAttempt !== null) {
@@ -40,16 +42,16 @@ class QuizAttemptService
 
         $attemptId = (string) Str::uuid();
 
-        DB::transaction(function () use ($attemptId, $quizId, $user) {
-            DB::table('quiz_attempts')->insert([
-                'id' => $attemptId,
-                'quiz_id' => $quizId,
-                'user_id' => $user->id,
-                'status' => 'in_progress',
-                'started_at' => now(),
-            ]);
+        DB::transaction(function () use ($attemptId, $quiz, $user) {
+            $attempt = new QuizAttempt();
+            $attempt->id = $attemptId;
+            $attempt->quiz_id = $quiz->id;
+            $attempt->user_id = $user->id;
+            $attempt->status = QuizAttemptStatus::IN_PROGRESS;
+            $attempt->started_at = now();
+            $attempt->save();
 
-            DB::table('quizzes')->where('id', $quizId)->increment('attempts_count');
+            $quiz->increment('attempts_count');
         });
 
         return $attemptId;
@@ -62,17 +64,17 @@ class QuizAttemptService
         ?int $timeSpentSecs,
         User $user
     ): array {
-        $attempt = DB::table('quiz_attempts')->where('id', $attemptId)->first();
+        $attempt = QuizAttempt::find($attemptId);
 
         if ($attempt === null || $attempt->user_id !== $user->id) {
             abort(404, 'Attempt not found.');
         }
 
-        if ($attempt->status !== 'in_progress') {
+        if (!$attempt->isInProgress()) {
             abort(409, 'Attempt is not in progress.');
         }
 
-        $quiz = DB::table('quizzes')->where('id', $attempt->quiz_id)->first();
+        $quiz = Quiz::find($attempt->quiz_id);
         if ($quiz === null) {
             abort(404, 'Quiz not found.');
         }
@@ -107,23 +109,23 @@ class QuizAttemptService
 
         $payload = [
             'selected_option_id' => $option->id,
-            'is_correct' => $isCorrect,
-            'time_spent_secs' => $timeSpentSecs,
-            'answered_at' => now(),
+            'is_correct'         => $isCorrect,
+            'time_spent_secs'    => $timeSpentSecs,
+            'answered_at'        => now(),
         ];
 
         if ($existing !== null) {
             DB::table('quiz_attempt_answers')->where('id', $existing->id)->update($payload);
         } else {
             DB::table('quiz_attempt_answers')->insert(array_merge($payload, [
-                'id' => (string) Str::uuid(),
-                'attempt_id' => $attemptId,
+                'id'          => (string) Str::uuid(),
+                'attempt_id'  => $attemptId,
                 'question_id' => $question->id,
             ]));
         }
 
         return [
-            'is_correct' => $isCorrect,
+            'is_correct'  => $isCorrect,
             'explanation' => $option->explanation ?? null,
         ];
     }
@@ -131,17 +133,11 @@ class QuizAttemptService
     public function completeAttempt(string $attemptId, ?int $timeSpentSecs, User $user): array
     {
         return DB::transaction(function () use ($attemptId, $timeSpentSecs, $user) {
-            $attempt = DB::table('quiz_attempts')->where('id', $attemptId)->first();
+            $attempt = QuizAttempt::find($attemptId);
 
-            if ($attempt === null || $attempt->user_id !== $user->id) {
-                abort(404, 'Attempt not found.');
-            }
+            $this->validateAttempt($attempt, $user);
 
-            if ($attempt->status !== 'in_progress') {
-                abort(409, 'Attempt is not in progress.');
-            }
-
-            $quiz = DB::table('quizzes')->where('id', $attempt->quiz_id)->first();
+            $quiz = Quiz::find($attempt->quiz_id);
             if ($quiz === null) {
                 abort(404, 'Quiz not found.');
             }
@@ -160,49 +156,62 @@ class QuizAttemptService
             $timeSpent = $timeSpentSecs
                 ?? (int) $answers->sum(fn ($answer) => (int) ($answer->time_spent_secs ?? 0));
 
-            $score = $totalQuestions > 0
-                ? (int) round(($correctAnswers / $totalQuestions) * 100)
-                : 0;
+            $score = $this->calculateScore($correctAnswers, $totalQuestions);
 
-            DB::table('quiz_attempts')->where('id', $attemptId)->update([
-                'status' => 'completed',
-                'score' => $score,
-                'correct_answers' => $correctAnswers,
-                'total_questions' => $totalQuestions,
-                'time_spent_secs' => $timeSpent,
-                'completed_at' => now(),
+            $attempt->update([
+                'status'             => QuizAttemptStatus::COMPLETED,
+                'score'              => $score,
+                'correct_answers'    => $correctAnswers,
+                'total_questions'    => $totalQuestions,
+                'time_spent_secs'    => $timeSpent,
+                'completed_at'       => now(),
                 'performance_rating' => $this->performanceRating($score),
             ]);
 
-            // Increment completions_count
-            DB::table('quizzes')->where('id', $attempt->quiz_id)->increment('completions_count');
+            $this->updateStatistics($quiz, $attempt);
 
-            // Calculate and update avg_score
-            $avgScore = DB::table('quiz_attempts')
-                ->where('quiz_id', $attempt->quiz_id)
-                ->where('status', 'completed')
-                ->avg('score');
+            $gamificationResult = $this->gamification->recordQuizCompletion($user, $attempt);
 
-            DB::table('quizzes')->where('id', $attempt->quiz_id)->update([
-                'avg_score' => $avgScore ?? 0.00
-            ]);
-
-            $gamificationResult = $this->gamification->recordQuizCompletion(
-                $user,
-                $attemptId,
-                $attempt->quiz_id,
-                $correctAnswers,
-                $totalQuestions,
-                $timeSpent
-            );
-
-            $updatedAttempt = DB::table('quiz_attempts')->where('id', $attemptId)->first();
+            $attempt->refresh();
 
             return [
-                'attempt' => $updatedAttempt,
+                'attempt'      => $attempt,
                 'gamification' => $gamificationResult,
             ];
         });
+    }
+
+    private function validateAttempt(?QuizAttempt $attempt, User $user): void
+    {
+        if ($attempt === null || $attempt->user_id !== $user->id) {
+            abort(404, 'Attempt not found.');
+        }
+
+        if (!$attempt->isInProgress()) {
+            abort(409, 'Attempt is not in progress.');
+        }
+    }
+
+    private function calculateScore(int $correctAnswers, int $totalQuestions): int
+    {
+        return $totalQuestions > 0
+            ? (int) round(($correctAnswers / $totalQuestions) * 100)
+            : 0;
+    }
+
+    private function updateStatistics(Quiz $quiz, QuizAttempt $attempt): void
+    {
+        // Increment completions_count
+        $quiz->increment('completions_count');
+
+        // Calculate and update avg_score
+        $avgScore = QuizAttempt::where('quiz_id', $attempt->quiz_id)
+            ->completed()
+            ->avg('score');
+
+        $quiz->update([
+            'avg_score' => $avgScore ?? 0.00
+        ]);
     }
 
     private function performanceRating(int $scorePercent): string
@@ -211,7 +220,7 @@ class QuizAttemptService
             $scorePercent >= 90 => 'excellent',
             $scorePercent >= 70 => 'good',
             $scorePercent >= 50 => 'fair',
-            default => 'needs_improvement',
+            default             => 'needs_improvement',
         };
     }
 }

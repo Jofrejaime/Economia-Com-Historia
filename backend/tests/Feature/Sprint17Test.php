@@ -317,7 +317,7 @@ class Sprint17Test extends TestCase
         $doc2Id     = $this->seedDocument($categoryId);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson('/api/quizzes', [
+            ->postJson('/api/admin/quizzes', [
                 'title'           => 'Quiz com Documentos',
                 'difficulty'      => 'Básico',
                 'access_level_id' => 'public',
@@ -342,7 +342,7 @@ class Sprint17Test extends TestCase
         $categoryId = $this->seedCategory();
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson('/api/quizzes', [
+            ->postJson('/api/admin/quizzes', [
                 'title'           => 'Quiz Standalone',
                 'difficulty'      => 'Básico',
                 'access_level_id' => 'public',
@@ -370,7 +370,7 @@ class Sprint17Test extends TestCase
         $this->linkQuizDocument($quizId, $doc2Id, 1);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->patchJson("/api/quizzes/{$quizId}", [
+            ->patchJson("/api/admin/quizzes/{$quizId}", [
                 'title'     => 'Quiz Actualizado',
                 'documents' => [$doc3Id],
             ])
@@ -393,7 +393,7 @@ class Sprint17Test extends TestCase
         $this->linkQuizDocument($quizId, $doc1Id, 0);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->patchJson("/api/quizzes/{$quizId}", [
+            ->patchJson("/api/admin/quizzes/{$quizId}", [
                 'title' => 'Só titulo actualizado',
             ])
             ->assertOk();
@@ -416,7 +416,7 @@ class Sprint17Test extends TestCase
         $doc2Id     = $this->seedDocument($categoryId);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson("/api/quizzes/{$quizId}/documents", [
+            ->postJson("/api/admin/quizzes/{$quizId}/documents", [
                 'documents' => [$doc1Id, $doc2Id],
             ]);
 
@@ -439,7 +439,7 @@ class Sprint17Test extends TestCase
         $this->linkQuizDocument($quizId, $oldDocId, 0);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson("/api/quizzes/{$quizId}/documents", [
+            ->postJson("/api/admin/quizzes/{$quizId}/documents", [
                 'documents' => [$newDocId],
             ])
             ->assertOk();
@@ -461,7 +461,7 @@ class Sprint17Test extends TestCase
         $this->linkQuizDocument($quizId, $docId, 0);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson("/api/quizzes/{$quizId}/documents", ['documents' => []])
+            ->postJson("/api/admin/quizzes/{$quizId}/documents", ['documents' => []])
             ->assertOk()
             ->assertJsonPath('count', 0);
 
@@ -479,7 +479,7 @@ class Sprint17Test extends TestCase
         $docId      = $this->seedDocument($categoryId);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson("/api/quizzes/{$quizId}/documents", ['documents' => [$docId]])
+            ->postJson("/api/admin/quizzes/{$quizId}/documents", ['documents' => [$docId]])
             ->assertStatus(403);
     }
 
@@ -499,7 +499,7 @@ class Sprint17Test extends TestCase
         $this->linkQuizDocument($quizId, $doc2Id, 1);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->deleteJson("/api/quizzes/{$quizId}/documents/{$doc1Id}")
+            ->deleteJson("/api/admin/quizzes/{$quizId}/documents/{$doc1Id}")
             ->assertOk();
 
         $this->assertDatabaseCount('quiz_documents', 1);
@@ -517,7 +517,7 @@ class Sprint17Test extends TestCase
         $docId     = $this->seedDocument($categoryId);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->deleteJson("/api/quizzes/{$quizId}/documents/{$docId}")
+            ->deleteJson("/api/admin/quizzes/{$quizId}/documents/{$docId}")
             ->assertNotFound();
     }
 
@@ -536,7 +536,7 @@ class Sprint17Test extends TestCase
         $this->assertDatabaseCount('quiz_documents', 1);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->deleteJson("/api/quizzes/{$quizId}")
+            ->deleteJson("/api/admin/quizzes/{$quizId}")
             ->assertOk();
 
         $this->assertDatabaseCount('quiz_documents', 0);
@@ -592,7 +592,7 @@ class Sprint17Test extends TestCase
         $docId      = $this->seedDocument($categoryId);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson("/api/quizzes/{$quizId}/documents", ['documents' => [$docId]])
+            ->postJson("/api/admin/quizzes/{$quizId}/documents", ['documents' => [$docId]])
             ->assertForbidden();
     }
 }
