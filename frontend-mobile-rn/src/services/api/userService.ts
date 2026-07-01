@@ -19,9 +19,9 @@ export const userService = {
   },
 
   async updateAvatar(formData: FormData): Promise<{ avatar_url: string }> {
-    const { data } = await httpClient.post(API_ENDPOINTS.PROFILE.UPDATE_AVATAR, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // Do NOT set Content-Type manually — Axios + React Native XHR sets multipart/form-data
+    // with the correct boundary automatically. An explicit header without boundary causes 422.
+    const { data } = await httpClient.post(API_ENDPOINTS.PROFILE.UPDATE_AVATAR, formData);
     return data.data ?? data;
   },
 

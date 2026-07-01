@@ -41,7 +41,7 @@ export function QuizFeedbackScreen() {
             <Ionicons
               name={isCorrect ? "checkmark-circle" : "close-circle"}
               size={36}
-              color={isCorrect ? "#003A32" : appTheme.colors.primary}
+              color={isCorrect ? appTheme.colors.success : appTheme.colors.primary}
             />
           </View>
 
@@ -57,7 +57,7 @@ export function QuizFeedbackScreen() {
         <View style={[styles.card, isCorrect ? styles.cardCorrect : styles.cardIncorrect]}>
           <View style={styles.cardBody}>
             <View style={styles.cardTitleRow}>
-              <Feather name={isCorrect ? "check" : "info"} size={14} color={isCorrect ? "#047857" : appTheme.colors.primary} />
+              <Feather name={isCorrect ? "check" : "info"} size={14} color={isCorrect ? appTheme.colors.success : appTheme.colors.primary} />
               <Text style={[styles.cardTitle, isCorrect ? styles.cardTitleCorrect : styles.cardTitleIncorrect]}>
                 {isCorrect ? "Explicação" : "Resposta Correta"}
               </Text>
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconWrapCorrect: {
-    backgroundColor: "#90D3C5",
+    backgroundColor: appTheme.colors.successLight,
   },
   iconWrapIncorrect: {
     backgroundColor: "#FCA5A5",
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   feedbackLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#003A32",
+    color: appTheme.colors.success,
     letterSpacing: 2.2,
     textTransform: "uppercase",
     marginBottom: 2,
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardCorrect: {
-    borderLeftColor: "#047857",
+    borderLeftColor: appTheme.colors.success,
   },
   cardIncorrect: {
     borderLeftColor: appTheme.colors.primaryDark,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   cardTitleCorrect: {
-    color: "#047857",
+    color: appTheme.colors.success,
   },
   cardTitleIncorrect: {
     color: appTheme.colors.primaryDark,
@@ -201,8 +201,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   nextBtnCorrect: {
-    backgroundColor: "#047857",
-    shadowColor: "#047857",
+    backgroundColor: appTheme.colors.success,
+    shadowColor: appTheme.colors.success,
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 4,

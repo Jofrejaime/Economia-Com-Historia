@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   // Jindungo cards
   jindungoCard: {
     borderRadius: 12,
-    backgroundColor: "#1A0A0A",
+    backgroundColor: appTheme.colors.jindungoCardBg,
     marginBottom: 12,
     overflow: "hidden",
     borderWidth: 1,

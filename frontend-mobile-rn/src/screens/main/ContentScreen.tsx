@@ -350,13 +350,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: appTheme.colors.surface,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     paddingHorizontal: 12,
     height: 44,
   },
   searchIcon: { marginRight: 8 },
   searchInput: {
     flex: 1,
+    fontFamily: "Source_Sans_3",
     fontSize: 15,
     color: appTheme.colors.textPrimary,
     // @ts-ignore
@@ -368,7 +369,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     backgroundColor: appTheme.colors.surface,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
@@ -378,6 +379,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.primary,
   },
   filterButtonText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     fontWeight: "600",
@@ -394,6 +396,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   filterBadgeText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -410,6 +413,7 @@ const styles = StyleSheet.create({
     borderBottomColor: appTheme.colors.border,
   },
   filterLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     fontWeight: "700",
     color: appTheme.colors.textSecondary,
@@ -429,13 +433,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
   },
   chipActive: {
     backgroundColor: appTheme.colors.primary,
     borderColor: appTheme.colors.primary,
   },
   chipText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
     color: appTheme.colors.textSecondary,
     fontWeight: "500",
@@ -445,13 +450,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   resultsCount: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
     color: appTheme.colors.textMuted,
     marginTop: 12,
     marginBottom: 8,
   },
   card: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -473,6 +479,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   cardCategory: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     fontWeight: "600",
     color: appTheme.colors.primary,
@@ -483,6 +490,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   accessBadgeText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     fontWeight: "700",
   },
@@ -495,6 +503,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
   },
   cardSummary: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     lineHeight: 20,
@@ -507,6 +516,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardAuthor: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
     color: appTheme.colors.textSecondary,
     fontWeight: "600",
@@ -518,6 +528,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   cardStatText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
     color: appTheme.colors.textMuted,
   },
@@ -529,10 +540,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   cardDate: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     color: appTheme.colors.textMuted,
   },
   cardTypeLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     color: appTheme.colors.textMuted,
     fontWeight: "500",
@@ -550,6 +563,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
   },
   emptyStateText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textMuted,
     textAlign: "center",
@@ -567,6 +581,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.primary,
   },
   clearFiltersText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.primary,
     fontWeight: "600",
