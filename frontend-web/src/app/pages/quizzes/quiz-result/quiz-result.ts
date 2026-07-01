@@ -16,6 +16,7 @@ export class QuizResultComponent implements OnInit {
 
   attempt: QuizAttempt | null = null;
   error: string | null = null;
+  isLoadingNext = false;
 
   constructor(
     private router: Router,
@@ -48,7 +49,21 @@ export class QuizResultComponent implements OnInit {
   }
 
   get performance(): string {
-    return this.attempt?.performance_rating ?? '—';
+    switch (this.attempt?.performance_rating) {
+      case 'excellent':          return 'Excelente';
+      case 'good':                return 'Bom';
+      case 'average':             return 'Satisfatório';
+      case 'needs_improvement':   return 'Precisa de Melhorar';
+      case 'poor':                 return 'Insuficiente';
+      default:                     return this.performanceFromScore();
+    }
+  }
+
+  private performanceFromScore(): string {
+    if (this.score >= 90) return 'Excelente';
+    if (this.score >= 70) return 'Bom';
+    if (this.score >= 50) return 'Satisfatório';
+    return 'Precisa de Melhorar';
   }
 
   get pointsEarned(): number {
@@ -78,8 +93,36 @@ export class QuizResultComponent implements OnInit {
     this.router.navigate(['/quiz']);
   }
 
-  nextQuiz(): void {
-    this.router.navigate(['/quiz/pergunta']);
+  async nextQuiz(): Promise<void> {
+    if (this.isLoadingNext || !this.attempt) return;
+
+    this.isLoadingNext = true;
+    this.cdr.detectChanges();
+
+    try {
+      const quizzes = await this.quizService.getQuizzes();
+
+      if (quizzes.length === 0) {
+        this.router.navigate(['/quiz']);
+        return;
+      }
+
+      const currentIndex = quizzes.findIndex(q => q.id === this.attempt!.quiz_id);
+      const nextIndex = currentIndex === -1 || currentIndex === quizzes.length - 1
+        ? 0
+        : currentIndex + 1;
+      const nextQuiz = quizzes[nextIndex];
+
+      const newAttemptId = await this.quizService.startAttempt(nextQuiz.id);
+
+      this.router.navigate(['/quiz/pergunta'], {
+        queryParams: { quiz: nextQuiz.id, attempt: newAttemptId }
+      });
+    } catch {
+      alert('Erro ao iniciar o próximo quiz.');
+      this.isLoadingNext = false;
+      this.cdr.detectChanges();
+    }
   }
 
   goToRanking(): void {

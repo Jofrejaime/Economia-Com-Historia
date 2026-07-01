@@ -112,9 +112,9 @@
           <button (click)="goToQuizList()" class="btn-secondary">
             ← Voltar aos Quizzes
           </button>
-          <button (click)="nextQuiz()" class="btn-primary">
-            Próximo Quizz →
-          </button>
+          <button (click)="nextQuiz()" class="btn-primary" [disabled]="isLoadingNext">
+  {{ isLoadingNext ? 'A carregar...' : 'Próximo Quizz →' }}
+</button>
           <button (click)="goToRanking()" class="btn-primary">
             Ir para o Ranking
           </button>

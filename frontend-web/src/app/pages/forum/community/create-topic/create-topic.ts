@@ -97,7 +97,6 @@ export class CreateTopicComponent implements OnInit {
   get visibilityLabel(): string {
     switch (this.visibility) {
       case 'PUBLIC':      return 'Público: qualquer utilizador pode ver o tópico';
-      case 'CATEGORY':    return 'Categoria: visibilidade herdada do acesso da categoria';
       case 'INVITE_ONLY': return 'Por convite: apenas owner, moderadores e membros convidados';
       default:            return this.visibility;
     }
@@ -234,40 +233,40 @@ export class CreateTopicComponent implements OnInit {
   }
 
   async handleSubmit(event: Event): Promise<void> {
-    event.preventDefault();
-    if (!this.validate() || this.isSubmitting) return;
+  event.preventDefault();
+  if (!this.validate() || this.isSubmitting) return;
 
-    this.isSubmitting = true;
-    this.message = null;
+  this.isSubmitting = true;
+  this.message = null;
+  this.cdr.detectChanges();
+
+  try {
+    const token = this.authService.getToken();
+    const headers = token ? this.authService.getAuthHeaders(token) : {};
+    const res = await firstValueFrom(
+      this.http.post<{ data: { id: string } }>(
+        `${environment.apiBaseUrl}/api/topics`,
+        {
+          category_id: this.selectedCategory,
+          title: this.title,
+          content: this.content,
+          visibility: this.visibility,
+          members: this.visibility === 'INVITE_ONLY'
+            ? this.selectedMembers.map(m => ({ user_id: m.user.id, role: m.role }))
+            : undefined,
+        },
+        { headers }
+      )
+    );
+    this.router.navigate(['/forum/community/discussao', res.data.id]);
+  } catch (err: any) {
+    this.message = err?.error?.message ?? 'Erro ao publicar tópico.';
     this.cdr.detectChanges();
-
-    try {
-      const token = this.authService.getToken();
-      const headers = token ? this.authService.getAuthHeaders(token) : {};
-      const res = await firstValueFrom(
-        this.http.post<{ data: { id: string } }>(
-          `${environment.apiBaseUrl}/api/topics`,
-          {
-            category_id: this.selectedCategory,
-            title: this.title,
-            content: this.content,
-            visibility: this.toBackendVisibility(this.visibility),
-            members: this.visibility === 'INVITE_ONLY'
-              ? this.selectedMembers.map(m => ({ user_id: m.user.id, role: m.role }))
-              : undefined,
-          },
-          { headers }
-        )
-      );
-      this.router.navigate(['/forum/community/discussao', res.data.id]);
-    } catch (err: any) {
-      this.message = err?.error?.message ?? 'Erro ao publicar tópico.';
-      this.cdr.detectChanges();
-    } finally {
-      this.isSubmitting = false;
-      this.cdr.detectChanges();
-    }
+  } finally {
+    this.isSubmitting = false;
+    this.cdr.detectChanges();
   }
+}
 
   saveDraft(): void {
     this.message = 'Funcionalidade de rascunho ainda não disponível.';
@@ -282,12 +281,5 @@ export class CreateTopicComponent implements OnInit {
     return { bg: cat.color_bg ?? '#E5E7EB', text: cat.color_text ?? '#1F2937' };
   }
 
-  private toBackendVisibility(value: TopicVisibility): 'PUBLIC' | 'RESTRICTED' | 'PRIVATE' {
-    switch (value) {
-      case 'PUBLIC':      return 'PUBLIC';
-      case 'INVITE_ONLY': return 'PRIVATE';
-      case 'CATEGORY':
-      default:            return 'RESTRICTED';
-    }
-  }
+
 }

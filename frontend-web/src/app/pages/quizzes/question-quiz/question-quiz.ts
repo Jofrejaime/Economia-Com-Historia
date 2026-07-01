@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
-import { QuizService, QuizQuestion } from '../../../services/quiz.service';
+import { QuizService, QuizQuestion, Quiz, QuizRelatedDocument } from '../../../services/quiz.service';
 
 @Component({
   selector: 'app-question-quiz',
@@ -30,6 +30,13 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
   questionStartTime = Date.now();
   private timerInterval: any = null;
 
+  quiz: Quiz | null = null;
+  relatedDocuments: QuizRelatedDocument[] = [];
+
+  // Cronómetro do quiz (tempo total desde o início, não reinicia por pergunta)
+  private quizStartTime = Date.now();
+  elapsedSeconds = 0;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -47,6 +54,22 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
     }
 
     this.loadQuestions();
+    this.loadSidebarData();
+    this.startTimer();
+  }
+
+  private startTimer(): void {
+    this.quizStartTime = Date.now();
+    this.timerInterval = setInterval(() => {
+      this.elapsedSeconds = Math.floor((Date.now() - this.quizStartTime) / 1000);
+      this.cdr.detectChanges();
+    }, 1000);
+  }
+
+  get formattedElapsedTime(): string {
+    const m = Math.floor(this.elapsedSeconds / 60);
+    const s = this.elapsedSeconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
   private async loadQuestions(): Promise<void> {
@@ -58,6 +81,21 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
       this.questionStartTime = Date.now();
     } catch {
       this.error = 'Erro ao carregar perguntas.';
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadSidebarData(): Promise<void> {
+    try {
+      const [quiz, documents] = await Promise.all([
+        this.quizService.getQuiz(this.quizId),
+        this.quizService.getRelatedDocuments(this.quizId),
+      ]);
+      this.quiz = quiz;
+      this.relatedDocuments = documents;
+    } catch {
+      // Falha silenciosa: a sidebar é informação complementar, não bloqueia o quiz.
     } finally {
       this.cdr.detectChanges();
     }
@@ -160,24 +198,30 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
   }
 
   private async finishQuiz(): Promise<void> {
-    this.isSubmitting = true;
+  this.isSubmitting = true;
+  this.cdr.detectChanges();
+  if (this.timerInterval) clearInterval(this.timerInterval);
+  try {
+    await this.quizService.completeAttempt(this.attemptId, this.elapsedSeconds);
+    this.router.navigate(['/quiz/resultado'], {
+      queryParams: { attempt: this.attemptId }
+    });
+  } catch {
+    alert('Erro ao finalizar quiz.');
+    this.isSubmitting = false;
+    this.startTimer();
     this.cdr.detectChanges();
-    try {
-      await this.quizService.completeAttempt(this.attemptId);
-      this.router.navigate(['/quiz/resultado'], {
-        queryParams: { attempt: this.attemptId }
-      });
-    } catch {
-      alert('Erro ao finalizar quiz.');
-      this.isSubmitting = false;
-      this.cdr.detectChanges();
-    }
   }
+}
 
   get buttonLabel(): string {
     if (this.isSubmitting) return 'Aguarde...';
     if (!this.answered) return 'Confirmar';
     if (this.isLastQuestion) return 'Finalizar';
     return 'Próxima pergunta';
+  }
+
+  navigateToDocument(id: string): void {
+    this.router.navigate(['/contents/view', id]);
   }
 }
