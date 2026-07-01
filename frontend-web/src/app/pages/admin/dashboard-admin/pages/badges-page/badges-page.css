@@ -452,6 +452,37 @@ textarea.form-input {
 }
 
 /* ============================================
+   ERROR / LOADING STATES
+   ============================================ */
+
+.error-banner {
+  background: rgba(255, 179, 186, 0.15);
+  border: 1px solid #FFB3BA;
+  color: #5C0011;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.loading-row {
+  padding: 48px;
+  text-align: center;
+  color: #9CA3AF;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+/* ============================================
    RESPONSIVO - DESIGN SYSTEM
    ============================================ */
 

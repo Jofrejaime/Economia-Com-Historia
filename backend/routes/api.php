@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\QuizController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Middleware\AuthenticateApiSession;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\BadgeController;
 
 Route::get('/health', HealthController::class);
 
@@ -61,6 +62,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
 
     // Access — own requests/grants
     Route::get('/access-levels', [AccessController::class, 'index']);
+    Route::get('/badges', [BadgeController::class, 'index']);
     Route::get('/access-requests', [AccessController::class, 'requests']);
     Route::post('/access-requests', [AccessController::class, 'storeRequest']);
     Route::get('/access-requests/{id}', [AccessController::class, 'showRequest']);
@@ -174,5 +176,11 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         // Reports — moderation
         Route::patch('/reports/{id}', [ReportController::class, 'update']);
         Route::post('/reports/{id}/action', [ReportController::class, 'action']);
+
+        // Badges — management
+        Route::post('/badges', [BadgeController::class, 'store']);
+        Route::patch('/badges/{id}', [BadgeController::class, 'update']);
+        Route::patch('/badges/{id}/toggle', [BadgeController::class, 'toggleStatus']);
+        Route::delete('/badges/{id}', [BadgeController::class, 'destroy']);
     });
 });
