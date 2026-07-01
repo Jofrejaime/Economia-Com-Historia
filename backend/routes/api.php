@@ -145,11 +145,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::post('/documents', [DocumentController::class, 'store']);
         Route::patch('/documents/{id}', [DocumentController::class, 'update']);
         Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
-        Route::post('/quizzes', [QuizController::class, 'store']);
-        Route::patch('/quizzes/{id}', [QuizController::class, 'update']);
-        Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
-        Route::post('/quizzes/{id}/documents', [QuizController::class, 'syncDocuments']);
-        Route::delete('/quizzes/{id}/documents/{documentId}', [QuizController::class, 'detachDocument']);
     });
 
     // ─── Admin only ─────────────────────────────────────────────────────
@@ -157,6 +152,13 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         // Documents — pin management
         Route::post('/documents/{id}/pin', [DocumentController::class, 'pin']);
         Route::delete('/documents/{id}/pin', [DocumentController::class, 'unpin']);
+
+        // Quizzes — management (admin only)
+        Route::post('/quizzes', [QuizController::class, 'store']);
+        Route::patch('/quizzes/{id}', [QuizController::class, 'update']);
+        Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
+        Route::post('/quizzes/{id}/documents', [QuizController::class, 'syncDocuments']);
+        Route::delete('/quizzes/{id}/documents/{documentId}', [QuizController::class, 'detachDocument']);
 
         // Access management
         Route::patch('/access-requests/{id}', [AccessController::class, 'reviewRequest']);

@@ -87,8 +87,8 @@ class QuizController extends Controller
      *      path="/quizzes",
      *      operationId="storeQuiz",
      *      tags={"Quiz"},
-     *      summary="Criar novo quiz com perguntas (Admin/Professor)",
-     *      description="Adiciona um novo quiz completo na base de dados.",
+     *      summary="Criar novo quiz com perguntas (apenas Admin)",
+     *      description="Adiciona um novo quiz completo na base de dados. Requer role admin.",
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\RequestBody(
      *          required=true,
@@ -138,7 +138,7 @@ class QuizController extends Controller
      *      ),
      *      @OA\Response(
      *          response=403,
-     *          description="Acesso proibido (Requer admin ou professor)"
+     *          description="Acesso proibido (apenas Admin)"
      *      ),
      *      @OA\Response(
      *          response=422,
@@ -295,8 +295,8 @@ class QuizController extends Controller
      *      path="/quizzes/{id}",
      *      operationId="updateQuiz",
      *      tags={"Quiz"},
-     *      summary="Atualizar quiz (Admin/Professor)",
-     *      description="Permite atualizar o quiz bem como as suas perguntas e opções.",
+     *      summary="Atualizar quiz (apenas Admin)",
+     *      description="Permite atualizar o quiz bem como as suas perguntas e opções. Requer role admin.",
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\Parameter(
      *          name="id",
@@ -457,8 +457,8 @@ class QuizController extends Controller
      *      path="/quizzes/{id}",
      *      operationId="destroyQuiz",
      *      tags={"Quiz"},
-     *      summary="Eliminar quiz (Admin/Professor)",
-     *      description="Elimina permanentemente um quiz e todas as tentativas e perguntas associadas.",
+     *      summary="Eliminar quiz (apenas Admin)",
+     *      description="Elimina permanentemente um quiz e todas as tentativas e perguntas associadas. Requer role admin.",
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\Parameter(
      *          name="id",
@@ -892,8 +892,8 @@ class QuizController extends Controller
      *      path="/quizzes/{id}/documents",
      *      operationId="syncQuizDocuments",
      *      tags={"Quiz"},
-     *      summary="Sincronizar documentos de um quiz (Admin/Professor)",
-     *      description="Substitui todas as associações documento-quiz. Enviar array vazio remove todos.",
+     *      summary="Sincronizar documentos de um quiz (apenas Admin)",
+     *      description="Substitui todas as associações documento-quiz. Enviar array vazio remove todos. Requer role admin.",
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string")),
      *      @OA\RequestBody(
@@ -935,8 +935,8 @@ class QuizController extends Controller
      *      path="/quizzes/{id}/documents/{documentId}",
      *      operationId="detachQuizDocument",
      *      tags={"Quiz"},
-     *      summary="Remover documento de um quiz (Admin/Professor)",
-     *      description="Remove a associação entre o documento e o quiz.",
+     *      summary="Remover documento de um quiz (apenas Admin)",
+     *      description="Remove a associação entre o documento e o quiz. Requer role admin.",
      *      security={{"bearer_token": {}, "session_token": {}}},
      *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string")),
      *      @OA\Parameter(name="documentId", in="path", required=true, description="ID do documento", @OA\Schema(type="string")),
