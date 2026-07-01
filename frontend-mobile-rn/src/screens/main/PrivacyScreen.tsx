@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Platform, ActivityIndicator } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -7,6 +7,7 @@ import { FormInput } from "../../components/FormInput";
 import { appTheme } from "../../constants/theme";
 import { HeaderBar } from "../../components/HeaderBar";
 import { useAuth } from "../../hooks/useAuth";
+import { userService } from "../../services/api/userService";
 import { MainStackParamList } from "../../types/navigation";
 
 type PrivacyScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, "Privacy">;
@@ -21,46 +22,54 @@ export function PrivacyScreen() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const showAlert = (title: string, message: string, onOk?: () => void) => {
+    if (Platform.OS === "web") {
+      window.alert(`${title}: ${message}`);
+      onOk?.();
+    } else {
+      Alert.alert(title, message, onOk ? [{ text: "OK", onPress: onOk }] : undefined);
+    }
+  };
 
   const handleUpdatePassword = async () => {
     if (!isFromRecovery && !currentPassword) {
-      if (Platform.OS === "web") {
-        window.alert("Por favor, insere a tua palavra-passe atual.");
-      } else {
-        Alert.alert("Erro", "Por favor, insere a tua palavra-passe atual.");
-      }
+      showAlert("Erro", "Por favor, insere a tua palavra-passe atual.");
       return;
     }
     if (newPassword.length < 8) {
-      if (Platform.OS === "web") {
-        window.alert("A nova palavra-passe deve ter pelo menos 8 caracteres.");
-      } else {
-        Alert.alert("Erro", "A nova palavra-passe deve ter pelo menos 8 caracteres.");
-      }
+      showAlert("Erro", "A nova palavra-passe deve ter pelo menos 8 caracteres.");
       return;
     }
     if (newPassword !== confirmPassword) {
-      if (Platform.OS === "web") {
-        window.alert("A nova palavra-passe e a confirmação não coincidem.");
-      } else {
-        Alert.alert("Erro", "A nova palavra-passe e a confirmação não coincidem.");
-      }
+      showAlert("Erro", "A nova palavra-passe e a confirmação não coincidem.");
       return;
     }
 
-    if (Platform.OS === "web") {
-      window.alert("A sua palavra-passe foi atualizada com sucesso!");
-    } else {
-      Alert.alert("Sucesso", "A sua palavra-passe foi atualizada com sucesso!");
-    }
-    
-    if (isFromRecovery) {
-      if (user) {
-        await signOut();
-      }
-      navigation.navigate("Login");
-    } else {
-      navigation.goBack();
+    setSaving(true);
+    try {
+      await userService.updatePassword({
+        current_password: currentPassword,
+        password: newPassword,
+        password_confirmation: confirmPassword,
+      });
+      showAlert("Sucesso", "A sua palavra-passe foi actualizada com sucesso!", () => {
+        if (isFromRecovery) {
+          if (user) void signOut();
+          navigation.navigate("Login");
+        } else {
+          navigation.goBack();
+        }
+      });
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.errors?.current_password?.[0] ??
+        err?.response?.data?.message ??
+        "Não foi possível alterar a palavra-passe.";
+      showAlert("Erro", message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -102,8 +111,15 @@ export function PrivacyScreen() {
             secureTextEntry
           />
 
-          <TouchableOpacity style={styles.updateButton} onPress={handleUpdatePassword}>
-            <Text style={styles.updateButtonText}>Atualizar Palavra-passe</Text>
+          <TouchableOpacity
+            style={[styles.updateButton, saving && { opacity: 0.6 }]}
+            onPress={() => void handleUpdatePassword()}
+            disabled={saving}
+          >
+            {saving
+              ? <ActivityIndicator size="small" color="white" />
+              : <Text style={styles.updateButtonText}>Atualizar Palavra-passe</Text>
+            }
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -115,26 +131,6 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: appTheme.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: appTheme.colors.border,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backButton: {
-    marginRight: 16,
-    padding: 4,
-  },
-  title: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
-    fontWeight: "700",
-    color: appTheme.colors.primaryDark,
-    letterSpacing: -0.4,
   },
   container: {
     flex: 1,
@@ -171,7 +167,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   updateButtonText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",

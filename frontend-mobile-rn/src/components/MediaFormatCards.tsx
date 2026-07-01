@@ -64,16 +64,16 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: appTheme.radius.md,
     paddingVertical: 20,
     paddingHorizontal: 18,
     minHeight: 130,
   },
   cardVideo: {
-    backgroundColor: "#1B3A5C",
+    backgroundColor: appTheme.colors.textPrimary,
   },
   cardAudio: {
-    backgroundColor: "#2D1B4E",
+    backgroundColor: appTheme.colors.primary,
   },
   svg: {
     marginBottom: 14,

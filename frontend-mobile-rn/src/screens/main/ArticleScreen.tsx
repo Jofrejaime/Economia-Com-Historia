@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#047857",
+    backgroundColor: appTheme.colors.textPrimary,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 8,

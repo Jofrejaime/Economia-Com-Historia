@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -6,8 +6,12 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Image,
+  Alert,
+  Platform,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -20,7 +24,7 @@ import { leaderboardService } from "../../services/api/leaderboardService";
 import type { UserLevel, UserBadge, LeaderboardEntry } from "../../types/api";
 
 export function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const navigation = useNavigation<any>();
 
   const [level, setLevel] = useState<UserLevel | null>(null);
@@ -28,31 +32,97 @@ export function ProfileScreen() {
   const [rankEntry, setRankEntry] = useState<LeaderboardEntry | null>(null);
   const [quizzesCompleted, setQuizzesCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const [attemptsRes, leaderboardRes] = await Promise.allSettled([
-          userService.quizAttempts({ status: "completed", page: 1 }),
-          leaderboardService.national({ per_page: 100 }),
-        ]);
+  const load = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const [attemptsRes, leaderboardRes] = await Promise.allSettled([
+        userService.quizAttempts({ status: "completed", page: 1 }),
+        leaderboardService.national({ per_page: 200 }),
+      ]);
 
-        if (attemptsRes.status === "fulfilled") {
-          setQuizzesCompleted(attemptsRes.value.meta.total);
-        }
-        if (leaderboardRes.status === "fulfilled" && user) {
-          const entry = leaderboardRes.value.find((e) => e.user_id === user.id) ?? null;
-          setRankEntry(entry);
-        }
-      } catch (error) {
-        console.warn("Erro ao carregar perfil", error);
-      } finally {
-        setLoading(false);
+      if (attemptsRes.status === "fulfilled") {
+        setQuizzesCompleted(attemptsRes.value.meta.total);
       }
-    };
-    load();
+      if (leaderboardRes.status === "fulfilled") {
+        const entry = leaderboardRes.value.find((e) => e.user_id === user.id) ?? null;
+        setRankEntry(entry);
+      }
+    } catch (error) {
+      console.warn("Erro ao carregar perfil", error);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load])
+  );
+
+  const handleEditAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permissão necessária", "Permite o acesso à galeria para alterar a foto.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    const ext = asset.mimeType?.split("/")[1] ?? "jpg";
+    const formData = new FormData();
+
+    if (Platform.OS === "web") {
+      // On web: fetch the blob URI (contains the cropped version when allowsEditing=true)
+      try {
+        const blobResp = await fetch(asset.uri);
+        const rawBlob = await blobResp.blob();
+        // Ensure a valid MIME type — blob.type may be empty on some browsers
+        const mimeType =
+          rawBlob.type && rawBlob.type !== "application/octet-stream"
+            ? rawBlob.type
+            : asset.mimeType ?? "image/jpeg";
+        const finalExt = mimeType.split("/")[1] ?? "jpg";
+        const finalBlob =
+          rawBlob.type && rawBlob.type !== "application/octet-stream"
+            ? rawBlob
+            : new Blob([await rawBlob.arrayBuffer()], { type: mimeType });
+        formData.append("avatar", finalBlob, `avatar.${finalExt}`);
+      } catch {
+        Alert.alert("Erro", "Não foi possível ler a imagem seleccionada.");
+        return;
+      }
+    } else {
+      // Native: React Native multipart file descriptor (passed through RN XHR)
+      formData.append("avatar", {
+        uri: asset.uri,
+        type: asset.mimeType ?? "image/jpeg",
+        name: `avatar.${ext}`,
+      } as unknown as Blob);
+    }
+
+    setUploadingAvatar(true);
+    try {
+      await userService.updateAvatar(formData);
+      await refreshUser();
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.errors?.avatar?.[0] ??
+        err?.response?.data?.message ??
+        "Não foi possível actualizar a foto de perfil.";
+      Alert.alert("Erro", msg);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const initials = (user?.display_name ?? "?")
     .split(" ")
@@ -72,18 +142,21 @@ export function ProfileScreen() {
       >
         {/* User Identity */}
         <View style={styles.userIdentity}>
-          <View style={styles.photoContainer}>
+          <TouchableOpacity style={styles.photoContainer} onPress={() => void handleEditAvatar()} activeOpacity={0.85}>
             {user?.avatar_url ? (
-              // eslint-disable-next-line @typescript-eslint/no-require-imports
-              <View style={styles.avatarWrap}>
-                <Text style={styles.avatarInitials}>{initials}</Text>
-              </View>
+              <Image source={{ uri: user.avatar_url }} style={styles.avatarImage} />
             ) : (
               <View style={styles.avatarWrap}>
                 <Text style={styles.avatarInitials}>{initials}</Text>
               </View>
             )}
-          </View>
+            <View style={styles.avatarEditBadge}>
+              {uploadingAvatar
+                ? <ActivityIndicator size="small" color="white" />
+                : <Feather name="camera" size={14} color="white" />
+              }
+            </View>
+          </TouchableOpacity>
 
           <View style={styles.userDetailsWrap}>
             <Text style={styles.userName}>{user?.display_name ?? "Utilizador"}</Text>
@@ -270,6 +343,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 4,
     borderColor: "rgba(107, 1, 25, 0.1)",
+  },
+  avatarImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 16,
+    borderWidth: 4,
+    borderColor: "rgba(107, 1, 25, 0.1)",
+  },
+  avatarEditBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: appTheme.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: appTheme.colors.background,
   },
   avatarInitials: {
     fontFamily: "IBM_Plex_Sans",

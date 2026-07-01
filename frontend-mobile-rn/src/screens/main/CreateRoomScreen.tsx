@@ -177,16 +177,8 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 32,
   },
-  header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    marginBottom: 10,
-  },
   subtitle: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontSize: 15,
     lineHeight: 22,
@@ -195,6 +187,7 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
   sectionTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -214,12 +207,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   controlLabel: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textMuted,
     fontSize: 13,
     fontWeight: "600",
     marginBottom: 8,
   },
   controlValue: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textPrimary,
     fontSize: 16,
     fontWeight: "700",
@@ -230,6 +225,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sectionMeta: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textMuted,
     fontSize: 14,
   },
@@ -238,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: appTheme.colors.primary,
-    borderRadius: appTheme.radius.lg,
+    borderRadius: appTheme.radius.button,
     paddingVertical: 16,
     paddingHorizontal: 20,
     shadowColor: appTheme.colors.primary,
@@ -254,7 +250,8 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.border,
   },
   saveButtonText: {
-    color: "#FFF",
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
   },

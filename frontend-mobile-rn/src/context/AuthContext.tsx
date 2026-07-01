@@ -59,7 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data } = await httpClient.get(API_ENDPOINTS.ME.SHOW);
       const payload = data.data ?? data;
-      const user = mapMeResponseToAuthUser(payload);
+      // GET /me returns { user: {...}, profile: {...}, user_level: {...}, badges: [...] }
+      // merge top-level user fields with profile so mapMeResponseToAuthUser can read them
+      const merged = { ...(payload.user ?? payload), profile: payload.profile ?? null };
+      const user = mapMeResponseToAuthUser(merged);
       await AsyncStorage.setItem("@auth_user", JSON.stringify(user));
       setState((prev) => ({ ...prev, user }));
     } catch (error) {

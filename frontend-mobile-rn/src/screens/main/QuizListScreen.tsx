@@ -7,7 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
@@ -60,17 +60,16 @@ export function QuizListScreen() {
   }, [difficultyFilter]);
 
   const fetchRanking = useCallback(async () => {
-    if (leaderboard.length > 0) return;
     setLoadingRanking(true);
     try {
-      const data = await leaderboardService.national({ per_page: 50 });
+      const data = await leaderboardService.national({ per_page: 200 });
       setLeaderboard(data);
     } catch (error) {
       console.warn("Erro ao carregar ranking", error);
     } finally {
       setLoadingRanking(false);
     }
-  }, [leaderboard.length]);
+  }, []);
 
   useEffect(() => {
     fetchQuizzes();
@@ -78,9 +77,17 @@ export function QuizListScreen() {
 
   useEffect(() => {
     if (activeTab === "ranking") {
-      fetchRanking();
+      void fetchRanking();
     }
   }, [activeTab, fetchRanking]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (activeTab === "ranking") {
+        void fetchRanking();
+      }
+    }, [activeTab, fetchRanking])
+  );
 
   const handleStartQuiz = (quiz: Quiz) => {
     if (!user) {
@@ -444,7 +451,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     backgroundColor: appTheme.colors.primary,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: appTheme.radius.button,
   },
   startBtnText: {

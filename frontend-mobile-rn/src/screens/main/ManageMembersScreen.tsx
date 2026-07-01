@@ -236,12 +236,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   introTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 20,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     marginBottom: 8,
   },
   introDesc: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     lineHeight: 20,
@@ -264,6 +266,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   sectionSubtitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textSecondary,
@@ -289,6 +292,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   memberAvatarText: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 12,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -297,11 +301,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   memberName: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   memberUsername: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     color: appTheme.colors.textSecondary,
   },
@@ -316,6 +322,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   saveButtonText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
@@ -327,6 +334,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyMembersText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     textAlign: "center",
