@@ -27,28 +27,49 @@
 
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">📂</span></div>
+      <div class="stat-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path>
+        </svg>
+      </div>
       <div>
         <p class="stat-label">TOTAL</p>
         <p class="stat-number">{{ getStats().total }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">✓</span></div>
+      <div class="stat-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="m8.5 12.5 2.5 2.5 4.5-5"></path>
+        </svg>
+      </div>
       <div>
         <p class="stat-label">ATIVAS</p>
         <p class="stat-number">{{ getStats().active }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">🌐</span></div>
+      <div class="stat-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M3 12h18"></path>
+          <path d="M12 3a14 14 0 0 1 0 18"></path>
+          <path d="M12 3a14 14 0 0 0 0 18"></path>
+        </svg>
+      </div>
       <div>
         <p class="stat-label">PÚBLICAS</p>
         <p class="stat-number">{{ getStats().public }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">🔒</span></div>
+      <div class="stat-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="10" width="16" height="10" rx="2"></rect>
+          <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+        </svg>
+      </div>
       <div>
         <p class="stat-label">RESTRITAS</p>
         <p class="stat-number">{{ getStats().restricted }}</p>
@@ -58,7 +79,10 @@
 
   <div class="filters-bar">
     <div class="search-wrapper">
-      <span class="search-icon">🔍</span>
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.5-3.5"></path>
+      </svg>
       <input
         type="text"
         [(ngModel)]="searchQuery"
@@ -89,12 +113,33 @@
     <div *ngFor="let cat of filteredCategories" class="category-card">
       <div class="card-header">
         <div class="card-title-section">
-          <div class="category-icon">📁</div>
+          <div class="category-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path>
+            </svg>
+          </div>
           <h3 class="category-name">{{ cat.name }}</h3>
         </div>
 
         <div class="card-badges">
-          <span class="type-badge">{{ getTypeIcon(cat.access_level_id) }} {{ getTypeLabel(cat.access_level_id) }}</span>
+          <span class="type-badge">
+            <ng-container [ngSwitch]="cat.access_level_id">
+              <svg *ngSwitchCase="'public'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M3 12h18"></path>
+                <path d="M12 3a14 14 0 0 1 0 18"></path>
+                <path d="M12 3a14 14 0 0 0 0 18"></path>
+              </svg>
+              <svg *ngSwitchCase="'jindungo'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a6 6 0 0 1-10.6-3.8C7.1 10.8 8.5 8 12 2Z"></path>
+              </svg>
+              <svg *ngSwitchCase="'restricted'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="10" width="16" height="10" rx="2"></rect>
+                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+              </svg>
+            </ng-container>
+            {{ getTypeLabel(cat.access_level_id) }}
+          </span>
           <span class="status-badge">
             <span class="status-dot" [class.active]="cat.is_active"></span>
             {{ getStatusLabel(cat.is_active) }}
@@ -106,11 +151,18 @@
 
       <div class="category-stats">
         <div class="stat-item">
-          <span class="stat-icon-small">💬</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-4-1L3 20l1.5-5a8.5 8.5 0 1 1 16.5-3.5Z"></path>
+          </svg>
           <span>{{ cat.topics_count || 0 }} tópicos</span>
         </div>
         <div class="stat-item">
-          <span class="stat-icon-small">👥</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+            <circle cx="10" cy="7" r="4"></circle>
+            <path d="M20.5 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
           <span>{{ cat.members_count || 0 }} membros</span>
         </div>
       </div>
@@ -135,7 +187,11 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>{{ editingCategory ? 'Editar Categoria' : 'Nova Categoria' }}</h2>
-        <button class="modal-close" type="button" (click)="closeCategoryModal()">✕</button>
+        <button class="modal-close" type="button" (click)="closeCategoryModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 6 12 12M18 6 6 18"></path>
+          </svg>
+        </button>
       </div>
 
       <div class="modal-body">
@@ -200,12 +256,30 @@
           <div class="preview-title">Pré-visualização</div>
           <div class="preview-card" [style.borderTopColor]="categoryForm.color_bg || '#8b1e2d'">
             <div class="preview-header">
-              <div class="preview-icon" [style.background]="(categoryForm.color_bg || '#8b1e2d') + '20'">📁</div>
+              <div class="preview-icon" [style.background]="(categoryForm.color_bg || '#8b1e2d') + '20'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path>
+                </svg>
+              </div>
               <div>
                 <div class="preview-name">{{ categoryForm.name || 'Nome da Categoria' }}</div>
                 <div class="preview-badge">
                   <span class="type-badge">
-                    {{ getTypeIcon(categoryForm.access_level_id || 'public') }}
+                    <ng-container [ngSwitch]="categoryForm.access_level_id || 'public'">
+                      <svg *ngSwitchCase="'public'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M3 12h18"></path>
+                        <path d="M12 3a14 14 0 0 1 0 18"></path>
+                        <path d="M12 3a14 14 0 0 0 0 18"></path>
+                      </svg>
+                      <svg *ngSwitchCase="'jindungo'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a6 6 0 0 1-10.6-3.8C7.1 10.8 8.5 8 12 2Z"></path>
+                      </svg>
+                      <svg *ngSwitchCase="'restricted'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="10" width="16" height="10" rx="2"></rect>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                      </svg>
+                    </ng-container>
                     {{ getTypeLabel(categoryForm.access_level_id || 'public') }}
                   </span>
                 </div>
@@ -216,7 +290,13 @@
         </div>
 
         <div class="info-box">
-          <div class="info-icon">ℹ️</div>
+          <div class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M12 11v5"></path>
+              <path d="M12 8h.01"></path>
+            </svg>
+          </div>
           <div class="info-text">
             <strong>Nota</strong><br />
             <span>Editar e eliminar categorias ainda dependem de endpoints que o backend não expôs nesta fase.</span>

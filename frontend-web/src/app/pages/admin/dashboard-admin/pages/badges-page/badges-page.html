@@ -1,5 +1,5 @@
 <div class="badges-container">
-  
+
   <!-- Page Header -->
   <div class="page-header">
     <div>
@@ -14,39 +14,61 @@
     </button>
   </div>
 
+  <!-- Error state -->
+  <div class="error-banner" *ngIf="errorMessage && !loading">
+    {{ errorMessage }}
+    <button class="btn-cancel" (click)="loadBadges()">Tentar novamente</button>
+  </div>
+
   <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">🏅</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="5"></circle>
+          <path d="M9 12.5 7.5 21l4.5-2.5 4.5 2.5-1.5-8.5"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">TOTAL</p>
-        <p class="stat-number">{{ badges.length }}</p>
+        <p class="stat-number">{{ stats.total ?? badges.length }}</p>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">✓</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="m8.5 12.5 2.5 2.5 4.5-5"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">ATIVOS</p>
-        <p class="stat-number">{{ activeBadges }}</p>
+        <p class="stat-number">{{ stats.active ?? activeBadges }}</p>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">👥</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+          <circle cx="10" cy="7" r="4"></circle>
+          <path d="M20.5 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">CONQUISTADOS</p>
-        <p class="stat-number">{{ userBadges.length }}</p>
+        <p class="stat-number">{{ userBadgesCount }}</p>
       </div>
     </div>
   </div>
 
+  <!-- Loading -->
+  <div class="loading-row" *ngIf="loading">
+    A carregar badges...
+  </div>
+
   <!-- Table -->
-  <div class="table-wrapper">
+  <div class="table-wrapper" *ngIf="!loading">
     <table class="badges-table">
       <thead>
         <tr>
@@ -54,13 +76,14 @@
           <th>Descrição</th>
           <th>Categoria</th>
           <th>Critério</th>
+          <th>Conquistado por</th>
           <th>Status</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
         <tr *ngIf="badges.length === 0">
-          <td colspan="6" class="empty-row">Nenhum badge encontrado</td>
+          <td colspan="7" class="empty-row">Nenhum badge encontrado</td>
         </tr>
         <tr *ngFor="let badge of badges">
           <td>
@@ -70,15 +93,27 @@
           <td>{{ badge.description }}</td>
           <td>{{ badge.category || 'Geral' }}</td>
           <td>{{ badge.criteria_type }}: {{ badge.criteria_value }}</td>
+          <td>{{ badge.earned_count }}</td>
           <td>
             <span class="status-badge">{{ badge.is_active ? 'Ativo' : 'Inativo' }}</span>
           </td>
           <td class="actions-cell">
-            <button class="action-btn" (click)="openEditBadgeModal(badge)" title="Editar">✏️</button>
+            <button class="action-btn" (click)="openEditBadgeModal(badge)" title="Editar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+              </svg>
+            </button>
             <button class="action-btn" (click)="toggleBadgeStatus(badge.id)" title="Alternar status">
               {{ badge.is_active ? 'Desativar' : 'Ativar' }}
             </button>
-            <button class="action-btn action-btn-danger" (click)="deleteBadge(badge.id)" title="Eliminar">🗑️</button>
+            <button class="action-btn action-btn-danger" (click)="deleteBadge(badge.id)" title="Eliminar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                <path d="M10 11v6M14 11v6"></path>
+              </svg>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -90,7 +125,11 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>{{ editingBadge ? 'Editar Badge' : 'Novo Badge' }}</h2>
-        <button class="modal-close" (click)="closeBadgeModal()">✕</button>
+        <button class="modal-close" (click)="closeBadgeModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 6 12 12M18 6 6 18"></path>
+          </svg>
+        </button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -108,6 +147,8 @@
               <option value="Geral">Geral</option>
               <option value="Académico">Académico</option>
               <option value="Comunidade">Comunidade</option>
+              <option value="Especial">Especial</option>
+              <option value="Conquista">Conquista</option>
             </select>
           </div>
           <div class="form-group">
@@ -119,8 +160,8 @@
           <div class="form-group">
             <label>Status</label>
             <select [(ngModel)]="badgeForm.is_active" class="form-input">
-              <option [value]="true">Ativo</option>
-              <option [value]="false">Inativo</option>
+              <option [ngValue]="true">Ativo</option>
+              <option [ngValue]="false">Inativo</option>
             </select>
           </div>
           <div class="form-group">
@@ -138,8 +179,10 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeBadgeModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveBadge()">Guardar</button>
+        <button class="btn-cancel" (click)="closeBadgeModal()" [disabled]="saving">Cancelar</button>
+        <button class="btn-save" (click)="saveBadge()" [disabled]="saving">
+          {{ saving ? 'A guardar...' : 'Guardar' }}
+        </button>
       </div>
     </div>
   </div>

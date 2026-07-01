@@ -209,10 +209,6 @@ export class RequestsPageComponent implements OnInit {
     return type === 'jindungo' ? 'badge-jindungo' : 'badge-restrito';
   }
 
-  getTypeIcon(type: 'jindungo' | 'restrito'): string {
-    return type === 'jindungo' ? '🔥' : '🔒';
-  }
-
   getTypeLabel(type: 'jindungo' | 'restrito'): string {
     return type === 'jindungo' ? 'Jindungo' : 'Restrito';
   }

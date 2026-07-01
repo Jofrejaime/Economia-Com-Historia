@@ -101,6 +101,11 @@ p, span, div, button, input, textarea, select {
   background: #6B0119;
 }
 
+.btn-primary svg {
+  display: block;
+  flex-shrink: 0;
+}
+
 /* ============================================
    STATS GRID - DESIGN SYSTEM
    ============================================ */
@@ -139,9 +144,9 @@ p, span, div, button, input, textarea, select {
   flex-shrink: 0;
 }
 
-.stat-icon-emoji {
-  font-size: 22px;
-  color: #FFFFFF;
+.stat-icon svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stat-label {
@@ -185,8 +190,8 @@ p, span, div, button, input, textarea, select {
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
   color: #9CA3AF;
+  pointer-events: none;
 }
 
 .search-input {
@@ -353,7 +358,9 @@ p, span, div, button, input, textarea, select {
    ============================================ */
 
 .role-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 4px 12px;
   border-radius: 9999px;
   font-family: 'Source Sans 3', sans-serif;
@@ -363,6 +370,11 @@ p, span, div, button, input, textarea, select {
   color: #8B1E2D;
   line-height: 1.7;
   white-space: nowrap;
+}
+
+.role-badge svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .status-badge {
@@ -418,6 +430,14 @@ p, span, div, button, input, textarea, select {
   color: #8B1E2D;
   line-height: 1.7;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .action-btn:hover {
@@ -497,12 +517,18 @@ p, span, div, button, input, textarea, select {
 .modal-close {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: #9CA3AF;
   padding: 4px 8px;
   border-radius: 4px;
   font-family: 'Source Sans 3', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close svg {
+  display: block;
 }
 
 .modal-close:hover {
@@ -615,7 +641,6 @@ textarea.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
   color: #9CA3AF;
   flex-shrink: 0;
   background-size: cover;
@@ -623,6 +648,10 @@ textarea.form-input {
   border: 2px solid #E5E7EB;
   background-color: #F5F5F5;
   transition: all 0.3s ease;
+}
+
+.avatar-preview-large svg {
+  display: block;
 }
 
 .avatar-preview-large:hover {
@@ -657,6 +686,11 @@ textarea.form-input {
   line-height: 1.7;
 }
 
+.btn-upload svg {
+  display: block;
+  flex-shrink: 0;
+}
+
 .btn-upload:hover {
   background: #6B0119;
   transform: translateY(-1px);
@@ -688,6 +722,11 @@ textarea.form-input {
   transition: all 0.3s ease;
   width: fit-content;
   line-height: 1.7;
+}
+
+.btn-remove-avatar svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .btn-remove-avatar:hover {
@@ -753,8 +792,15 @@ textarea.form-input {
 }
 
 .info-icon {
-  font-size: 20px;
   color: #8B1E2D;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon svg {
+  display: block;
 }
 
 .info-text {
@@ -810,6 +856,14 @@ textarea.form-input {
   cursor: pointer;
   transition: all 0.3s;
   line-height: 1.7;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-save svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .btn-save:hover {
@@ -927,10 +981,6 @@ textarea.form-input {
     height: 44px;
   }
   
-  .stat-icon-emoji {
-    font-size: 18px;
-  }
-  
   .page-header {
     flex-direction: column;
     align-items: flex-start;
@@ -1019,6 +1069,7 @@ textarea.form-input {
   .btn-save {
     width: 100%;
     text-align: center;
+    justify-content: center;
   }
   
   .avatar-upload {
@@ -1085,10 +1136,6 @@ textarea.form-input {
   .stat-icon {
     width: 40px;
     height: 40px;
-  }
-  
-  .stat-icon-emoji {
-    font-size: 16px;
   }
   
   .stat-label {
@@ -1176,7 +1223,6 @@ textarea.form-input {
   .avatar-preview-large {
     width: 60px;
     height: 60px;
-    font-size: 24px;
   }
   
   .avatar-upload {

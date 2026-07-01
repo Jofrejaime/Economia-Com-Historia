@@ -46,6 +46,8 @@ export interface QuizOption {
   id: string;
   option_key: string;
   option_text: string;
+  is_correct?: boolean;
+  explanation?: string | null;
 }
 
 export interface QuizAttempt {

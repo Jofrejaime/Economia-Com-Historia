@@ -24,35 +24,61 @@
 
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">📋</span></div>
+      <div class="stat-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1Z"></path>
+          <rect x="5" y="5" width="14" height="16" rx="2"></rect>
+          <path d="M9 12h6M9 16h6"></path>
+        </svg>
+      </div>
       <div>
         <p class="stat-label">TOTAL REPORTS</p>
         <p class="stat-number">{{ getStats().total }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">⏳</span></div>
+      <div class="stat-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v5l3.5 2"></path>
+        </svg>
+      </div>
       <div>
         <p class="stat-label">PENDING</p>
         <p class="stat-number">{{ getStats().pending }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">✅</span></div>
+      <div class="stat-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="m8.5 12.5 2.5 2.5 4.5-5"></path>
+        </svg>
+      </div>
       <div>
         <p class="stat-label">REVIEWED</p>
         <p class="stat-number">{{ getStats().reviewed }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">🗂️</span></div>
+      <div class="stat-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="5" rx="1"></rect>
+          <path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"></path>
+          <path d="M10 13h4"></path>
+        </svg>
+      </div>
       <div>
         <p class="stat-label">DISMISSED</p>
         <p class="stat-number">{{ getStats().dismissed }}</p>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">⚡</span></div>
+      <div class="stat-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path>
+        </svg>
+      </div>
       <div>
         <p class="stat-label">ACTIONED</p>
         <p class="stat-number">{{ getStats().actioned }}</p>
@@ -62,7 +88,10 @@
 
   <div class="filters-bar">
     <div class="search-wrapper">
-      <span class="search-icon">🔍</span>
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.5-3.5"></path>
+      </svg>
       <input
         type="text"
         [(ngModel)]="searchQuery"
@@ -210,7 +239,11 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>Moderation Panel</h2>
-        <button class="modal-close" type="button" (click)="closeReportModal()">✕</button>
+        <button class="modal-close" type="button" (click)="closeReportModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 6 12 12M18 6 6 18"></path>
+          </svg>
+        </button>
       </div>
 
       <div class="modal-body" *ngIf="selectedReportDetail">
