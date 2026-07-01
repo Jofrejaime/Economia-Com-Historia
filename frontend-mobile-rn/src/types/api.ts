@@ -25,15 +25,37 @@ export interface UserProfile {
   updated_at: string;
 }
 
-// Response from GET /me
+// Response from GET /me — actual structure returned by AuthController::me
 export interface MeResponse {
-  id: string;
-  email: string;
-  role: string;
-  email_verified: boolean;
-  is_active: boolean;
-  created_at: string;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+    email_verified: boolean;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  };
   profile: UserProfile | null;
+  user_level: UserLevel | null;
+  level_definition: LevelDefinition | null;
+  badges: Array<{
+    id: string;
+    name: string;
+    description: string;
+    icon_url: string | null;
+    color_hex: string | null;
+    category: string | null;
+    earned_at: string;
+  }>;
+  access_grants: Array<{
+    id: string;
+    user_id: string;
+    access_level_id: string;
+    granted_at: string;
+    access_level_name: string;
+    access_level_description: string | null;
+  }>;
 }
 
 // level_definitions table

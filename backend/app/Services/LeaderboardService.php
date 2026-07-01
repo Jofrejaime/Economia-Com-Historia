@@ -125,4 +125,68 @@ class LeaderboardService
     {
         return ProvinceStat::all();
     }
+
+    /**
+     * Recalcula e atualiza síncronamente a tabela leaderboard_nacional_cache.
+     * Funciona em SQLite (para testes/dev local) e em MySQL.
+     */
+    public function refreshNationalCache(): void
+    {
+        $users = DB::table('users as u')
+            ->join('user_profiles as up', 'up.user_id', '=', 'u.id')
+            ->join('user_levels as ul', 'ul.user_id', '=', 'u.id')
+            ->where('u.is_active', 1)
+            ->orderByDesc('ul.total_points')
+            ->orderByDesc('ul.quizzes_completed')
+            ->select([
+                'u.id as user_id',
+                'up.display_name',
+                'up.province',
+                'up.avatar_url',
+                'ul.total_points',
+                'ul.quizzes_completed',
+                'ul.weekly_points',
+                'ul.current_level',
+            ])
+            ->get();
+
+        $rows = [];
+        $rank = 1;
+        $now = now();
+
+        foreach ($users as $u) {
+            $prevRank = DB::table('leaderboard_snapshots')
+                ->where('user_id', $u->user_id)
+                ->where('scope', 'nacional')
+                ->where('snapshot_date', now()->subDay()->toDateString())
+                ->value('rank_position') ?? 0;
+
+            $rows[] = [
+                'rank_position' => $rank++,
+                'user_id' => $u->user_id,
+                'display_name' => $u->display_name,
+                'province' => $u->province,
+                'avatar_url' => $u->avatar_url,
+                'total_points' => $u->total_points,
+                'quizzes_completed' => $u->quizzes_completed,
+                'weekly_points' => $u->weekly_points,
+                'current_level' => $u->current_level,
+                'prev_rank' => $prevRank,
+                'refreshed_at' => $now,
+            ];
+        }
+
+        DB::transaction(function () use ($rows) {
+            DB::table('leaderboard_nacional_cache')->truncate();
+            if (!empty($rows)) {
+                foreach (array_chunk($rows, 100) as $chunk) {
+                    DB::table('leaderboard_nacional_cache')->insert($chunk);
+                }
+            }
+        });
+
+        // Limpa o cache de rankings provinciais
+        Cache::flush();
+    }
 }
+

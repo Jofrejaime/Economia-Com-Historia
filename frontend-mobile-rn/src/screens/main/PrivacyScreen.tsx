@@ -49,11 +49,15 @@ export function PrivacyScreen() {
 
     setSaving(true);
     try {
-      await userService.updatePassword({
-        current_password: currentPassword,
+      const payload: Parameters<typeof userService.updatePassword>[0] = {
         password: newPassword,
         password_confirmation: confirmPassword,
-      });
+      };
+      // When coming from recovery flow, identity was already verified via reset link — omit current_password
+      if (!isFromRecovery) {
+        payload.current_password = currentPassword;
+      }
+      await userService.updatePassword(payload);
       showAlert("Sucesso", "A sua palavra-passe foi actualizada com sucesso!", () => {
         if (isFromRecovery) {
           if (user) void signOut();

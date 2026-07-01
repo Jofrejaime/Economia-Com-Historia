@@ -315,7 +315,8 @@ class ProfileController extends Controller
     public function updatePassword(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'current_password' => ['required', 'string'],
+            // 'sometimes' allows recovery flow to omit current_password
+            'current_password' => ['sometimes', 'string'],
             'password' => [
                 'required',
                 'confirmed',
@@ -329,11 +330,15 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        if (! Hash::check($validated['current_password'], $user->password_hash)) {
-            return response()->json([
-                'message' => 'Current password is incorrect.',
-                'errors' => ['current_password' => ['The current password is incorrect.']],
-            ], 422);
+        // Only verify current password when it was provided (normal flow).
+        // Recovery flow omits it — identity was already verified via reset link.
+        if (array_key_exists('current_password', $validated)) {
+            if (! Hash::check($validated['current_password'], $user->password_hash)) {
+                return response()->json([
+                    'message' => 'Current password is incorrect.',
+                    'errors' => ['current_password' => ['The current password is incorrect.']],
+                ], 422);
+            }
         }
 
         DB::transaction(function () use ($user, $validated, $request): void {

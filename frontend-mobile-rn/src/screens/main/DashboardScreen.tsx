@@ -16,7 +16,7 @@ import { HeaderBar } from "../../components/HeaderBar";
 import { ContentCard } from "../../components/ContentCard";
 import { DebateCard } from "../../components/DebateCard";
 import { appTheme } from "../../constants/theme";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MainStackParamList } from "../../types/navigation";
 import { documentService } from "../../services/api/documentService";
@@ -62,10 +62,11 @@ export function DashboardScreen() {
   const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   const [activeTopics, setActiveTopics] = useState<DiscussionTopic[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [firstLoadDone, setFirstLoadDone] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
+  const loadData = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const [jindungoRes, recentRes, topicsRes, rankingRes] = await Promise.allSettled([
         documentService.list({ access_level_id: "jindungo", per_page: 3 }),
@@ -83,9 +84,12 @@ export function DashboardScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useFocusEffect(
+    useCallback(() => {
+      loadData(!firstLoadDone);
+      setFirstLoadDone(true);
+    }, [loadData, firstLoadDone])
+  );
 
   const handleSearchSubmit = () => {
     if (searchText.trim()) {
@@ -461,16 +465,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1.5,
     borderColor: appTheme.colors.border,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
+    boxShadow: "0px 2px 6px rgba(0,0,0,0.05)",
     elevation: 2,
   },
   searchBarFocused: {
     borderColor: appTheme.colors.primary,
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
+    boxShadow: "0px 2px 10px rgba(0,0,0,0.08)",
     elevation: 4,
   },
   searchIcon: {

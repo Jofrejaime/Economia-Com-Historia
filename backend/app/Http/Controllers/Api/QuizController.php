@@ -456,11 +456,34 @@ class QuizController extends Controller
 
     public function myAttempts(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'status'   => ['sometimes', 'in:in_progress,completed'],
+            'page'     => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $perPage = (int) ($validated['per_page'] ?? 20);
+        $page    = (int) ($validated['page'] ?? 1);
+
+        $query = QuizAttempt::where('user_id', $request->user()->id);
+
+        if (! empty($validated['status'])) {
+            $query->where('status', $validated['status']);
+        }
+
+        $total = (clone $query)->count();
+        $items = $query->orderByDesc('started_at')
+            ->forPage($page, $perPage)
+            ->get();
+
         return response()->json([
-            'data' => QuizAttempt::where('user_id', $request->user()->id)
-                ->orderByDesc('started_at')
-                ->limit(20)
-                ->get()
+            'data' => $items,
+            'meta' => [
+                'current_page' => $page,
+                'per_page'     => $perPage,
+                'total'        => $total,
+                'last_page'    => $total > 0 ? (int) ceil($total / $perPage) : 1,
+            ],
         ]);
     }
 
