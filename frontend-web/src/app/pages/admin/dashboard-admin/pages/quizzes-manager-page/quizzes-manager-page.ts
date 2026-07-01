@@ -1,66 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { QuizService, Quiz, QuizPayload, QuizQuestionInput, QuizOptionInput } from '../../../../../services/quiz.service';
+import { DocumentService, DocumentCategory } from '../../../../../services/document.service';
 
-// Interface alinhada com a tabela 'quiz_options' da migration
-interface QuizOption {
-  id: string;                                    // UUID
-  option_key: string;                            // 'A', 'B', 'C', 'D'
-  text: string;                                  // Texto da opção
-  is_correct: boolean;                           // É correta?
-  explanation?: string;                          // Explicação
-}
-
-// Interface alinhada com a tabela 'quiz_questions' da migration
-interface QuizQuestion {
-  id: string;                                    // UUID
-  quiz_id?: string;                              // FK para quizzes
-  question_order: number;                        // Ordem da pergunta
-  title: string;                                 // Enunciado
-  subtitle?: string;                             // Subtítulo
-  module_label?: string;                         // Rótulo do módulo
-  question_type: 'multiple_choice' | 'true_false'; // Tipo
-  points: number;                                // Pontuação
-  hint_title?: string;                           // Título da dica
-  hint_quote?: string;                           // Citação da dica
-  expert_name?: string;                          // Nome do especialista
-  expert_role?: string;                          // Função do especialista
-  reading_title?: string;                        // Título da leitura
-  reading_text?: string;                         // Texto da leitura
-  options: QuizOption[];                         // Opções de resposta
-  explanation?: string;                          // Explicação (campo extra)
-  created_at?: string;
-}
-
-// Interface alinhada com a tabela 'quizzes' da migration
-interface Quiz {
-  id: string;                                    // UUID
-  title: string;                                 // Título
-  module: string;                                // Módulo
-  description: string;                           // Descrição
-  cover_image_url: string | null;                // URL da imagem de capa
-  difficulty: 'Básico' | 'Intermédio' | 'Avançado'; // Dificuldade
-  base_points: number;                           // Pontos base
-  time_limit_secs: number | null;                // Limite de tempo (segundos)
-  access_level_id: 'public' | 'jindungo' | 'restricted'; // Nível de acesso
-  is_featured: boolean;                          // Destaque
-  status: 'published' | 'draft' | 'archived';    // Status
-  category_id: string | null;                    // FK para document_categories
-  created_by: string;                            // FK para users
-  published_at: string | null;                   // Data de publicação
-  completions_count: number;                     // Conclusões
-  attempts_count: number;                        // Tentativas
-  avg_score: number;                             // Média de pontuação
-  created_at: string;                            // Data de criação
-  updated_at: string;                            // Data de atualização
-  questions: QuizQuestion[];                     // Perguntas (não está na tabela, é relacional)
-}
-
-// Interface para categorias
-interface DocumentCategory {
-  id: string;
-  name: string;
-  slug: string;
+interface BatchQuestion {
+  title: string;
+  question_type: string;
+  points: number;
+  options: QuizOptionInput[];
+  explanation: string;
 }
 
 @Component({
@@ -70,201 +19,40 @@ interface DocumentCategory {
   templateUrl: './quizzes-manager-page.html',
   styleUrls: ['./quizzes-manager-page.css']
 })
-export class QuizzesManagerPageComponent {
+export class QuizzesManagerPageComponent implements OnInit {
   searchQuery = '';
   filterDifficulty = 'todos';
   filterStatus = 'todos';
   showModal = false;
   editingQuiz: Quiz | null = null;
   activeTab: 'details' | 'questions' = 'details';
-  
-  // Número de perguntas selecionado
+  error: string | null = null;
+  isSaving = false;
+
   selectedQuestionCount = 3;
   questionCountOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  
-  // Array de perguntas para preenchimento em lote
-  batchQuestions: QuizQuestion[] = [];
-  
-  // Lista de categorias
-  categoriesList: DocumentCategory[] = [
-    { id: '1', name: 'Economia Colonial', slug: 'economia-colonial' },
-    { id: '2', name: 'Sistema Monetário', slug: 'sistema-monetario' },
-    { id: '3', name: 'Rotas Comerciais', slug: 'rotas-comerciais' },
-    { id: '4', name: 'História Fiscal', slug: 'historia-fiscal' }
-  ];
-  
-  newQuiz: Quiz = {
-    id: '',
-    title: '',
-    module: '',
-    description: '',
-    cover_image_url: null,
-    difficulty: 'Básico',
-    base_points: 100,
-    time_limit_secs: null,
-    access_level_id: 'public',
-    is_featured: false,
-    status: 'draft',
-    category_id: null,
-    created_by: '',
-    published_at: null,
-    completions_count: 0,
-    attempts_count: 0,
-    avg_score: 0,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    questions: []
-  };
 
-  quizzes: Quiz[] = [
-    {
-      id: '1',
-      title: 'O Ciclo do Café em Angola',
-      module: 'MÓDULO IV: ANGOLA COLONIAL',
-      description: 'Análise do impacto económico e social do café entre 1950-1970',
-      cover_image_url: null,
-      difficulty: 'Avançado',
-      base_points: 100,
-      time_limit_secs: 1800,
-      access_level_id: 'public',
-      is_featured: true,
-      status: 'published',
-      category_id: '1',
-      created_by: 'user-1',
-      published_at: '2024-01-15T10:00:00Z',
-      completions_count: 234,
-      attempts_count: 567,
-      avg_score: 78.5,
-      created_at: '2024-01-10T08:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z',
-      questions: [
-        {
-          id: 'q1',
-          question_order: 1,
-          title: 'Qual foi o principal impacto do ciclo do café na estrutura social angolana?',
-          question_type: 'multiple_choice',
-          points: 10,
-          options: [
-            { id: 'o1', option_key: 'A', text: 'Declínio imediato das infraestruturas ferroviárias', is_correct: false },
-            { id: 'o2', option_key: 'B', text: 'Aceleração do processo de urbanização e consolidação de uma nova burguesia', is_correct: true },
-            { id: 'o3', option_key: 'C', text: 'Abolição total do trabalho forçado', is_correct: false },
-            { id: 'o4', option_key: 'D', text: 'Dependência exclusiva da extração diamantífera', is_correct: false }
-          ],
-          explanation: 'O café transformou Angola no quarto maior produtor mundial nos anos 60.',
-          created_at: '2024-01-10T08:00:00Z'
-        }
-      ]
-    }
-  ];
+  batchQuestions: BatchQuestion[] = [];
+  pendingQuestions: QuizQuestionInput[] = [];
 
-  // Inicializar o batch de perguntas quando o número muda
-  initBatchQuestions(): void {
-    this.batchQuestions = [];
-    const optionKeys = ['A', 'B', 'C', 'D'];
-    for (let i = 0; i < this.selectedQuestionCount; i++) {
-      const options: QuizOption[] = optionKeys.map(key => ({
-        id: '',
-        option_key: key,
-        text: '',
-        is_correct: false
-      }));
-      
-      this.batchQuestions.push({
-        id: '',
-        question_order: i + 1,
-        title: '',
-        question_type: 'multiple_choice',
-        points: 10,
-        options: options,
-        explanation: ''
-      });
-    }
+  categoriesList: DocumentCategory[] = [];
+  quizzes: Quiz[] = [];
+
+  newQuiz: QuizPayload = this.emptyQuiz();
+
+  constructor(
+    private quizService: QuizService,
+    private documentService: DocumentService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    this.loadQuizzes();
+    this.loadCategories();
   }
 
-  // Adicionar todas as perguntas do batch
-  addBatchQuestions(): void {
-    for (const question of this.batchQuestions) {
-      if (!question.title.trim()) {
-        alert('Por favor, preencha todas as perguntas');
-        return;
-      }
-      
-      const hasCorrectOption = question.options.some(opt => opt.is_correct && opt.text.trim());
-      if (!hasCorrectOption) {
-        alert(`A pergunta "${question.title || (this.batchQuestions.indexOf(question) + 1)}" não tem uma opção correta selecionada`);
-        return;
-      }
-      
-      const newQuestion: QuizQuestion = {
-        id: 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-        question_order: this.newQuiz.questions.length + 1,
-        title: question.title,
-        question_type: question.question_type,
-        points: question.points || 10,
-        options: question.options.map(opt => ({
-          id: 'o_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-          option_key: opt.option_key,
-          text: opt.text,
-          is_correct: opt.is_correct
-        })),
-        explanation: question.explanation
-      };
-      this.newQuiz.questions.push(newQuestion);
-    }
-    
-    this.batchQuestions = [];
-    this.selectedQuestionCount = 3;
-  }
-
-  get filteredQuizzes(): Quiz[] {
-    return this.quizzes.filter(quiz => {
-      const matchSearch = this.searchQuery === '' ||
-        quiz.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        (quiz.module && quiz.module.toLowerCase().includes(this.searchQuery.toLowerCase()));
-      const matchDifficulty = this.filterDifficulty === 'todos' || quiz.difficulty === this.filterDifficulty;
-      const matchStatus = this.filterStatus === 'todos' || quiz.status === this.filterStatus;
-      return matchSearch && matchDifficulty && matchStatus;
-    });
-  }
-
-  getStatusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      published: 'Publicado',
-      draft: 'Rascunho',
-      archived: 'Arquivado'
-    };
-    return labels[status] || status;
-  }
-
-  getDifficultyBadgeClass(difficulty: string): string {
-    const classes: Record<string, string> = {
-      'Básico': 'difficulty-basic',
-      'Intermédio': 'difficulty-intermediate',
-      'Avançado': 'difficulty-advanced'
-    };
-    return classes[difficulty] || '';
-  }
-
-  getOptionLetter(optionKey: string): string {
-    return optionKey || '?';
-  }
-
-  getStats() {
+  private emptyQuiz(): QuizPayload {
     return {
-      total: this.quizzes.length,
-      published: this.quizzes.filter(q => q.status === 'published').length,
-      draft: this.quizzes.filter(q => q.status === 'draft').length,
-      avgCompletions: this.quizzes.length > 0 
-        ? Math.round(this.quizzes.reduce((sum, q) => sum + q.completions_count, 0) / this.quizzes.length)
-        : 0
-    };
-  }
-
-  openCreateModal(): void {
-    this.editingQuiz = null;
-    this.activeTab = 'details';
-    this.newQuiz = {
-      id: '',
       title: '',
       module: '',
       description: '',
@@ -276,22 +64,142 @@ export class QuizzesManagerPageComponent {
       is_featured: false,
       status: 'draft',
       category_id: null,
-      created_by: '',
-      published_at: null,
-      completions_count: 0,
-      attempts_count: 0,
-      avg_score: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      questions: []
+      questions: [],
     };
+  }
+
+  private async loadQuizzes(): Promise<void> {
+    try {
+      this.quizzes = await this.quizService.getQuizzes();
+    } catch {
+      this.error = 'Erro ao carregar questionários.';
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadCategories(): Promise<void> {
+    try {
+      this.categoriesList = await this.documentService.getCategories();
+    } catch {
+      this.categoriesList = [];
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  initBatchQuestions(): void {
+    this.batchQuestions = [];
+    const optionKeys = ['A', 'B', 'C', 'D'];
+    for (let i = 0; i < this.selectedQuestionCount; i++) {
+      this.batchQuestions.push({
+        title: '',
+        question_type: 'multiple_choice',
+        points: 10,
+        options: optionKeys.map(key => ({ option_key: key, text: '', is_correct: false })),
+        explanation: '',
+      });
+    }
+  }
+
+  addBatchQuestions(): void {
+    for (const question of this.batchQuestions) {
+      if (!question.title.trim()) {
+        alert('Por favor, preencha todas as perguntas');
+        return;
+      }
+      const hasCorrectOption = question.options.some(opt => opt.is_correct && opt.text.trim());
+      if (!hasCorrectOption) {
+        alert(`A pergunta "${question.title}" não tem uma opção correta selecionada`);
+        return;
+      }
+
+      this.pendingQuestions.push({
+        question_order: this.pendingQuestions.length + 1,
+        title: question.title,
+        question_type: question.question_type,
+        points: question.points || 10,
+        options: question.options.map(opt => ({
+          option_key: opt.option_key,
+          text: opt.text,
+          is_correct: opt.is_correct,
+          explanation: question.explanation || undefined,
+        })),
+      });
+    }
+
+    this.newQuiz.questions = [...this.pendingQuestions];
+    this.batchQuestions = [];
+    this.selectedQuestionCount = 3;
+    this.cdr.detectChanges();
+  }
+
+  get filteredQuizzes(): Quiz[] {
+    return this.quizzes.filter(quiz => {
+      const matchSearch = this.searchQuery === '' ||
+        quiz.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        (quiz.module ?? '').toLowerCase().includes(this.searchQuery.toLowerCase());
+      const matchDifficulty = this.filterDifficulty === 'todos' || quiz.difficulty === this.filterDifficulty;
+      const matchStatus = this.filterStatus === 'todos' || quiz.status === this.filterStatus;
+      return matchSearch && matchDifficulty && matchStatus;
+    });
+  }
+
+  getStatusLabel(status: string): string {
+    const labels: Record<string, string> = { published: 'Publicado', draft: 'Rascunho', archived: 'Arquivado' };
+    return labels[status] ?? status;
+  }
+
+  getDifficultyBadgeClass(difficulty: string): string {
+    const classes: Record<string, string> = {
+      'Básico': 'difficulty-basic',
+      'Intermédio': 'difficulty-intermediate',
+      'Avançado': 'difficulty-advanced',
+    };
+    return classes[difficulty] ?? '';
+  }
+
+  getOptionLetter(optionKey: string): string {
+    return optionKey || '?';
+  }
+
+  getStats() {
+    return {
+      total: this.quizzes.length,
+      published: this.quizzes.filter(q => q.status === 'published').length,
+      draft: this.quizzes.filter(q => q.status === 'draft').length,
+      avgCompletions: this.quizzes.length > 0
+        ? Math.round(this.quizzes.reduce((sum, q) => sum + (q.completions_count ?? 0), 0) / this.quizzes.length)
+        : 0,
+    };
+  }
+
+  openCreateModal(): void {
+    this.editingQuiz = null;
+    this.activeTab = 'details';
+    this.newQuiz = this.emptyQuiz();
+    this.pendingQuestions = [];
     this.initBatchQuestions();
     this.showModal = true;
   }
 
   openEditModal(quiz: Quiz): void {
-    this.editingQuiz = { ...quiz };
-    this.newQuiz = { ...quiz, questions: quiz.questions ? [...quiz.questions] : [] };
+    this.editingQuiz = quiz;
+    this.newQuiz = {
+      title: quiz.title,
+      module: quiz.module,
+      description: quiz.description,
+      cover_image_url: quiz.cover_image_url,
+      difficulty: quiz.difficulty,
+      base_points: quiz.base_points,
+      time_limit_secs: quiz.time_limit_secs,
+      access_level_id: quiz.access_level_id,
+      is_featured: quiz.is_featured,
+      status: quiz.status,
+      category_id: quiz.category_id,
+      questions: [],
+    };
+    this.pendingQuestions = [];
     this.activeTab = 'details';
     this.showModal = true;
   }
@@ -300,51 +208,87 @@ export class QuizzesManagerPageComponent {
     this.showModal = false;
     this.editingQuiz = null;
     this.batchQuestions = [];
+    this.pendingQuestions = [];
   }
 
   removeQuestion(index: number): void {
     if (confirm('Tem certeza que deseja remover esta pergunta?')) {
-      this.newQuiz.questions.splice(index, 1);
-      // Reordenar as perguntas
-      this.newQuiz.questions.forEach((q, i) => q.question_order = i + 1);
+      this.pendingQuestions.splice(index, 1);
+      this.pendingQuestions.forEach((q, i) => q.question_order = i + 1);
+      this.newQuiz.questions = [...this.pendingQuestions];
     }
   }
 
-  saveQuiz(): void {
-    if (!this.newQuiz.title.trim()) {
+  async saveQuiz(): Promise<void> {
+    if (!this.newQuiz.title?.trim()) {
       alert('Por favor, insira o título do questionário');
       return;
     }
-    
-    if (this.newQuiz.questions.length === 0) {
+
+    // Para edição, perguntas são opcionais (mantém as existentes se nenhuma nova for adicionada)
+    if (!this.editingQuiz && this.pendingQuestions.length === 0) {
       alert('Por favor, adicione pelo menos uma pergunta');
       return;
     }
-    
-    if (this.editingQuiz) {
-      const index = this.quizzes.findIndex(q => q.id === this.editingQuiz!.id);
-      if (index !== -1) {
-        this.quizzes[index] = { ...this.newQuiz, id: this.editingQuiz.id };
+
+    this.isSaving = true;
+    this.cdr.detectChanges();
+
+    try {
+      const payload: QuizPayload = { ...this.newQuiz };
+      if (this.pendingQuestions.length > 0) {
+        payload.questions = this.pendingQuestions;
+      } else {
+        delete payload.questions;
       }
-    } else {
-      this.newQuiz.id = 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-      this.quizzes.push({ ...this.newQuiz });
+
+      if (this.editingQuiz) {
+        const updated = await this.quizService.updateQuiz(this.editingQuiz.id, payload);
+        const idx = this.quizzes.findIndex(q => q.id === this.editingQuiz!.id);
+        if (idx !== -1) this.quizzes[idx] = updated;
+      } else {
+        const created = await this.quizService.createQuiz(payload);
+        this.quizzes.unshift(created);
+      }
+
+      this.closeModal();
+    } catch (err: any) {
+      alert(err?.error?.message ?? 'Erro ao guardar questionário.');
+    } finally {
+      this.isSaving = false;
+      this.cdr.detectChanges();
     }
-    this.closeModal();
   }
 
-  deleteQuiz(id: string): void {
-    if (confirm('Tem certeza que deseja eliminar este questionário?')) {
+  async deleteQuiz(id: string): Promise<void> {
+    if (!confirm('Tem certeza que deseja eliminar este questionário?')) return;
+    try {
+      await this.quizService.deleteQuiz(id);
       this.quizzes = this.quizzes.filter(q => q.id !== id);
+      this.cdr.detectChanges();
+    } catch (err: any) {
+      alert(err?.error?.message ?? 'Erro ao eliminar questionário.');
     }
   }
 
-  toggleStatus(quiz: Quiz): void {
-    quiz.status = quiz.status === 'published' ? 'draft' : 'published';
-    if (quiz.status === 'published') {
-      quiz.published_at = new Date().toISOString();
-    } else {
-      quiz.published_at = null;
+  async toggleStatus(quiz: Quiz): Promise<void> {
+    const newStatus = quiz.status === 'published' ? 'draft' : 'published';
+    try {
+      const updated = await this.quizService.updateQuiz(quiz.id, {
+        title: quiz.title,
+        module: quiz.module,
+        description: quiz.description,
+        difficulty: quiz.difficulty,
+        base_points: quiz.base_points,
+        access_level_id: quiz.access_level_id,
+        is_featured: quiz.is_featured,
+        status: newStatus,
+      });
+      const idx = this.quizzes.findIndex(q => q.id === quiz.id);
+      if (idx !== -1) this.quizzes[idx] = updated;
+      this.cdr.detectChanges();
+    } catch (err: any) {
+      alert(err?.error?.message ?? 'Erro ao atualizar status.');
     }
   }
 

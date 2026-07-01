@@ -6,58 +6,62 @@
     <p class="dashboard-subtitle">Painel de monitorização administrativa e preservação histórica.</p>
   </div>
 
-  <!-- KPI Row (5 cards) -->
+  <!-- Erro -->
+  <div *ngIf="errorMessage" style="background:rgba(239,68,68,0.08);color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px">
+    {{ errorMessage }}
+  </div>
+
+  <!-- KPI Row (5 cards) - DADOS REAIS -->
   <div class="kpi-grid">
-    <!-- Total Utilizadores -->
-    <div class="kpi-card">
-      <div class="kpi-label">TOTAL UTILIZADORES</div>
-      <div class="kpi-value">2,842</div>
-      <div class="kpi-footer">
-        <div class="trend-badge trend-up">+12%</div>
-        <div class="trend-text">vs. mês passado</div>
-      </div>
-    </div>
+    <div *ngFor="let kpi of kpiCards" class="kpi-card"
+         [class.left-border-red]="kpi.leftBorderColor"
+         [style.borderLeftColor]="kpi.leftBorderColor">
 
-    <!-- Pedidos de Acesso -->
-    <div class="kpi-card left-border-red">
-      <div class="kpi-label">PEDIDOS DE ACESSO</div>
-      <div class="kpi-value">12</div>
-      <div class="kpi-footer">
-        <div class="status-alert">
-          <div class="status-dot-red"></div>
-          <span>PENDENTES</span>
+      <div class="kpi-label">{{ kpi.label }}</div>
+
+      <ng-container *ngIf="kpi.variant.type === 'trend'">
+        <div class="kpi-value">{{ kpi.value }}</div>
+        <div class="kpi-footer">
+          <div class="trend-badge" [class.trend-up]="kpi.variant.positive" [class.trend-down]="!kpi.variant.positive">
+            {{ kpi.variant.badge }}
+          </div>
+          <div class="trend-text">{{ kpi.variant.badgeLabel }}</div>
         </div>
-      </div>
-    </div>
+      </ng-container>
 
-    <!-- Conteúdo Publicado -->
-    <div class="kpi-card">
-      <div class="kpi-label">CONTEÚDO PUBLICADO</div>
-      <div class="kpi-value-wrapper">
-        <span class="kpi-value-large">12,4k</span>
-        <span class="kpi-value-sub">/ 158 em revisão</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: 88%;"></div>
-      </div>
-    </div>
+      <ng-container *ngIf="kpi.variant.type === 'alert'">
+        <div class="kpi-value">{{ kpi.value }}</div>
+        <div class="kpi-footer">
+          <div class="status-alert">
+            <div class="status-dot-red"></div>
+            <span>{{ kpi.variant.badge }}</span>
+          </div>
+        </div>
+      </ng-container>
 
-    <!-- Tópicos Ativos (48H) -->
-    <div class="kpi-card">
-      <div class="kpi-label">TÓPICOS ATIVOS (48H)</div>
-      <div class="kpi-value" style="color: #fbbf24;">42</div>
-      <div class="avatar-stack">
-        <div class="avatar" style="background: #cbd5e1;"></div>
-        <div class="avatar" style="background: #94a3b8;"></div>
-        <div class="avatar avatar-active" style="background: #6b0119;"></div>
-      </div>
-    </div>
+      <ng-container *ngIf="kpi.variant.type === 'progress'">
+        <div class="kpi-value-wrapper">
+          <span class="kpi-value-large">{{ kpi.value }}</span>
+          <span class="kpi-value-sub">{{ kpi.variant.subValue }}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width]="kpi.variant.progress + '%'"></div>
+        </div>
+      </ng-container>
 
-    <!-- Novos Membros -->
-    <div class="kpi-card">
-      <div class="kpi-label">NOVOS MEMBROS</div>
-      <div class="kpi-value">18</div>
-      <div class="today-label">hoje</div>
+      <ng-container *ngIf="kpi.variant.type === 'avatar'">
+        <div class="kpi-value" [style.color]="kpi.valueColor">{{ kpi.value }}</div>
+        <div class="avatar-stack">
+          <div *ngFor="let color of kpi.variant.avatarColors; let last = last"
+               class="avatar" [class.avatar-active]="last" [style.background]="color"></div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="kpi.variant.type === 'simple'">
+        <div class="kpi-value">{{ kpi.value }}</div>
+        <div class="today-label">{{ kpi.variant.subtext }}</div>
+      </ng-container>
+
     </div>
   </div>
 
@@ -148,89 +152,39 @@
     </div>
   </div>
 
-  <!-- Recent Activity Feed -->
+  <!-- Recent Activity Feed - DADOS REAIS -->
   <div class="activity-feed">
     <div class="feed-header">
       <h3>Atividade Recente</h3>
-      <button class="filter-btn">Filtrar Atividade</button>
     </div>
     
     <div class="feed-list">
-      <div class="feed-item">
+      <div *ngIf="recentActivities.length === 0" style="padding:24px;text-align:center;color:#9CA3AF;font-size:14px">
+        Sem atividade recente para mostrar.
+      </div>
+
+      <div *ngFor="let activity of recentActivities" class="feed-item">
         <div class="feed-left">
-          <div class="feed-icon icon-bordeaux">
-            <svg width="15" height="16.667" viewBox="0 0 15 16.667" fill="#6B0119">
-              <path d="M7.5 0L0 7.5L7.5 15L15 7.5L7.5 0Z"/>
+          <div class="feed-icon" [class]="getIconClass(activity.icon)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
             </svg>
           </div>
           <div class="feed-content">
-            <p class="feed-title">Novo pedido de acesso de investigador</p>
-            <p class="feed-description">Dr. Arnaldo Neto (Univ. Namibe) solicitou acesso ao Acervo Colonial.</p>
+            <p class="feed-title">{{ activity.title }}</p>
+            <p class="feed-description">{{ activity.description }}</p>
           </div>
         </div>
         <div class="feed-right">
-          <span class="feed-time">Há 5 min</span>
-          <button class="feed-btn">Analisar</button>
+          <span class="feed-time">{{ activity.time }}</span>
+          <button *ngIf="activity.type === 'button'" [class]="activity.buttonOutline ? 'feed-btn-outline' : 'feed-btn'">
+            {{ activity.buttonText }}
+          </button>
+          <span *ngIf="activity.type === 'badge'" class="feed-badge" [class]="getBadgeClass(activity.badgeClass || '')">
+            {{ activity.badgeText }}
+          </span>
         </div>
       </div>
-
-      <div class="feed-item">
-        <div class="feed-left">
-          <div class="feed-icon icon-success">
-            <svg width="16.667" height="16.667" viewBox="0 0 16.667 16.667" fill="#22C55E">
-              <path d="M8.333 0L0 8.333L8.333 16.667L16.667 8.333L8.333 0Z"/>
-            </svg>
-          </div>
-          <div class="feed-content">
-            <p class="feed-title">Documento Publicado</p>
-            <p class="feed-description">"Relatório de Exportação Diamang 1968" aprovado e visível no portal.</p>
-          </div>
-        </div>
-        <div class="feed-right">
-          <span class="feed-time">Há 22 min</span>
-          <span class="feed-badge success">SUCESSO</span>
-        </div>
-      </div>
-
-      <div class="feed-item">
-        <div class="feed-left">
-          <div class="feed-icon icon-warning">
-            <svg width="16.667" height="16.667" viewBox="0 0 16.667 16.667" fill="#D4A574">
-              <path d="M8.333 0L0 8.333L8.333 16.667L16.667 8.333L8.333 0Z"/>
-            </svg>
-          </div>
-          <div class="feed-content">
-            <p class="feed-title">Novo tópico no fórum</p>
-            <p class="feed-description">Discussão iniciada sobre: "Papel da moeda Kwanza na transição (1976)".</p>
-          </div>
-        </div>
-        <div class="feed-right">
-          <span class="feed-time">Há 1 hora</span>
-          <button class="feed-btn-outline">Ver Discussão</button>
-        </div>
-      </div>
-
-      <div class="feed-item">
-        <div class="feed-left">
-          <div class="feed-icon icon-neutral">
-            <svg width="18.333" height="13.333" viewBox="0 0 18.333 13.333" fill="#94A3B8">
-              <path d="M9.167 0L0 6.667L9.167 13.333L18.333 6.667L9.167 0Z"/>
-            </svg>
-          </div>
-          <div class="feed-content">
-            <p class="feed-title">Novo utilizador registado</p>
-            <p class="feed-description">Maria João submeteu registo como Estudante de Graduação.</p>
-          </div>
-        </div>
-        <div class="feed-right">
-          <span class="feed-time">Há 3 horas</span>
-          <span class="feed-badge neutral">PROCESSADO</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="feed-footer">
-      <button class="load-more">CARREGAR ATIVIDADE MAIS ANTIGA</button>
     </div>
   </div>
 </div>

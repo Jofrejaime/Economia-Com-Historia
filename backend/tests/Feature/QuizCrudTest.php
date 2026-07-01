@@ -39,7 +39,7 @@ class QuizCrudTest extends TestCase
 
     public function test_admin_or_professor_can_create_quiz_with_nested_questions_and_options(): void
     {
-        $token = $this->registerUser('prof@example.com', 'professor');
+        $token = $this->registerUser('admin@example.com', 'admin');
 
         $payload = [
             'title' => 'Novo Quiz de Economia',

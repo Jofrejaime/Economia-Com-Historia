@@ -14,11 +14,19 @@
     </button>
   </div>
 
-  <!-- Stats Cards - TODOS BORDEAUX -->
+  <!-- Erro -->
+  <div *ngIf="error" style="background:rgba(239,68,68,0.08);color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px">
+    {{ error }}
+  </div>
+
+  <!-- Stats Cards -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">📋</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
       </div>
       <div>
         <p class="stat-label">TOTAL</p>
@@ -27,7 +35,9 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">✓</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
       </div>
       <div>
         <p class="stat-label">PUBLICADOS</p>
@@ -36,7 +46,10 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">📝</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
       </div>
       <div>
         <p class="stat-label">RASCUNHOS</p>
@@ -45,7 +58,12 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">👥</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
       </div>
       <div>
         <p class="stat-label">MÉDIA DE PARTICIPAÇÕES</p>
@@ -57,15 +75,18 @@
   <!-- Filters -->
   <div class="filters-bar">
     <div class="search-wrapper">
-      <span class="search-icon">🔍</span>
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
       <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar questionários por título ou módulo..." class="search-input">
     </div>
     <div class="filter-select">
       <select [(ngModel)]="filterDifficulty" class="select">
         <option value="todos">Todas as dificuldades</option>
-        <option value="Básico">⭐ Básico</option>
-        <option value="Intermédio">⭐⭐ Intermédio</option>
-        <option value="Avançado">⭐⭐⭐ Avançado</option>
+        <option value="Básico">Básico</option>
+        <option value="Intermédio">Intermédio</option>
+        <option value="Avançado">Avançado</option>
       </select>
     </div>
     <div class="filter-select">
@@ -98,29 +119,63 @@
       
       <div class="quiz-stats">
         <div class="stat-item">
-          <span class="stat-icon-small">📊</span>
-          <span>{{ quiz.questions.length || 0 }} perguntas</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span>{{ quiz.attempts_count || 0 }} tentativas</span>
         </div>
         <div class="stat-item">
-          <span class="stat-icon-small">⭐</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B1E2D">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
           <span>{{ quiz.base_points || 0 }} pontos base</span>
         </div>
         <div class="stat-item">
-          <span class="stat-icon-small">👥</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
           <span>{{ quiz.completions_count || 0 }} participações</span>
         </div>
         <div class="stat-item">
-          <span class="stat-icon-small">📈</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
           <span>{{ quiz.avg_score || 0 }}% acerto</span>
         </div>
       </div>
       
       <div class="card-actions">
-        <button class="action-btn" (click)="openEditModal(quiz)">✏️ Editar</button>
-        <button class="action-btn" (click)="toggleStatus(quiz)">
-          {{ quiz.status === 'published' ? '📥 Despublicar' : '📤 Publicar' }}
+        <button class="action-btn" (click)="openEditModal(quiz)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          Editar
         </button>
-        <button class="action-btn" (click)="deleteQuiz(quiz.id)">🗑️ Eliminar</button>
+        <button class="action-btn" (click)="toggleStatus(quiz)">
+          <svg *ngIf="quiz.status === 'published'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <svg *ngIf="quiz.status !== 'published'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          {{ quiz.status === 'published' ? 'Despublicar' : 'Publicar' }}
+        </button>
+        <button class="action-btn" (click)="deleteQuiz(quiz.id)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          Eliminar
+        </button>
       </div>
     </div>
     
@@ -135,16 +190,28 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>{{ editingQuiz ? 'Editar Questionário' : 'Novo Questionário' }}</h2>
-        <button class="modal-close" (click)="closeModal()">✕</button>
+        <button class="modal-close" (click)="closeModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
       </div>
       
       <!-- Tabs -->
       <div class="modal-tabs">
         <button class="tab-btn" [class.active]="activeTab === 'details'" (click)="activeTab = 'details'">
-          📋 Informações Gerais
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Informações Gerais
         </button>
         <button class="tab-btn" [class.active]="activeTab === 'questions'" (click)="activeTab = 'questions'">
-          📝 Perguntas ({{ newQuiz.questions.length || 0 }})
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          Perguntas ({{ pendingQuestions.length || 0 }})
         </button>
       </div>
       
@@ -171,17 +238,17 @@
             <div class="form-group">
               <label>Dificuldade</label>
               <select [(ngModel)]="newQuiz.difficulty" class="form-input">
-                <option value="Básico">⭐ Básico</option>
-                <option value="Intermédio">⭐⭐ Intermédio</option>
-                <option value="Avançado">⭐⭐⭐ Avançado</option>
+                <option value="Básico">Básico</option>
+                <option value="Intermédio">Intermédio</option>
+                <option value="Avançado">Avançado</option>
               </select>
             </div>
             <div class="form-group">
               <label>Status</label>
               <select [(ngModel)]="newQuiz.status" class="form-input">
-                <option value="draft">📝 Rascunho</option>
-                <option value="published">✓ Publicado</option>
-                <option value="archived">📁 Arquivado</option>
+                <option value="draft">Rascunho</option>
+                <option value="published">Publicado</option>
+                <option value="archived">Arquivado</option>
               </select>
             </div>
           </div>
@@ -203,9 +270,9 @@
             <div class="form-group">
               <label>Nível de Acesso</label>
               <select [(ngModel)]="newQuiz.access_level_id" class="form-input">
-                <option value="public">🌐 Público</option>
-                <option value="jindungo">🔥 Jindungo</option>
-                <option value="restricted">🔒 Restrito</option>
+                <option value="public">Público</option>
+                <option value="jindungo">Jindungo</option>
+                <option value="restricted">Restrito</option>
               </select>
             </div>
             <div class="form-group">
@@ -232,10 +299,14 @@
           </div>
           
           <div class="info-box">
-            <div class="info-icon">ℹ️</div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2" class="info-icon">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
             <div class="info-text">
               <strong>Resumo do Questionário</strong><br>
-          <span>{{ newQuiz.questions.length || 0 }} perguntas • {{ newQuiz.base_points || 0 }} pontos base</span>
+              <span>{{ pendingQuestions.length || 0 }} perguntas • {{ newQuiz.base_points || 0 }} pontos base</span>
             </div>
           </div>
         </div>
@@ -244,13 +315,19 @@
         <div *ngIf="activeTab === 'questions'" class="tab-content">
           
           <!-- Lista de Perguntas já Adicionadas -->
-          <div class="questions-list" *ngIf="newQuiz.questions && newQuiz.questions.length > 0">
+          <div class="questions-list" *ngIf="pendingQuestions.length > 0">
             <h3 class="section-subtitle">Perguntas Adicionadas</h3>
-            <div *ngFor="let question of newQuiz.questions; let i = index" class="question-item">
+            <div *ngFor="let question of pendingQuestions; let i = index" class="question-item">
               <div class="question-header">
                 <div class="question-number">Pergunta {{ question.question_order || i + 1 }}</div>
                 <div class="question-actions">
-                  <button class="icon-btn" (click)="removeQuestion(i)">🗑️ Remover</button>
+                  <button class="icon-btn" (click)="removeQuestion(i)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    Remover
+                  </button>
                 </div>
               </div>
               <p class="question-text">{{ question.title }}</p>
@@ -258,13 +335,35 @@
                 <div *ngFor="let opt of question.options" class="option-preview" [class.correct]="opt.is_correct">
                   <span class="option-marker">{{ getOptionLetter(opt.option_key) }}</span>
                   <span class="option-text">{{ opt.text }}</span>
-                  <span *ngIf="opt.is_correct" class="correct-badge">✓ Correta</span>
+                  <span *ngIf="opt.is_correct" class="correct-badge">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Correta
+                  </span>
                 </div>
               </div>
               <div class="question-meta">
-                <span>🎯 {{ question.points || 0 }} pontos</span>
-                <span *ngIf="question.explanation">💡 Com explicação</span>
-                <span *ngIf="question.question_type">📋 {{ question.question_type }}</span>
+                <span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#8B1E2D" style="vertical-align:middle;margin-right:3px">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  </svg>
+                  {{ question.points || 0 }} pontos
+                </span>
+                <span *ngIf="question.options[0]?.explanation">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  Com explicação
+                </span>
+                <span *ngIf="question.question_type">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  </svg>
+                  {{ question.question_type }}
+                </span>
               </div>
             </div>
           </div>
@@ -329,7 +428,10 @@
               
               <div class="batch-actions">
                 <button class="btn-primary" (click)="addBatchQuestions()" [disabled]="batchQuestions.length === 0">
-                  ➕ Adicionar {{ batchQuestions.length }} pergunta{{ batchQuestions.length > 1 ? 's' : '' }}
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                  Adicionar {{ batchQuestions.length }} pergunta{{ batchQuestions.length > 1 ? 's' : '' }}
                 </button>
               </div>
             </div>
@@ -339,8 +441,13 @@
       
       <div class="modal-footer">
         <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveQuiz()" [disabled]="!(newQuiz.questions && newQuiz.questions.length > 0)">
-          💾 Guardar Questionário
+        <button class="btn-save" (click)="saveQuiz()" [disabled]="isSaving">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          {{ isSaving ? 'A guardar...' : 'Guardar Questionário' }}
         </button>
       </div>
     </div>

@@ -34,6 +34,12 @@ interface RecentActivity {
   route?: string;
 }
 
+interface CategoriesSummary {
+  total: number;
+  free: number;
+  requires_subscription: number;
+}
+
 @Component({
   selector: 'app-overview-page',
   standalone: true,
@@ -94,28 +100,9 @@ export class OverviewPageComponent implements OnInit {
     }
   ];
 
-  activityData = {
-    categories: ['ECONOMIA COLONIAL', 'PÓS-INDEPENDÊNCIA'],
-    months: ['JAN', 'FEV', 'MAR', 'ABR', 'MAI'],
-    values: [120, 160, 140, 180, 150]
-  };
+  categoriesSummary: CategoriesSummary | null = null;
 
-  goals = [
-    { name: 'Digitalização 1970-1975', percent: 82, color: '#6b0119' },
-    { name: 'Indexação de Metadados', percent: 64, color: '#fbbf24' },
-    { name: 'Verificação de Qualidade', percent: 95, color: '#22c55e' }
-  ];
-
-  recentActivities: RecentActivity[] = [
-    {
-      icon: 'bordeaux',
-      title: 'Novo pedido de acesso de investigador',
-      description: 'A carregar atividade real...',
-      time: 'agora',
-      type: 'button',
-      buttonText: 'Analisar'
-    }
-  ];
+  recentActivities: RecentActivity[] = [];
 
   footerLinks = {
     administracao: ['Manual do Curador', 'Auditoria de Acessos', 'Protocolos de Segurança'],
@@ -203,6 +190,8 @@ export class OverviewPageComponent implements OnInit {
         }
       }
     ];
+
+    this.categoriesSummary = (data as any).categories ?? null;
 
     this.recentActivities = data.recent_activity.map((item: Record<string, unknown>): RecentActivity => ({
       icon: (item['icon'] as string) || 'neutral',
