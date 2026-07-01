@@ -130,11 +130,13 @@ class UserSeeder extends Seeder
             ]);
 
             // Initialize user level with varied data per role
+            // quizzes_completed starts at 0 — no quiz_attempts are seeded,
+            // so the counter must reflect reality (incremented by GamificationService on first real completion).
             $levelData = match ($user->role) {
-                'admin' => ['current_level' => 5, 'total_points' => 1500, 'weekly_points' => 120, 'monthly_points' => 450, 'quizzes_completed' => 15, 'documents_read' => 40, 'topics_created' => 8, 'replies_posted' => 25],
-                'professor' => ['current_level' => 4, 'total_points' => 850, 'weekly_points' => 80, 'monthly_points' => 320, 'quizzes_completed' => 10, 'documents_read' => 30, 'topics_created' => 12, 'replies_posted' => 35],
-                'investigador' => ['current_level' => 4, 'total_points' => 720, 'weekly_points' => 65, 'monthly_points' => 280, 'quizzes_completed' => 8, 'documents_read' => 25, 'topics_created' => 6, 'replies_posted' => 20],
-                default => ['current_level' => 2, 'total_points' => 150, 'weekly_points' => 30, 'monthly_points' => 95, 'quizzes_completed' => 3, 'documents_read' => 8, 'topics_created' => 2, 'replies_posted' => 5],
+                'admin'        => ['current_level' => 5, 'total_points' => 1500, 'weekly_points' => 120, 'monthly_points' => 450, 'quizzes_completed' => 0, 'documents_read' => 40, 'topics_created' => 8,  'replies_posted' => 25],
+                'professor'    => ['current_level' => 4, 'total_points' => 850,  'weekly_points' => 80,  'monthly_points' => 320, 'quizzes_completed' => 0, 'documents_read' => 30, 'topics_created' => 12, 'replies_posted' => 35],
+                'investigador' => ['current_level' => 4, 'total_points' => 720,  'weekly_points' => 65,  'monthly_points' => 280, 'quizzes_completed' => 0, 'documents_read' => 25, 'topics_created' => 6,  'replies_posted' => 20],
+                default        => ['current_level' => 2, 'total_points' => 150,  'weekly_points' => 30,  'monthly_points' => 95,  'quizzes_completed' => 0, 'documents_read' => 8,  'topics_created' => 2,  'replies_posted' => 5],
             };
 
             DB::table('user_levels')->insert(array_merge([
