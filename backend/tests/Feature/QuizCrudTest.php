@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\QuizStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,7 @@ class QuizCrudTest extends TestCase
             'base_points' => 150,
             'time_limit_secs' => 300,
             'access_level_id' => 'public',
-            'status' => 'published',
+            'status' => QuizStatus::PUBLISHED->value,
             'questions' => [
                 [
                     'question_order' => 1,

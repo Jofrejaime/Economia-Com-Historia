@@ -75,7 +75,7 @@ class QuizController extends Controller
             'time_limit_secs' => ['nullable', 'integer', 'min:0'],
             'access_level_id' => ['nullable', 'string', 'exists:access_levels,id'],
             'is_featured' => ['nullable', 'boolean'],
-            'status' => ['nullable', 'string', 'in:published,draft'],
+            'status' => ['nullable', \Illuminate\Validation\Rule::enum(\App\Enums\QuizStatus::class)],
             'category_id' => ['nullable', 'uuid', 'exists:document_categories,id'],
             'questions' => ['nullable', 'array'],
             'questions.*.id' => ['nullable', 'uuid'],
@@ -188,7 +188,7 @@ class QuizController extends Controller
             'time_limit_secs' => ['nullable', 'integer', 'min:0'],
             'access_level_id' => ['nullable', 'string', 'exists:access_levels,id'],
             'is_featured' => ['nullable', 'boolean'],
-            'status' => ['nullable', 'string', 'in:published,draft'],
+            'status' => ['nullable', \Illuminate\Validation\Rule::enum(\App\Enums\QuizStatus::class)],
             'category_id' => ['nullable', 'uuid', 'exists:document_categories,id'],
             'questions' => ['nullable', 'array'],
             'questions.*.id' => ['nullable', 'uuid'],
@@ -291,11 +291,7 @@ class QuizController extends Controller
             abort(404, 'Quiz not found.');
         }
 
-        DB::transaction(function () use ($quiz, $id) {
-            // Delete attempts manually since they don't have cascadeOnDelete in the DB schema
-            QuizAttempt::where('quiz_id', $id)->delete();
-            $quiz->delete();
-        });
+        $quiz->delete();
 
         return response()->json(['message' => 'Quiz deleted successfully.']);
     }

@@ -80,7 +80,7 @@ class Quiz extends Model
 
     public function hasPublishedDocuments(): bool
     {
-        return $this->documents()->where('status', 'published')->exists();
+        return $this->documents()->where('status', \App\Enums\DocumentStatus::PUBLISHED)->exists();
     }
 
     public function attemptCount(): int
@@ -90,7 +90,7 @@ class Quiz extends Model
 
     public function completedAttempts(): int
     {
-        return (int) ($this->completions_count ?? $this->attempts()->where('status', QuizAttemptStatus::COMPLETED)->count());
+        return (int) ($this->completions_count ?? $this->attempts()->completed()->count());
     }
 
     public function completionRate(): float

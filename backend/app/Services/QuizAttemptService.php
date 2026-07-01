@@ -33,7 +33,7 @@ class QuizAttemptService
 
         $activeAttempt = QuizAttempt::where('quiz_id', $quizId)
             ->where('user_id', $user->id)
-            ->where('status', QuizAttemptStatus::IN_PROGRESS)
+            ->inProgress()
             ->first();
 
         if ($activeAttempt !== null) {
