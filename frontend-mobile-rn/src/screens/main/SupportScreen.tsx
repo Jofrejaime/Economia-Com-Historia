@@ -154,26 +154,6 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: appTheme.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: appTheme.colors.border,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backButton: {
-    marginRight: 16,
-    padding: 4,
-  },
-  title: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
-    fontWeight: "700",
-    color: appTheme.colors.primaryDark,
-    letterSpacing: -0.4,
-  },
   container: {
     flex: 1,
   },

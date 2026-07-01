@@ -195,7 +195,7 @@ export function HomeScreen() {
                 style={styles.formatCard}
                 onPress={() => navigation.navigate("Content", { access_level_id: "jindungo" })}
               >
-                <View style={[styles.formatIcon, { backgroundColor: "#FF6B6B" }]}>
+                <View style={[styles.formatIcon, { backgroundColor: appTheme.colors.primary }]}>
                   <Ionicons name="flame" size={24} color="white" />
                 </View>
                 <View style={styles.formatBody}>
@@ -209,7 +209,7 @@ export function HomeScreen() {
                 style={styles.formatCard}
                 onPress={() => navigation.navigate("Content", { document_type: "article" })}
               >
-                <View style={[styles.formatIcon, { backgroundColor: "#FFD93D" }]}>
+                <View style={[styles.formatIcon, { backgroundColor: appTheme.colors.warning }]}>
                   <Ionicons name="flash" size={24} color="white" />
                 </View>
                 <View style={styles.formatBody}>
@@ -223,7 +223,7 @@ export function HomeScreen() {
                 style={styles.formatCard}
                 onPress={() => navigation.navigate("Content", { document_type: "thesis" })}
               >
-                <View style={[styles.formatIcon, { backgroundColor: "#6BCB77" }]}>
+                <View style={[styles.formatIcon, { backgroundColor: appTheme.colors.success }]}>
                   <Ionicons name="school-outline" size={24} color="white" />
                 </View>
                 <View style={styles.formatBody}>
@@ -237,7 +237,7 @@ export function HomeScreen() {
                 style={styles.formatCard}
                 onPress={() => navigation.navigate("Content", { document_type: "report" })}
               >
-                <View style={[styles.formatIcon, { backgroundColor: "#4D96FF" }]}>
+                <View style={[styles.formatIcon, { backgroundColor: appTheme.colors.textSecondary }]}>
                   <Ionicons name="bar-chart-outline" size={24} color="white" />
                 </View>
                 <View style={styles.formatBody}>
@@ -251,7 +251,7 @@ export function HomeScreen() {
                 style={styles.formatCard}
                 onPress={() => navigation.navigate("Content", { document_type: "manuscript" })}
               >
-                <View style={[styles.formatIcon, { backgroundColor: "#A78BFA" }]}>
+                <View style={[styles.formatIcon, { backgroundColor: appTheme.colors.primaryDark }]}>
                   <Ionicons name="book-outline" size={24} color="white" />
                 </View>
                 <View style={styles.formatBody}>

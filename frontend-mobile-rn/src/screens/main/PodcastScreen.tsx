@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  StatusBar,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
@@ -41,9 +40,7 @@ export function PodcastScreen() {
   };
 
   return (
-    <View style={styles.background}>
-      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
-      
+    <ScreenContainer style={styles.screen}>
       <HeaderBar title="Podcast" />
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -62,7 +59,7 @@ export function PodcastScreen() {
             Kwanza: História e Desafios da Moeda Nacional
           </Text>
           <View style={styles.narratorRow}>
-            <Ionicons name="mic-outline" size={14} color="rgba(255,255,255,0.8)" />
+            <Ionicons name="mic-outline" size={14} color={appTheme.colors.textSecondary} />
             <Text style={styles.trackNarrator}>
               Narrado por Prof. Dr. Arnaldo Santos
             </Text>
@@ -84,12 +81,12 @@ export function PodcastScreen() {
         {/* Playback Controls */}
         <View style={styles.controlsRow}>
           <TouchableOpacity style={styles.controlIconBtn}>
-            <Feather name="shuffle" size={18} color="rgba(255,255,255,0.6)" />
+            <Feather name="shuffle" size={18} color={appTheme.colors.textMuted} />
           </TouchableOpacity>
 
           <View style={styles.playCenterRow}>
             <TouchableOpacity style={styles.skipBtn}>
-              <Ionicons name="play-back" size={28} color="white" />
+              <Ionicons name="play-back" size={28} color={appTheme.colors.textPrimary} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -99,18 +96,18 @@ export function PodcastScreen() {
               <Ionicons
                 name={isPlaying ? "pause" : "play"}
                 size={28}
-                color={appTheme.colors.primary}
+                color="white"
                 style={!isPlaying && { marginLeft: 3 }}
               />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.skipBtn}>
-              <Ionicons name="play-forward" size={28} color="white" />
+              <Ionicons name="play-forward" size={28} color={appTheme.colors.textPrimary} />
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.controlIconBtn}>
-            <Feather name="volume-2" size={18} color="rgba(255,255,255,0.6)" />
+            <Feather name="volume-2" size={18} color={appTheme.colors.textMuted} />
           </TouchableOpacity>
         </View>
 
@@ -122,12 +119,12 @@ export function PodcastScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.secondaryBtn} onPress={() => setShowTranscript(!showTranscript)}>
-            <Feather name="file-text" size={16} color="white" />
+            <Feather name="file-text" size={16} color={appTheme.colors.textSecondary} />
             <Text style={styles.secondaryBtnLabel}>Transcrição</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.secondaryBtn}>
-            <Feather name="wifi" size={16} color="white" />
+            <Feather name="wifi" size={16} color={appTheme.colors.textSecondary} />
             <Text style={styles.secondaryBtnLabel}>Dispositivos</Text>
           </TouchableOpacity>
         </View>
@@ -138,7 +135,7 @@ export function PodcastScreen() {
             <View style={styles.transcriptHeader}>
               <Text style={styles.transcriptLabel}>Transcrição em Tempo Real</Text>
               <TouchableOpacity onPress={() => setShowTranscript(false)}>
-                <Feather name="x" size={14} color="white" />
+                <Feather name="x" size={14} color={appTheme.colors.textMuted} />
               </TouchableOpacity>
             </View>
             <View style={styles.transcriptBody}>
@@ -152,71 +149,36 @@ export function PodcastScreen() {
           </View>
         )}
 
-        {/* Action Buttons - Quiz and Forum */}
+        {/* Action Buttons */}
         <View style={styles.activitiesContainer}>
           <Text style={styles.activitiesLabel}>Atividades</Text>
           <View style={styles.activitiesRow}>
-            <TouchableOpacity
-              onPress={handleStartQuiz}
-              style={styles.activityButton}
-            >
+            <TouchableOpacity onPress={handleStartQuiz} style={styles.activityButton}>
               <Text style={styles.activityButtonText}>Realizar Quiz</Text>
               <Ionicons name="trophy" size={18} color="white" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleDebate}
-              style={styles.activityButton}
-            >
+            <TouchableOpacity onPress={handleDebate} style={[styles.activityButton, styles.activityButtonSecondary]}>
               <Text style={styles.activityButtonText}>Debater no Fórum</Text>
               <Ionicons name="people" size={18} color="white" />
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: appTheme.colors.primaryDark || "#6D1522",
+  screen: {
+    backgroundColor: appTheme.colors.background,
+    paddingHorizontal: 0,
   },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     paddingBottom: 48,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "rgba(255,255,255,0.05)",
-  },
-  headerBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitleContainer: {
-    alignItems: "center",
-  },
-  headerSubtitle: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "rgba(255,255,255,0.6)",
-    letterSpacing: 1.2,
-  },
-  headerTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "white",
   },
   artworkContainer: {
     alignItems: "center",
@@ -231,7 +193,7 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: "black",
     borderRadius: 14,
-    opacity: 0.3,
+    opacity: 0.15,
   },
   artworkImage: {
     width: "100%",
@@ -244,22 +206,24 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   trackTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 22,
     fontWeight: "700",
-    color: "white",
+    color: appTheme.colors.textPrimary,
     textAlign: "center",
     lineHeight: 28,
+    letterSpacing: -0.44,
     marginBottom: 8,
   },
   narratorRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    opacity: 0.8,
   },
   trackNarrator: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
-    color: "white",
+    color: appTheme.colors.textSecondary,
   },
   progressContainer: {
     paddingHorizontal: 24,
@@ -267,7 +231,7 @@ const styles = StyleSheet.create({
   },
   progressBarBg: {
     height: 4,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: appTheme.colors.border,
     borderRadius: 2,
     position: "relative",
     marginBottom: 8,
@@ -278,7 +242,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: "42%",
-    backgroundColor: appTheme.colors.surface,
+    backgroundColor: appTheme.colors.primary,
     borderRadius: 2,
   },
   progressThumb: {
@@ -289,16 +253,17 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: appTheme.colors.surface,
+    backgroundColor: appTheme.colors.primary,
   },
   timeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
   timeText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     fontWeight: "600",
-    color: "rgba(255,255,255,0.6)",
+    color: appTheme.colors.textMuted,
     letterSpacing: 1,
   },
   controlsRow: {
@@ -323,19 +288,19 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 14,
-    backgroundColor: appTheme.colors.surface,
+    backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowColor: appTheme.colors.primary,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 4,
   },
   secondaryControlsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.1)",
+    borderTopColor: appTheme.colors.border,
     paddingTop: 16,
     marginHorizontal: 24,
     marginBottom: 32,
@@ -345,23 +310,31 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   speedText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     fontWeight: "700",
-    color: "rgba(255,255,255,0.8)",
+    color: appTheme.colors.textPrimary,
   },
   secondaryBtnLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 10,
     fontWeight: "700",
-    color: "rgba(255,255,255,0.6)",
+    color: appTheme.colors.textMuted,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
   transcriptCard: {
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: 8,
+    backgroundColor: appTheme.colors.surface,
+    borderRadius: appTheme.radius.sm,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
     padding: 16,
     marginHorizontal: 24,
     marginBottom: 32,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   transcriptHeader: {
     flexDirection: "row",
@@ -370,9 +343,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   transcriptLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     fontWeight: "700",
-    color: "rgba(255,255,255,0.6)",
+    color: appTheme.colors.textMuted,
     textTransform: "uppercase",
     letterSpacing: 1.2,
   },
@@ -380,25 +354,29 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   transcriptActiveText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 17,
-    color: "white",
-    lineHeight: 24,
+    color: appTheme.colors.textPrimary,
+    lineHeight: 26,
   },
   highlightText: {
-    color: "#ff9da0",
+    color: appTheme.colors.primary,
+    fontWeight: "700",
   },
   transcriptInactiveText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 17,
-    color: "rgba(255,255,255,0.4)",
-    lineHeight: 24,
+    color: appTheme.colors.textMuted,
+    lineHeight: 26,
   },
   activitiesContainer: {
     marginHorizontal: 24,
   },
   activitiesLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     fontWeight: "700",
-    color: "rgba(255,255,255,0.6)",
+    color: appTheme.colors.textMuted,
     textTransform: "uppercase",
     letterSpacing: 1.2,
     marginBottom: 12,
@@ -410,14 +388,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.2)",
-    borderRadius: 8,
+    backgroundColor: appTheme.colors.primary,
+    borderRadius: appTheme.radius.button,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+  activityButtonSecondary: {
+    backgroundColor: appTheme.colors.textPrimary,
+  },
   activityButtonText: {
+    fontFamily: "Source_Sans_3",
     color: "white",
     fontSize: 15,
     fontWeight: "600",
