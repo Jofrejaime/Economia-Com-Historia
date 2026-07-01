@@ -24,7 +24,9 @@ import { leaderboardService } from "../../services/api/leaderboardService";
 import { communityService } from "../../services/api/communityService";
 import type { Document, DiscussionTopic, LeaderboardEntry } from "../../types/api";
 import { useNotifications } from "../../context/NotificationContext";
+import { LinearGradient } from "expo-linear-gradient";
 import { MediaFormatCards } from "../../components/MediaFormatCards";
+import { SectionAccentLine } from "../../components/SectionAccentLine";
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -209,11 +211,19 @@ export function DashboardScreen() {
               </TouchableOpacity>
             ))}
             <TouchableOpacity
-              style={styles.exploreButton}
+              style={styles.exploreButtonOuter}
+              activeOpacity={0.85}
               onPress={() => (navigation as any).navigate("MainTabs", { screen: "Content", params: { access_level_id: "jindungo" } })}
             >
-              <Ionicons name="flame" size={16} color="white" style={{ marginRight: 6 }} />
-              <Text style={styles.exploreButtonText}>Explorar mais Jindungo</Text>
+              <LinearGradient
+                colors={[appTheme.colors.primary, appTheme.colors.primaryGradientEnd]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.exploreButton}
+              >
+                <Ionicons name="flame" size={16} color="white" style={{ marginRight: 6 }} />
+                <Text style={styles.exploreButtonText}>Explorar mais Jindungo</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         )}
@@ -222,7 +232,10 @@ export function DashboardScreen() {
         {recentDocuments.length > 0 && (
           <View style={styles.section}>
             <View style={styles.recentHeader}>
-              <Text style={styles.sectionTitle}>Documentos Recentes</Text>
+              <View>
+                <Text style={styles.sectionTitle}>Documentos Recentes</Text>
+                <SectionAccentLine marginBottom={0} />
+              </View>
               <TouchableOpacity
                 onPress={() => (navigation as any).navigate("MainTabs", { screen: "Content" })}
                 style={styles.seeAllRow}
@@ -248,6 +261,7 @@ export function DashboardScreen() {
         {/* Vídeos e Áudios */}
         <View style={styles.section}>
           <Text style={styles.mediaSectionTitle}>Vídeos e Áudios</Text>
+          <SectionAccentLine />
           <MediaFormatCards
             onPressVideo={() => (navigation as any).navigate("Content", { document_type: "video" })}
             onPressAudio={() => (navigation as any).navigate("Content", { document_type: "audio" })}
@@ -278,76 +292,93 @@ export function DashboardScreen() {
         {leaderboard.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.rankingHeaderTitle}>Ranking</Text>
+            <SectionAccentLine />
             <FlatList
               data={leaderboard}
               keyExtractor={(item) => item.user_id}
               scrollEnabled={false}
-              renderItem={({ item }) => (
-                <View
-                  style={[
+              renderItem={({ item }) => {
+                const isFirst = item.rank_position === 1;
+                const innerContent = (
+                  <>
+                    <View style={styles.rankContainer}>
+                      <View
+                        style={[
+                          styles.rankBadge,
+                          {
+                            backgroundColor: isFirst
+                              ? "rgba(255,255,255,0.2)"
+                              : item.rank_position <= 3
+                              ? appTheme.colors.rankingCardSecondary
+                              : appTheme.colors.background,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.rankNumber,
+                            { color: isFirst ? appTheme.colors.surface : item.rank_position <= 3 ? appTheme.colors.rankingCardGray : appTheme.colors.textMuted },
+                          ]}
+                        >
+                          #{item.rank_position}
+                        </Text>
+                      </View>
+                      <View style={isFirst ? styles.rankingUserAvatarFirst : styles.rankingUserAvatarDefault}>
+                        <Text style={isFirst ? styles.rankingUserAvatarFirstText : styles.rankingUserAvatarDefaultText}>
+                          {isFirst ? "👤" : (item.display_name?.slice(0, 2).toUpperCase() ?? "?")}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.userInfo}>
+                      <Text style={[styles.userNameText, { color: isFirst ? "white" : appTheme.colors.textPrimary }]}>
+                        {item.display_name}
+                      </Text>
+                      {item.province && (
+                        <Text style={[styles.userRoleText, { color: isFirst ? "rgba(255,255,255,0.8)" : appTheme.colors.rankingCardGray }]}>
+                          {item.province}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.pointsContainer}>
+                      <Text style={[styles.pointsNumberText, { color: isFirst ? "white" : appTheme.colors.textPrimary }]}>
+                        {item.total_points}
+                      </Text>
+                      <Text style={[styles.pointsLabelText, { color: isFirst ? "rgba(255,255,255,0.7)" : appTheme.colors.textMuted }]}>
+                        pontos
+                      </Text>
+                    </View>
+                  </>
+                );
+                if (isFirst) {
+                  return (
+                    <LinearGradient
+                      colors={[appTheme.colors.primary, appTheme.colors.primaryGradientEnd]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={[styles.rankingItem, styles.rankingItemFirst]}
+                    >
+                      {innerContent}
+                    </LinearGradient>
+                  );
+                }
+                return (
+                  <View style={[
                     styles.rankingItem,
-                    item.rank_position === 1 && styles.rankingItemFirst,
                     item.rank_position === 2 && styles.rankingItemSecond,
                     item.rank_position === 3 && styles.rankingItemThird,
                     item.rank_position > 3 && styles.rankingItemDefault,
-                  ]}
-                >
-                  <View style={styles.rankContainer}>
-                    <View
-                      style={[
-                        styles.rankBadge,
-                        {
-                          backgroundColor:
-                            item.rank_position === 1
-                              ? "rgba(255,255,255,0.2)"
-                              : item.rank_position <= 3
-                              ? "#E5E7EB"
-                              : "#F5F5F5",
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.rankNumber,
-                          { color: item.rank_position === 1 ? "white" : item.rank_position <= 3 ? "#6B7280" : "#9CA3AF" },
-                        ]}
-                      >
-                        #{item.rank_position}
-                      </Text>
-                    </View>
-                    <View style={item.rank_position === 1 ? styles.rankingUserAvatarFirst : styles.rankingUserAvatarDefault}>
-                      <Text style={item.rank_position === 1 ? styles.rankingUserAvatarFirstText : styles.rankingUserAvatarDefaultText}>
-                        {item.rank_position === 1 ? "👤" : (item.display_name?.slice(0, 2).toUpperCase() ?? "?")}
-                      </Text>
-                    </View>
+                  ]}>
+                    {innerContent}
                   </View>
-                  <View style={styles.userInfo}>
-                    <Text style={[styles.userNameText, { color: item.rank_position === 1 ? "white" : appTheme.colors.textPrimary }]}>
-                      {item.display_name}
-                    </Text>
-                    {item.province && (
-                      <Text style={[styles.userRoleText, { color: item.rank_position === 1 ? "rgba(255,255,255,0.8)" : "#6B7280" }]}>
-                        {item.province}
-                      </Text>
-                    )}
-                  </View>
-                  <View style={styles.pointsContainer}>
-                    <Text style={[styles.pointsNumberText, { color: item.rank_position === 1 ? "white" : appTheme.colors.textPrimary }]}>
-                      {item.total_points}
-                    </Text>
-                    <Text style={[styles.pointsLabelText, { color: item.rank_position === 1 ? "rgba(255,255,255,0.7)" : "#9CA3AF" }]}>
-                      pontos
-                    </Text>
-                  </View>
-                </View>
-              )}
+                );
+              }}
             />
             <TouchableOpacity
               style={styles.rankingFullButton}
               onPress={() => (navigation as any).navigate("MainTabs", { screen: "QuizList" })}
             >
               <Text style={styles.rankingFullButtonText}>Ver ranking completo</Text>
-              <Ionicons name="arrow-forward" size={18} color="#4B5563" />
+              <Ionicons name="arrow-forward" size={18} color={appTheme.colors.textSecondary} />
             </TouchableOpacity>
           </View>
         )}
@@ -378,16 +409,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greeting: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textMuted,
+    lineHeight: 22,
   },
   userName: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 20,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
+    letterSpacing: -0.4,
     marginVertical: 4,
   },
   date: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     color: appTheme.colors.textMuted,
   },
@@ -410,6 +446,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   badgeText: {
+    fontFamily: "Source_Sans_3",
     color: "white",
     fontSize: 11,
     fontWeight: "700",
@@ -419,7 +456,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 14,
     height: 50,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     marginBottom: 20,
     borderWidth: 1.5,
@@ -457,22 +494,27 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
+    letterSpacing: -0.36,
     marginLeft: 8,
   },
   sectionSubTitle: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textSecondary,
+    lineHeight: 22,
     marginBottom: 16,
   },
   mediaSectionTitle: {
     fontFamily: "IBM_Plex_Sans",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
-    marginBottom: 12,
+    letterSpacing: -0.36,
+    marginBottom: 4,
   },
   recentHeader: {
     flexDirection: "row",
@@ -486,6 +528,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   seeAllText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.primary,
     fontSize: 14,
     fontWeight: "600",
@@ -518,25 +561,32 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   jindungoBadgeText: {
+    fontFamily: "Source_Sans_3",
     color: "white",
     fontSize: 10,
     fontWeight: "700",
+    letterSpacing: 0.5,
   },
   jindungoCategoryText: {
+    fontFamily: "Source_Sans_3",
     color: "rgba(255,255,255,0.6)",
     fontSize: 12,
+    lineHeight: 18,
   },
   jindungoCardTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 16,
     fontWeight: "700",
     color: "white",
     lineHeight: 20,
+    letterSpacing: -0.3,
     marginBottom: 6,
   },
   jindungoCardDesc: {
+    fontFamily: "Source_Sans_3",
     color: "rgba(255,255,255,0.7)",
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 22,
     marginBottom: 12,
   },
   jindungoMeta: {
@@ -545,30 +595,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   jindungoMetaText: {
+    fontFamily: "Source_Sans_3",
     color: "rgba(255,255,255,0.5)",
     fontSize: 12,
+  },
+  exploreButtonOuter: {
+    marginTop: 8,
+    borderRadius: appTheme.radius.button,
+    overflow: "hidden",
   },
   exploreButton: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: appTheme.colors.primary,
     paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 8,
-    elevation: 2,
   },
   exploreButtonText: {
+    fontFamily: "Source_Sans_3",
     color: "white",
-    fontWeight: "700",
+    fontWeight: "600",
     fontSize: 14,
+    letterSpacing: 0.2,
   },
   // Ranking
   rankingHeaderTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 24,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
-    marginBottom: 16,
+    letterSpacing: -0.48,
+    lineHeight: 31,
+    marginBottom: 4,
   },
   rankingItem: {
     flexDirection: "row",
@@ -580,21 +637,20 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.border,
   },
   rankingItemFirst: {
-    backgroundColor: appTheme.colors.primary,
     borderColor: appTheme.colors.primary,
   },
   rankingItemSecond: {
-    backgroundColor: "#F5F5F5",
+    backgroundColor: appTheme.colors.background,
     borderLeftWidth: 4,
-    borderLeftColor: "#9CA3AF",
+    borderLeftColor: appTheme.colors.textMuted,
   },
   rankingItemThird: {
-    backgroundColor: "#F5F5F5",
+    backgroundColor: appTheme.colors.background,
     borderLeftWidth: 4,
-    borderLeftColor: "#D1D5DB",
+    borderLeftColor: appTheme.colors.border,
   },
   rankingItemDefault: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
   },
   rankContainer: {
     flexDirection: "row",
@@ -627,7 +683,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#D9E3F6",
+    backgroundColor: appTheme.colors.userAvatarBg,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -641,10 +697,12 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   userNameText: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 16,
     fontWeight: "700",
   },
   userRoleText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     marginTop: 2,
   },
@@ -652,25 +710,28 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   pointsNumberText: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
   },
   pointsLabelText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 10,
   },
   rankingFullButton: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
+    backgroundColor: appTheme.colors.background,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: appTheme.radius.sm,
     marginTop: 10,
     gap: 8,
   },
   rankingFullButtonText: {
-    color: "#4B5563",
-    fontWeight: "700",
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.textSecondary,
+    fontWeight: "600",
     fontSize: 14,
   },
 });

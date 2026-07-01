@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: "#E8EEF8",
+    backgroundColor: appTheme.colors.userAvatarBg,
     borderWidth: 2,
     borderColor: appTheme.colors.border,
     borderStyle: "dashed",

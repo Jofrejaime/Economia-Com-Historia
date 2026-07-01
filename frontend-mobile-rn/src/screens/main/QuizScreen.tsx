@@ -214,7 +214,7 @@ export function QuizScreen() {
                     {option.option_text}
                   </Text>
                   {isSelected && (
-                    <Feather name="check" size={20} color="#6B0119" style={styles.checkIcon} />
+                    <Feather name="check" size={20} color={appTheme.colors.primaryDark} style={styles.checkIcon} />
                   )}
                 </View>
               </TouchableOpacity>
@@ -256,7 +256,7 @@ export function QuizScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
   },
   centerContainer: {
     flex: 1,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   },
   retryBtnText: {
     fontFamily: "IBM_Plex_Sans",
-    color: "white",
+    color: appTheme.colors.surface,
     fontWeight: "700",
     fontSize: 14,
   },
@@ -293,14 +293,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     gap: 12,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: appTheme.colors.border,
   },
   progressTrack: {
     flex: 1,
     height: 6,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: appTheme.colors.border,
     borderRadius: 3,
     overflow: "hidden",
   },
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     fontFamily: "Source_Sans_3",
     fontSize: 12,
     fontWeight: "700",
-    color: "#894D50",
+    color: appTheme.colors.primaryDark,
     letterSpacing: 2.4,
     marginBottom: 12,
     textAlign: "center",
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 22,
     fontWeight: "700",
-    color: "#121C2A",
+    color: appTheme.colors.textPrimary,
     textAlign: "center",
     lineHeight: 30,
     marginBottom: 24,
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(139,30,45,0.2)",
   },
   readingBlock: {
-    backgroundColor: "#EFF4FF",
+    backgroundColor: appTheme.colors.badgeLightBg,
     borderRadius: 10,
     padding: 16,
     marginBottom: 24,
@@ -387,11 +387,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   optionBtnDefault: {
-    backgroundColor: "#EFF4FF",
+    backgroundColor: appTheme.colors.badgeLightBg,
     borderColor: "transparent",
   },
   optionBtnSelected: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderColor: appTheme.colors.primary,
     shadowColor: "#000",
     shadowOpacity: 0.05,
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     color: "rgba(107,1,25,0.4)",
   },
   optionLetterSelected: {
-    color: "#6B0119",
+    color: appTheme.colors.primaryDark,
   },
   optionText: {
     fontFamily: "Source_Sans_3",
@@ -421,10 +421,10 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   optionTextDefault: {
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
   },
   optionTextSelected: {
-    color: "#121C2A",
+    color: appTheme.colors.textPrimary,
     fontWeight: "600",
   },
   checkIcon: {
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   },
   submitBtnLabel: {
     fontFamily: "IBM_Plex_Sans",
-    color: "white",
+    color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
   },

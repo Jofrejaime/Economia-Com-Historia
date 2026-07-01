@@ -50,7 +50,7 @@ export function LoginPromptScreen() {
           {/* Icon */}
           <View style={styles.iconCircleWrap}>
             <View style={styles.iconCircle}>
-              <Feather name="log-in" size={44} color="#8B1E2D" />
+              <Feather name="log-in" size={44} color={appTheme.colors.primary} />
             </View>
           </View>
 
@@ -97,15 +97,15 @@ export function LoginPromptScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: appTheme.colors.border,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
-    color: "#8B1E2D",
+    color: appTheme.colors.primary,
   },
   container: {
     flex: 1,
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: "#FDF3F4",
+    backgroundColor: appTheme.colors.debateHighlightBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -147,23 +147,24 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 26,
     fontWeight: "700",
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     marginBottom: 16,
     textAlign: "center",
     lineHeight: 32,
   },
   contentDesc: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     lineHeight: 24,
     textAlign: "center",
     marginBottom: 32,
   },
   benefitsCard: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     padding: 24,
     marginBottom: 32,
     width: "100%",
@@ -174,10 +175,10 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   benefitsTitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 16,
     fontWeight: "700",
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     marginBottom: 16,
   },
   benefitsList: {
@@ -192,13 +193,14 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   benefitText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     flex: 1,
   },
   actionButtons: {
@@ -207,9 +209,9 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     flexDirection: "row",
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     height: 52,
-    borderRadius: 8,
+    borderRadius: appTheme.radius.button,
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
@@ -223,21 +225,23 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   primaryButtonText: {
-    color: "white",
+    fontFamily: "IBM_Plex_Sans",
+    color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
   },
   secondaryButton: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     height: 52,
-    borderRadius: 8,
+    borderRadius: appTheme.radius.button,
     borderWidth: 2,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   secondaryButtonText: {
-    color: "#574142",
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.textSecondary,
     fontSize: 16,
     fontWeight: "600",
   },

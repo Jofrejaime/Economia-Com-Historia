@@ -38,18 +38,20 @@ export function FormInput({
     ? appTheme.colors.primary
     : appTheme.colors.border;
 
-  const inputBg = error ? "#FEF2F2" : appTheme.colors.surface;
+  const inputBg = error ? appTheme.colors.dangerLight : appTheme.colors.background;
 
   return (
     <View style={styles.formGroup}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputWrap}>
+      <View
+        style={[
+          styles.inputWrap,
+          { borderColor, backgroundColor: inputBg },
+          isFocused && !error && styles.inputWrapFocused,
+        ]}
+      >
         <TextInput
-          style={[
-            styles.input,
-            isPassword && styles.inputWithIcon,
-            { borderColor, backgroundColor: inputBg },
-          ]}
+          style={[styles.input, isPassword && styles.inputWithIcon]}
           placeholder={placeholder}
           placeholderTextColor={appTheme.colors.textMuted}
           value={value}
@@ -99,11 +101,18 @@ const styles = StyleSheet.create({
   },
   inputWrap: {
     position: "relative",
+    borderWidth: 1,
+    borderRadius: appTheme.radius.button,
+    backgroundColor: appTheme.colors.background,
+  },
+  inputWrapFocused: {
+    shadowColor: appTheme.colors.primary,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 2,
   },
   input: {
-    borderWidth: 1.5,
-    borderRadius: appTheme.radius.sm,
-    backgroundColor: appTheme.colors.surface,
     minHeight: 52,
     paddingHorizontal: appTheme.spacing.md,
     fontFamily: "Source_Sans_3",

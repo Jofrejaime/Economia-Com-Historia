@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
   },
   buttonSelected: {
-    backgroundColor: "#FDF3F4",
+    backgroundColor: appTheme.colors.debateHighlightBg,
     borderColor: appTheme.colors.primary,
   },
   text: {

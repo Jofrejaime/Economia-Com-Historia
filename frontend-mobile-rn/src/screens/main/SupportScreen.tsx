@@ -13,6 +13,7 @@ import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
+import { SectionAccentLine } from "../../components/SectionAccentLine";
 
 export function SupportScreen() {
   const navigation = useNavigation();
@@ -73,7 +74,7 @@ export function SupportScreen() {
               <Text style={[styles.dropdownButtonText, !subject && styles.placeholderText]}>
                 {getSelectedLabel()}
               </Text>
-              <Feather name={showDropdown ? "chevron-up" : "chevron-down"} size={18} color="#9CA3AF" />
+              <Feather name={showDropdown ? "chevron-up" : "chevron-down"} size={18} color={appTheme.colors.textMuted} />
             </TouchableOpacity>
 
             {showDropdown && (
@@ -95,7 +96,7 @@ export function SupportScreen() {
                     >
                       {s.label}
                     </Text>
-                    {subject === s.value && <Feather name="check" size={14} color="#8B1E2D" />}
+                    {subject === s.value && <Feather name="check" size={14} color={appTheme.colors.primary} />}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -108,7 +109,7 @@ export function SupportScreen() {
               value={message}
               onChangeText={setMessage}
               placeholder="Descreva a sua questão ou sugestão..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={appTheme.colors.textMuted}
               multiline
               textAlignVertical="top"
               style={styles.textArea}
@@ -123,6 +124,7 @@ export function SupportScreen() {
         {/* FAQ Section */}
         <View style={styles.faqSection}>
           <Text style={styles.faqTitle}>Perguntas Frequentes</Text>
+          <SectionAccentLine />
 
           <View style={styles.faqList}>
             {/* FAQ 1 */}
@@ -149,15 +151,15 @@ export function SupportScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: appTheme.colors.border,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -169,7 +171,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
-    color: "#7F1D1D",
+    color: appTheme.colors.primaryDark,
     letterSpacing: -0.4,
   },
   container: {
@@ -181,15 +183,16 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   subtitle: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     marginBottom: 24,
   },
   card: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     padding: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -202,7 +205,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    color: "#4B5563",
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.textSecondary,
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 8,
@@ -212,23 +216,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     borderRadius: 8,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: appTheme.colors.background,
     height: 48,
     paddingHorizontal: 16,
   },
   dropdownButtonText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
   },
   placeholderText: {
-    color: "#9CA3AF",
+    color: appTheme.colors.textMuted,
   },
   dropdownList: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     borderRadius: 8,
     marginTop: 4,
     overflow: "hidden",
@@ -245,32 +250,34 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: appTheme.colors.border,
   },
   dropdownItemActive: {
-    backgroundColor: "#FDF3F4",
+    backgroundColor: appTheme.colors.debateHighlightBg,
   },
   dropdownItemText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 15,
-    color: "#4B5563",
+    color: appTheme.colors.textSecondary,
   },
   dropdownItemTextActive: {
-    color: "#8B1E2D",
+    color: appTheme.colors.primary,
     fontWeight: "700",
   },
   textArea: {
+    fontFamily: "Source_Sans_3",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     borderRadius: 8,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: appTheme.colors.background,
     height: 140,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     fontSize: 16,
   },
   sendButton: {
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     height: 48,
     borderRadius: appTheme.radius.button,
     alignItems: "center",
@@ -278,9 +285,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   sendButtonText: {
-    color: "white",
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.surface,
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "600",
+    letterSpacing: 0.2,
   },
   faqSection: {
     gap: 16,
@@ -289,27 +298,29 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 20,
     fontWeight: "700",
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
   },
   faqList: {
     gap: 12,
   },
   faqCard: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
   },
   faqQuestion: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 15,
     fontWeight: "700",
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     marginBottom: 8,
   },
   faqAnswer: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
-    color: "#6B7280",
+    color: appTheme.colors.rankingCardGray,
     lineHeight: 20,
   },
 });

@@ -15,6 +15,7 @@ import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { AppButton } from "../../components/AppButton";
 import { HeaderBar } from "../../components/HeaderBar";
+import { SectionAccentLine } from "../../components/SectionAccentLine";
 import { communityService } from "../../services/api/communityService";
 import type { DiscussionTopic, CommunityCategory } from "../../types/api";
 
@@ -103,12 +104,12 @@ export function CommunityScreen() {
               )}
               {!isOpen ? (
                 <View style={[styles.badge, styles.badgeTerminated]}>
-                  <Feather name="x-circle" size={10} color="#6B7280" style={{ marginRight: 3 }} />
+                  <Feather name="x-circle" size={10} color={appTheme.colors.rankingCardGray} style={{ marginRight: 3 }} />
                   <Text style={[styles.badgeText, styles.badgeTextTerminated]}>TERMINADO</Text>
                 </View>
               ) : isPrivate ? (
                 <View style={[styles.badge, styles.badgePrivate]}>
-                  <Feather name="lock" size={10} color="#92400E" style={{ marginRight: 3 }} />
+                  <Feather name="lock" size={10} color={appTheme.colors.badgeYellowText} style={{ marginRight: 3 }} />
                   <Text style={[styles.badgeText, styles.badgeTextPrivate]}>PRIVADO</Text>
                 </View>
               ) : (
@@ -151,6 +152,7 @@ export function CommunityScreen() {
         <View style={styles.editorial}>
           <Text style={styles.sectionLabel}>ARQUIVO DIGITAL DE IDEIAS</Text>
           <Text style={styles.title}>Comunidade</Text>
+          <SectionAccentLine />
           <Text style={styles.description}>
             Um espaço académico dedicado ao debate sobre a evolução das estruturas económicas
             angolanas, do período pré-colonial às reformas contemporâneas.
@@ -247,13 +249,15 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "700",
     color: appTheme.colors.primary,
-    marginBottom: appTheme.spacing.sm,
+    letterSpacing: -0.64,
+    lineHeight: 42,
+    marginBottom: 0,
   },
   description: {
     fontFamily: "Source_Sans_3",
     fontSize: appTheme.typography.body.fontSize,
     color: appTheme.colors.textSecondary,
-    lineHeight: 24,
+    lineHeight: appTheme.typography.body.lineHeight,
     marginBottom: appTheme.spacing.md,
   },
   createBtnWrap: {
@@ -270,7 +274,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: appTheme.radius.lg,
-    backgroundColor: "#EFF4FF",
+    backgroundColor: appTheme.colors.badgeLightBg,
     marginRight: appTheme.spacing.sm,
   },
   filterChipSelected: {
@@ -307,7 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarDefault: {
-    backgroundColor: "#D9E3F6",
+    backgroundColor: appTheme.colors.userAvatarBg,
   },
   avatarPinned: {
     backgroundColor: appTheme.colors.primary,
@@ -364,10 +368,10 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primary,
   },
   badgeTextTerminated: {
-    color: "#6B7280",
+    color: appTheme.colors.rankingCardGray,
   },
   badgeTextPrivate: {
-    color: "#92400E",
+    color: appTheme.colors.badgeYellowText,
   },
   badgeTextPublic: {
     color: "#065F46",
@@ -455,7 +459,7 @@ const styles = StyleSheet.create({
   loadMoreBtn: {
     width: 44,
     height: 44,
-    backgroundColor: "#EFF4FF",
+    backgroundColor: appTheme.colors.badgeLightBg,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",

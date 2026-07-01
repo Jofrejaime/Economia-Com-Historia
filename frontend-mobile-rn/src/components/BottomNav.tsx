@@ -65,11 +65,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   navLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     color: appTheme.colors.textMuted,
     fontWeight: "500",
   },
   navLabelActive: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.primary,
     fontWeight: "700",
   },
