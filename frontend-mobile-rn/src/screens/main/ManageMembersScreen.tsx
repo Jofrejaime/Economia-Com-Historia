@@ -221,7 +221,7 @@ export function ManageMembersScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
   scrollContainer: {
@@ -247,10 +247,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   formGroup: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     padding: 20,
     marginBottom: 24,
     shadowColor: "#000",
@@ -309,14 +309,14 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   saveButton: {
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     height: 48,
     borderRadius: appTheme.radius.button,
     alignItems: "center",
     justifyContent: "center",
   },
   saveButtonText: {
-    color: "white",
+    color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
   },

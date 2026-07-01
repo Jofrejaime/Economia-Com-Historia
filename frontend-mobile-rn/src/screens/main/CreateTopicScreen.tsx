@@ -279,7 +279,7 @@ export function CreateTopicScreen() {
               </Text>
               {selectedMembers.length === 0 && (
                 <View style={styles.membersWarning}>
-                  <Ionicons name="alert-circle-outline" size={15} color="#B45309" />
+                  <Ionicons name="alert-circle-outline" size={15} color={appTheme.colors.badgeYellowText} />
                   <Text style={styles.membersWarningText}>Adicione pelo menos 1 membro para poder criar a sala.</Text>
                 </View>
               )}
@@ -362,7 +362,7 @@ export function CreateTopicScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
   scrollContainer: {
@@ -380,13 +380,13 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 32,
     fontWeight: "700",
-    color: "#8B1E2D",
+    color: appTheme.colors.primary,
     marginBottom: 12,
   },
   introDesc: {
     fontFamily: "Source_Sans_3",
     fontSize: 15,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     lineHeight: 24,
   },
   formGroup: {
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     marginBottom: 16,
   },
   inputWrap: {
@@ -406,22 +406,22 @@ const styles = StyleSheet.create({
     fontFamily: "Source_Sans_3",
     fontSize: 14,
     fontWeight: "600",
-    color: "#4B5563",
+    color: appTheme.colors.textSecondary,
     marginBottom: 8,
   },
   input: {
     borderWidth: 2,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     borderRadius: appTheme.radius.sm,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     fontSize: 16,
     fontFamily: "Source_Sans_3",
   },
   inputFocused: {
-    borderColor: "#8B1E2D",
+    borderColor: appTheme.colors.primary,
   },
   textArea: {
     minHeight: 120,
@@ -438,13 +438,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: appTheme.radius.sm,
     borderWidth: 2,
-    borderColor: "#E5E7EB",
-    backgroundColor: "white",
+    borderColor: appTheme.colors.border,
+    backgroundColor: appTheme.colors.surface,
     gap: 6,
   },
   accessCardSelected: {
     borderColor: appTheme.colors.primary,
-    backgroundColor: "#FDF3F4",
+    backgroundColor: appTheme.colors.debateHighlightBg,
   },
   accessCardTitle: {
     fontFamily: "IBM_Plex_Sans",
@@ -471,9 +471,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#FFFBEB",
+    backgroundColor: appTheme.colors.badgeYellowBg,
     borderWidth: 1,
-    borderColor: "#FDE68A",
+    borderColor: appTheme.colors.warning,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
   membersWarningText: {
     fontFamily: "Source_Sans_3",
     fontSize: 13,
-    color: "#B45309",
+    color: appTheme.colors.badgeYellowText,
     flex: 1,
   },
   selectedChips: {
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: "#FDF3F4",
+    backgroundColor: appTheme.colors.debateHighlightBg,
     borderWidth: 1,
     borderColor: appTheme.colors.primary,
     borderRadius: 20,
@@ -517,9 +517,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 2,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     borderRadius: appTheme.radius.sm,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 13,
   },
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
   selectFieldText: {
     fontFamily: "Source_Sans_3",
     fontSize: 15,
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     flex: 1,
   },
   selectPlaceholder: {
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalSheet: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 12,
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: appTheme.colors.border,
     alignSelf: "center",
     marginBottom: 16,
   },
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
   },
   modalSeparator: {
     height: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: appTheme.colors.background,
     marginHorizontal: 20,
   },
   modalOption: {
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   modalOptionSelected: {
-    backgroundColor: "#FDF3F4",
+    backgroundColor: appTheme.colors.debateHighlightBg,
   },
   modalOptionLeft: {
     flexDirection: "row",
@@ -631,13 +631,13 @@ const styles = StyleSheet.create({
   },
   publishBtn: {
     flexDirection: "row",
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     height: 56,
     borderRadius: appTheme.radius.button,
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    shadowColor: "#8B1E2D",
+    shadowColor: appTheme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
   },
   publishBtnText: {
     fontFamily: "IBM_Plex_Sans",
-    color: "white",
+    color: appTheme.colors.surface,
     fontSize: 17,
     fontWeight: "700",
   },
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
   },
   cancelBtnText: {
     fontFamily: "Source_Sans_3",
-    color: "#8B1E2D",
+    color: appTheme.colors.primary,
     fontSize: 14,
     fontWeight: "600",
   },

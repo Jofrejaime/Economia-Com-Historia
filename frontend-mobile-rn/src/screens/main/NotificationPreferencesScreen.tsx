@@ -34,8 +34,8 @@ export function NotificationPreferencesScreen() {
             <Switch
               value={newContent}
               onValueChange={setNewContent}
-              trackColor={{ false: "#D1D5DB", true: "#8B1E2D" }}
-              thumbColor="white"
+              trackColor={{ false: appTheme.colors.border, true: appTheme.colors.primary }}
+              thumbColor={appTheme.colors.surface}
             />
           </View>
 
@@ -50,8 +50,8 @@ export function NotificationPreferencesScreen() {
             <Switch
               value={quizReminders}
               onValueChange={setQuizReminders}
-              trackColor={{ false: "#D1D5DB", true: "#8B1E2D" }}
-              thumbColor="white"
+              trackColor={{ false: appTheme.colors.border, true: appTheme.colors.primary }}
+              thumbColor={appTheme.colors.surface}
             />
           </View>
 
@@ -66,8 +66,8 @@ export function NotificationPreferencesScreen() {
             <Switch
               value={communityUpdates}
               onValueChange={setCommunityUpdates}
-              trackColor={{ false: "#D1D5DB", true: "#8B1E2D" }}
-              thumbColor="white"
+              trackColor={{ false: appTheme.colors.border, true: appTheme.colors.primary }}
+              thumbColor={appTheme.colors.surface}
             />
           </View>
 
@@ -82,8 +82,8 @@ export function NotificationPreferencesScreen() {
             <Switch
               value={achievements}
               onValueChange={setAchievements}
-              trackColor={{ false: "#D1D5DB", true: "#8B1E2D" }}
-              thumbColor="white"
+              trackColor={{ false: appTheme.colors.border, true: appTheme.colors.primary }}
+              thumbColor={appTheme.colors.surface}
             />
           </View>
         </View>
@@ -94,15 +94,15 @@ export function NotificationPreferencesScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: appTheme.colors.border,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
-    color: "#7F1D1D",
+    color: appTheme.colors.primaryDark,
     letterSpacing: -0.4,
   },
   container: {
@@ -126,15 +126,16 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   subtitle: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     marginBottom: 24,
   },
   card: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     paddingVertical: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -154,17 +155,19 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   preferenceTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 15,
     fontWeight: "700",
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     marginBottom: 2,
   },
   preferenceDesc: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
-    color: "#6B7280",
+    color: appTheme.colors.rankingCardGray,
   },
   divider: {
     height: 1,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: appTheme.colors.border,
   },
 });

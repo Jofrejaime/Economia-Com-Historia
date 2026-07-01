@@ -156,9 +156,9 @@ export function QuizListScreen() {
       >
         <View style={styles.rankPositionWrap}>
           {item.rank_position === 1 ? (
-            <Ionicons name="trophy" size={26} color="#F59E0B" />
+            <Ionicons name="trophy" size={26} color={appTheme.colors.warning} />
           ) : item.rank_position === 2 ? (
-            <Ionicons name="medal" size={26} color="#9CA3AF" />
+            <Ionicons name="medal" size={26} color={appTheme.colors.textMuted} />
           ) : item.rank_position === 3 ? (
             <Ionicons name="medal" size={26} color="#CD7F32" />
           ) : (
@@ -168,7 +168,7 @@ export function QuizListScreen() {
           )}
         </View>
         <View style={styles.rankAvatar}>
-          <Text style={[styles.rankAvatarText, isTop3 && { color: "#6B0119" }]}>
+          <Text style={[styles.rankAvatarText, isTop3 && { color: appTheme.colors.primaryDark }]}>
             {item.display_name.slice(0, 2).toUpperCase()}
           </Text>
         </View>
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
   },
   filterChipActive: {
     backgroundColor: appTheme.colors.primary,
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   },
   // Quiz cards
   quizCard: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#FEF3C7",
+    backgroundColor: appTheme.colors.badgeYellowBg,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   featuredText: {
     fontFamily: "Source_Sans_3",
     fontSize: 11,
-    color: "#FBBF24",
+    color: appTheme.colors.warning,
     fontWeight: "600",
   },
   quizTitle: {
@@ -448,10 +448,11 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
   },
   startBtnText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: "Source_Sans_3",
     color: "white",
-    fontWeight: "700",
+    fontWeight: "600",
     fontSize: 14,
+    letterSpacing: 0.2,
   },
   // Ranking
   rankItem: {
@@ -462,19 +463,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
   },
   rankItemGold: {
-    backgroundColor: "#FEF3C7",
-    borderColor: "#FBBF24",
+    backgroundColor: appTheme.colors.badgeYellowBg,
+    borderColor: appTheme.colors.warning,
   },
   rankItemSilver: {
-    backgroundColor: "#F5F5F5",
-    borderColor: "#9CA3AF",
+    backgroundColor: appTheme.colors.background,
+    borderColor: appTheme.colors.textMuted,
   },
   rankItemBronze: {
-    backgroundColor: "#FEF3F2",
-    borderColor: "#D1D5DB",
+    backgroundColor: appTheme.colors.dangerLight,
+    borderColor: appTheme.colors.border,
   },
   rankItemCurrentUser: {
     backgroundColor: appTheme.colors.primary,
@@ -494,7 +495,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#DEE9FC",
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,

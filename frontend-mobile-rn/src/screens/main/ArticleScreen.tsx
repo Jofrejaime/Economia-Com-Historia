@@ -256,7 +256,7 @@ export function ArticleScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
   },
   loadingContainer: {
     flex: 1,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
   },
   scrollContent: {
     paddingBottom: 48,
@@ -309,13 +309,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#6B7280",
+    backgroundColor: appTheme.colors.rankingCardGray,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
   badgeText: {
-    color: "white",
+    color: appTheme.colors.surface,
     fontSize: 11,
     fontWeight: "700",
     letterSpacing: 1,
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
   },
   sectionDivider: {
     height: 8,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: appTheme.colors.background,
     width: "100%",
   },
   actionsBlock: {
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   actionBtnLabel: {
-    color: "white",
+    color: appTheme.colors.surface,
     fontSize: 15,
     fontWeight: "600",
   },

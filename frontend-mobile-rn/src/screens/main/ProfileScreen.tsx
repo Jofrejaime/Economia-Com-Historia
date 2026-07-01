@@ -9,8 +9,10 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
+import { SectionAccentLine } from "../../components/SectionAccentLine";
 import { appTheme } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
 import { userService } from "../../services/api/userService";
@@ -121,13 +123,18 @@ export function ProfileScreen() {
             )}
 
             {/* Quizzes Completed */}
-            <View style={[styles.bentoCard, styles.quizCard]}>
+            <LinearGradient
+              colors={[appTheme.colors.primary, appTheme.colors.primaryGradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.bentoCard, styles.quizCard]}
+            >
               <Text style={[styles.bentoCardLabel, styles.textWhite]}>QUIZZES CONCLUÍDOS</Text>
               <Text style={[styles.quizValue, styles.textWhite]}>{quizzesCompleted}</Text>
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { width: `${Math.min((quizzesCompleted / 50) * 100, 100)}%` }]} />
               </View>
-            </View>
+            </LinearGradient>
 
             {/* Global Ranking */}
             {rankEntry && (
@@ -149,7 +156,10 @@ export function ProfileScreen() {
         {badges.length > 0 && (
           <View style={styles.meritsSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Méritos e Distinções</Text>
+              <View>
+                <Text style={styles.sectionTitle}>Méritos e Distinções</Text>
+                <SectionAccentLine marginBottom={0} />
+              </View>
               <TouchableOpacity>
                 <Text style={styles.seeAllText}>Ver Todos</Text>
               </TouchableOpacity>
@@ -158,7 +168,7 @@ export function ProfileScreen() {
               {badges.slice(0, 4).map((ub) => (
                 <View key={ub.id} style={styles.meritCard}>
                   <View style={styles.meritIconWrap}>
-                    <Feather name="award" size={24} color="#6B0119" />
+                    <Feather name="award" size={24} color={appTheme.colors.primaryDark} />
                   </View>
                   <Text style={styles.meritLabel}>{ub.badge?.name ?? "Badge"}</Text>
                 </View>
@@ -175,7 +185,7 @@ export function ProfileScreen() {
           >
             <View style={styles.settingsItemLeft}>
               <View style={styles.settingsIconBg}>
-                <Feather name="user" size={16} color="#6B0119" />
+                <Feather name="user" size={16} color={appTheme.colors.primaryDark} />
               </View>
               <View>
                 <Text style={styles.settingsItemTitle}>Informação Pessoal</Text>
@@ -191,7 +201,7 @@ export function ProfileScreen() {
           >
             <View style={styles.settingsItemLeft}>
               <View style={styles.settingsIconBg}>
-                <Feather name="shield" size={16} color="#6B0119" />
+                <Feather name="shield" size={16} color={appTheme.colors.primaryDark} />
               </View>
               <View>
                 <Text style={styles.settingsItemTitle}>Privacidade e Segurança</Text>
@@ -207,7 +217,7 @@ export function ProfileScreen() {
           >
             <View style={styles.settingsItemLeft}>
               <View style={styles.settingsIconBg}>
-                <Feather name="help-circle" size={16} color="#6B0119" />
+                <Feather name="help-circle" size={16} color={appTheme.colors.primaryDark} />
               </View>
               <View>
                 <Text style={styles.settingsItemTitle}>Suporte e Ajuda</Text>
@@ -231,7 +241,7 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
   container: {
@@ -275,14 +285,14 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 26,
     fontWeight: "700",
-    color: "#6B0119",
+    color: appTheme.colors.primaryDark,
     textAlign: "center",
     lineHeight: 32,
   },
   userOccupation: {
     fontFamily: "Source_Sans_3",
     fontSize: 15,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     textAlign: "center",
   },
   userProvince: {
@@ -297,16 +307,16 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   pillBadge: {
-    backgroundColor: "#DEE9FC",
+    backgroundColor: appTheme.colors.userAvatarBg,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: appTheme.radius.pill,
   },
   pillBadgeText: {
     fontFamily: "Source_Sans_3",
     fontSize: 10,
     fontWeight: "700",
-    color: "#6B0119",
+    color: appTheme.colors.primaryDark,
     textTransform: "uppercase",
     letterSpacing: 0.6,
   },
@@ -329,23 +339,23 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 1.2,
     marginBottom: 12,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
   },
-  scoreCard: { backgroundColor: "#EFF4FF" },
+  scoreCard: { backgroundColor: appTheme.colors.badgeLightBg },
   scoreValue: {
     fontFamily: "IBM_Plex_Sans",
     fontSize: 32,
     fontWeight: "700",
-    color: "#121C2A",
+    color: appTheme.colors.textPrimary,
     letterSpacing: -1.2,
   },
   scoreMeta: {
     fontFamily: "Source_Sans_3",
     fontSize: 13,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     marginTop: 4,
   },
-  quizCard: { backgroundColor: "#8B1E2D" },
+  quizCard: {},
   quizValue: {
     fontFamily: "IBM_Plex_Sans",
     fontSize: 32,
@@ -363,18 +373,18 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "white",
   },
-  rankCard: { backgroundColor: "#EFF4FF" },
+  rankCard: { backgroundColor: appTheme.colors.badgeLightBg },
   rankValue: {
     fontFamily: "IBM_Plex_Sans",
     fontSize: 32,
     fontWeight: "700",
-    color: "#121C2A",
+    color: appTheme.colors.textPrimary,
     letterSpacing: -1.2,
   },
   rankMeta: {
     fontFamily: "Source_Sans_3",
     fontSize: 13,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     marginTop: 4,
   },
   textWhite: { color: "white" },
@@ -391,14 +401,14 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
-    color: "#121C2A",
+    color: appTheme.colors.textPrimary,
     letterSpacing: -0.5,
   },
   seeAllText: {
     fontFamily: "Source_Sans_3",
     fontSize: 13,
     fontWeight: "700",
-    color: "#6B0119",
+    color: appTheme.colors.primaryDark,
   },
   meritsGrid: {
     flexDirection: "row",
@@ -406,20 +416,20 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   meritCard: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     flex: 1,
     minWidth: "45%",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
   },
   meritIconWrap: {
     width: 56,
     height: 56,
     borderRadius: 12,
-    backgroundColor: "#DEE9FC",
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,
@@ -428,12 +438,12 @@ const styles = StyleSheet.create({
     fontFamily: "Source_Sans_3",
     fontSize: 10,
     fontWeight: "700",
-    color: "#121C2A",
+    color: appTheme.colors.textPrimary,
     textAlign: "center",
     lineHeight: 13,
   },
   settingsPanel: {
-    backgroundColor: "#EFF4FF",
+    backgroundColor: appTheme.colors.badgeLightBg,
     borderRadius: 12,
     padding: 8,
   },
@@ -454,7 +464,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 6,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -462,13 +472,13 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 14,
     fontWeight: "700",
-    color: "#121C2A",
+    color: appTheme.colors.textPrimary,
     marginBottom: 2,
   },
   settingsItemDesc: {
     fontFamily: "Source_Sans_3",
     fontSize: 11,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
   },
   divider: {
     height: 1,

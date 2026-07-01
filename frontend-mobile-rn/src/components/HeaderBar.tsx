@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#FDF3F4',
+    backgroundColor: appTheme.colors.debateHighlightBg,
     justifyContent: 'center',
     alignItems: 'center',
   },

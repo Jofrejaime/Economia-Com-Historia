@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   typeChip: {
-    backgroundColor: "#F5F5F5",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 4,

@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#FEF2F2",
+    backgroundColor: appTheme.colors.dangerLight,
     borderWidth: 1,
     borderColor: "#FECACA",
     borderRadius: appTheme.radius.sm,

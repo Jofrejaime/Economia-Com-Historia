@@ -196,9 +196,9 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: "row",
     height: 76,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: appTheme.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+    borderTopColor: appTheme.colors.border,
     justifyContent: "space-around",
     alignItems: "center",
     shadowColor: "#000000",
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     marginTop: 2,
   },
 });
