@@ -102,7 +102,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         if (route.name === "Home") iconName = "home";
         else if (route.name === "Content") iconName = "trending-up";
         else if (route.name === "Community") iconName = "message-circle";
-        else if (route.name === "QuizList") iconName = "trophy";
+        else if (route.name === "QuizList") iconName = "award";
         else if (route.name === "Profile") iconName = "user";
 
         return (

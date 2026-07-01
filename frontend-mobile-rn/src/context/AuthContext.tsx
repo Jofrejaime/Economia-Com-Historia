@@ -2,7 +2,7 @@ import React, { createContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthState, AuthUser, SignInInput, SignUpInput } from "../types/auth";
 import { setAuthToken } from "../services/http/tokenManager";
-import { httpClient } from "../services/http/client";
+import { httpClient, setUnauthorizedHandler } from "../services/http/client";
 import { API_ENDPOINTS } from "../constants/api";
 
 interface AuthContextValue extends AuthState {
@@ -35,6 +35,17 @@ function mapMeResponseToAuthUser(data: any): AuthUser {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>(initialState);
+
+  // Register a handler so any 401 response auto-clears the session.
+  // setState is stable across renders (React guarantee), safe in empty-deps effect.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setAuthToken(null);
+      void AsyncStorage.multiRemove(["@auth_token", "@auth_user"]);
+      setState({ status: "unauthenticated", token: null, user: null });
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
 
   useEffect(() => {
     const loadSession = async () => {

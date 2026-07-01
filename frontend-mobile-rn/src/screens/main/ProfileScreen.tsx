@@ -21,14 +21,14 @@ import { appTheme } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
 import { userService } from "../../services/api/userService";
 import { leaderboardService } from "../../services/api/leaderboardService";
-import type { UserLevel, UserBadge, LeaderboardEntry } from "../../types/api";
+import type { UserLevel, LeaderboardEntry, MeResponse } from "../../types/api";
 
 export function ProfileScreen() {
   const { user, signOut, refreshUser } = useAuth();
   const navigation = useNavigation<any>();
 
   const [level, setLevel] = useState<UserLevel | null>(null);
-  const [badges, setBadges] = useState<UserBadge[]>([]);
+  const [badges, setBadges] = useState<MeResponse["badges"]>([]);
   const [rankEntry, setRankEntry] = useState<LeaderboardEntry | null>(null);
   const [quizzesCompleted, setQuizzesCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -38,17 +38,21 @@ export function ProfileScreen() {
     if (!user) return;
     setLoading(true);
     try {
-      const [attemptsRes, leaderboardRes] = await Promise.allSettled([
-        userService.quizAttempts({ status: "completed", page: 1 }),
+      const [leaderboardRes, meRes] = await Promise.allSettled([
         leaderboardService.national({ per_page: 200 }),
+        userService.me(),
       ]);
 
-      if (attemptsRes.status === "fulfilled") {
-        setQuizzesCompleted(attemptsRes.value.meta.total);
-      }
       if (leaderboardRes.status === "fulfilled") {
         const entry = leaderboardRes.value.find((e) => e.user_id === user.id) ?? null;
         setRankEntry(entry);
+      }
+      if (meRes.status === "fulfilled") {
+        setLevel(meRes.value.user_level);
+        setBadges(meRes.value.badges ?? []);
+        if (meRes.value.user_level) {
+          setQuizzesCompleted(meRes.value.user_level.quizzes_completed ?? 0);
+        }
       }
     } catch (error) {
       console.warn("Erro ao carregar perfil", error);
@@ -185,11 +189,11 @@ export function ProfileScreen() {
         ) : (
           <View style={styles.bentoGrid}>
             {/* Total Points */}
-            {rankEntry && (
+            {(rankEntry || level) && (
               <View style={[styles.bentoCard, styles.scoreCard]}>
                 <Text style={styles.bentoCardLabel}>PONTUAÇÃO TOTAL</Text>
-                <Text style={styles.scoreValue}>{rankEntry.total_points.toLocaleString()}</Text>
-                {rankEntry.weekly_points > 0 && (
+                <Text style={styles.scoreValue}>{(rankEntry?.total_points ?? level?.total_points ?? 0).toLocaleString()}</Text>
+                {rankEntry && rankEntry.weekly_points > 0 && (
                   <Text style={styles.scoreMeta}>+{rankEntry.weekly_points} esta semana</Text>
                 )}
               </View>
@@ -243,7 +247,7 @@ export function ProfileScreen() {
                   <View style={styles.meritIconWrap}>
                     <Feather name="award" size={24} color={appTheme.colors.primaryDark} />
                   </View>
-                  <Text style={styles.meritLabel}>{ub.badge?.name ?? "Badge"}</Text>
+                  <Text style={styles.meritLabel}>{ub.name}</Text>
                 </View>
               ))}
             </View>

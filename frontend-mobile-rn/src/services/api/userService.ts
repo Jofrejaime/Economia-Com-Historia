@@ -1,6 +1,6 @@
 import { httpClient } from '../http/client';
 import { API_ENDPOINTS } from '../../constants/api';
-import type { MeResponse, UserProfile, UserSearchResult, PointTransaction, QuizAttempt, UserBadge, PaginatedResponse } from '../../types/api';
+import type { MeResponse, UserProfile, UserSearchResult, PointTransaction, QuizAttempt, PaginatedResponse } from '../../types/api';
 
 export const userService = {
   async me(): Promise<MeResponse> {
@@ -10,12 +10,14 @@ export const userService = {
 
   async profile(): Promise<UserProfile> {
     const { data } = await httpClient.get(API_ENDPOINTS.PROFILE.SHOW);
-    return data.data ?? data;
+    // backend returns { profile: UserProfile } — unwrap it
+    return (data.profile ?? data.data?.profile ?? data.data ?? data) as UserProfile;
   },
 
   async updateProfile(payload: Partial<UserProfile>): Promise<UserProfile> {
     const { data } = await httpClient.put(API_ENDPOINTS.PROFILE.UPDATE, payload);
-    return data.data ?? data;
+    // backend returns { message, profile: UserProfile } — unwrap it
+    return (data.profile ?? data.data?.profile ?? data.data ?? data) as UserProfile;
   },
 
   async updateAvatar(formData: FormData): Promise<{ avatar_url: string }> {
@@ -26,7 +28,7 @@ export const userService = {
   },
 
   async updatePassword(payload: {
-    current_password: string;
+    current_password?: string;
     password: string;
     password_confirmation: string;
   }): Promise<void> {

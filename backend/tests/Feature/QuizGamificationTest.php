@@ -79,6 +79,78 @@ class QuizGamificationTest extends TestCase
         $this->assertDatabaseHas('user_badges', ['user_id' => $userId]);
     }
 
+    public function test_completing_quiz_repeatedly_does_not_double_count_or_award_points(): void
+    {
+        Mail::fake();
+
+        $register = $this->postJson('/api/auth/register', [
+            'email' => 'repeatplayer@example.com',
+            'password' => 'Kh7#m9$Pq2!z',
+            'password_confirmation' => 'Kh7#m9$Pq2!z',
+            'display_name' => 'Repeat Player',
+        ])->assertCreated();
+
+        $token = $register->json('token');
+        $userId = User::query()->where('email', 'repeatplayer@example.com')->value('id');
+
+        $quiz = $this->seedQuiz($userId);
+        $correctOptionId = $quiz['correct_option_id'];
+
+        // FIRST ATTEMPT
+        $attemptId1 = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/quizzes/{$quiz['quiz_id']}/attempts")
+            ->assertCreated()
+            ->json('id');
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/quiz-attempts/{$attemptId1}/answers", [
+                'question_id' => $quiz['question_id'],
+                'selected_option_id' => $correctOptionId,
+                'time_spent_secs' => 30,
+            ])
+            ->assertOk();
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/quiz-attempts/{$attemptId1}/complete", [
+                'time_spent_secs' => 400,
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('user_levels', [
+            'user_id' => $userId,
+            'total_points' => 120,
+            'quizzes_completed' => 1,
+        ]);
+
+        // SECOND ATTEMPT (REPEAT)
+        $attemptId2 = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/quizzes/{$quiz['quiz_id']}/attempts")
+            ->assertCreated()
+            ->json('id');
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/quiz-attempts/{$attemptId2}/answers", [
+                'question_id' => $quiz['question_id'],
+                'selected_option_id' => $correctOptionId,
+                'time_spent_secs' => 30,
+            ])
+            ->assertOk();
+
+        $response2 = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/quiz-attempts/{$attemptId2}/complete", [
+                'time_spent_secs' => 400,
+            ])
+            ->assertOk();
+
+        $response2->assertJsonPath('gamification.points_delta', 0);
+
+        $this->assertDatabaseHas('user_levels', [
+            'user_id' => $userId,
+            'total_points' => 120,
+            'quizzes_completed' => 1,
+        ]);
+    }
+
     /**
      * @return array{quiz_id: string, question_id: string, correct_option_id: string}
      */

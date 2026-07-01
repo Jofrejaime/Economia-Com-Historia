@@ -43,8 +43,11 @@ export function QuizListScreen() {
   const [loadingRanking, setLoadingRanking] = useState(false);
   const [total, setTotal] = useState(0);
 
-  const fetchQuizzes = useCallback(async () => {
-    setLoadingQuizzes(true);
+  const [firstLoadQuizzes, setFirstLoadQuizzes] = useState(false);
+  const [firstLoadRanking, setFirstLoadRanking] = useState(false);
+
+  const fetchQuizzes = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoadingQuizzes(true);
     try {
       const response = await quizService.list({
         difficulty: difficultyFilter === "all" ? undefined : difficultyFilter,
@@ -59,8 +62,8 @@ export function QuizListScreen() {
     }
   }, [difficultyFilter]);
 
-  const fetchRanking = useCallback(async () => {
-    setLoadingRanking(true);
+  const fetchRanking = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoadingRanking(true);
     try {
       const data = await leaderboardService.national({ per_page: 200 });
       setLeaderboard(data);
@@ -71,22 +74,15 @@ export function QuizListScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchQuizzes();
-  }, [fetchQuizzes]);
-
-  useEffect(() => {
-    if (activeTab === "ranking") {
-      void fetchRanking();
-    }
-  }, [activeTab, fetchRanking]);
-
   useFocusEffect(
     useCallback(() => {
+      fetchQuizzes(!firstLoadQuizzes);
+      setFirstLoadQuizzes(true);
       if (activeTab === "ranking") {
-        void fetchRanking();
+        fetchRanking(!firstLoadRanking);
+        setFirstLoadRanking(true);
       }
-    }, [activeTab, fetchRanking])
+    }, [activeTab, fetchQuizzes, fetchRanking, firstLoadQuizzes, firstLoadRanking])
   );
 
   const handleStartQuiz = (quiz: Quiz) => {

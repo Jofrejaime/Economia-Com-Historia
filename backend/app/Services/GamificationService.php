@@ -5,11 +5,13 @@ namespace App\Services;
 use App\Models\User;
 use App\Services\Gamification\GamificationResult;
 use App\Services\NotificationService;
+use App\Services\LeaderboardService;
 use App\Support\PointTransactionReason;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+
 
 class GamificationService
 {
@@ -184,70 +186,72 @@ class GamificationService
                 throw new InvalidArgumentException('Quiz not found.');
             }
 
-            $this->incrementCounters($user, ['quizzes_completed' => 1]);
+            $alreadyCompleted = DB::table('quiz_attempts')
+                ->where('quiz_id', $quizId)
+                ->where('user_id', $user->id)
+                ->where('status', 'completed')
+                ->where('id', '!=', $attemptId)
+                ->exists();
+
+            if (!$alreadyCompleted) {
+                $this->incrementCounters($user, ['quizzes_completed' => 1]);
+            }
 
             $accuracy = $totalQuestions > 0
                 ? (int) round(($correctAnswers / $totalQuestions) * 100)
                 : 0;
 
-            $basePoints = (int) $quiz->base_points;
-            $completionPoints = (int) max(1, round($basePoints * ($accuracy / 100)));
-
-            $aggregate = new GamificationResult(
-                pointsDelta: 0,
-                totalPoints: 0,
-                currentLevel: 1,
-                levelChanged: false,
-                previousLevel: null,
-                transactions: [],
-                badgesEarned: [],
-            );
-
             $transactions = [];
             $totalDelta = 0;
-
-            $completionTx = $this->applyPointsChange(
-                $user,
-                $completionPoints,
-                PointTransactionReason::QUIZ_COMPLETION,
-                $attemptId,
-                'quiz_attempt',
-                "Quiz completed: {$quiz->title} ({$accuracy}%)",
-                evaluateBadges: false,
-            );
-            $transactions[] = $completionTx->transactions[0] ?? [];
-            $totalDelta += $completionPoints;
-
+            $completionPoints = 0;
             $bonusAccuracy = 0;
-            if ($accuracy >= 80 && $totalQuestions > 0) {
-                $bonusAccuracy = (int) max(1, round($basePoints * 0.2));
-                $accuracyTx = $this->applyPointsChange(
-                    $user,
-                    $bonusAccuracy,
-                    PointTransactionReason::QUIZ_BONUS_ACCURACY,
-                    $attemptId,
-                    'quiz_attempt',
-                    'Accuracy bonus (80%+ correct)',
-                    evaluateBadges: false,
-                );
-                $transactions[] = $accuracyTx->transactions[0] ?? [];
-                $totalDelta += $bonusAccuracy;
-            }
-
             $bonusSpeed = 0;
-            if ($quiz->time_limit_secs && $timeSpentSecs > 0 && $timeSpentSecs <= ((int) $quiz->time_limit_secs * 0.5)) {
-                $bonusSpeed = (int) max(1, round($basePoints * 0.1));
-                $speedTx = $this->applyPointsChange(
+
+            if (!$alreadyCompleted) {
+                $basePoints = (int) $quiz->base_points;
+                $completionPoints = (int) max(1, round($basePoints * ($accuracy / 100)));
+
+                $completionTx = $this->applyPointsChange(
                     $user,
-                    $bonusSpeed,
-                    PointTransactionReason::QUIZ_BONUS_SPEED,
+                    $completionPoints,
+                    PointTransactionReason::QUIZ_COMPLETION,
                     $attemptId,
                     'quiz_attempt',
-                    'Speed bonus (under half the time limit)',
+                    "Quiz completed: {$quiz->title} ({$accuracy}%)",
                     evaluateBadges: false,
                 );
-                $transactions[] = $speedTx->transactions[0] ?? [];
-                $totalDelta += $bonusSpeed;
+                $transactions[] = $completionTx->transactions[0] ?? [];
+                $totalDelta += $completionPoints;
+
+                if ($accuracy >= 80 && $totalQuestions > 0) {
+                    $bonusAccuracy = (int) max(1, round($basePoints * 0.2));
+                    $accuracyTx = $this->applyPointsChange(
+                        $user,
+                        $bonusAccuracy,
+                        PointTransactionReason::QUIZ_BONUS_ACCURACY,
+                        $attemptId,
+                        'quiz_attempt',
+                        'Accuracy bonus (80%+ correct)',
+                        evaluateBadges: false,
+                    );
+                    $transactions[] = $accuracyTx->transactions[0] ?? [];
+                    $totalDelta += $bonusAccuracy;
+                }
+
+                if ($quiz->time_limit_secs && $timeSpentSecs > 0 && $timeSpentSecs <= ((int) $quiz->time_limit_secs * 0.5)) {
+                    $bonusSpeed = (int) max(1, round($basePoints * 0.1));
+                    $speedTx = $this->applyPointsChange(
+                        $user,
+                        $bonusSpeed,
+                        PointTransactionReason::QUIZ_BONUS_SPEED,
+                        $attemptId,
+                        'quiz_attempt',
+                        'Speed bonus (under half the time limit)',
+                        evaluateBadges: false,
+                    );
+                    $transactions[] = $speedTx->transactions[0] ?? [];
+                    $totalDelta += $bonusSpeed;
+                }
             }
 
             DB::table('quiz_attempts')->where('id', $attemptId)->update([
@@ -301,6 +305,7 @@ class GamificationService
                 ]);
 
             $this->updateLevel($user, max(0, $sum));
+            app(LeaderboardService::class)->refreshNationalCache();
         }
 
         return max(0, $sum);
@@ -394,6 +399,9 @@ class GamificationService
             $updated = $this->getOrCreateUserLevel($user);
 
             $transaction = DB::table('point_transactions')->where('id', $transactionId)->first();
+
+            // Refresh national leaderboard cache synchronously
+            app(LeaderboardService::class)->refreshNationalCache();
 
             return new GamificationResult(
                 pointsDelta: $pointsDelta,
