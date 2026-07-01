@@ -16,6 +16,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+use App\Services\QuizService;
+
 class QuizController extends Controller
 {
     public function __construct(
@@ -23,6 +25,7 @@ class QuizController extends Controller
         private readonly AccessGateService    $accessGate,
         private readonly QuizAttemptService   $attemptService,
         private readonly QuizDocumentService  $quizDocuments,
+        private readonly QuizService          $quizService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -101,79 +104,27 @@ class QuizController extends Controller
             'documents.*' => ['nullable', 'uuid', 'exists:documents,id'],
         ]);
 
-        $quizId = (string) Str::uuid();
+        $quiz = $this->quizService->store($validated, $request->user());
 
-        DB::transaction(function () use ($quizId, $validated, $request) {
-            $quizData = collect($validated)->except(['questions', 'documents'])->all();
-            $quizData['id'] = $quizId;
-            $quizData['created_by'] = $request->user()->id;
-            $quizData['created_at'] = now();
-            $quizData['updated_at'] = now();
-
-            DB::table('quizzes')->insert($quizData);
-
-            if (!empty($validated['questions'])) {
-                foreach ($validated['questions'] as $qData) {
-                    $qId = $qData['id'] ?? (string) Str::uuid();
-
-                    DB::table('quiz_questions')->insert([
-                        'id' => $qId,
-                        'quiz_id' => $quizId,
-                        'question_order' => $qData['question_order'],
-                        'title' => $qData['title'],
-                        'subtitle' => $qData['subtitle'] ?? null,
-                        'module_label' => $qData['module_label'] ?? null,
-                        'question_type' => $qData['question_type'] ?? 'multiple_choice',
-                        'points' => $qData['points'] ?? 10,
-                        'hint_title' => $qData['hint_title'] ?? null,
-                        'hint_quote' => $qData['hint_quote'] ?? null,
-                        'expert_name' => $qData['expert_name'] ?? null,
-                        'expert_role' => $qData['expert_role'] ?? null,
-                        'reading_title' => $qData['reading_title'] ?? null,
-                        'reading_text' => $qData['reading_text'] ?? null,
-                        'created_at' => now(),
-                    ]);
-
-                    foreach ($qData['options'] as $oData) {
-                        $oId = $oData['id'] ?? (string) Str::uuid();
-
-                        DB::table('quiz_options')->insert([
-                            'id' => $oId,
-                            'question_id' => $qId,
-                            'option_key' => $oData['option_key'],
-                            'text' => $oData['text'],
-                            'is_correct' => (bool) $oData['is_correct'],
-                            'explanation' => $oData['explanation'] ?? null,
-                        ]);
-                    }
-                }
-            }
-
-            if (!empty($validated['documents'])) {
-                $this->quizDocuments->attachDocuments($quizId, $validated['documents']);
-            }
-        });
-
-        $createdQuiz = DB::table('quizzes')->where('id', $quizId)->first();
         return response()->json([
             'message' => 'Quiz created successfully.',
-            'data' => $createdQuiz,
+            'data' => $quiz,
         ], 201);
     }
 
     public function show(string $id, Request $request): JsonResponse
-{
-    $quiz = DB::table('quizzes')->where('id', $id)->first();
-    if ($quiz === null) {
-        abort(404, 'Quiz not found.');
+    {
+        $quiz = DB::table('quizzes')->where('id', $id)->first();
+        if ($quiz === null) {
+            abort(404, 'Quiz not found.');
+        }
+        $this->checkQuizAccess($quiz, $request->user());
+        return response()->json(['data' => $quiz]);
     }
-    $this->checkQuizAccess($quiz, $request->user());
-    return response()->json(['data' => $quiz]);
-}
 
     public function update(string $id, Request $request): JsonResponse
     {
-        $quiz = DB::table('quizzes')->where('id', $id)->first();
+        $quiz = Quiz::find($id);
         if ($quiz === null) {
             abort(404, 'Quiz not found.');
         }
@@ -214,70 +165,8 @@ class QuizController extends Controller
             'documents.*' => ['nullable', 'uuid', 'exists:documents,id'],
         ]);
 
-        DB::transaction(function () use ($id, $validated) {
-            $quizData = collect($validated)->except(['questions', 'documents'])->all();
-            $quizData['updated_at'] = now();
+        $updatedQuiz = $this->quizService->update($quiz, $validated);
 
-            DB::table('quizzes')->where('id', $id)->update($quizData);
-
-            if (array_key_exists('questions', $validated)) {
-                $payloadQuestionIds = collect($validated['questions'])->pluck('id')->filter()->all();
-
-                DB::table('quiz_questions')
-                    ->where('quiz_id', $id)
-                    ->whereNotIn('id', $payloadQuestionIds)
-                    ->delete();
-
-                foreach ($validated['questions'] as $qData) {
-                    $qId = $qData['id'] ?? (string) Str::uuid();
-
-                    $questionFields = [
-                        'quiz_id' => $id,
-                        'question_order' => $qData['question_order'],
-                        'title' => $qData['title'],
-                        'subtitle' => $qData['subtitle'] ?? null,
-                        'module_label' => $qData['module_label'] ?? null,
-                        'question_type' => $qData['question_type'] ?? 'multiple_choice',
-                        'points' => $qData['points'] ?? 10,
-                        'hint_title' => $qData['hint_title'] ?? null,
-                        'hint_quote' => $qData['hint_quote'] ?? null,
-                        'expert_name' => $qData['expert_name'] ?? null,
-                        'expert_role' => $qData['expert_role'] ?? null,
-                        'reading_title' => $qData['reading_title'] ?? null,
-                        'reading_text' => $qData['reading_text'] ?? null,
-                    ];
-
-                    DB::table('quiz_questions')->updateOrInsert(['id' => $qId], $questionFields);
-
-                    $payloadOptionIds = collect($qData['options'])->pluck('id')->filter()->all();
-
-                    DB::table('quiz_options')
-                        ->where('question_id', $qId)
-                        ->whereNotIn('id', $payloadOptionIds)
-                        ->delete();
-
-                    foreach ($qData['options'] as $oData) {
-                        $oId = $oData['id'] ?? (string) Str::uuid();
-
-                        $optionFields = [
-                            'question_id' => $qId,
-                            'option_key' => $oData['option_key'],
-                            'text' => $oData['text'],
-                            'is_correct' => (bool) $oData['is_correct'],
-                            'explanation' => $oData['explanation'] ?? null,
-                        ];
-
-                        DB::table('quiz_options')->updateOrInsert(['id' => $oId], $optionFields);
-                    }
-                }
-            }
-
-            if (array_key_exists('documents', $validated)) {
-                $this->quizDocuments->syncDocuments($id, $validated['documents'] ?? []);
-            }
-        });
-
-        $updatedQuiz = DB::table('quizzes')->where('id', $id)->first();
         return response()->json([
             'message' => 'Quiz updated successfully.',
             'data' => $updatedQuiz,
@@ -291,7 +180,7 @@ class QuizController extends Controller
             abort(404, 'Quiz not found.');
         }
 
-        $quiz->delete();
+        $this->quizService->destroy($quiz);
 
         return response()->json(['message' => 'Quiz deleted successfully.']);
     }
