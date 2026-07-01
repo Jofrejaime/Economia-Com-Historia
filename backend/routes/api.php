@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\QuizController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Middleware\AuthenticateApiSession;
+use App\Http\Middleware\OptionalAuthenticateApiSession;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BadgeController;
 
@@ -28,6 +29,30 @@ Route::prefix('auth')->group(function (): void {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+});
+
+// ─── Rotas públicas (visitante) — autenticação opcional ────────────────────
+// Um utilizador autenticado que aceda a estas rotas continua a ver os dados
+// extra normais (is_liked, is_favorited, conteúdo exclusivo, etc.), porque o
+// OptionalAuthenticateApiSession preenche $request->user() sempre que houver
+// um token válido. Um visitante sem token (ou com token inválido/expirado,
+// ou utilizador suspenso) simplesmente recebe $request->user() === null, e os
+// controllers/services já tratam esse caso devolvendo apenas conteúdo público.
+Route::middleware(OptionalAuthenticateApiSession::class)->group(function (): void {
+    // Conteúdos — página inicial + view completa do conteúdo
+    Route::get('/document-categories', [DocumentController::class, 'categories']);
+    Route::get('/documents', [DocumentController::class, 'index']);
+    Route::get('/documents/search', [DocumentController::class, 'search']);
+    Route::get('/documents/{id}', [DocumentController::class, 'show']);
+
+    // Quizzes — página inicial (listagem apenas; iniciar/responder exige sessão)
+    Route::get('/quizzes', [QuizController::class, 'index']);
+
+    // Comunidade — página inicial, discussões e categorias
+    Route::get('/community/categories', [CommunityController::class, 'categories']);
+    Route::get('/topics', [CommunityController::class, 'indexTopics']);
+    Route::get('/topics/{id}', [CommunityController::class, 'showTopic']);
+    Route::get('/topics/{id}/replies', [CommunityController::class, 'topicReplies']);
 });
 
 // ─── Authenticated routes (any logged-in user) ─────────────────────────────
@@ -68,11 +93,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::get('/access-requests/{id}', [AccessController::class, 'showRequest']);
     Route::get('/access-grants', [AccessController::class, 'grants']);
 
-    // Documents — read + interactions
-    Route::get('/document-categories', [DocumentController::class, 'categories']);
-    Route::get('/documents', [DocumentController::class, 'index']);
-    Route::get('/documents/search', [DocumentController::class, 'search']);
-    Route::get('/documents/{id}', [DocumentController::class, 'show']);
+    // Documents — interações (leitura pública já está fora deste grupo)
     Route::post('/documents/{id}/like', [DocumentController::class, 'like']);
     Route::delete('/documents/{id}/like', [DocumentController::class, 'unlike']);
     Route::post('/documents/{id}/download', [DocumentController::class, 'download']);
@@ -86,8 +107,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::post('/documents/{id}/subscribe', [DocumentController::class, 'subscribe']);
     Route::delete('/documents/{id}/subscription', [DocumentController::class, 'cancelSubscription']);
 
-    // Quizzes — read + attempt
-    Route::get('/quizzes', [QuizController::class, 'index']);
+    // Quizzes — leitura detalhada + tentativa (participação exige sessão)
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);
     Route::get('/quizzes/{id}/questions', [QuizController::class, 'questions']);
     Route::get('/quizzes/{id}/documents', [QuizController::class, 'relatedDocuments']);
@@ -97,15 +117,11 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::post('/quiz-attempts/{id}/complete', [QuizController::class, 'completeAttempt']);
     Route::get('/me/quiz-attempts', [QuizController::class, 'myAttempts']);
 
-    // Community — read + interactions
-    Route::get('/community/categories', [CommunityController::class, 'categories']);
-    Route::get('/topics', [CommunityController::class, 'indexTopics']);
-    Route::get('/topics/{id}', [CommunityController::class, 'showTopic']);
+    // Community — interações (leitura pública já está fora deste grupo)
     Route::post('/topics/{id}/like', [CommunityController::class, 'likeTopic']);
     Route::delete('/topics/{id}/like', [CommunityController::class, 'unlikeTopic']);
     Route::post('/topics/{id}/follow', [CommunityController::class, 'followTopic']);
     Route::delete('/topics/{id}/follow', [CommunityController::class, 'unfollowTopic']);
-    Route::get('/topics/{id}/replies', [CommunityController::class, 'topicReplies']);
 
     // Topics/Replies — create (any authenticated user)
     Route::post('/topics', [CommunityController::class, 'storeTopic']);

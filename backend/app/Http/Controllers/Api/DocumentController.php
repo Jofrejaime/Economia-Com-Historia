@@ -147,97 +147,97 @@ class DocumentController extends Controller
      * )
      */
     public function index(Request $request): JsonResponse
-    {
-        $user = $request->user();
+{
+    $user = $request->user();
 
-        $query = DB::table('documents as d')
-            ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
-            ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
-            ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
-            ->select(
-                'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
-                'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
-                'd.publication_date', 'd.period_start', 'd.period_end',
-                'd.summary', 'd.content', 'd.cover_image_url',
-                'd.media_type', 'd.media_url', 'd.pdf_url',
-                'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
-                'd.views_count', 'd.likes_count', 'd.downloads_count',
-                'dc.name as category_name',
-                'dc.slug as category_slug',
-                'dc.color_bg as category_color_bg',
-                'dc.icon as category_icon',
-                'al.name as access_level_name',
-                'al.icon as access_level_icon',
-                'al.color_bg as access_level_color_bg',
-                'al.color_text as access_level_color_text',
-                'up.display_name as author_display_name',
-                'up.avatar_url as author_avatar_url'
-            );
+    $query = DB::table('documents as d')
+        ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
+        ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
+        ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
+        ->select(
+            'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
+            'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
+            'd.publication_date', 'd.period_start', 'd.period_end',
+            'd.summary', 'd.content', 'd.cover_image_url',
+            'd.media_type', 'd.media_url', 'd.pdf_url',
+            'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
+            'd.views_count', 'd.likes_count', 'd.downloads_count',
+            'dc.name as category_name',
+            'dc.slug as category_slug',
+            'dc.color_bg as category_color_bg',
+            'dc.icon as category_icon',
+            'al.name as access_level_name',
+            'al.icon as access_level_icon',
+            'al.color_bg as access_level_color_bg',
+            'al.color_text as access_level_color_text',
+            'up.display_name as author_display_name',
+            'up.avatar_url as author_avatar_url'
+        );
 
-        if ($request->filled('q')) {
-            $term = $request->string('q')->toString();
-            $query->where(function ($builder) use ($term): void {
-                $builder->where('d.title', 'like', "%{$term}%")
-                    ->orWhere('d.summary', 'like', "%{$term}%")
-                    ->orWhere('d.author', 'like', "%{$term}%");
-            });
-        }
-
-        if ($request->filled('category_id')) {
-            $query->where('d.category_id', $request->input('category_id'));
-        }
-
-        if ($request->filled('document_type')) {
-            $query->where('d.document_type', $request->input('document_type'));
-        }
-
-        if ($request->filled('academic_level')) {
-            $query->where('d.academic_level', $request->input('academic_level'));
-        }
-
-        if ($request->filled('access_level_id')) {
-            $query->where('d.access_level_id', $request->input('access_level_id'));
-        }
-
-        if ($request->filled('media_type')) {
-            $query->where('d.media_type', $request->input('media_type'));
-        }
-
-        if ($request->boolean('pinned')) {
-            $query->where('d.is_pinned', true);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('d.status', $request->input('status'));
-        } elseif ($user->role !== 'admin') {
-            $query->where('d.status', DocumentStatus::PUBLISHED->value);
-        }
-
-        $this->documentAccess->applyListingFilter($query, $user);
-
-        $query->orderByDesc('d.is_pinned');
-
-        if ($request->input('sort') === 'popular') {
-            $query->orderByDesc('d.likes_count')->orderByDesc('d.views_count');
-        } else {
-            $query->orderByDesc('d.created_at');
-        }
-
-        $perPage = min((int) $request->input('per_page', 15), 50);
-        $paginator = $query->paginate($perPage);
-
-        return response()->json([
-            'data' => collect($paginator->items())
-                ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page'    => $paginator->lastPage(),
-                'per_page'     => $paginator->perPage(),
-                'total'        => $paginator->total(),
-            ],
-        ]);
+    if ($request->filled('q')) {
+        $term = $request->string('q')->toString();
+        $query->where(function ($builder) use ($term): void {
+            $builder->where('d.title', 'like', "%{$term}%")
+                ->orWhere('d.summary', 'like', "%{$term}%")
+                ->orWhere('d.author', 'like', "%{$term}%");
+        });
     }
+
+    if ($request->filled('category_id')) {
+        $query->where('d.category_id', $request->input('category_id'));
+    }
+
+    if ($request->filled('document_type')) {
+        $query->where('d.document_type', $request->input('document_type'));
+    }
+
+    if ($request->filled('academic_level')) {
+        $query->where('d.academic_level', $request->input('academic_level'));
+    }
+
+    if ($request->filled('access_level_id')) {
+        $query->where('d.access_level_id', $request->input('access_level_id'));
+    }
+
+    if ($request->filled('media_type')) {
+        $query->where('d.media_type', $request->input('media_type'));
+    }
+
+    if ($request->boolean('pinned')) {
+        $query->where('d.is_pinned', true);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('d.status', $request->input('status'));
+    } elseif ($user === null || $user->role !== 'admin') {
+        $query->where('d.status', DocumentStatus::PUBLISHED->value);
+    }
+
+    $this->documentAccess->applyListingFilter($query, $user);
+
+    $query->orderByDesc('d.is_pinned');
+
+    if ($request->input('sort') === 'popular') {
+        $query->orderByDesc('d.likes_count')->orderByDesc('d.views_count');
+    } else {
+        $query->orderByDesc('d.created_at');
+    }
+
+    $perPage = min((int) $request->input('per_page', 15), 50);
+    $paginator = $query->paginate($perPage);
+
+    return response()->json([
+        'data' => collect($paginator->items())
+            ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
+            ->all(),
+        'meta' => [
+            'current_page' => $paginator->currentPage(),
+            'last_page'    => $paginator->lastPage(),
+            'per_page'     => $paginator->perPage(),
+            'total'        => $paginator->total(),
+        ],
+    ]);
+}
 
     /**
      * @OA\Get(
@@ -261,58 +261,58 @@ class DocumentController extends Controller
      * )
      */
     public function search(Request $request): JsonResponse
-    {
-        $user = $request->user();
-        $term = $request->string('q')->toString();
+{
+    $user = $request->user();
+    $term = $request->string('q')->toString();
 
-        $query = DB::table('documents as d')
-            ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
-            ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
-            ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
-            ->select(
-                'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
-                'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
-                'd.publication_date', 'd.period_start', 'd.period_end',
-                'd.summary', 'd.content', 'd.cover_image_url',
-                'd.media_type', 'd.media_url', 'd.pdf_url',
-                'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
-                'd.views_count', 'd.likes_count', 'd.downloads_count',
-                'dc.name as category_name',
-                'dc.slug as category_slug',
-                'al.name as access_level_name',
-                'up.display_name as author_display_name'
-            );
+    $query = DB::table('documents as d')
+        ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
+        ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
+        ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
+        ->select(
+            'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
+            'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
+            'd.publication_date', 'd.period_start', 'd.period_end',
+            'd.summary', 'd.content', 'd.cover_image_url',
+            'd.media_type', 'd.media_url', 'd.pdf_url',
+            'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
+            'd.views_count', 'd.likes_count', 'd.downloads_count',
+            'dc.name as category_name',
+            'dc.slug as category_slug',
+            'al.name as access_level_name',
+            'up.display_name as author_display_name'
+        );
 
-        if ($term !== '') {
-            $query->where(function ($builder) use ($term): void {
-                $builder->where('d.title', 'like', "%{$term}%")
-                    ->orWhere('d.summary', 'like', "%{$term}%")
-                    ->orWhere('d.author', 'like', "%{$term}%");
-            });
-        }
-
-        if ($request->filled('category_id')) {
-            $query->where('d.category_id', $request->input('category_id'));
-        }
-
-        if ($request->filled('document_type')) {
-            $query->where('d.document_type', $request->input('document_type'));
-        }
-
-        if ($user->role !== 'admin') {
-            $query->where('d.status', DocumentStatus::PUBLISHED->value);
-        }
-
-        $this->documentAccess->applyListingFilter($query, $user);
-
-        $results = $query->orderByDesc('d.created_at')->limit(50)->get();
-
-        return response()->json([
-            'data' => collect($results)
-                ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
-                ->all(),
-        ]);
+    if ($term !== '') {
+        $query->where(function ($builder) use ($term): void {
+            $builder->where('d.title', 'like', "%{$term}%")
+                ->orWhere('d.summary', 'like', "%{$term}%")
+                ->orWhere('d.author', 'like', "%{$term}%");
+        });
     }
+
+    if ($request->filled('category_id')) {
+        $query->where('d.category_id', $request->input('category_id'));
+    }
+
+    if ($request->filled('document_type')) {
+        $query->where('d.document_type', $request->input('document_type'));
+    }
+
+    if ($user === null || $user->role !== 'admin') {
+        $query->where('d.status', DocumentStatus::PUBLISHED->value);
+    }
+
+    $this->documentAccess->applyListingFilter($query, $user);
+
+    $results = $query->orderByDesc('d.created_at')->limit(50)->get();
+
+    return response()->json([
+        'data' => collect($results)
+            ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
+            ->all(),
+    ]);
+}
 
     /**
      * @OA\Get(
@@ -339,58 +339,59 @@ class DocumentController extends Controller
      * )
      */
     public function show(string $id, Request $request): JsonResponse
-    {
-        $document = Document::with(['category', 'accessLevel', 'createdBy.profile'])->find($id);
+{
+    $user = $request->user();
+    $document = Document::with(['category', 'accessLevel', 'createdBy.profile'])->find($id);
 
-        if ($document === null) {
+    if ($document === null) {
+        return response()->json(['message' => 'Document not found.'], 404);
+    }
+
+    if (!$this->documentAccess->canReadDocument($user, $document)) {
+        return $this->denyDocumentAccess($document);
+    }
+
+    if (($user === null || $user->role !== 'admin') && $document->status !== DocumentStatus::PUBLISHED->value) {
+        if ($user === null || $document->created_by !== $user->id) {
             return response()->json(['message' => 'Document not found.'], 404);
         }
-
-        if (!$this->documentAccess->canReadDocument($request->user(), $document)) {
-            return $this->denyDocumentAccess($document);
-        }
-
-        if ($request->user()->role !== 'admin' && $document->status !== DocumentStatus::PUBLISHED->value) {
-            if ($document->created_by !== $request->user()->id) {
-                return response()->json(['message' => 'Document not found.'], 404);
-            }
-        }
-
-        $tags = DB::table('document_tags as dt')
-            ->join('tags as t', 'dt.tag_id', '=', 't.id')
-            ->where('dt.document_id', $id)
-            ->select('t.id', 't.name', 't.slug')
-            ->get();
-
-        $userId = $request->user()->id;
-
-        DB::table('document_views')->insert([
-            'id'          => (string) Str::uuid(),
-            'document_id' => $id,
-            'user_id'     => $userId,
-            'ip_address'  => $request->ip(),
-            'created_at'  => now(),
-        ]);
-
-        $document->increment('views_count');
-
-        $isLiked = DB::table('document_likes')
-            ->where('document_id', $id)
-            ->where('user_id', $userId)
-            ->exists();
-
-        $isFavorited = DB::table('user_favorites')
-            ->where('document_id', $id)
-            ->where('user_id', $userId)
-            ->exists();
-
-        return response()->json([
-            'data'         => (new DocumentResource($document))->toArray($request),
-            'tags'         => $tags,
-            'is_liked'     => $isLiked,
-            'is_favorited' => $isFavorited,
-        ]);
     }
+
+    $tags = DB::table('document_tags as dt')
+        ->join('tags as t', 'dt.tag_id', '=', 't.id')
+        ->where('dt.document_id', $id)
+        ->select('t.id', 't.name', 't.slug')
+        ->get();
+
+    $userId = $user?->id;
+
+    DB::table('document_views')->insert([
+        'id'          => (string) Str::uuid(),
+        'document_id' => $id,
+        'user_id'     => $userId,
+        'ip_address'  => $request->ip(),
+        'created_at'  => now(),
+    ]);
+
+    $document->increment('views_count');
+
+    $isLiked = $userId !== null && DB::table('document_likes')
+        ->where('document_id', $id)
+        ->where('user_id', $userId)
+        ->exists();
+
+    $isFavorited = $userId !== null && DB::table('user_favorites')
+        ->where('document_id', $id)
+        ->where('user_id', $userId)
+        ->exists();
+
+    return response()->json([
+        'data'         => (new DocumentResource($document))->toArray($request),
+        'tags'         => $tags,
+        'is_liked'     => $isLiked,
+        'is_favorited' => $isFavorited,
+    ]);
+}
 
     /**
      * @OA\Post(

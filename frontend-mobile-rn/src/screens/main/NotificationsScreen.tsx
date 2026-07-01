@@ -19,25 +19,25 @@ function iconForType(type: string): { name: keyof typeof Feather.glyphMap; bg: s
   switch (type) {
     case "document_published":
     case "document_liked":
-      return { name: "file-text", bg: "#EFF6FF", color: "#3B82F6" };
+      return { name: "file-text", bg: appTheme.colors.badgeLightBg, color: appTheme.colors.videoColor };
     case "quiz_result":
     case "badge_earned":
     case "level_up":
-      return { name: "award", bg: "#FFFBEB", color: "#F59E0B" };
+      return { name: "award", bg: appTheme.colors.badgeYellowBg, color: appTheme.colors.warning };
     case "topic_reply":
     case "reply_liked":
-      return { name: "message-circle", bg: "#FDF3F4", color: "#8B1E2D" };
+      return { name: "message-circle", bg: appTheme.colors.debateHighlightBg, color: appTheme.colors.primary };
     case "access_granted":
     case "access_requested":
-      return { name: "shield", bg: "#F0FDF4", color: appTheme.colors.success };
+      return { name: "shield", bg: appTheme.colors.successLight, color: appTheme.colors.success };
     case "topic_invitation":
-      return { name: "user-plus", bg: "#FDF3F4", color: "#8B1E2D" };
+      return { name: "user-plus", bg: appTheme.colors.debateHighlightBg, color: appTheme.colors.primary };
     case "topic_joined":
-      return { name: "users", bg: "#FDF3F4", color: "#8B1E2D" };
+      return { name: "users", bg: appTheme.colors.debateHighlightBg, color: appTheme.colors.primary };
     case "topic_removed":
-      return { name: "user-x", bg: "#FEF2F2", color: "#DC2626" };
+      return { name: "user-x", bg: appTheme.colors.dangerLight, color: appTheme.colors.danger };
     default:
-      return { name: "bell", bg: "#F3F4F6", color: "#6B7280" };
+      return { name: "bell", bg: appTheme.colors.background, color: appTheme.colors.rankingCardGray };
   }
 }
 
@@ -142,7 +142,7 @@ export function NotificationsScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
   actionBar: {
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: appTheme.colors.border,
   },
@@ -178,21 +178,21 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
   },
   cardUnread: {
-    borderColor: "#8B1E2D",
-    shadowColor: "#8B1E2D",
+    borderColor: appTheme.colors.primary,
+    shadowColor: appTheme.colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
   },
   cardRead: {
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
   },
   cardRow: {
     flexDirection: "row",
@@ -219,28 +219,28 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 15,
     fontWeight: "700",
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     flex: 1,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     marginLeft: 8,
     flexShrink: 0,
   },
   cardBody: {
     fontFamily: "Source_Sans_3",
     fontSize: 13,
-    color: "#6B7280",
+    color: appTheme.colors.rankingCardGray,
     lineHeight: 18,
     marginBottom: 8,
   },
   cardTime: {
     fontFamily: "Source_Sans_3",
     fontSize: 11,
-    color: "#9CA3AF",
+    color: appTheme.colors.textMuted,
   },
   emptyState: {
     alignItems: "center",
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: "Source_Sans_3",
     textAlign: "center",
-    color: "#9CA3AF",
+    color: appTheme.colors.textMuted,
     fontSize: 13,
     marginTop: 24,
     marginBottom: 16,

@@ -95,15 +95,15 @@ export function PersonalInfoScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: appTheme.colors.border,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
-    color: "#7F1D1D",
+    color: appTheme.colors.primaryDark,
     letterSpacing: -0.4,
   },
   container: {
@@ -127,16 +127,17 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   subtitle: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     marginBottom: 24,
   },
   formCard: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     padding: 24,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   saveButton: {
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     height: 48,
     borderRadius: appTheme.radius.button,
     alignItems: "center",
@@ -152,7 +153,8 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   saveButtonText: {
-    color: "white",
+    fontFamily: "IBM_Plex_Sans",
+    color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
   },

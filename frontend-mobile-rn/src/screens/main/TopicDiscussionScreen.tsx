@@ -639,7 +639,7 @@ export function TopicDiscussionScreen() {
 
               <TextInput
                 placeholder={user ? "Escreva um comentário..." : "Entre para comentar..."}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={appTheme.colors.textMuted}
                 value={newCommentText}
                 onChangeText={setNewCommentText}
                 multiline
@@ -681,7 +681,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
     paddingBottom: 180,
   },
   topicHeaderCard: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
@@ -740,7 +740,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#D9E3F6",
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
   },
   blockquote: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     borderLeftWidth: 4,
     borderLeftColor: appTheme.colors.primary,
     padding: 16,
@@ -816,7 +816,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: appTheme.colors.background,
     paddingVertical: 10,
     borderRadius: 8,
   },
@@ -829,10 +829,10 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textSecondary,
   },
   topicActionBtnTextActive: {
-    color: "white",
+    color: appTheme.colors.surface,
   },
   commentsContainer: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#D9E3F6",
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -914,7 +914,7 @@ const styles = StyleSheet.create({
     borderLeftColor: appTheme.colors.border,
   },
   replyBox: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     borderRadius: 8,
     padding: 12,
     marginLeft: 48,
@@ -930,7 +930,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#D9E3F6",
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
   },
   replyInput: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
     borderRadius: 8,
@@ -963,7 +963,7 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#6B7280",
+    color: appTheme.colors.rankingCardGray,
   },
   publishBtn: {
     backgroundColor: appTheme.colors.primary,
@@ -974,7 +974,7 @@ const styles = StyleSheet.create({
   publishBtnText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "white",
+    color: appTheme.colors.surface,
   },
   composerWrapper: {
     position: "absolute",
@@ -985,19 +985,19 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: Platform.OS === "ios" ? 24 : 16,
     borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
-    backgroundColor: "white",
+    borderTopColor: appTheme.colors.background,
+    backgroundColor: appTheme.colors.surface,
   },
   composerWrapperFocused: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
   },
   composerInner: {
     flexDirection: "row",
     alignItems: "flex-end",
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
     minHeight: 52,
@@ -1011,13 +1011,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#E8EFF8",
+    backgroundColor: appTheme.colors.userAvatarBg,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
   composerAvatarText: {
-    color: "#8B1E2D",
+    color: appTheme.colors.primary,
     fontSize: 14,
     fontWeight: "700",
   },
@@ -1034,7 +1034,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 10,
@@ -1068,7 +1068,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   backHomeButtonText: {
-    color: "white",
+    color: appTheme.colors.surface,
     fontWeight: "700",
     fontSize: 14,
   },
@@ -1078,7 +1078,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   menuSheet: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: Platform.OS === "ios" ? 32 : 16,
@@ -1089,7 +1089,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: appTheme.colors.border,
     alignSelf: "center",
     marginBottom: 16,
   },
@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   reportSheet: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: Platform.OS === "ios" ? 32 : 20,
@@ -1145,7 +1145,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1.5,
     borderColor: appTheme.colors.border,
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
   },
   reasonChipSelected: {
     borderColor: appTheme.colors.danger,
@@ -1169,7 +1169,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textPrimary,
     minHeight: 100,
     fontFamily: "Source_Sans_3",
-    backgroundColor: "#FAFAFA",
+    backgroundColor: appTheme.colors.background,
   },
   reportCharCount: {
     fontFamily: "Source_Sans_3",

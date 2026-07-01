@@ -30,7 +30,7 @@ export function JindungoPermissionScreen() {
           {/* Lock Icon */}
           <View style={styles.iconCircleWrap}>
             <View style={styles.iconCircle}>
-              <Feather name="lock" size={48} color="#8B1E2D" />
+              <Feather name="lock" size={48} color={appTheme.colors.primary} />
             </View>
           </View>
 
@@ -45,7 +45,7 @@ export function JindungoPermissionScreen() {
           {/* Alert Box */}
           <View style={styles.alertBox}>
             <View style={styles.alertRow}>
-              <Feather name="alert-circle" size={20} color="#8B1E2D" style={styles.alertIcon} />
+              <Feather name="alert-circle" size={20} color={appTheme.colors.primary} style={styles.alertIcon} />
               <View style={styles.alertTextWrap}>
                 <Text style={styles.alertTitle}>Porque Preciso de Permissão?</Text>
                 <Text style={styles.alertDesc}>
@@ -58,7 +58,7 @@ export function JindungoPermissionScreen() {
           {/* Approval Info */}
           <View style={styles.infoBox}>
             <View style={styles.clockIconWrap}>
-              <Feather name="clock" size={24} color="#8B1E2D" />
+              <Feather name="clock" size={24} color={appTheme.colors.primary} />
             </View>
             <Text style={styles.infoTitle}>Aprovação do Administrador</Text>
             <Text style={styles.infoDesc}>
@@ -89,15 +89,15 @@ export function JindungoPermissionScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
     paddingHorizontal: 0,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: appTheme.colors.border,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
-    color: "#8B1E2D",
+    color: appTheme.colors.primary,
   },
   container: {
     flex: 1,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: "#FDF3F4",
+    backgroundColor: appTheme.colors.debateHighlightBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -139,19 +139,20 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 30,
     fontWeight: "700",
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     marginBottom: 16,
     textAlign: "center",
   },
   contentDesc: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     lineHeight: 24,
     textAlign: "center",
     marginBottom: 32,
   },
   alertBox: {
-    backgroundColor: "#FEF2F2",
+    backgroundColor: appTheme.colors.dangerLight,
     borderWidth: 1,
     borderColor: "#DEBFBF",
     borderRadius: 8,
@@ -170,21 +171,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   alertTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 14,
     fontWeight: "700",
-    color: "#8B1E2D",
+    color: appTheme.colors.primary,
     marginBottom: 4,
   },
   alertDesc: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     lineHeight: 18,
   },
   infoBox: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     padding: 20,
     marginBottom: 32,
     alignItems: "center",
@@ -200,15 +203,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   infoTitle: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 15,
     fontWeight: "700",
-    color: "#1F2937",
+    color: appTheme.colors.textPrimary,
     marginBottom: 8,
     textAlign: "center",
   },
   infoDesc: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     lineHeight: 18,
     textAlign: "center",
   },
@@ -217,9 +222,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   primaryButton: {
-    backgroundColor: "#8B1E2D",
+    backgroundColor: appTheme.colors.primary,
     height: 52,
-    borderRadius: 8,
+    borderRadius: appTheme.radius.button,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -229,27 +234,30 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   primaryButtonText: {
-    color: "white",
+    fontFamily: "IBM_Plex_Sans",
+    color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
   },
   secondaryButton: {
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     height: 52,
-    borderRadius: 8,
+    borderRadius: appTheme.radius.button,
     borderWidth: 2,
-    borderColor: "#E5E7EB",
+    borderColor: appTheme.colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   secondaryButtonText: {
-    color: "#574142",
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.textSecondary,
     fontSize: 16,
     fontWeight: "600",
   },
   footerNote: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
-    color: "#9CA3AF",
+    color: appTheme.colors.textMuted,
     marginTop: 24,
     textAlign: "center",
   },

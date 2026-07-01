@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { FooterComponent } from '../../components/footer/footer';
 import { HeaderComponent } from '../../components/header/header';
 import { DocumentService, Document, DocumentCategory } from '../../services/document.service';
+import { AuthService } from '../../services/auth.service';
 
 type AccessCategory = 'all' | 'public' | 'jindungo' | 'restricted';
 interface AccessOption { id: AccessCategory; label: string; }
@@ -37,6 +38,8 @@ export class ContentsComponent implements OnInit, OnDestroy {
   categories: DocumentCategory[] = [];
   themes: string[] = [];
 
+  isAuthenticated = false;
+
   formats = [
     { id: 'manuscript', label: 'Manuscrito' },
     { id: 'article',    label: 'Artigo' },
@@ -66,10 +69,13 @@ export class ContentsComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private documentService: DocumentService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.isAuthenticated = this.authService.isAuthenticated();
+
     // lê o category_id da query param antes de carregar
     this.preselectedCategoryId = this.route.snapshot.queryParamMap.get('category_id');
 
@@ -223,11 +229,50 @@ export class ContentsComponent implements OnInit, OnDestroy {
   }
 
   getDocumentImage(doc: Document): string {
-    return doc.cover_image_url ?? 'assets/images/document-placeholder.jpg';
+    const url = doc.cover_image_url?.trim();
+    return url ? url : 'assets/images/document-placeholder.jpg';
   }
 
   navigateToDocument(id: string): void {
     this.router.navigate(['/contents/view', id]);
+  }
+
+  async toggleLike(event: Event, doc: Document): Promise<void> {
+    event.stopPropagation();
+    if (!this.isAuthenticated) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+    try {
+      if (doc.is_liked) {
+        await this.documentService.unlikeDocument(doc.id);
+        doc.is_liked = false;
+        doc.likes_count = Math.max(0, (doc.likes_count ?? 1) - 1);
+      } else {
+        await this.documentService.likeDocument(doc.id);
+        doc.is_liked = true;
+        doc.likes_count = (doc.likes_count ?? 0) + 1;
+      }
+      this.cdr.detectChanges();
+    } catch {}
+  }
+
+  async toggleFavorite(event: Event, doc: Document): Promise<void> {
+    event.stopPropagation();
+    if (!this.isAuthenticated) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+    try {
+      if (doc.is_favorited) {
+        await this.documentService.unfavoriteDocument(doc.id);
+        doc.is_favorited = false;
+      } else {
+        await this.documentService.favoriteDocument(doc.id);
+        doc.is_favorited = true;
+      }
+      this.cdr.detectChanges();
+    } catch {}
   }
 
   @HostListener('document:click', ['$event'])

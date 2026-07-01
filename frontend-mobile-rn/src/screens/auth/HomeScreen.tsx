@@ -230,7 +230,7 @@ export function HomeScreen({
 
           <TouchableOpacity style={styles.rankingButton} onPress={onLogin}>
             <Text style={styles.rankingButtonText}>Ver ranking completo</Text>
-            <Feather name="arrow-right" size={20} color="#4B5563" />
+            <Feather name="arrow-right" size={20} color={appTheme.colors.textSecondary} />
           </TouchableOpacity>
         </View>
 

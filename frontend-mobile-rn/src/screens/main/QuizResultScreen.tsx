@@ -182,14 +182,14 @@ export function QuizResultScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#f8f9ff" },
+  container: { backgroundColor: appTheme.colors.background },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingVertical: 24, paddingBottom: 48 },
   loadingWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
 
   // Hero
   heroCard: {
-    backgroundColor: "#eff4ff",
+    backgroundColor: appTheme.colors.badgeLightBg,
     borderRadius: 12,
     borderLeftWidth: 6,
     borderLeftColor: appTheme.colors.primary,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     borderRadius: 65,
     borderWidth: 8,
     borderColor: appTheme.colors.primary,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -233,9 +233,10 @@ const styles = StyleSheet.create({
     lineHeight: 36,
   },
   scoreLabel: {
+    fontFamily: "Source_Sans_3",
     fontSize: 9,
     fontWeight: "700",
-    color: "#894d50",
+    color: appTheme.colors.primaryDark,
     letterSpacing: 1,
     marginTop: 2,
   },
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     padding: 14,
     alignItems: "center",
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primary,
     marginBottom: 4,
   },
-  statValueLight: { color: "white" },
+  statValueLight: { color: appTheme.colors.surface },
   statDesc: {
     fontFamily: "Source_Sans_3",
     fontSize: 11,
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: {
     fontFamily: "IBM_Plex_Sans",
-    color: "white",
+    color: appTheme.colors.surface,
     fontSize: 15,
     fontWeight: "700",
   },
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
   docCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 10,

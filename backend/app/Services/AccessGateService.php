@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\DB;
 
 class AccessGateService
 {
-    public function canAccess(User $user, string $accessLevelId): bool
+    public function canAccess(?User $user, string $accessLevelId): bool
     {
-        if ($this->bypassesAccessChecks($user)) {
+        if ($user !== null && $this->bypassesAccessChecks($user)) {
             return true;
         }
 
@@ -18,16 +18,20 @@ class AccessGateService
             return true;
         }
 
+        if ($user === null) {
+            return false;
+        }
+
         return in_array($accessLevelId, $this->activeGrantLevelIds($user), true);
     }
 
-    public function canAccessDocument(User $user, object $document): bool
+    public function canAccessDocument(?User $user, object $document): bool
     {
-        if ($this->bypassesAccessChecks($user)) {
+        if ($user !== null && $this->bypassesAccessChecks($user)) {
             return true;
         }
 
-        if (isset($document->created_by) && $document->created_by === $user->id) {
+        if ($user !== null && isset($document->created_by) && $document->created_by === $user->id) {
             return true;
         }
 
@@ -37,19 +41,23 @@ class AccessGateService
     }
 
     /**
-     * Restrict document listings to content the user is allowed to see.
+     * Restrict document/quiz listings to content the user is allowed to see.
+     * Visitantes (user === null) só veem access_level_id = 'public'.
      */
-    public function applyDocumentVisibilityFilter(Builder $query, User $user, string $tableAlias = 'd'): void
+    public function applyDocumentVisibilityFilter(Builder $query, ?User $user, string $tableAlias = 'd'): void
     {
-        if ($this->bypassesAccessChecks($user)) {
+        if ($user !== null && $this->bypassesAccessChecks($user)) {
             return;
         }
 
-        $grantLevels = $this->activeGrantLevelIds($user);
+        $grantLevels = $user !== null ? $this->activeGrantLevelIds($user) : [];
 
         $query->where(function (Builder $builder) use ($user, $grantLevels, $tableAlias): void {
-            $builder->where("{$tableAlias}.access_level_id", 'public')
-                ->orWhere("{$tableAlias}.created_by", $user->id);
+            $builder->where("{$tableAlias}.access_level_id", 'public');
+
+            if ($user !== null) {
+                $builder->orWhere("{$tableAlias}.created_by", $user->id);
+            }
 
             if ($grantLevels !== []) {
                 $builder->orWhereIn("{$tableAlias}.access_level_id", $grantLevels);
@@ -73,10 +81,14 @@ class AccessGateService
             ->all();
     }
 
-    public function hasActiveGrant(User $user, string $accessLevelId): bool
+    public function hasActiveGrant(?User $user, string $accessLevelId): bool
     {
         if ($accessLevelId === 'public') {
             return true;
+        }
+
+        if ($user === null) {
+            return false;
         }
 
         return in_array($accessLevelId, $this->activeGrantLevelIds($user), true);

@@ -40,9 +40,11 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.border,
   },
   label: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.surface,
     fontSize: appTheme.typography.body.fontSize,
-    fontWeight: "700",
+    fontWeight: "600",
+    letterSpacing: 0.2,
   },
   labelDisabled: {
     color: appTheme.colors.textMuted,

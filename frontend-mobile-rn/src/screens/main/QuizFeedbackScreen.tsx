@@ -92,7 +92,7 @@ export function QuizFeedbackScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#F8F9FF",
+    backgroundColor: appTheme.colors.background,
   },
   scrollContainer: {
     flex: 1,
@@ -137,13 +137,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   statusTitleCorrect: {
-    color: "#6B0119",
+    color: appTheme.colors.primaryDark,
   },
   statusTitleIncorrect: {
     color: appTheme.colors.danger,
   },
   card: {
-    backgroundColor: "#EFF4FF",
+    backgroundColor: appTheme.colors.badgeLightBg,
     borderRadius: 8,
     borderLeftWidth: 4,
     overflow: "hidden",
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     borderLeftColor: "#047857",
   },
   cardIncorrect: {
-    borderLeftColor: "#6B0119",
+    borderLeftColor: appTheme.colors.primaryDark,
   },
   cardBody: {
     padding: 24,
@@ -178,11 +178,12 @@ const styles = StyleSheet.create({
     color: "#047857",
   },
   cardTitleIncorrect: {
-    color: "#6B0119",
+    color: appTheme.colors.primaryDark,
   },
   explanationText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
-    color: "#574142",
+    color: appTheme.colors.textSecondary,
     lineHeight: 24,
     marginBottom: 20,
   },
@@ -214,7 +215,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   nextBtnLabel: {
-    color: "white",
+    fontFamily: "IBM_Plex_Sans",
+    color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
   },

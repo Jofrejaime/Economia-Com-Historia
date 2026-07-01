@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: "42%",
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 2,
   },
   progressThumb: {
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
   },
   timeRow: {
     flexDirection: "row",
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 14,
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
