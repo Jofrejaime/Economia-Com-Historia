@@ -11,7 +11,6 @@ use App\Models\TopicLike;
 use App\Models\ReplyLike;
 use App\Models\TopicFollower;
 use App\Models\CategoryMember;
-use App\Services\AccessGateService;
 use App\Services\CommunityAuthorizationService;
 use App\Services\GamificationService;
 use App\Services\NotificationService;
@@ -23,7 +22,6 @@ use Illuminate\Support\Str;
 class CommunityController extends Controller
 {
     public function __construct(
-        private readonly AccessGateService $accessGate,
         private readonly CommunityAuthorizationService $communityAuthorization,
         private readonly GamificationService $gamification,
         private readonly NotificationService $notificationService,
@@ -268,10 +266,9 @@ class CommunityController extends Controller
         $category = CommunityCategory::findOrFail($validated['category_id']);
         $visibility = $validated['visibility'] ?? 'CATEGORY';
 
-        // Check access to category
-        if (!$this->accessGate->canAccess($request->user(), $category->access_level_id)) {
-            abort(403, 'Access denied to this category.');
-        }
+        // Nota (Sprint 13): community_categories.access_level_id é legado e ignorado
+        // na autorização — categorias são só organização; quem controla acesso ao
+        // tópico é discussion_topics.visibility (ver CommunityAuthorizationService).
 
         $topic = DB::transaction(function () use ($validated, $request, $category, $visibility) {
             $topic = DiscussionTopic::create([
