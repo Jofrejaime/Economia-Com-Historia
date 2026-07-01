@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\DocumentStatus;
+use App\Enums\QuizStatus;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -34,7 +36,7 @@ class QuizSeeder extends Seeder
                 'time_limit_secs' => 600,
                 'access_level_id' => 'public',
                 'is_featured' => true,
-                'status' => 'published',
+                'status' => QuizStatus::PUBLISHED->value,
                 'category_id' => $industrializacao?->id,
                 'created_by' => $professor->id,
                 'published_at' => '2024-04-01',
@@ -155,7 +157,7 @@ class QuizSeeder extends Seeder
                 'time_limit_secs' => 900,
                 'access_level_id' => 'public',
                 'is_featured' => true,
-                'status' => 'published',
+                'status' => QuizStatus::PUBLISHED->value,
                 'category_id' => $comercio?->id,
                 'created_by' => $professor->id,
                 'published_at' => '2024-05-01',
@@ -276,7 +278,7 @@ class QuizSeeder extends Seeder
                 'time_limit_secs' => 1200,
                 'access_level_id' => 'public',
                 'is_featured' => false,
-                'status' => 'published',
+                'status' => QuizStatus::PUBLISHED->value,
                 'category_id' => $posIndep?->id,
                 'created_by' => $professor->id,
                 'published_at' => '2024-07-01',
@@ -438,7 +440,7 @@ class QuizSeeder extends Seeder
         if ($industrializacao) {
             $docsIndustrializacao = DB::table('documents')
                 ->where('category_id', $industrializacao->id)
-                ->where('status', 'published')
+                ->where('status', DocumentStatus::PUBLISHED->value)
                 ->orderBy('created_at')
                 ->take(2)
                 ->pluck('id');
@@ -460,7 +462,7 @@ class QuizSeeder extends Seeder
         if ($comercio && $quizEscravos) {
             $docComercio = DB::table('documents')
                 ->where('category_id', $comercio->id)
-                ->where('status', 'published')
+                ->where('status', DocumentStatus::PUBLISHED->value)
                 ->orderBy('created_at')
                 ->value('id');
 

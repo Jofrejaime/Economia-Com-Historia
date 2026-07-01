@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\QuizStatus;
-use App\Enums\QuizAttemptStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
