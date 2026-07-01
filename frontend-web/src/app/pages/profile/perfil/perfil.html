@@ -23,8 +23,11 @@
       <!-- Profile Header -->
       <div class="profile-header">
         <div class="profile-avatar-wrapper">
-          <img alt="Profile Avatar" [src]="profileAvatarUrl" />
-        </div>
+  <img *ngIf="hasRealAvatar" alt="Profile Avatar" [src]="profileAvatarUrl" (error)="onAvatarLoadError($event)" />
+  <div *ngIf="!hasRealAvatar" class="profile-avatar-placeholder">
+    <span>{{ profileInitials }}</span>
+  </div>
+</div>
         <div class="profile-info">
           <div class="profile-badge-wrapper">
             <span class="profile-badge">ESTATUTO ACADÉMICO</span>
@@ -119,10 +122,13 @@
 
               <div class="profile-avatar-upload">
                 <div class="profile-avatar-container">
-                  <img [src]="getAvatarSrc()" 
-                       alt="Avatar de perfil"
-                       class="profile-avatar-preview">
-                  
+                  <img *ngIf="avatarPreview || profileAvatarUrl" [src]="getAvatarSrc()" 
+     alt="Avatar de perfil"
+     class="profile-avatar-preview"
+     (error)="onAvatarLoadError($event)">
+<div *ngIf="!avatarPreview && !profileAvatarUrl" class="profile-avatar-preview profile-avatar-placeholder">
+  <span>{{ profileInitials }}</span>
+</div>
                   <button type="button"
                           (click)="avatarInput.click()"
                           [disabled]="state.isLoadingStats"

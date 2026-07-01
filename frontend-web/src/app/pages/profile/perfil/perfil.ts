@@ -71,6 +71,18 @@ export class PerfilComponent implements OnInit {
   avatarError: string | null = null;
   avatarPreviewTime: number = 0;
 
+  // Placeholder de avatar: em vez de usar um data:image/svg+xml (que alguns
+  // browsers/políticas de segurança recusam renderizar em <img>), usamos um
+  // <div> com as iniciais do utilizador quando não há foto real.
+  get hasRealAvatar(): boolean {
+    return !!this.profileAvatarUrl;
+  }
+
+  get profileInitials(): string {
+    const name = this.profileName || '?';
+    return name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  }
+
   // Lista de províncias de Angola
   angolasProvinces = [
     'Luanda', 'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
@@ -201,7 +213,8 @@ export class PerfilComponent implements OnInit {
       this.profileBio = ['Seu perfil está sincronizado com a API.'];
     }
 
-    // Avatar (vazio se não houver)
+    // Avatar — string vazia quando não há URL válido; o template decide
+    // entre mostrar a <img> ou o placeholder de iniciais (hasRealAvatar).
     this.profileAvatarUrl = profile?.avatar_url || '';
 
     // Email e role (para referência interna)
@@ -328,13 +341,15 @@ export class PerfilComponent implements OnInit {
   }
 
   /**
-   * Fechar modal de edição
+   * Fecha o modal de edição de perfil.
+   * Nota: não refaz o pedido GET /api/me aqui de propósito — depois de um
+   * guardar bem-sucedido, os dados locais (profileData/profileAvatarUrl) já
+   * estão atualizados. Recarregar aqui criava uma condição de corrida: se o
+   * backend/storage ainda não tivesse propagado o novo avatar, o refetch
+   * sobrescrevia a foto correta com o valor antigo/vazio.
    */
   closeEditProfileModal(): void {
     this.state.isEditingProfile = false;
-    // Recarregar perfil para garantir que temos dados atualizados
-    // (especialmente avatar que pode ter sido atualizado)
-    this.refreshProfile();
   }
 
   /**
@@ -375,6 +390,11 @@ export class PerfilComponent implements OnInit {
         if (response?.avatar_url) {
           // Atualizar URL imediatamente para mostrar mudança
           this.profileAvatarUrl = response.avatar_url + '?t=' + Date.now();
+          // Sincronizar também profileData, para que mapProfileData() (chamado
+          // já a seguir) não reverta profileAvatarUrl para o valor antigo/vazio.
+          if (this.profileData) {
+            this.profileData.avatar_url = response.avatar_url;
+          }
         }
         // Limpar seleção
         this.avatarPreview = null;
@@ -433,7 +453,7 @@ export class PerfilComponent implements OnInit {
     if (this.avatarPreview) {
       return this.avatarPreview;
     }
-    // Caso contrário, usar o avatar atual
+    // Caso contrário, usar o avatar atual (pode ser '' — o template trata isso)
     return this.profileAvatarUrl;
   }
 
@@ -549,10 +569,21 @@ export class PerfilComponent implements OnInit {
   }
 
   /**
-   * Atualizar perfil manualmente
+   * Chamado quando a <img> do avatar falha ao carregar (link morto, 403, etc.).
+   * Em vez de trocar para um data-URI (que pode ser bloqueado), limpamos
+   * profileAvatarUrl para que o template caia automaticamente no placeholder
+   * de iniciais (*ngIf="hasRealAvatar").
+   */
+  onAvatarLoadError(event: Event): void {
+    (event.target as HTMLImageElement).style.display = 'none';
+    this.profileAvatarUrl = '';
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Atualizar perfil manualmente (chamada explícita, ex: botão de refresh)
    */
   refreshProfile(): void {
-    // Carregar perfil em background (sem mostrar loading spinner)
     this.profileService.getMe().then(me => {
       const profile = me?.profile ?? null;
       const user = me?.user as Record<string, unknown> | undefined;
