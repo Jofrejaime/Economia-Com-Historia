@@ -19,11 +19,11 @@ type QuizFeedbackRouteProp = RouteProp<MainStackParamList, "QuizFeedback">;
 export function QuizFeedbackScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<QuizFeedbackRouteProp>();
-  const { isCorrect, explanation, isLast, attemptId, quizId } = route.params;
+  const { isCorrect, explanation, isLast, attemptId, quizId, gamification } = route.params;
 
   const handleNext = () => {
     if (isLast) {
-      navigation.navigate("QuizResult", { attemptId, quizId });
+      navigation.navigate("QuizResult", { attemptId, quizId, gamification });
     } else {
       navigation.goBack();
     }

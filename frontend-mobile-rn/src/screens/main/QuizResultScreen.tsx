@@ -43,44 +43,71 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
 export function QuizResultScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProps>();
-  const { attemptId, quizId } = route.params;
+  const { attemptId, quizId, gamification } = route.params;
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [totalQuestions, setTotalQuestions] = useState<number>(0);
   const [relatedDocs, setRelatedDocs] = useState<Document[]>([]);
 
-  useEffect(() => {
-    const load = async () => {
-      const [attemptRes, quizRes, questionsRes, docsRes] = await Promise.allSettled([
-        quizService.getAttempt(attemptId),
-        quizService.detail(quizId),
-        quizService.questions(quizId),
-        quizService.relatedDocuments(quizId),
-      ]);
-      if (attemptRes.status === "fulfilled") setAttempt(attemptRes.value);
-      if (quizRes.status === "fulfilled") setQuiz(quizRes.value);
-      if (questionsRes.status === "fulfilled") setTotalQuestions(questionsRes.value.length);
-      if (docsRes.status === "fulfilled") setRelatedDocs(docsRes.value);
-      setLoading(false);
-    };
-    load();
-  }, [attemptId, quizId]);
+  const load = async () => {
+    setLoading(true);
+    setLoadError(false);
+    const [attemptRes, quizRes, questionsRes, docsRes] = await Promise.allSettled([
+      quizService.getAttempt(attemptId),
+      quizService.detail(quizId),
+      quizService.questions(quizId),
+      quizService.relatedDocuments(quizId),
+    ]);
 
-  const pct = attempt ? Math.round(attempt.score) : 0;
-  const label = scoreLabel(pct);
+    if (attemptRes.status === "fulfilled") {
+      setAttempt(attemptRes.value);
+    } else {
+      setLoadError(true);
+    }
+    if (quizRes.status === "fulfilled") setQuiz(quizRes.value);
+    if (questionsRes.status === "fulfilled") setTotalQuestions(questionsRes.value.length);
+    if (docsRes.status === "fulfilled") setRelatedDocs(docsRes.value);
+    setLoading(false);
+  };
+
+  useEffect(() => { void load(); }, [attemptId, quizId]);
 
   if (loading) {
     return (
       <ScreenContainer style={{ paddingHorizontal: 0 }}>
         <HeaderBar title="Resultado Final" onBackPress={() => navigation.navigate("MainTabs", { screen: "QuizList" })} />
-        <View style={styles.loadingWrap}>
+        <View style={styles.centerWrap}>
           <ActivityIndicator size="large" color={appTheme.colors.primary} />
         </View>
       </ScreenContainer>
     );
   }
+
+  if (loadError || !attempt) {
+    return (
+      <ScreenContainer style={{ paddingHorizontal: 0 }}>
+        <HeaderBar title="Resultado Final" onBackPress={() => navigation.navigate("MainTabs", { screen: "QuizList" })} />
+        <View style={styles.centerWrap}>
+          <Feather name="wifi-off" size={40} color={appTheme.colors.textMuted} />
+          <Text style={styles.errorTitle}>Não foi possível carregar o resultado</Text>
+          <Text style={styles.errorSub}>Verifica a tua ligação e tenta novamente.</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => void load()}>
+            <Text style={styles.retryBtnText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  const pct = Math.round(attempt.score);
+  const label = scoreLabel(pct);
+  const totalPoints = (attempt.points_earned ?? 0) + (attempt.bonus_points ?? 0);
+  const hasBonus = (attempt.bonus_points ?? 0) > 0;
+  const leveledUp = gamification?.levelChanged === true;
+  const newBadges = gamification?.badgesEarned ?? [];
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
@@ -88,6 +115,43 @@ export function QuizResultScreen() {
       <HeaderBar title="Resultado Final" onBackPress={() => navigation.navigate("MainTabs", { screen: "QuizList" })} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+        {/* Level-up banner */}
+        {leveledUp && (
+          <View style={styles.levelUpBanner}>
+            <View style={styles.levelUpIcon}>
+              <Feather name="trending-up" size={22} color={appTheme.colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.levelUpTitle}>NÍVEL ALCANÇADO!</Text>
+              <Text style={styles.levelUpDesc}>
+                Subiste do Nível {gamification?.previousLevel} para o Nível {gamification?.currentLevel}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* New badges */}
+        {newBadges.length > 0 && (
+          <View style={styles.badgesSection}>
+            <View style={styles.badgesSectionHeader}>
+              <Feather name="award" size={16} color={appTheme.colors.primary} />
+              <Text style={styles.badgesSectionTitle}>
+                {newBadges.length === 1 ? "Novo badge desbloqueado!" : `${newBadges.length} badges desbloqueados!`}
+              </Text>
+            </View>
+            <View style={styles.badgesRow}>
+              {newBadges.map((badge) => (
+                <View key={badge.id} style={styles.badgeCard}>
+                  <View style={[styles.badgeIcon, badge.color_hex ? { backgroundColor: badge.color_hex + "22" } : {}]}>
+                    <Feather name="award" size={20} color={badge.color_hex ?? appTheme.colors.primary} />
+                  </View>
+                  <Text style={styles.badgeName} numberOfLines={2}>{badge.name}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Score hero */}
         <View style={styles.heroCard}>
@@ -104,26 +168,45 @@ export function QuizResultScreen() {
           </View>
         </View>
 
-        {/* Stats */}
+        {/* Stats row */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>
-              {attempt?.correct_answers ?? "—"}
+              {attempt.correct_answers ?? "—"}
               {totalQuestions > 0 ? ` / ${totalQuestions}` : ""}
             </Text>
-            <Text style={styles.statDesc}>Respostas corretas</Text>
+            <Text style={styles.statDesc}>Respostas correctas</Text>
           </View>
+
           <View style={[styles.statCard, styles.statCardDark]}>
             <Text style={[styles.statValue, styles.statValueLight]}>
-              {formatTime(attempt?.time_spent_secs ?? null)}
+              {formatTime(attempt.time_spent_secs ?? null)}
             </Text>
             <Text style={styles.statDescLight}>Tempo total</Text>
           </View>
+
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{attempt?.points_earned ?? 0}</Text>
+            <Text style={styles.statValue}>{totalPoints}</Text>
             <Text style={styles.statDesc}>Pontos ganhos</Text>
+            {hasBonus && (
+              <Text style={styles.statBonus}>+{attempt.bonus_points} bónus</Text>
+            )}
           </View>
         </View>
+
+        {/* Pontos breakdown — só quando há bónus */}
+        {hasBonus && (
+          <View style={styles.breakdownCard}>
+            <View style={styles.breakdownRow}>
+              <Text style={styles.breakdownLabel}>Pontos base</Text>
+              <Text style={styles.breakdownValue}>{attempt.points_earned} pts</Text>
+            </View>
+            <View style={[styles.breakdownRow, { marginTop: 6 }]}>
+              <Text style={styles.breakdownLabel}>Bónus de precisão / velocidade</Text>
+              <Text style={[styles.breakdownValue, styles.breakdownValueBonus]}>+{attempt.bonus_points} pts</Text>
+            </View>
+          </View>
+        )}
 
         {/* Actions */}
         <View style={styles.actionSection}>
@@ -168,9 +251,7 @@ export function QuizResultScreen() {
                   <Text style={styles.docTitle} numberOfLines={2}>{doc.title}</Text>
                   <Text style={styles.docAuthor} numberOfLines={1}>{doc.author}</Text>
                 </View>
-                <View style={styles.docCardRight}>
-                  <Feather name="chevron-right" size={18} color={appTheme.colors.textMuted} />
-                </View>
+                <Feather name="chevron-right" size={18} color={appTheme.colors.textMuted} />
               </Pressable>
             ))}
           </View>
@@ -185,7 +266,124 @@ const styles = StyleSheet.create({
   container: { backgroundColor: appTheme.colors.background },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingVertical: 24, paddingBottom: 48 },
-  loadingWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
+
+  // States
+  centerWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32 },
+  errorTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 17,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    textAlign: "center",
+    marginTop: 8,
+  },
+  errorSub: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 14,
+    color: appTheme.colors.textMuted,
+    textAlign: "center",
+  },
+  retryBtn: {
+    marginTop: 8,
+    backgroundColor: appTheme.colors.primary,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: appTheme.radius.button,
+  },
+  retryBtnText: {
+    fontFamily: "IBM_Plex_Sans",
+    color: "white",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+
+  // Level-up banner
+  levelUpBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: appTheme.colors.badgeLightBg,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: appTheme.colors.primary,
+    padding: 16,
+    marginBottom: 12,
+  },
+  levelUpIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: appTheme.colors.userAvatarBg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  levelUpTitle: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 11,
+    fontWeight: "700",
+    color: appTheme.colors.primary,
+    letterSpacing: 1.4,
+    marginBottom: 2,
+  },
+  levelUpDesc: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 15,
+    fontWeight: "700",
+    color: appTheme.colors.primaryDark,
+  },
+
+  // Badges
+  badgesSection: {
+    backgroundColor: appTheme.colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+    padding: 16,
+    marginBottom: 12,
+  },
+  badgesSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 14,
+  },
+  badgesSectionTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 15,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+  },
+  badgesRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  badgeCard: {
+    alignItems: "center",
+    backgroundColor: appTheme.colors.badgeLightBg,
+    borderRadius: 10,
+    padding: 12,
+    minWidth: 80,
+    flex: 1,
+    maxWidth: "48%",
+  },
+  badgeIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: appTheme.colors.userAvatarBg,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  badgeName: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 12,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    textAlign: "center",
+    lineHeight: 16,
+  },
 
   // Hero
   heroCard: {
@@ -194,7 +392,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 6,
     borderLeftColor: appTheme.colors.primary,
     padding: 24,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   heroTitle: {
     fontFamily: "IBM_Plex_Sans",
@@ -219,9 +417,6 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
     elevation: 3,
   },
   scoreInnerCircle: { alignItems: "center" },
@@ -245,7 +440,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: "row",
     gap: 10,
-    marginBottom: 24,
+    marginBottom: 10,
   },
   statCard: {
     flex: 1,
@@ -280,11 +475,49 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.75)",
     textAlign: "center",
   },
+  statBonus: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 10,
+    fontWeight: "700",
+    color: appTheme.colors.success,
+    marginTop: 3,
+  },
+
+  // Bonus breakdown
+  breakdownCard: {
+    backgroundColor: appTheme.colors.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  breakdownRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  breakdownLabel: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 13,
+    color: appTheme.colors.textSecondary,
+  },
+  breakdownValue: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 13,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+  },
+  breakdownValueBonus: {
+    color: appTheme.colors.success,
+  },
 
   // Actions
   actionSection: {
     gap: 12,
     marginBottom: 32,
+    marginTop: 8,
     borderTopWidth: 1,
     borderTopColor: appTheme.colors.border,
     paddingTop: 24,
@@ -353,13 +586,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
     elevation: 1,
   },
   docCardLeft: { flex: 1 },
-  docCardRight: { marginLeft: 8 },
   docType: {
     fontFamily: "Source_Sans_3",
     fontSize: 11,

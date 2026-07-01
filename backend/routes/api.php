@@ -50,6 +50,12 @@ Route::middleware(OptionalAuthenticateApiSession::class)->group(function (): voi
     Route::get('/topics', [CommunityController::class, 'indexTopics']);
     Route::get('/topics/{id}', [CommunityController::class, 'showTopic']);
     Route::get('/topics/{id}/replies', [CommunityController::class, 'topicReplies']);
+
+    // Quizzes — listagem e detalhes são públicos (tentativa exige sessão)
+    Route::get('/quizzes', [QuizController::class, 'index']);
+    Route::get('/quizzes/{id}', [QuizController::class, 'show']);
+    Route::get('/quizzes/{id}/questions', [QuizController::class, 'questions']);
+    Route::get('/quizzes/{id}/documents', [QuizController::class, 'relatedDocuments']);
 });
 
 // ─── Authenticated routes (any logged-in user) ─────────────────────────────
@@ -111,11 +117,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::post('/documents/{id}/subscribe', [DocumentController::class, 'subscribe']);
     Route::delete('/documents/{id}/subscription', [DocumentController::class, 'cancelSubscription']);
 
-    // Quizzes — leitura detalhada + tentativa (participação exige sessão)
-    Route::get('/quizzes', [QuizController::class, 'index']);
-    Route::get('/quizzes/{id}', [QuizController::class, 'show']);
-    Route::get('/quizzes/{id}/questions', [QuizController::class, 'questions']);
-    Route::get('/quizzes/{id}/documents', [QuizController::class, 'relatedDocuments']);
+    // Quizzes — tentativa (leitura já está no grupo público acima)
     Route::post('/quizzes/{id}/attempts', [QuizController::class, 'startAttempt']);
     Route::get('/quiz-attempts/{id}', [QuizController::class, 'showAttempt']);
     Route::post('/quiz-attempts/{id}/answers', [QuizController::class, 'answerAttempt']);

@@ -360,6 +360,23 @@ export interface PointTransaction {
   created_at: string;
 }
 
+// Result from POST /quiz-attempts/{id}/complete → gamification key
+export interface GamificationResult {
+  pointsDelta: number;
+  totalPoints: number;
+  currentLevel: number;
+  levelChanged: boolean;
+  previousLevel: number | null;
+  badgesEarned: Array<{
+    id: string;
+    name: string;
+    description: string;
+    icon_url: string | null;
+    color_hex: string | null;
+    category: string | null;
+  }>;
+}
+
 // Paginated API response wrapper
 export interface PaginatedResponse<T> {
   data: T[];

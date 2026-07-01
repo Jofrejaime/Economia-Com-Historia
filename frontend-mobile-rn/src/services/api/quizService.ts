@@ -1,6 +1,6 @@
 import { httpClient } from '../http/client';
 import { API_ENDPOINTS } from '../../constants/api';
-import type { Quiz, QuizQuestion, QuizAttempt, Document, PaginatedResponse } from '../../types/api';
+import type { Quiz, QuizQuestion, QuizAttempt, Document, PaginatedResponse, GamificationResult } from '../../types/api';
 
 export interface QuizFilters {
   difficulty?: 'Básico' | 'Intermédio' | 'Avançado';
@@ -45,12 +45,27 @@ export const quizService = {
     return data.data ?? data;
   },
 
-  async completeAttempt(attemptId: string, timeSpentSecs?: number): Promise<QuizAttempt> {
+  async completeAttempt(
+    attemptId: string,
+    timeSpentSecs?: number
+  ): Promise<{ attempt: QuizAttempt; gamification: GamificationResult | null }> {
     const { data } = await httpClient.post(
       API_ENDPOINTS.QUIZ_ATTEMPTS.COMPLETE(attemptId),
       timeSpentSecs != null ? { time_spent_secs: timeSpentSecs } : {}
     );
-    return data.data ?? data;
+    return {
+      attempt: data.data ?? data,
+      gamification: data.gamification ?? null,
+    };
+  },
+
+  async myAttempts(params?: {
+    status?: 'in_progress' | 'completed';
+    page?: number;
+    per_page?: number;
+  }): Promise<PaginatedResponse<QuizAttempt>> {
+    const { data } = await httpClient.get(API_ENDPOINTS.ME.QUIZ_ATTEMPTS, { params });
+    return data;
   },
 
   async relatedDocuments(quizId: string): Promise<Document[]> {

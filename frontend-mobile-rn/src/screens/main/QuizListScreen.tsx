@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -12,7 +12,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
 import { appTheme } from "../../constants/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { quizService } from "../../services/api/quizService";
 import { leaderboardService } from "../../services/api/leaderboardService";
 import type { Quiz, LeaderboardEntry } from "../../types/api";
@@ -41,6 +41,8 @@ export function QuizListScreen() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loadingQuizzes, setLoadingQuizzes] = useState(true);
   const [loadingRanking, setLoadingRanking] = useState(false);
+  const [quizError, setQuizError] = useState(false);
+  const [rankingError, setRankingError] = useState(false);
   const [total, setTotal] = useState(0);
 
   const [firstLoadQuizzes, setFirstLoadQuizzes] = useState(false);
@@ -48,6 +50,7 @@ export function QuizListScreen() {
 
   const fetchQuizzes = useCallback(async (showLoading = true) => {
     if (showLoading) setLoadingQuizzes(true);
+    setQuizError(false);
     try {
       const response = await quizService.list({
         difficulty: difficultyFilter === "all" ? undefined : difficultyFilter,
@@ -55,8 +58,8 @@ export function QuizListScreen() {
       });
       setQuizzes(response.data);
       setTotal(response.meta.total);
-    } catch (error) {
-      console.warn("Erro ao carregar quizzes", error);
+    } catch {
+      setQuizError(true);
     } finally {
       setLoadingQuizzes(false);
     }
@@ -64,11 +67,12 @@ export function QuizListScreen() {
 
   const fetchRanking = useCallback(async (showLoading = true) => {
     if (showLoading) setLoadingRanking(true);
+    setRankingError(false);
     try {
       const data = await leaderboardService.national({ per_page: 200 });
       setLeaderboard(data);
-    } catch (error) {
-      console.warn("Erro ao carregar ranking", error);
+    } catch {
+      setRankingError(true);
     } finally {
       setLoadingRanking(false);
     }
@@ -238,6 +242,16 @@ export function QuizListScreen() {
 
           {loadingQuizzes ? (
             <ActivityIndicator size="large" color={appTheme.colors.primary} style={{ marginTop: 40 }} />
+          ) : quizError ? (
+            <View style={styles.errorState}>
+              <Feather name="wifi-off" size={40} color={appTheme.colors.textMuted} />
+              <Text style={styles.errorStateTitle}>Não foi possível carregar os quizzes</Text>
+              <Text style={styles.errorStateSub}>Verifica a tua ligação à internet.</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={() => void fetchQuizzes()}>
+                <Feather name="refresh-cw" size={14} color="white" style={{ marginRight: 8 }} />
+                <Text style={styles.retryBtnText}>Tentar novamente</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             <FlatList
               data={quizzes}
@@ -263,6 +277,16 @@ export function QuizListScreen() {
         <>
           {loadingRanking ? (
             <ActivityIndicator size="large" color={appTheme.colors.primary} style={{ marginTop: 40 }} />
+          ) : rankingError ? (
+            <View style={styles.errorState}>
+              <Feather name="wifi-off" size={40} color={appTheme.colors.textMuted} />
+              <Text style={styles.errorStateTitle}>Não foi possível carregar o ranking</Text>
+              <Text style={styles.errorStateSub}>Verifica a tua ligação à internet.</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={() => void fetchRanking()}>
+                <Feather name="refresh-cw" size={14} color="white" style={{ marginRight: 8 }} />
+                <Text style={styles.retryBtnText}>Tentar novamente</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             <FlatList
               data={leaderboard}
@@ -547,5 +571,41 @@ const styles = StyleSheet.create({
     fontFamily: "Source_Sans_3",
     fontSize: 16,
     color: appTheme.colors.textMuted,
+  },
+  errorState: {
+    alignItems: "center",
+    paddingVertical: 56,
+    paddingHorizontal: 32,
+    gap: 8,
+  },
+  errorStateTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 17,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    textAlign: "center",
+    marginTop: 4,
+  },
+  errorStateSub: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 14,
+    color: appTheme.colors.textMuted,
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  retryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: appTheme.colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 11,
+    borderRadius: appTheme.radius.button,
+    marginTop: 4,
+  },
+  retryBtnText: {
+    fontFamily: "IBM_Plex_Sans",
+    color: "white",
+    fontWeight: "700",
+    fontSize: 14,
   },
 });
