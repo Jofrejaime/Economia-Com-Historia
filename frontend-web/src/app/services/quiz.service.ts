@@ -42,6 +42,24 @@ export interface QuizQuestion {
   options: QuizOption[];
 }
 
+export interface QuizRelatedDocument {
+  id: string;
+  title: string;
+  author: string | null;
+  summary: string | null;
+  document_type: string | null;
+  academic_level: string | null;
+  access_level_id: string;
+  cover_image_url: string | null;
+  views_count: number;
+  likes_count: number;
+  published_at: string | null;
+  created_at: string;
+  category_name: string | null;
+  category: { name: string } | null;
+  sort_order: number;
+}
+
 export interface QuizOption {
   id: string;
   option_key: string;
@@ -138,6 +156,16 @@ export class QuizService {
     );
     return res.data;
   }
+
+  async getRelatedDocuments(quizId: string): Promise<QuizRelatedDocument[]> {
+  const res = await firstValueFrom(
+    this.http.get<{ data: QuizRelatedDocument[] }>(
+      `${this.base}/quizzes/${quizId}/documents`,
+      { headers: this.headers }
+    )
+  );
+  return res.data;
+}
 
   async getQuestions(quizId: string): Promise<QuizQuestion[]> {
     const res = await firstValueFrom(

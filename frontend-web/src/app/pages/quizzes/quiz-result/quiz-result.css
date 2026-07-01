@@ -384,11 +384,11 @@ p, span, div, button {
 }
 
 .quiz-result-review-number-correct {
-  background: linear-gradient(135deg, #8B1E2D, #6B0119);
+  background: linear-gradient(135deg, #22C55E, #16A34A);
 }
 
 .quiz-result-review-number-wrong {
-  background: linear-gradient(135deg, #9CA3AF, #6a6a6a);
+   background: linear-gradient(135deg, #EF4444, #DC2626);
 }
 
 .quiz-result-review-time {
