@@ -130,7 +130,7 @@ class Sprint172Test extends TestCase
         $token = $this->issueToken($admin);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson('/api/quizzes', $this->quizPayload());
+            ->postJson('/api/admin/quizzes', $this->quizPayload());
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('quizzes', ['title' => 'Quiz de Teste']);
@@ -143,7 +143,7 @@ class Sprint172Test extends TestCase
         $token     = $this->issueToken($professor);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson('/api/quizzes', $this->quizPayload());
+            ->postJson('/api/admin/quizzes', $this->quizPayload());
 
         $response->assertStatus(403);
         $this->assertDatabaseCount('quizzes', 0);
@@ -156,7 +156,7 @@ class Sprint172Test extends TestCase
         $token   = $this->issueToken($student);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson('/api/quizzes', $this->quizPayload());
+            ->postJson('/api/admin/quizzes', $this->quizPayload());
 
         $response->assertStatus(403);
         $this->assertDatabaseCount('quizzes', 0);
@@ -164,7 +164,7 @@ class Sprint172Test extends TestCase
 
     public function test_unauthenticated_cannot_create_quiz_returns_401(): void
     {
-        $response = $this->postJson('/api/quizzes', $this->quizPayload());
+        $response = $this->postJson('/api/admin/quizzes', $this->quizPayload());
 
         $response->assertStatus(401);
         $this->assertDatabaseCount('quizzes', 0);
@@ -181,7 +181,7 @@ class Sprint172Test extends TestCase
         $quizId     = $this->seedQuiz($categoryId, $admin);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->patchJson("/api/quizzes/{$quizId}", ['title' => 'Título Actualizado']);
+            ->patchJson("/api/admin/quizzes/{$quizId}", ['title' => 'Título Actualizado']);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('quizzes', ['id' => $quizId, 'title' => 'Título Actualizado']);
@@ -197,7 +197,7 @@ class Sprint172Test extends TestCase
         $quizId     = $this->seedQuiz($categoryId, $admin);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->patchJson("/api/quizzes/{$quizId}", ['title' => 'Tentativa Professor']);
+            ->patchJson("/api/admin/quizzes/{$quizId}", ['title' => 'Tentativa Professor']);
 
         $response->assertStatus(403);
         $this->assertDatabaseMissing('quizzes', ['id' => $quizId, 'title' => 'Tentativa Professor']);
@@ -213,7 +213,7 @@ class Sprint172Test extends TestCase
         $quizId     = $this->seedQuiz($categoryId, $admin);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->patchJson("/api/quizzes/{$quizId}", ['title' => 'Tentativa Student']);
+            ->patchJson("/api/admin/quizzes/{$quizId}", ['title' => 'Tentativa Student']);
 
         $response->assertStatus(403);
     }
@@ -229,7 +229,7 @@ class Sprint172Test extends TestCase
         $quizId     = $this->seedQuiz($categoryId, $admin);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->deleteJson("/api/quizzes/{$quizId}");
+            ->deleteJson("/api/admin/quizzes/{$quizId}");
 
         $response->assertStatus(200);
         $this->assertDatabaseMissing('quizzes', ['id' => $quizId]);
@@ -245,7 +245,7 @@ class Sprint172Test extends TestCase
         $quizId     = $this->seedQuiz($categoryId, $admin);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->deleteJson("/api/quizzes/{$quizId}");
+            ->deleteJson("/api/admin/quizzes/{$quizId}");
 
         $response->assertStatus(403);
         $this->assertDatabaseHas('quizzes', ['id' => $quizId]);
@@ -261,7 +261,7 @@ class Sprint172Test extends TestCase
         $quizId     = $this->seedQuiz($categoryId, $admin);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->deleteJson("/api/quizzes/{$quizId}");
+            ->deleteJson("/api/admin/quizzes/{$quizId}");
 
         $response->assertStatus(403);
         $this->assertDatabaseHas('quizzes', ['id' => $quizId]);
@@ -279,7 +279,7 @@ class Sprint172Test extends TestCase
         $docId      = $this->seedDocument($categoryId);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson("/api/quizzes/{$quizId}/documents", ['documents' => [$docId]]);
+            ->postJson("/api/admin/quizzes/{$quizId}/documents", ['documents' => [$docId]]);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('quiz_documents', ['quiz_id' => $quizId, 'document_id' => $docId]);
@@ -296,7 +296,7 @@ class Sprint172Test extends TestCase
         $docId      = $this->seedDocument($categoryId);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson("/api/quizzes/{$quizId}/documents", ['documents' => [$docId]]);
+            ->postJson("/api/admin/quizzes/{$quizId}/documents", ['documents' => [$docId]]);
 
         $response->assertStatus(403);
         $this->assertDatabaseCount('quiz_documents', 0);
@@ -313,7 +313,7 @@ class Sprint172Test extends TestCase
         $docId      = $this->seedDocument($categoryId);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->postJson("/api/quizzes/{$quizId}/documents", ['documents' => [$docId]]);
+            ->postJson("/api/admin/quizzes/{$quizId}/documents", ['documents' => [$docId]]);
 
         $response->assertStatus(403);
         $this->assertDatabaseCount('quiz_documents', 0);
@@ -339,7 +339,7 @@ class Sprint172Test extends TestCase
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->deleteJson("/api/quizzes/{$quizId}/documents/{$docId}");
+            ->deleteJson("/api/admin/quizzes/{$quizId}/documents/{$docId}");
 
         $response->assertStatus(200);
         $this->assertDatabaseMissing('quiz_documents', ['quiz_id' => $quizId, 'document_id' => $docId]);
@@ -364,7 +364,7 @@ class Sprint172Test extends TestCase
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
-            ->deleteJson("/api/quizzes/{$quizId}/documents/{$docId}");
+            ->deleteJson("/api/admin/quizzes/{$quizId}/documents/{$docId}");
 
         $response->assertStatus(403);
         $this->assertDatabaseHas('quiz_documents', ['quiz_id' => $quizId, 'document_id' => $docId]);
@@ -463,13 +463,13 @@ class Sprint172Test extends TestCase
     public function test_unauthenticated_cannot_sync_documents(): void
     {
         $id = (string) Str::uuid();
-        $this->postJson("/api/quizzes/{$id}/documents", ['documents' => []])->assertStatus(401);
+        $this->postJson("/api/admin/quizzes/{$id}/documents", ['documents' => []])->assertStatus(401);
     }
 
     public function test_unauthenticated_cannot_delete_quiz(): void
     {
         $id = (string) Str::uuid();
-        $this->deleteJson("/api/quizzes/{$id}")->assertStatus(401);
+        $this->deleteJson("/api/admin/quizzes/{$id}")->assertStatus(401);
     }
 
     // ─── Published-only filter ────────────────────────────────────────────────

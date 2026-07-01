@@ -171,14 +171,10 @@ class GamificationService
      */
     public function recordQuizCompletion(
         User $user,
-        string $attemptId,
-        string $quizId,
-        int $correctAnswers,
-        int $totalQuestions,
-        int $timeSpentSecs,
+        \App\Models\QuizAttempt $attempt,
     ): GamificationResult {
-        return DB::transaction(function () use ($user, $attemptId, $quizId, $correctAnswers, $totalQuestions, $timeSpentSecs): GamificationResult {
-            $quiz = DB::table('quizzes')->where('id', $quizId)->first();
+        return DB::transaction(function () use ($user, $attempt): GamificationResult {
+            $quiz = \App\Models\Quiz::find($attempt->quiz_id);
 
             if ($quiz === null) {
                 throw new InvalidArgumentException('Quiz not found.');
@@ -186,9 +182,9 @@ class GamificationService
 
             $this->incrementCounters($user, ['quizzes_completed' => 1]);
 
-            $accuracy = $totalQuestions > 0
-                ? (int) round(($correctAnswers / $totalQuestions) * 100)
-                : 0;
+            $accuracy = $attempt->score;
+            $totalQuestions = $attempt->total_questions;
+            $timeSpentSecs = $attempt->time_spent_secs;
 
             $basePoints = (int) $quiz->base_points;
             $completionPoints = (int) max(1, round($basePoints * ($accuracy / 100)));
@@ -210,7 +206,7 @@ class GamificationService
                 $user,
                 $completionPoints,
                 PointTransactionReason::QUIZ_COMPLETION,
-                $attemptId,
+                $attempt->id,
                 'quiz_attempt',
                 "Quiz completed: {$quiz->title} ({$accuracy}%)",
                 evaluateBadges: false,
@@ -225,7 +221,7 @@ class GamificationService
                     $user,
                     $bonusAccuracy,
                     PointTransactionReason::QUIZ_BONUS_ACCURACY,
-                    $attemptId,
+                    $attempt->id,
                     'quiz_attempt',
                     'Accuracy bonus (80%+ correct)',
                     evaluateBadges: false,
@@ -241,7 +237,7 @@ class GamificationService
                     $user,
                     $bonusSpeed,
                     PointTransactionReason::QUIZ_BONUS_SPEED,
-                    $attemptId,
+                    $attempt->id,
                     'quiz_attempt',
                     'Speed bonus (under half the time limit)',
                     evaluateBadges: false,
@@ -250,7 +246,7 @@ class GamificationService
                 $totalDelta += $bonusSpeed;
             }
 
-            DB::table('quiz_attempts')->where('id', $attemptId)->update([
+            $attempt->update([
                 'points_earned' => $completionPoints,
                 'bonus_points' => $bonusAccuracy + $bonusSpeed,
             ]);

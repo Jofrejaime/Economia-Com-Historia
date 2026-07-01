@@ -423,15 +423,19 @@ class QuizSeeder extends Seeder
             }
         }
 
-        // ─── N:N quiz_documents examples ────────────────────────────────────────
-        // Quiz 1 (CFB) → até 2 documentos de industrializacao (multi-document quiz)
-        // Quiz 2 (Escravos) → 1 documento de comercio-atlantico (single-document quiz)
-        // Quiz 3 (Pós-Independência) → 0 documentos (standalone quiz — Fluxo B)
+        // ─── N:N quiz_documents — 3 Cenários da Sprint 17 ────────────────────────
+        // Cenário 1: Documento -> Quiz (1:1)
+        // O documento de comércio está associado a exatamente 1 quiz (quizEscravos)
+        // Cenário 2: Documento -> Quiz, Quiz (1:2 - um documento associado a dois quizzes)
+        // O primeiro documento de industrialização estará associado a quizCFB e também a quizEscravos
+        // Cenário 3: Quiz independente (sem documentos)
+        // O quiz de Pós-Independência não terá nenhuma associação em quiz_documents
 
         $quizCFB      = DB::table('quizzes')->where('title', 'Caminho de Ferro de Benguela')->first();
         $quizEscravos = DB::table('quizzes')->where('title', 'O Comércio de Escravos no Atlântico')->first();
 
-        if ($quizCFB && $industrializacao) {
+        $docIndustrializacao1 = null;
+        if ($industrializacao) {
             $docsIndustrializacao = DB::table('documents')
                 ->where('category_id', $industrializacao->id)
                 ->where('status', 'published')
@@ -439,18 +443,21 @@ class QuizSeeder extends Seeder
                 ->take(2)
                 ->pluck('id');
 
-            foreach ($docsIndustrializacao as $sort => $docId) {
-                DB::table('quiz_documents')->insertOrIgnore([
-                    'quiz_id'     => $quizCFB->id,
-                    'document_id' => $docId,
-                    'sort_order'  => $sort,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
-                ]);
+            if ($docsIndustrializacao->isNotEmpty() && $quizCFB) {
+                $docIndustrializacao1 = $docsIndustrializacao[0];
+                foreach ($docsIndustrializacao as $sort => $docId) {
+                    DB::table('quiz_documents')->insertOrIgnore([
+                        'quiz_id'     => $quizCFB->id,
+                        'document_id' => $docId,
+                        'sort_order'  => $sort,
+                        'created_at'  => now(),
+                        'updated_at'  => now(),
+                    ]);
+                }
             }
         }
 
-        if ($quizEscravos && $comercio) {
+        if ($comercio && $quizEscravos) {
             $docComercio = DB::table('documents')
                 ->where('category_id', $comercio->id)
                 ->where('status', 'published')
@@ -458,6 +465,7 @@ class QuizSeeder extends Seeder
                 ->value('id');
 
             if ($docComercio) {
+                // Link Cenário 1 (docComercio -> quizEscravos)
                 DB::table('quiz_documents')->insertOrIgnore([
                     'quiz_id'     => $quizEscravos->id,
                     'document_id' => $docComercio,
@@ -466,6 +474,17 @@ class QuizSeeder extends Seeder
                     'updated_at'  => now(),
                 ]);
             }
+        }
+
+        // Link Cenário 2 (docIndustrializacao1 -> quizEscravos também)
+        if ($docIndustrializacao1 && $quizEscravos) {
+            DB::table('quiz_documents')->insertOrIgnore([
+                'quiz_id'     => $quizEscravos->id,
+                'document_id' => $docIndustrializacao1,
+                'sort_order'  => 1, // sort_order subsequente para o quizEscravos
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
         }
     }
 }

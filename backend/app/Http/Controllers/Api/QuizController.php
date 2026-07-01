@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
+use App\Models\Quiz;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Services\AccessGateService;
 use App\Services\GamificationService;
@@ -28,7 +30,7 @@ class QuizController extends Controller
         $perPage = min((int) ($request->input('per_page', 20)), 50);
         $page = max((int) ($request->input('page', 1)), 1);
 
-        $query = DB::table('quizzes')->where('status', 'published');
+        $query = Quiz::published()->getQuery();
         $this->accessGate->applyDocumentVisibilityFilter($query, $request->user(), 'quizzes');
 
         if ($request->filled('difficulty')) {
@@ -284,18 +286,15 @@ class QuizController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
-        $quiz = DB::table('quizzes')->where('id', $id)->first();
+        $quiz = Quiz::find($id);
         if ($quiz === null) {
             abort(404, 'Quiz not found.');
         }
 
-        DB::transaction(function () use ($id) {
-            $attemptIds = DB::table('quiz_attempts')->where('quiz_id', $id)->pluck('id');
-            DB::table('quiz_attempt_answers')->whereIn('attempt_id', $attemptIds)->delete();
-            DB::table('quiz_attempts')->where('quiz_id', $id)->delete();
-            DB::table('quiz_questions')->where('quiz_id', $id)->delete();
-            DB::table('quiz_documents')->where('quiz_id', $id)->delete();
-            DB::table('quizzes')->where('id', $id)->delete();
+        DB::transaction(function () use ($quiz, $id) {
+            // Delete attempts manually since they don't have cascadeOnDelete in the DB schema
+            QuizAttempt::where('quiz_id', $id)->delete();
+            $quiz->delete();
         });
 
         return response()->json(['message' => 'Quiz deleted successfully.']);
@@ -372,7 +371,7 @@ class QuizController extends Controller
 
     public function showAttempt(string $id, Request $request): JsonResponse
     {
-        $attempt = DB::table('quiz_attempts')->where('id', $id)->first();
+        $attempt = QuizAttempt::find($id);
 
         if ($attempt === null || $attempt->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Attempt not found.'], 404);
@@ -462,8 +461,7 @@ class QuizController extends Controller
     public function myAttempts(Request $request): JsonResponse
     {
         return response()->json([
-            'data' => DB::table('quiz_attempts')
-                ->where('user_id', $request->user()->id)
+            'data' => QuizAttempt::where('user_id', $request->user()->id)
                 ->orderByDesc('started_at')
                 ->limit(20)
                 ->get()

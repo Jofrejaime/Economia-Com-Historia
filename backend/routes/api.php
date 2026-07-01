@@ -45,9 +45,6 @@ Route::middleware(OptionalAuthenticateApiSession::class)->group(function (): voi
     Route::get('/documents/search', [DocumentController::class, 'search']);
     Route::get('/documents/{id}', [DocumentController::class, 'show']);
 
-    // Quizzes — página inicial (listagem apenas; iniciar/responder exige sessão)
-    Route::get('/quizzes', [QuizController::class, 'index']);
-
     // Comunidade — página inicial, discussões e categorias
     Route::get('/community/categories', [CommunityController::class, 'categories']);
     Route::get('/topics', [CommunityController::class, 'indexTopics']);
@@ -68,6 +65,13 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::patch('/document-subscriptions/{id}/approve', [AdminDocumentSubscriptionController::class, 'approve']);
         Route::patch('/document-subscriptions/{id}/reject', [AdminDocumentSubscriptionController::class, 'reject']);
         Route::patch('/document-subscriptions/{id}/cancel', [AdminDocumentSubscriptionController::class, 'cancel']);
+
+        // Quizzes — management (admin only)
+        Route::post('/quizzes', [QuizController::class, 'store']);
+        Route::patch('/quizzes/{id}', [QuizController::class, 'update']);
+        Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
+        Route::post('/quizzes/{id}/documents', [QuizController::class, 'syncDocuments']);
+        Route::delete('/quizzes/{id}/documents/{documentId}', [QuizController::class, 'detachDocument']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -108,6 +112,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::delete('/documents/{id}/subscription', [DocumentController::class, 'cancelSubscription']);
 
     // Quizzes — leitura detalhada + tentativa (participação exige sessão)
+    Route::get('/quizzes', [QuizController::class, 'index']);
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);
     Route::get('/quizzes/{id}/questions', [QuizController::class, 'questions']);
     Route::get('/quizzes/{id}/documents', [QuizController::class, 'relatedDocuments']);
@@ -171,12 +176,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::post('/documents/{id}/pin', [DocumentController::class, 'pin']);
         Route::delete('/documents/{id}/pin', [DocumentController::class, 'unpin']);
 
-        // Quizzes — management (admin only)
-        Route::post('/quizzes', [QuizController::class, 'store']);
-        Route::patch('/quizzes/{id}', [QuizController::class, 'update']);
-        Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
-        Route::post('/quizzes/{id}/documents', [QuizController::class, 'syncDocuments']);
-        Route::delete('/quizzes/{id}/documents/{documentId}', [QuizController::class, 'detachDocument']);
+
 
         // Access management
         Route::patch('/access-requests/{id}', [AccessController::class, 'reviewRequest']);
