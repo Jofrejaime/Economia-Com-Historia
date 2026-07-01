@@ -68,47 +68,36 @@
               </div>
 
               <!-- Visibility Field -->
-              <div class="create-topic-form-group">
-                <label class="create-topic-label">
-                  Visibilidade
-                  <span class="create-topic-label-required">*</span>
-                </label>
-                <div class="create-topic-privacy">
-                  <button type="button" (click)="setVisibility('PUBLIC')" class="create-topic-privacy-btn" [class.selected]="visibility === 'PUBLIC'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                    <div class="create-topic-privacy-info">
-                      <span class="create-topic-privacy-label">Público</span>
-                      <span class="create-topic-privacy-desc">Qualquer membro pode ver e responder</span>
-                    </div>
-                  </button>
+<div class="create-topic-form-group">
+  <label class="create-topic-label">
+    Visibilidade
+    <span class="create-topic-label-required">*</span>
+  </label>
+  <div class="create-topic-privacy">
+    <button type="button" (click)="setVisibility('PUBLIC')" class="create-topic-privacy-btn" [class.selected]="visibility === 'PUBLIC'">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <div class="create-topic-privacy-info">
+        <span class="create-topic-privacy-label">Público</span>
+        <span class="create-topic-privacy-desc">Qualquer membro pode ver e responder</span>
+      </div>
+    </button>
 
-                  <button type="button" (click)="setVisibility('CATEGORY')" class="create-topic-privacy-btn" [class.selected]="visibility === 'CATEGORY'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                    <div class="create-topic-privacy-info">
-                      <span class="create-topic-privacy-label">Por Categoria</span>
-                      <span class="create-topic-privacy-desc">Segue o acesso definido pela categoria</span>
-                  </div>
-                  </button>
-
-                  <button type="button" (click)="setVisibility('INVITE_ONLY')" class="create-topic-privacy-btn" [class.selected]="visibility === 'INVITE_ONLY'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                      <circle cx="12" cy="16" r="1.5"/>
-                    </svg>
-                    <div class="create-topic-privacy-info">
-                      <span class="create-topic-privacy-label">Por Convite</span>
-                      <span class="create-topic-privacy-desc">Apenas owner, moderadores e membros convidados</span>
-                  </div>
-                  </button>
-                </div>
-              </div>
+    <button type="button" (click)="setVisibility('INVITE_ONLY')" class="create-topic-privacy-btn" [class.selected]="visibility === 'INVITE_ONLY'">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        <circle cx="12" cy="16" r="1.5"/>
+      </svg>
+      <div class="create-topic-privacy-info">
+        <span class="create-topic-privacy-label">Privado</span>
+        <span class="create-topic-privacy-desc">Apenas owner, moderadores e membros convidados</span>
+      </div>
+    </button>
+  </div>
+</div>
 
               <!-- Participants Selection (INVITE_ONLY) -->
               <div *ngIf="visibility === 'INVITE_ONLY'" class="create-topic-form-group">

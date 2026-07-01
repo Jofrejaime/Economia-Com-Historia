@@ -441,6 +441,7 @@ p, span, div, button, input, textarea {
   border: 1px solid #E5E7EB;
   transition: all 0.2s;
   margin-bottom: 20px;
+  position: relative;
 }
 
 .reply-card:last-child {
@@ -1511,25 +1512,21 @@ p, span, div, button, input, textarea {
 }
 
 /* ============================================
-   NESTED REPLIES - RESPOSTAS A COMENTÁRIOS
+   NESTED REPLIES - RESPOSTAS DENTRO DO MESMO CARTÃO
    ============================================ */
 
-.reply-card-nested {
-  margin-left: 48px;
-  border-left: 3px solid #8B1E2D;
-  border-radius: 0 8px 8px 0;
-  background: #FDF8F8;
-  position: relative;
+.reply-children {
+  margin-top: 18px;
+  margin-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.reply-card-nested::before {
-  content: '';
-  position: absolute;
-  top: 28px;
-  left: -12px;
-  width: 12px;
-  height: 2px;
-  background: #8B1E2D;
+.reply-child {
+  padding-top: 18px;
+  border-top: 1px dashed #E5E7EB;
+  position: relative;
 }
 
 .reply-nested-indicator {
@@ -1592,33 +1589,28 @@ p, span, div, button, input, textarea {
 
 /* Responsividade */
 @media (max-width: 768px) {
-  .reply-card-nested {
-    margin-left: 16px;
+  .reply-children {
+    margin-left: 12px;
   }
-  
-  .reply-card-nested::before {
-    display: none;
-  }
-  
+
   .reply-nested-indicator {
     padding: 4px 8px 10px 8px;
   }
-  
+
   .reply-nested-indicator-text {
     font-size: 11px;
   }
 }
 
 @media (max-width: 480px) {
-  .reply-card-nested {
-    margin-left: 8px;
-    border-left-width: 2px;
+  .reply-children {
+    margin-left: 6px;
   }
-  
+
   .reply-nested-indicator {
     flex-wrap: wrap;
   }
-  
+
   .nested-reply-to {
     flex-wrap: wrap;
   }
@@ -1729,10 +1721,6 @@ p, span, div, button, input, textarea {
   position: absolute;
   top: 16px;
   right: 16px;
-}
-
-.reply-card {
-  position: relative;
 }
 
 .reply-menu-btn {

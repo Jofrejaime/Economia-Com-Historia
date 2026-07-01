@@ -142,6 +142,19 @@ export class DiscussionThreadComponent implements OnInit {
   get discussionIsLiked(): boolean { return this.topic?.is_liked ?? false; }
   get discussionIsPinned(): boolean { return this.topic?.is_pinned ?? false; }
 
+  // ===== AGRUPAMENTO DE RESPOSTAS (nested dentro do mesmo cartão) =====
+get topLevelReplies(): TopicReply[] {
+  return this.replies.filter(r => r.parent_reply_id === null);
+}
+
+childRepliesOf(parentId: string): TopicReply[] {
+  return this.replies.filter(r => r.parent_reply_id === parentId);
+}
+
+getReplyIndex(reply: TopicReply): number {
+  return this.replies.indexOf(reply);
+}
+
   // ===== PERMISSÕES =====
   get isTopicOwner(): boolean {
     return !!this.currentUserId && this.topic?.author_id === this.currentUserId;

@@ -21,8 +21,15 @@
           <!-- Question Section -->
           <div>
             <div class="quiz-question-section">
-              <span class="quiz-module-tag">{{ question.module_label }}</span>
-            </div>
+  <span class="quiz-module-tag">{{ question.module_label }}</span>
+  <span class="quiz-timer">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M12 7v5l3.5 2"></path>
+    </svg>
+    {{ formattedElapsedTime }}
+  </span>
+</div>
 
             <h1 class="quiz-title">{{ question.title }}</h1>
             <p class="quiz-subtitle">{{ question.subtitle }}</p>
@@ -98,43 +105,87 @@
           </div>
 
           <!-- Sidebar -->
-          <div class="quiz-sidebar">
-            
-            <div class="quiz-hint-card" *ngIf="question.hint_title || question.hint_quote">
-              <div class="quiz-hint-header">
-                <div class="quiz-hint-icon">
-                  <svg width="18" height="18" viewBox="0 0 15 20" fill="#8B1E2D">
-                    <path d="M7.5 0L0 5V11C0 16.55 3.84 21.74 7.5 23C11.16 21.74 15 16.55 15 11V5L7.5 0Z"/>
-                  </svg>
-                </div>
-                <h3 class="quiz-hint-title">{{ question.hint_title }}</h3>
-              </div>
-              <div class="quiz-hint-image">
-                <div class="quiz-hint-image-inner"></div>
-              </div>
-              <p class="quiz-hint-quote" *ngIf="question.hint_quote">
-                "{{ question.hint_quote }}"
-              </p>
-              <div class="quiz-hint-expert" *ngIf="question.expert_name">
-                <div class="quiz-hint-expert-avatar"></div>
-                <div>
-                  <p class="quiz-hint-expert-name">{{ question.expert_name }}</p>
-                  <p class="quiz-hint-expert-role">{{ question.expert_role }}</p>
-                </div>
-              </div>
-            </div>
+<div class="quiz-sidebar">
 
-            <div class="quiz-reading-card" *ngIf="question.reading_title || question.reading_text">
-              <div class="quiz-reading-header">
-                <svg width="16" height="16" viewBox="0 0 12 10" fill="#8B1E2D">
-                  <path d="M11 0H1C0.45 0 0 0.45 0 1V9C0 9.55 0.45 10 1 10H11C11.55 10 12 9.55 12 9V1C12 0.45 11.55 0 11 0Z"/>
-                </svg>
-                <h4 class="quiz-reading-title">{{ question.reading_title }}</h4>
-              </div>
-              <p class="quiz-reading-text">{{ question.reading_text }}</p>
-            </div>
+  <!-- Quiz Info Card -->
+<div class="quiz-info-card" *ngIf="quiz">
+  <span class="quiz-info-label">SOBRE ESTE QUIZ</span>
+  <h3 class="quiz-info-title">{{ quiz.title }}</h3>
+  <span class="quiz-info-category" *ngIf="quiz.category?.name">{{ quiz.category?.name }}</span>
+  <p class="quiz-info-module" *ngIf="quiz.module">{{ quiz.module }}</p>
+  <div class="quiz-info-stats">
+    <div class="quiz-info-stat">
+      <span class="quiz-info-stat-label">Dificuldade</span>
+      <span class="quiz-info-stat-value">{{ quiz.difficulty }}</span>
+    </div>
+    <div class="quiz-info-stat">
+      <span class="quiz-info-stat-label">Pontos base</span>
+      <span class="quiz-info-stat-value">{{ quiz.base_points }}</span>
+    </div>
+  </div>
+</div>
 
-          </div>
+  <div class="quiz-hint-card" *ngIf="question.hint_title || question.hint_quote">
+    <div class="quiz-hint-header">
+      <div class="quiz-hint-icon">
+        <svg width="18" height="18" viewBox="0 0 15 20" fill="#8B1E2D">
+          <path d="M7.5 0L0 5V11C0 16.55 3.84 21.74 7.5 23C11.16 21.74 15 16.55 15 11V5L7.5 0Z"/>
+        </svg>
+      </div>
+      <h3 class="quiz-hint-title">{{ question.hint_title }}</h3>
+    </div>
+    <div class="quiz-hint-image">
+      <div class="quiz-hint-image-inner"></div>
+    </div>
+    <p class="quiz-hint-quote" *ngIf="question.hint_quote">
+      "{{ question.hint_quote }}"
+    </p>
+    <div class="quiz-hint-expert" *ngIf="question.expert_name">
+      <div class="quiz-hint-expert-avatar"></div>
+      <div>
+        <p class="quiz-hint-expert-name">{{ question.expert_name }}</p>
+        <p class="quiz-hint-expert-role">{{ question.expert_role }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz-reading-card" *ngIf="question.reading_title || question.reading_text">
+    <div class="quiz-reading-header">
+      <svg width="16" height="16" viewBox="0 0 12 10" fill="#8B1E2D">
+        <path d="M11 0H1C0.45 0 0 0.45 0 1V9C0 9.55 0.45 10 1 10H11C11.55 10 12 9.55 12 9V1C12 0.45 11.55 0 11 0Z"/>
+      </svg>
+      <h4 class="quiz-reading-title">{{ question.reading_title }}</h4>
+    </div>
+    <p class="quiz-reading-text">{{ question.reading_text }}</p>
+  </div>
+
+  <!-- Related Documents Card -->
+  <div class="quiz-related-card" *ngIf="relatedDocuments.length > 0">
+    <span class="quiz-related-label">CONTEÚDOS RELACIONADOS</span>
+    <div class="quiz-related-list">
+      <button *ngFor="let doc of relatedDocuments" (click)="navigateToDocument(doc.id)" class="quiz-related-item">
+        <span class="quiz-related-item-category" *ngIf="doc.category?.name">{{ doc.category?.name }}</span>
+        <span class="quiz-related-item-title">{{ doc.title }}</span>
+        <div class="quiz-related-item-meta">
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            {{ doc.views_count }}
+          </span>
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 17.83 12H14V6a2 2 0 0 0-2-2l-3 7H2Z"></path>
+            </svg>
+            {{ doc.likes_count }}
+          </span>
+        </div>
+      </button>
+    </div>
+  </div>
+
+</div>
         </div>
       </div>
     </ng-container>

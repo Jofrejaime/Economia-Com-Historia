@@ -123,13 +123,6 @@
             </div>
           </div>
 
-          <!-- Action Button -->
-          <div *ngIf="category.requestStatus === 'none'">
-            <button (click)="handleRequestAccess(category.id, category.access_level_id)" class="btn-primary">
-              Solicitar Acesso
-            </button>
-          </div>
-
           <!-- Pending Status -->
           <div *ngIf="category.requestStatus === 'pending'" class="category-view-status-pending">
             <div class="category-view-status-pending-dot"></div>
