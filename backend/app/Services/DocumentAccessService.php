@@ -7,12 +7,6 @@ use App\Models\Document;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
 
-/**
- * Responsible exclusively for document access authorization.
- *
- * Delegates subscription checks to DocumentSubscriptionService.
- * Delegates access-level grant checks to AccessGateService (legacy compat).
- */
 class DocumentAccessService
 {
     public function __construct(
@@ -20,20 +14,13 @@ class DocumentAccessService
         private readonly DocumentSubscriptionService $subscriptionService,
     ) {}
 
-    /**
-     * Authoritative read access check for a document.
-     *
-     * New model: category.requires_subscription → DocumentSubscriptionService.
-     * Legacy compat: documents not in a subscription category fall back to
-     * access_level_id / AccessGateService so existing grants keep working.
-     */
-    public function canReadDocument(User $user, object $document): bool
+    public function canReadDocument(?User $user, object $document): bool
     {
-        if ($user->role === 'admin') {
+        if ($user !== null && $user->role === 'admin') {
             return true;
         }
 
-        if (isset($document->created_by) && $document->created_by === $user->id) {
+        if ($user !== null && isset($document->created_by) && $document->created_by === $user->id) {
             return true;
         }
 
@@ -44,12 +31,13 @@ class DocumentAccessService
         $category = $document instanceof Document ? $document->category : null;
 
         if ($category !== null && $category->requires_subscription) {
-            // Only ACTIVE subscriptions grant access.
-            // PENDING, REJECTED, CANCELLED do not.
+            if ($user === null) {
+                return false;
+            }
+
             return $this->subscriptionService->hasActiveSubscription($user->id, $document->id);
         }
 
-        // Legacy: access_level_id based grant check
         $accessLevelId = $document->access_level_id ?? 'public';
 
         return $this->accessGate->canAccess($user, $accessLevelId);
@@ -71,34 +59,38 @@ class DocumentAccessService
 
     /**
      * Apply subscription-aware visibility filter to a document listing query.
+     * Visitantes (user === null) só veem documentos gratuitos com access_level_id = 'public'.
      *
      * The $query must already have document_categories joined as 'dc'.
      */
-    public function applyListingFilter(Builder $query, User $user, string $tableAlias = 'd'): void
+    public function applyListingFilter(Builder $query, ?User $user, string $tableAlias = 'd'): void
     {
-        if ($user->role === 'admin') {
+        if ($user !== null && $user->role === 'admin') {
             return;
         }
 
-        $grantLevels = $this->accessGate->activeGrantLevelIds($user);
+        $grantLevels = $user !== null ? $this->accessGate->activeGrantLevelIds($user) : [];
 
         $query->where(function (Builder $outer) use ($user, $grantLevels, $tableAlias): void {
-            // Document creator always sees their own docs
-            $outer->where("{$tableAlias}.created_by", $user->id);
+            if ($user !== null) {
+                // Document creator always sees their own docs
+                $outer->where("{$tableAlias}.created_by", $user->id);
 
-            // Subscription-gated docs where user has an ACTIVE subscription
-            $outer->orWhere(function (Builder $b) use ($user, $tableAlias): void {
-                $b->where('dc.requires_subscription', true)
-                    ->whereExists(function (Builder $sub) use ($user, $tableAlias): void {
-                        $sub->from('document_subscriptions')
-                            ->whereColumn('document_id', "{$tableAlias}.id")
-                            ->where('user_id', $user->id)
-                            ->where('status', SubscriptionStatus::ACTIVE->value);
-                    });
-            });
+                // Subscription-gated docs where user has an ACTIVE subscription
+                $outer->orWhere(function (Builder $b) use ($user, $tableAlias): void {
+                    $b->where('dc.requires_subscription', true)
+                        ->whereExists(function (Builder $sub) use ($user, $tableAlias): void {
+                            $sub->from('document_subscriptions')
+                                ->whereColumn('document_id', "{$tableAlias}.id")
+                                ->where('user_id', $user->id)
+                                ->where('status', SubscriptionStatus::ACTIVE->value);
+                        });
+                });
+            }
 
             // Free docs (no subscription category) with accessible access_level
-            $outer->orWhere(function (Builder $b) use ($grantLevels, $tableAlias): void {
+            // — este é o único bloco visível para visitantes não autenticados.
+            $freeDocsCondition = function (Builder $b) use ($grantLevels, $tableAlias): void {
                 $b->where(function (Builder $inner) use ($tableAlias): void {
                     $inner->whereNull('dc.requires_subscription')
                         ->orWhere('dc.requires_subscription', false);
@@ -109,7 +101,13 @@ class DocumentAccessService
                         $inner->orWhereIn("{$tableAlias}.access_level_id", $grantLevels);
                     }
                 });
-            });
+            };
+
+            if ($user !== null) {
+                $outer->orWhere($freeDocsCondition);
+            } else {
+                $outer->where($freeDocsCondition);
+            }
         });
     }
 }
