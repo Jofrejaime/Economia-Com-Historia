@@ -30,7 +30,12 @@
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">👥</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+          <circle cx="10" cy="7" r="4"></circle>
+          <path d="M20.5 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">TOTAL</p>
@@ -39,7 +44,10 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">✓</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="m8.5 12.5 2.5 2.5 4.5-5"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">ATIVOS</p>
@@ -48,7 +56,10 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">⏳</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v5l3.5 2"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">PENDENTES</p>
@@ -57,7 +68,10 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">🚫</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="m5.5 5.5 13 13"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">BLOQUEADOS</p>
@@ -69,24 +83,27 @@
   <!-- Filters -->
   <div class="filters-bar">
     <div class="search-wrapper">
-      <span class="search-icon">🔍</span>
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.5-3.5"></path>
+      </svg>
       <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="resetPagination()" placeholder="Pesquisar por nome, email ou instituição..." class="search-input">
     </div>
     <div class="filter-select">
       <select [(ngModel)]="filterRole" (ngModelChange)="resetPagination()" class="select">
         <option value="todos">Todas as funções</option>
-        <option value="admin">👑 Administrador</option>
-        <option value="professor">📚 Professor</option>
-        <option value="investigador">🔬 Investigador</option>
-        <option value="estudante">🎓 Estudante</option>
+        <option value="admin">Administrador</option>
+        <option value="professor">Professor</option>
+        <option value="investigador">Investigador</option>
+        <option value="estudante">Estudante</option>
       </select>
     </div>
     <div class="filter-select">
       <select [(ngModel)]="filterStatus" (ngModelChange)="resetPagination()" class="select">
         <option value="todos">Todos os status</option>
-        <option value="active">✓ Ativo</option>
-        <option value="pending">⏳ Pendente</option>
-        <option value="blocked">🚫 Bloqueado</option>
+        <option value="active">Ativo</option>
+        <option value="pending">Pendente</option>
+        <option value="blocked">Bloqueado</option>
       </select>
     </div>
   </div>
@@ -121,7 +138,24 @@
           </td>
           <td>
             <span class="role-badge">
-              {{ getRoleIcon(user.role) }} {{ getRoleLabel(user.role) }}
+              <ng-container [ngSwitch]="user.role">
+                <svg *ngSwitchCase="'admin'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m3 8 4 3 5-7 5 7 4-3-2 11H5Z"></path>
+                </svg>
+                <svg *ngSwitchCase="'professor'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path>
+                </svg>
+                <svg *ngSwitchCase="'investigador'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="m20 20-3.5-3.5"></path>
+                </svg>
+                <svg *ngSwitchDefault width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 10 12 5 2 10l10 5 10-5Z"></path>
+                  <path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"></path>
+                </svg>
+              </ng-container>
+              {{ getRoleLabel(user.role) }}
             </span>
           </td>
           <td class="user-institution">{{ user.institution || 'N/A' }}</td>
@@ -133,12 +167,40 @@
           <td class="user-date">{{ user.created_at | date:'dd MMM yyyy' }}</td>
           <td class="user-date">{{ user.last_login_at ? (user.last_login_at | date:'dd MMM yyyy, HH:mm') : 'Nunca' }}</td>
           <td class="actions-cell">
-            <button class="action-btn" (click)="openViewUserModal(user)" title="Ver">👁️</button>
-            <button class="action-btn" (click)="openEditUserModal(user)" title="Editar">✏️</button>
-            <button *ngIf="user.is_active !== false" class="action-btn" (click)="blockUser(user.id)" title="Bloquear">🔒</button>
-            <button *ngIf="user.is_active === false" class="action-btn" (click)="activateUser(user.id)" title="Ativar">✅</button>
-            <button *ngIf="!user.email_verified" class="action-btn" (click)="approveUser(user.id)" title="Aprovar">✓</button>
-            <button class="action-btn" (click)="deleteUser(user.id)" title="Eliminar">🗑️</button>
+            <button class="action-btn" (click)="openViewUserModal(user)" title="Ver">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button class="action-btn" (click)="openEditUserModal(user)" title="Editar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+              </svg>
+            </button>
+            <button *ngIf="user.is_active !== false" class="action-btn" (click)="blockUser(user.id)" title="Bloquear">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="10" width="16" height="10" rx="2"></rect>
+                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+              </svg>
+            </button>
+            <button *ngIf="user.is_active === false" class="action-btn" (click)="activateUser(user.id)" title="Ativar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="m8.5 12.5 2.5 2.5 4.5-5"></path>
+              </svg>
+            </button>
+            <button *ngIf="!user.email_verified" class="action-btn" (click)="approveUser(user.id)" title="Aprovar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+            <button class="action-btn action-btn-danger" (click)="deleteUser(user.id)" title="Eliminar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -166,7 +228,11 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>{{ modalMode === 'view' ? 'Visualizar Utilizador' : 'Editar Utilizador' }}</h2>
-        <button class="modal-close" (click)="closeUserModal()">✕</button>
+        <button class="modal-close" (click)="closeUserModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 6 12 12M18 6 6 18"></path>
+          </svg>
+        </button>
       </div>
       
       <div class="modal-body">
@@ -207,10 +273,10 @@
         <div class="form-group">
           <label>Função</label>
           <select [(ngModel)]="userForm.role" [disabled]="modalMode === 'view'" class="form-input">
-            <option value="estudante">🎓 Estudante</option>
-            <option value="investigador">🔬 Investigador</option>
-            <option value="professor">📚 Professor</option>
-            <option value="admin">👑 Administrador</option>
+            <option value="estudante">Estudante</option>
+            <option value="investigador">Investigador</option>
+            <option value="professor">Professor</option>
+            <option value="admin">Administrador</option>
           </select>
         </div>
         
@@ -218,8 +284,8 @@
         <div class="form-group">
           <label>Status</label>
           <select [(ngModel)]="userForm.is_active" [disabled]="modalMode === 'view'" class="form-input">
-            <option [ngValue]="true">✓ Ativo</option>
-            <option [ngValue]="false">⏳ Inativo</option>
+            <option [ngValue]="true">Ativo</option>
+            <option [ngValue]="false">Inativo</option>
           </select>
         </div>
         
@@ -227,8 +293,8 @@
         <div class="form-group">
           <label>Email Verificado</label>
           <select [(ngModel)]="userForm.email_verified" [disabled]="modalMode === 'view'" class="form-input">
-            <option [ngValue]="true">✓ Verificado</option>
-            <option [ngValue]="false">⏳ Não verificado</option>
+            <option [ngValue]="true">Verificado</option>
+            <option [ngValue]="false">Não verificado</option>
           </select>
         </div>
         
@@ -252,15 +318,25 @@
           <div class="avatar-upload">
             <div class="avatar-preview-large" 
                  [style.backgroundImage]="userForm.avatar_url ? 'url(' + userForm.avatar_url + ')' : 'none'">
-              <span *ngIf="!userForm.avatar_url">📷</span>
+              <svg *ngIf="!userForm.avatar_url" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8a2 2 0 0 1 2-2h1l1.5-2h7L17 6h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
             </div>
             <div class="upload-actions">
               <input #avatarInput type="file" accept="image/*" style="display: none" (change)="onAvatarSelected($event)">
               <button type="button" class="btn-upload" [disabled]="modalMode === 'view'" (click)="avatarInput.click()">
-                📷 {{ userForm.avatar_url ? 'Alterar' : 'Carregar' }} Imagem
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 8a2 2 0 0 1 2-2h1l1.5-2h7L17 6h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                {{ userForm.avatar_url ? 'Alterar' : 'Carregar' }} Imagem
               </button>
               <button *ngIf="userForm.avatar_url" type="button" class="btn-remove-avatar" [disabled]="modalMode === 'view'" (click)="removeAvatar()">
-                ✕ Remover
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m6 6 12 12M18 6 6 18"></path>
+                </svg>
+                Remover
               </button>
               <p class="form-hint">JPG, PNG ou WebP (máx 5MB)</p>
             </div>
@@ -280,7 +356,13 @@
 </div>
         
         <div class="info-box">
-          <div class="info-icon">ℹ️</div>
+          <div class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M12 11v5"></path>
+              <path d="M12 8h.01"></path>
+            </svg>
+          </div>
           <div class="info-text">
             <strong>Informação</strong><br>
             <span>As iniciais do avatar são geradas automaticamente a partir do nome de exibição.</span>
@@ -293,7 +375,12 @@
         <button class="btn-cancel" *ngIf="modalMode === 'edit'" (click)="closeUserModal()">Cancelar</button>
         <button class="btn-save" *ngIf="modalMode === 'view'" (click)="enableEditMode()">Editar</button>
         <button class="btn-save" *ngIf="modalMode === 'edit'" (click)="saveUser()" [disabled]="saving">
-          {{ saving ? 'A guardar...' : '💾 Guardar Utilizador' }}
+          <svg *ngIf="!saving" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          {{ saving ? 'A guardar...' : 'Guardar Utilizador' }}
         </button>
       </div>
     </div>

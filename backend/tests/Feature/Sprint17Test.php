@@ -310,8 +310,8 @@ class Sprint17Test extends TestCase
     public function test_create_quiz_with_documents_syncs_quiz_documents(): void
     {
         $this->seedAccessLevel();
-        $professor  = User::factory()->create(['role' => 'professor']);
-        $token      = $this->issueToken($professor);
+        $admin      = User::factory()->create(['role' => 'admin']);
+        $token      = $this->issueToken($admin);
         $categoryId = $this->seedCategory();
         $doc1Id     = $this->seedDocument($categoryId);
         $doc2Id     = $this->seedDocument($categoryId);
@@ -337,8 +337,8 @@ class Sprint17Test extends TestCase
     public function test_create_quiz_without_documents_creates_no_associations(): void
     {
         $this->seedAccessLevel();
-        $professor  = User::factory()->create(['role' => 'professor']);
-        $token      = $this->issueToken($professor);
+        $admin      = User::factory()->create(['role' => 'admin']);
+        $token      = $this->issueToken($admin);
         $categoryId = $this->seedCategory();
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
@@ -359,10 +359,10 @@ class Sprint17Test extends TestCase
     public function test_update_quiz_replaces_document_associations(): void
     {
         $this->seedAccessLevel();
-        $professor  = User::factory()->create(['role' => 'professor']);
-        $token      = $this->issueToken($professor);
+        $admin      = User::factory()->create(['role' => 'admin']);
+        $token      = $this->issueToken($admin);
         $categoryId = $this->seedCategory();
-        $quizId     = $this->seedQuiz($categoryId, $professor);
+        $quizId     = $this->seedQuiz($categoryId, $admin);
         $doc1Id     = $this->seedDocument($categoryId);
         $doc2Id     = $this->seedDocument($categoryId);
         $doc3Id     = $this->seedDocument($categoryId);
@@ -385,10 +385,10 @@ class Sprint17Test extends TestCase
     public function test_update_quiz_without_documents_key_preserves_associations(): void
     {
         $this->seedAccessLevel();
-        $professor  = User::factory()->create(['role' => 'professor']);
-        $token      = $this->issueToken($professor);
+        $admin      = User::factory()->create(['role' => 'admin']);
+        $token      = $this->issueToken($admin);
         $categoryId = $this->seedCategory();
-        $quizId     = $this->seedQuiz($categoryId, $professor);
+        $quizId     = $this->seedQuiz($categoryId, $admin);
         $doc1Id     = $this->seedDocument($categoryId);
         $this->linkQuizDocument($quizId, $doc1Id, 0);
 
@@ -468,18 +468,19 @@ class Sprint17Test extends TestCase
         $this->assertDatabaseCount('quiz_documents', 0);
     }
 
-    public function test_professor_can_also_sync_documents(): void
+    public function test_professor_cannot_sync_documents_returns_403(): void
     {
         $this->seedAccessLevel();
+        $admin      = User::factory()->create(['role' => 'admin']);
         $professor  = User::factory()->create(['role' => 'professor']);
         $token      = $this->issueToken($professor);
         $categoryId = $this->seedCategory();
-        $quizId     = $this->seedQuiz($categoryId, $professor);
+        $quizId     = $this->seedQuiz($categoryId, $admin);
         $docId      = $this->seedDocument($categoryId);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson("/api/quizzes/{$quizId}/documents", ['documents' => [$docId]])
-            ->assertOk();
+            ->assertStatus(403);
     }
 
     // ─── DELETE /quizzes/{id}/documents/{documentId} ─────────────────────────
@@ -525,10 +526,10 @@ class Sprint17Test extends TestCase
     public function test_deleting_quiz_also_removes_quiz_documents(): void
     {
         $this->seedAccessLevel();
-        $professor  = User::factory()->create(['role' => 'professor']);
-        $token      = $this->issueToken($professor);
+        $admin      = User::factory()->create(['role' => 'admin']);
+        $token      = $this->issueToken($admin);
         $categoryId = $this->seedCategory();
-        $quizId     = $this->seedQuiz($categoryId, $professor);
+        $quizId     = $this->seedQuiz($categoryId, $admin);
         $docId      = $this->seedDocument($categoryId);
         $this->linkQuizDocument($quizId, $docId, 0);
 

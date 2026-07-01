@@ -168,9 +168,9 @@ p, span, div, button, input, textarea, select {
   flex-shrink: 0;
 }
 
-.stat-icon-emoji {
-  font-size: 22px;
-  color: #FFFFFF;
+.stat-icon svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stat-label {
@@ -214,8 +214,8 @@ p, span, div, button, input, textarea, select {
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
   color: #9CA3AF;
+  pointer-events: none;
 }
 
 .search-input {
@@ -378,7 +378,7 @@ p, span, div, button, input, textarea, select {
 }
 
 .media-icon {
-  font-size: 16px;
+  display: inline-flex;
 }
 
 .media-icon-empty {
@@ -415,6 +415,11 @@ p, span, div, button, input, textarea, select {
   background: rgba(139, 30, 45, 0.1);
   color: #8B1E2D;
   line-height: 1.7;
+}
+
+.status-badge svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 /* ============================================
@@ -553,12 +558,18 @@ p, span, div, button, input, textarea, select {
 .modal-close {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: #9CA3AF;
   padding: 4px 8px;
   border-radius: 4px;
   font-family: 'Source Sans 3', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close svg {
+  display: block;
 }
 
 .modal-close:hover {
@@ -918,7 +929,10 @@ textarea.form-input {
 }
 
 .media-placeholder {
-  font-size: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
 }
 
 .audio-player {
@@ -954,7 +968,8 @@ textarea.form-input {
 }
 
 .media-type {
-  font-size: 14px;
+  display: inline-flex;
+  color: #9CA3AF;
 }
 
 .media-actions {
@@ -1025,7 +1040,8 @@ textarea.form-input {
 }
 
 .media-icon-large {
-  font-size: 32px;
+  display: inline-flex;
+  color: #9CA3AF;
 }
 
 .media-info-text {
@@ -1057,7 +1073,10 @@ textarea.form-input {
 }
 
 .upload-icon {
-  font-size: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
   margin-bottom: 12px;
 }
 
@@ -1201,8 +1220,15 @@ textarea.form-input {
 }
 
 .info-icon {
-  font-size: 20px;
   color: #8B1E2D;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon svg {
+  display: block;
 }
 
 .info-text {
@@ -1330,10 +1356,6 @@ textarea.form-input {
   
   .upload-area {
     padding: 20px;
-  }
-  
-  .upload-icon {
-    font-size: 32px;
   }
   
   .filters-bar {

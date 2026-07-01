@@ -594,10 +594,10 @@ class Sprint171Test extends TestCase
     public function test_quiz_documents_cleanup_on_quiz_delete(): void
     {
         $this->seedAccessLevel();
-        $professor  = User::factory()->create(['role' => 'professor']);
-        $token      = $this->issueToken($professor);
+        $admin      = User::factory()->create(['role' => 'admin']);
+        $token      = $this->issueToken($admin);
         $categoryId = $this->seedCategory();
-        $quizId     = $this->seedQuiz($categoryId, $professor);
+        $quizId     = $this->seedQuiz($categoryId, $admin);
         $doc1Id     = $this->seedDocument($categoryId);
         $doc2Id     = $this->seedDocument($categoryId);
         $this->linkQuizDocument($quizId, $doc1Id, 0);

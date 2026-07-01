@@ -3,14 +3,14 @@
   <!-- Page Header -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Questionários</h1>
-      <p class="page-subtitle">Criação e gestão de questionários académicos.</p>
+      <h1 class="page-title">Quizzes</h1>
+      <p class="page-subtitle">Criação e gestão de quizzes académicos.</p>
     </div>
     <button class="btn-primary" (click)="openCreateModal()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      Novo Questionário
+      Novo Quizz
     </button>
   </div>
 
@@ -79,7 +79,7 @@
         <circle cx="11" cy="11" r="8"/>
         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar questionários por título ou módulo..." class="search-input">
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar quizzes por título ou módulo..." class="search-input">
     </div>
     <div class="filter-select">
       <select [(ngModel)]="filterDifficulty" class="select">
@@ -180,8 +180,8 @@
     </div>
     
     <div *ngIf="filteredQuizzes.length === 0" class="empty-state">
-      <p>Nenhum questionário encontrado</p>
-      <button class="btn-primary" (click)="openCreateModal()">Criar primeiro questionário</button>
+      <p>Nenhum quizz encontrado</p>
+      <button class="btn-primary" (click)="openCreateModal()">Criar primeiro quizz</button>
     </div>
   </div>
 
@@ -189,7 +189,7 @@
   <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ editingQuiz ? 'Editar Questionário' : 'Novo Questionário' }}</h2>
+        <h2>{{ editingQuiz ? 'Editar quizz' : 'Novo quizz' }}</h2>
         <button class="modal-close" (click)="closeModal()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12"/>
@@ -220,7 +220,7 @@
         <div *ngIf="activeTab === 'details'" class="tab-content">
           <div class="form-row">
             <div class="form-group">
-              <label>Título do Questionário <span class="required">*</span></label>
+              <label>Título do quizz <span class="required">*</span></label>
               <input type="text" [(ngModel)]="newQuiz.title" class="form-input" placeholder="Ex: O Ciclo do Café em Angola">
             </div>
             <div class="form-group">
@@ -231,7 +231,7 @@
           
           <div class="form-group">
             <label>Descrição</label>
-            <textarea [(ngModel)]="newQuiz.description" rows="3" class="form-input" placeholder="Descreva o conteúdo e objetivos do questionário..."></textarea>
+            <textarea [(ngModel)]="newQuiz.description" rows="3" class="form-input" placeholder="Descreva o conteúdo e objetivos do quizz..."></textarea>
           </div>
           
           <div class="form-row">
@@ -257,7 +257,7 @@
             <div class="form-group">
               <label>Pontos Base</label>
               <input type="number" [(ngModel)]="newQuiz.base_points" class="form-input" min="0" step="10">
-              <span class="form-hint">Pontos base atribuídos por completar o questionário</span>
+              <span class="form-hint">Pontos base atribuídos por completar o quizz</span>
             </div>
             <div class="form-group">
               <label>Tempo limite (segundos)</label>
@@ -305,7 +305,7 @@
               <line x1="12" y1="8" x2="12.01" y2="8"/>
             </svg>
             <div class="info-text">
-              <strong>Resumo do Questionário</strong><br>
+              <strong>Resumo do quizz</strong><br>
               <span>{{ pendingQuestions.length || 0 }} perguntas • {{ newQuiz.base_points || 0 }} pontos base</span>
             </div>
           </div>
@@ -315,58 +315,119 @@
         <div *ngIf="activeTab === 'questions'" class="tab-content">
           
           <!-- Lista de Perguntas já Adicionadas -->
-          <div class="questions-list" *ngIf="pendingQuestions.length > 0">
-            <h3 class="section-subtitle">Perguntas Adicionadas</h3>
-            <div *ngFor="let question of pendingQuestions; let i = index" class="question-item">
-              <div class="question-header">
-                <div class="question-number">Pergunta {{ question.question_order || i + 1 }}</div>
-                <div class="question-actions">
-                  <button class="icon-btn" (click)="removeQuestion(i)">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
-                    Remover
-                  </button>
-                </div>
-              </div>
-              <p class="question-text">{{ question.title }}</p>
-              <div class="question-options-preview">
-                <div *ngFor="let opt of question.options" class="option-preview" [class.correct]="opt.is_correct">
-                  <span class="option-marker">{{ getOptionLetter(opt.option_key) }}</span>
-                  <span class="option-text">{{ opt.text }}</span>
-                  <span *ngIf="opt.is_correct" class="correct-badge">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    Correta
-                  </span>
-                </div>
-              </div>
-              <div class="question-meta">
-                <span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#8B1E2D" style="vertical-align:middle;margin-right:3px">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                  </svg>
-                  {{ question.points || 0 }} pontos
-                </span>
-                <span *ngIf="question.options[0]?.explanation">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="16" x2="12" y2="12"/>
-                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                  </svg>
-                  Com explicação
-                </span>
-                <span *ngIf="question.question_type">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  </svg>
-                  {{ question.question_type }}
-                </span>
-              </div>
-            </div>
+<div class="questions-list" *ngIf="pendingQuestions.length > 0">
+  <h3 class="section-subtitle">Perguntas Adicionadas</h3>
+  <div *ngFor="let question of pendingQuestions; let i = index" class="question-item">
+
+    <!-- MODO NORMAL: mostra a pergunta -->
+    <ng-container *ngIf="editingQuestionIndex !== i">
+      <div class="question-header">
+        <div class="question-number">Pergunta {{ question.question_order || i + 1 }}</div>
+        <div class="question-actions">
+          <button class="icon-btn" (click)="editQuestion(i)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Editar
+          </button>
+          <button class="icon-btn" (click)="removeQuestion(i)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            Remover
+          </button>
+        </div>
+      </div>
+      <p class="question-text">{{ question.title }}</p>
+      <div class="question-options-preview">
+        <div *ngFor="let opt of question.options" class="option-preview" [class.correct]="opt.is_correct">
+          <span class="option-marker">{{ getOptionLetter(opt.option_key) }}</span>
+          <span class="option-text">{{ opt.text }}</span>
+          <span *ngIf="opt.is_correct" class="correct-badge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Correta
+          </span>
+        </div>
+      </div>
+      <div class="question-meta">
+        <span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="#8B1E2D" style="vertical-align:middle;margin-right:3px">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+          {{ question.points || 0 }} pontos
+        </span>
+        <span *ngIf="question.options[0]?.explanation">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          Com explicação
+        </span>
+        <span *ngIf="question.question_type">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          </svg>
+          {{ question.question_type }}
+        </span>
+      </div>
+    </ng-container>
+
+    <!-- MODO EDIÇÃO: formulário inline -->
+    <div *ngIf="editingQuestionIndex === i && questionEditForm" class="batch-question-card">
+      <div class="batch-question-header">
+        <span class="batch-question-number">A editar Pergunta {{ i + 1 }}</span>
+      </div>
+
+      <div class="form-group">
+        <label>Texto da Pergunta <span class="required">*</span></label>
+        <textarea [(ngModel)]="questionEditForm.title" rows="2" class="form-input" placeholder="Digite o enunciado da pergunta..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo de Pergunta</label>
+          <select [(ngModel)]="questionEditForm.question_type" class="form-input">
+            <option value="multiple_choice">Escolha Múltipla</option>
+            <option value="true_false">Verdadeiro/Falso</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Pontuação</label>
+          <input type="number" [(ngModel)]="questionEditForm.points" class="form-input" min="1" max="50" step="5">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Opções de Resposta <span class="required">*</span></label>
+        <div class="options-container">
+          <div *ngFor="let opt of questionEditForm.options" class="option-row">
+            <div class="option-letter">{{ getOptionLetter(opt.option_key) }}</div>
+            <input type="text" [(ngModel)]="opt.text" class="option-input" placeholder="Opção {{ getOptionLetter(opt.option_key) }}">
+            <label class="correct-checkbox">
+              <input type="checkbox" [checked]="opt.is_correct" (change)="updateEditOptionCorrect(opt.option_key, $event.target.checked)">
+              <span>Correta</span>
+            </label>
           </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Explicação (opcional)</label>
+        <input type="text" [(ngModel)]="questionEditForm.explanation" class="form-input" placeholder="Explique a resposta correta...">
+      </div>
+
+      <div class="batch-actions">
+        <button class="btn-cancel" (click)="cancelEditQuestion()">Cancelar</button>
+        <button class="btn-primary" (click)="saveEditedQuestion()">Guardar pergunta</button>
+      </div>
+    </div>
+  </div>
+</div>
           
           <!-- Select para escolher número de perguntas -->
           <div class="batch-questions-section">
@@ -447,7 +508,7 @@
             <polyline points="17 21 17 13 7 13 7 21"/>
             <polyline points="7 3 7 8 15 8"/>
           </svg>
-          {{ isSaving ? 'A guardar...' : 'Guardar Questionário' }}
+          {{ isSaving ? 'A guardar...' : 'Guardar quizz' }}
         </button>
       </div>
     </div>

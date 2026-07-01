@@ -139,9 +139,9 @@ p, span, div, button, input, textarea, select {
   flex-shrink: 0;
 }
 
-.stat-icon-emoji {
-  font-size: 22px;
-  color: #FFFFFF;
+.stat-icon svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stat-label {
@@ -185,8 +185,8 @@ p, span, div, button, input, textarea, select {
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
   color: #9CA3AF;
+  pointer-events: none;
 }
 
 .search-input {
@@ -428,12 +428,18 @@ p, span, div, button, input, textarea, select {
 .modal-close {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: #9CA3AF;
   padding: 4px 8px;
   border-radius: 4px;
   font-family: 'Source Sans 3', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close svg {
+  display: block;
 }
 
 .modal-close:hover {
@@ -523,8 +529,15 @@ textarea.form-input {
 }
 
 .info-icon {
-  font-size: 20px;
   color: #8B1E2D;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon svg {
+  display: block;
 }
 
 .info-text {
@@ -642,6 +655,18 @@ textarea.form-input {
   gap: 4px;
   font-size: 12px;
   color: #1F2937;
+}
+
+.metric-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.metric-item svg {
+  display: block;
+  flex-shrink: 0;
+  color: #9CA3AF;
 }
 
 .reply-panel {

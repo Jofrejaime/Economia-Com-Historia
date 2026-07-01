@@ -35,6 +35,10 @@ export class QuizzesManagerPageComponent implements OnInit {
   batchQuestions: BatchQuestion[] = [];
   pendingQuestions: QuizQuestionInput[] = [];
 
+  // ── Edição de uma pergunta já adicionada ──
+  editingQuestionIndex: number | null = null;
+  questionEditForm: BatchQuestion | null = null;
+
   categoriesList: DocumentCategory[] = [];
   quizzes: Quiz[] = [];
 
@@ -134,6 +138,90 @@ export class QuizzesManagerPageComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  // ─────────────────────────────────────────────────────────
+  // EDIÇÃO DE PERGUNTA JÁ ADICIONADA
+  // ─────────────────────────────────────────────────────────
+
+  editQuestion(index: number): void {
+    const question = this.pendingQuestions[index];
+    if (!question) return;
+
+    // Garante 4 opções (A-D) mesmo que a pergunta original tenha menos
+    const optionKeys = ['A', 'B', 'C', 'D'];
+    const options: QuizOptionInput[] = optionKeys.map((key) => {
+      const existing = question.options.find(o => o.option_key === key);
+      return existing
+        ? { ...existing }
+        : { option_key: key, text: '', is_correct: false };
+    });
+
+    this.questionEditForm = {
+      title: question.title,
+      question_type: question.question_type ?? 'multiple_choice',
+      points: question.points ?? 10,
+      options,
+      explanation: question.options.find(o => o.explanation)?.explanation ?? '',
+    };
+
+    this.editingQuestionIndex = index;
+    this.cdr.detectChanges();
+  }
+
+  updateEditOptionCorrect(optionKey: string, isChecked: boolean): void {
+    if (!this.questionEditForm) return;
+
+    if (isChecked) {
+      this.questionEditForm.options.forEach(opt => {
+        opt.is_correct = opt.option_key === optionKey;
+      });
+    } else {
+      const option = this.questionEditForm.options.find(opt => opt.option_key === optionKey);
+      if (option) option.is_correct = false;
+    }
+  }
+
+  saveEditedQuestion(): void {
+    if (this.editingQuestionIndex === null || !this.questionEditForm) return;
+
+    if (!this.questionEditForm.title.trim()) {
+      alert('Por favor, preencha o texto da pergunta');
+      return;
+    }
+
+    const hasCorrectOption = this.questionEditForm.options.some(opt => opt.is_correct && opt.text.trim());
+    if (!hasCorrectOption) {
+      alert('Selecione uma opção correta com texto preenchido');
+      return;
+    }
+
+    const index = this.editingQuestionIndex;
+    const original = this.pendingQuestions[index];
+
+    this.pendingQuestions[index] = {
+      ...original,
+      title: this.questionEditForm.title,
+      question_type: this.questionEditForm.question_type,
+      points: this.questionEditForm.points || 10,
+      options: this.questionEditForm.options.map(opt => ({
+        option_key: opt.option_key,
+        text: opt.text,
+        is_correct: opt.is_correct,
+        explanation: this.questionEditForm!.explanation || undefined,
+      })),
+    };
+
+    this.newQuiz.questions = [...this.pendingQuestions];
+    this.cancelEditQuestion();
+  }
+
+  cancelEditQuestion(): void {
+    this.editingQuestionIndex = null;
+    this.questionEditForm = null;
+    this.cdr.detectChanges();
+  }
+
+  // ─────────────────────────────────────────────────────────
+
   get filteredQuizzes(): Quiz[] {
     return this.quizzes.filter(quiz => {
       const matchSearch = this.searchQuery === '' ||
@@ -179,11 +267,12 @@ export class QuizzesManagerPageComponent implements OnInit {
     this.activeTab = 'details';
     this.newQuiz = this.emptyQuiz();
     this.pendingQuestions = [];
+    this.cancelEditQuestion();
     this.initBatchQuestions();
     this.showModal = true;
   }
 
-  openEditModal(quiz: Quiz): void {
+  async openEditModal(quiz: Quiz): Promise<void> {
     this.editingQuiz = quiz;
     this.newQuiz = {
       title: quiz.title,
@@ -200,8 +289,38 @@ export class QuizzesManagerPageComponent implements OnInit {
       questions: [],
     };
     this.pendingQuestions = [];
+    this.cancelEditQuestion();
     this.activeTab = 'details';
     this.showModal = true;
+    this.cdr.detectChanges();
+
+    try {
+      const questions = await this.quizService.getQuestions(quiz.id);
+      this.pendingQuestions = questions.map((q, index) => ({
+        question_order: q.question_order ?? index + 1,
+        title: q.title,
+        subtitle: q.subtitle ?? undefined,
+        module_label: q.module_label ?? undefined,
+        question_type: q.question_type,
+        points: q.points,
+        hint_title: q.hint_title ?? undefined,
+        hint_quote: q.hint_quote ?? undefined,
+        expert_name: q.expert_name ?? undefined,
+        expert_role: q.expert_role ?? undefined,
+        reading_title: q.reading_title ?? undefined,
+        reading_text: q.reading_text ?? undefined,
+        options: q.options.map(opt => ({
+          option_key: opt.option_key,
+          text: opt.option_text,
+          is_correct: opt.is_correct ?? false,
+          explanation: opt.explanation ?? undefined,
+        })),
+      }));
+    } catch {
+      alert('Erro ao carregar perguntas do questionário.');
+    } finally {
+      this.cdr.detectChanges();
+    }
   }
 
   closeModal(): void {
@@ -209,10 +328,14 @@ export class QuizzesManagerPageComponent implements OnInit {
     this.editingQuiz = null;
     this.batchQuestions = [];
     this.pendingQuestions = [];
+    this.cancelEditQuestion();
   }
 
   removeQuestion(index: number): void {
     if (confirm('Tem certeza que deseja remover esta pergunta?')) {
+      if (this.editingQuestionIndex === index) {
+        this.cancelEditQuestion();
+      }
       this.pendingQuestions.splice(index, 1);
       this.pendingQuestions.forEach((q, i) => q.question_order = i + 1);
       this.newQuiz.questions = [...this.pendingQuestions];
@@ -225,7 +348,6 @@ export class QuizzesManagerPageComponent implements OnInit {
       return;
     }
 
-    // Para edição, perguntas são opcionais (mantém as existentes se nenhuma nova for adicionada)
     if (!this.editingQuiz && this.pendingQuestions.length === 0) {
       alert('Por favor, adicione pelo menos uma pergunta');
       return;

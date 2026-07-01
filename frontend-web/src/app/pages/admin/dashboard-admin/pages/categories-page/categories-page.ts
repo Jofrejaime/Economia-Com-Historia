@@ -50,19 +50,6 @@ export class CategoriesPageComponent implements OnInit {
     { value: '#d1fae5', name: 'Verde menta' },
   ];
 
-  iconOptions = [
-    { value: '📊', name: 'Gráfico' },
-    { value: '🔥', name: 'Fogo' },
-    { value: '🚢', name: 'Navio' },
-    { value: '🔬', name: 'Microscópio' },
-    { value: '📜', name: 'Pergaminho' },
-    { value: '💰', name: 'Moeda' },
-    { value: '📚', name: 'Livros' },
-    { value: '🏛️', name: 'Prédio' },
-    { value: '🌍', name: 'Mundo' },
-    { value: '📈', name: 'Gráfico crescente' },
-  ];
-
   constructor(private communityAdmin: CommunityAdminService) {}
 
   ngOnInit(): void {
@@ -199,15 +186,6 @@ export class CategoriesPageComponent implements OnInit {
 
   getStatusLabel(isActive: boolean): string {
     return isActive ? 'Ativo' : 'Inativo';
-  }
-
-  getTypeIcon(type: string): string {
-    const icons: Record<string, string> = {
-      public: '🌐',
-      jindungo: '🔥',
-      restricted: '🔒',
-    };
-    return icons[type] || '📁';
   }
 
   private createEmptyForm() {

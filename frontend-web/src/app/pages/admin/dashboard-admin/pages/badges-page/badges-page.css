@@ -139,9 +139,9 @@ p, span, div, button, input, textarea, select {
   flex-shrink: 0;
 }
 
-.stat-icon-emoji {
-  font-size: 22px;
-  color: #FFFFFF;
+.stat-icon svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stat-label {
@@ -235,6 +235,7 @@ p, span, div, button, input, textarea, select {
 .actions-cell {
   display: flex;
   gap: 6px;
+  align-items: center;
 }
 
 .action-btn {
@@ -250,6 +251,15 @@ p, span, div, button, input, textarea, select {
   color: #8B1E2D;
   line-height: 1.7;
   min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.action-btn svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .action-btn:hover {
@@ -327,12 +337,18 @@ p, span, div, button, input, textarea, select {
 .modal-close {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: #9CA3AF;
   padding: 4px 8px;
   border-radius: 4px;
   font-family: 'Source Sans 3', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close svg {
+  display: block;
 }
 
 .modal-close:hover {
@@ -449,6 +465,37 @@ textarea.form-input {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
   background: #6B0119;
+}
+
+/* ============================================
+   ERROR / LOADING STATES
+   ============================================ */
+
+.error-banner {
+  background: rgba(255, 179, 186, 0.15);
+  border: 1px solid #FFB3BA;
+  color: #5C0011;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.loading-row {
+  padding: 48px;
+  text-align: center;
+  color: #9CA3AF;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
 }
 
 /* ============================================

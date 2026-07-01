@@ -146,8 +146,9 @@
   flex-shrink: 0;
 }
 
-.stat-icon-emoji {
-  font-size: 22px;
+.stat-icon svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stat-label {
@@ -183,6 +184,7 @@
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af;
+  pointer-events: none;
 }
 
 .search-input,
@@ -428,9 +430,22 @@
 .modal-close {
   border: none;
   background: transparent;
-  font-size: 20px;
   cursor: pointer;
   color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.modal-close svg {
+  display: block;
+}
+
+.modal-close:hover {
+  color: #8b1e2d;
+  background: rgba(139, 30, 45, 0.05);
 }
 
 .modal-body {

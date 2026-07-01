@@ -5152,8 +5152,8 @@
                 "tags": [
                     "Quiz"
                 ],
-                "summary": "Criar novo quiz com perguntas (Admin/Professor)",
-                "description": "Adiciona um novo quiz completo na base de dados.",
+                "summary": "Criar novo quiz com perguntas (apenas Admin)",
+                "description": "Adiciona um novo quiz completo na base de dados. Requer role admin.",
                 "operationId": "storeQuiz",
                 "requestBody": {
                     "required": true,
@@ -5336,7 +5336,7 @@
                         "description": "Não autenticado"
                     },
                     "403": {
-                        "description": "Acesso proibido (Requer admin ou professor)"
+                        "description": "Acesso proibido (apenas Admin)"
                     },
                     "422": {
                         "description": "Erro de validação"
@@ -5406,8 +5406,8 @@
                 "tags": [
                     "Quiz"
                 ],
-                "summary": "Eliminar quiz (Admin/Professor)",
-                "description": "Elimina permanentemente um quiz e todas as tentativas e perguntas associadas.",
+                "summary": "Eliminar quiz (apenas Admin)",
+                "description": "Elimina permanentemente um quiz e todas as tentativas e perguntas associadas. Requer role admin.",
                 "operationId": "destroyQuiz",
                 "parameters": [
                     {
@@ -5458,8 +5458,8 @@
                 "tags": [
                     "Quiz"
                 ],
-                "summary": "Atualizar quiz (Admin/Professor)",
-                "description": "Permite atualizar o quiz bem como as suas perguntas e opções.",
+                "summary": "Atualizar quiz (apenas Admin)",
+                "description": "Permite atualizar o quiz bem como as suas perguntas e opções. Requer role admin.",
                 "operationId": "updateQuiz",
                 "parameters": [
                     {
@@ -5965,8 +5965,8 @@
                 "tags": [
                     "Quiz"
                 ],
-                "summary": "Sincronizar documentos de um quiz (Admin/Professor)",
-                "description": "Substitui todas as associações documento-quiz. Enviar array vazio remove todos.",
+                "summary": "Sincronizar documentos de um quiz (apenas Admin)",
+                "description": "Substitui todas as associações documento-quiz. Enviar array vazio remove todos. Requer role admin.",
                 "operationId": "syncQuizDocuments",
                 "parameters": [
                     {
@@ -6071,8 +6071,8 @@
                 "tags": [
                     "Quiz"
                 ],
-                "summary": "Remover documento de um quiz (Admin/Professor)",
-                "description": "Remove a associação entre o documento e o quiz.",
+                "summary": "Remover documento de um quiz (apenas Admin)",
+                "description": "Remove a associação entre o documento e o quiz. Requer role admin.",
                 "operationId": "detachQuizDocument",
                 "parameters": [
                     {

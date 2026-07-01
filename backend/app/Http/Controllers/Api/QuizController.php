@@ -23,27 +23,6 @@ class QuizController extends Controller
         private readonly QuizDocumentService  $quizDocuments,
     ) {}
 
-    /**
-     * @OA\Get(
-     *      path="/quizzes",
-     *      operationId="indexQuizzes",
-     *      tags={"Quiz"},
-     *      summary="Listar quizzes disponíveis",
-     *      description="Lista todos os quizzes que o utilizador tem permissões para aceder.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Response(
-     *          response=200,
-     *          description="Quizzes obtidos com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      )
-     * )
-     */
     public function index(Request $request): JsonResponse
     {
         $perPage = min((int) ($request->input('per_page', 20)), 50);
@@ -82,70 +61,6 @@ class QuizController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *      path="/quizzes",
-     *      operationId="storeQuiz",
-     *      tags={"Quiz"},
-     *      summary="Criar novo quiz com perguntas (Admin/Professor)",
-     *      description="Adiciona um novo quiz completo na base de dados.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\RequestBody(
-     *          required=true,
-     *          @OA\JsonContent(
-     *              required={"title"},
-     *              @OA\Property(property="title", type="string", maxLength=255, example="Caminho de Ferro de Benguela"),
-     *              @OA\Property(property="module", type="string", maxLength=255, nullable=true, example="Módulo I"),
-     *              @OA\Property(property="description", type="string", nullable=true, example="Teste seus conhecimentos sobre o CFB."),
-     *              @OA\Property(property="cover_image_url", type="string", format="url", maxLength=500, nullable=true),
-     *              @OA\Property(property="difficulty", type="string", enum={"Básico", "Intermédio", "Avançado"}, default="Básico"),
-     *              @OA\Property(property="base_points", type="integer", minimum=0, default=50),
-     *              @OA\Property(property="time_limit_secs", type="integer", minimum=0, nullable=true, example=300),
-     *              @OA\Property(property="access_level_id", type="string", example="public"),
-     *              @OA\Property(property="is_featured", type="boolean", default=false),
-     *              @OA\Property(property="status", type="string", enum={"published", "draft"}, default="draft"),
-     *              @OA\Property(property="category_id", type="string", format="uuid", nullable=true),
-     *              @OA\Property(property="documents", type="array", nullable=true, description="IDs de documentos a associar (índice define sort_order)", @OA\Items(type="string", format="uuid")),
-     *              @OA\Property(property="questions", type="array", nullable=true, @OA\Items(
-     *                  @OA\Property(property="question_order", type="integer", example=1),
-     *                  @OA\Property(property="title", type="string", example="Qual o ano de início de construção do CFB?"),
-     *                  @OA\Property(property="subtitle", type="string", nullable=true),
-     *                  @OA\Property(property="module_label", type="string", nullable=true),
-     *                  @OA\Property(property="question_type", type="string", enum={"multiple_choice"}, default="multiple_choice"),
-     *                  @OA\Property(property="points", type="integer", default=10),
-     *                  @OA\Property(property="hint_title", type="string", nullable=true),
-     *                  @OA\Property(property="hint_quote", type="string", nullable=true),
-     *                  @OA\Property(property="options", type="array", @OA\Items(
-     *                      @OA\Property(property="option_key", type="string", maxLength=1, example="A"),
-     *                      @OA\Property(property="text", type="string", example="1903"),
-     *                      @OA\Property(property="is_correct", type="boolean", example=true),
-     *                      @OA\Property(property="explanation", type="string", nullable=true, example="O CFB começou a ser construído em 1903.")
-     *                  ))
-     *              ))
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=201,
-     *          description="Quiz criado com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Quiz created successfully."),
-     *              @OA\Property(property="data", type="object")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Acesso proibido (Requer admin ou professor)"
-     *      ),
-     *      @OA\Response(
-     *          response=422,
-     *          description="Erro de validação"
-     *      )
-     * )
-     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -244,42 +159,6 @@ class QuizController extends Controller
         ], 201);
     }
 
-    /**
-     * @OA\Get(
-     *      path="/quizzes/{id}",
-     *      operationId="showQuiz",
-     *      tags={"Quiz"},
-     *      summary="Visualizar detalhes de um quiz",
-     *      description="Retorna as informações básicas de um quiz.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do quiz",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Detalhes do quiz obtidos com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="data", type="object")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Sem acesso ao nível do quiz"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Quiz não encontrado"
-     *      )
-     * )
-     */
     public function show(string $id, Request $request): JsonResponse
     {
         $quiz = DB::table('quizzes')->where('id', $id)->first();
@@ -290,53 +169,6 @@ class QuizController extends Controller
         return response()->json(['data' => $quiz]);
     }
 
-    /**
-     * @OA\Patch(
-     *      path="/quizzes/{id}",
-     *      operationId="updateQuiz",
-     *      tags={"Quiz"},
-     *      summary="Atualizar quiz (Admin/Professor)",
-     *      description="Permite atualizar o quiz bem como as suas perguntas e opções.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do quiz",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\RequestBody(
-     *          required=true,
-     *          @OA\JsonContent(
-     *              required={"title"},
-     *              @OA\Property(property="title", type="string"),
-     *              @OA\Property(property="description", type="string"),
-     *              @OA\Property(property="difficulty", type="string", enum={"Básico", "Intermédio", "Avançado"}),
-     *              @OA\Property(property="status", type="string", enum={"published", "draft"})
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Quiz atualizado",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Quiz updated successfully."),
-     *              @OA\Property(property="data", type="object")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Acesso proibido"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Quiz não encontrado"
-     *      )
-     * )
-     */
     public function update(string $id, Request $request): JsonResponse
     {
         $quiz = DB::table('quizzes')->where('id', $id)->first();
@@ -388,8 +220,7 @@ class QuizController extends Controller
 
             if (array_key_exists('questions', $validated)) {
                 $payloadQuestionIds = collect($validated['questions'])->pluck('id')->filter()->all();
-                
-                // Delete questions not in payload
+
                 DB::table('quiz_questions')
                     ->where('quiz_id', $id)
                     ->whereNotIn('id', $payloadQuestionIds)
@@ -418,7 +249,6 @@ class QuizController extends Controller
 
                     $payloadOptionIds = collect($qData['options'])->pluck('id')->filter()->all();
 
-                    // Delete options not in payload
                     DB::table('quiz_options')
                         ->where('question_id', $qId)
                         ->whereNotIn('id', $payloadOptionIds)
@@ -452,42 +282,6 @@ class QuizController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Delete(
-     *      path="/quizzes/{id}",
-     *      operationId="destroyQuiz",
-     *      tags={"Quiz"},
-     *      summary="Eliminar quiz (Admin/Professor)",
-     *      description="Elimina permanentemente um quiz e todas as tentativas e perguntas associadas.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do quiz",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Quiz eliminado com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Quiz deleted successfully.")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Acesso proibido"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Quiz não encontrado"
-     *      )
-     * )
-     */
     public function destroy(string $id): JsonResponse
     {
         $quiz = DB::table('quizzes')->where('id', $id)->first();
@@ -508,36 +302,9 @@ class QuizController extends Controller
     }
 
     /**
-     * @OA\Get(
-     *      path="/quizzes/{id}/questions",
-     *      operationId="quizQuestions",
-     *      tags={"Quiz"},
-     *      summary="Listar perguntas de um quiz",
-     *      description="Retorna as perguntas de um quiz com opções (mas ocultando respostas corretas por segurança, dependendo da lógica do frontend).",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do quiz",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Perguntas obtidas",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Quiz não encontrado"
-     *      )
-     * )
+     * Retorna as perguntas de um quiz.
+     * Para utilizadores normais, oculta is_correct/explanation (evita fuga de respostas).
+     * Para admins, expõe tudo — necessário para o formulário de edição.
      */
     public function questions(string $id, Request $request): JsonResponse
     {
@@ -546,6 +313,8 @@ class QuizController extends Controller
             abort(404, 'Quiz not found.');
         }
         $this->checkQuizAccess($quiz, $request->user());
+
+        $isAdmin = $request->user()->role === 'admin';
 
         $questions = DB::table('quiz_questions')
             ->where('quiz_id', $id)
@@ -556,13 +325,20 @@ class QuizController extends Controller
             ->whereIn('question_id', $questions->pluck('id'))
             ->get();
 
-        $data = $questions->map(function ($q) use ($options) {
-            $qOptions = $options->where('question_id', $q->id)->map(function ($o) {
-                return [
+        $data = $questions->map(function ($q) use ($options, $isAdmin) {
+            $qOptions = $options->where('question_id', $q->id)->map(function ($o) use ($isAdmin) {
+                $option = [
                     'id' => $o->id,
                     'option_text' => $o->text,
                     'option_key' => $o->option_key,
                 ];
+
+                if ($isAdmin) {
+                    $option['is_correct'] = (bool) $o->is_correct;
+                    $option['explanation'] = $o->explanation;
+                }
+
+                return $option;
             })->values()->all();
 
             return [
@@ -588,77 +364,12 @@ class QuizController extends Controller
         return response()->json(['data' => $data]);
     }
 
-    /**
-     * @OA\Post(
-     *      path="/quizzes/{id}/attempts",
-     *      operationId="startQuizAttempt",
-     *      tags={"Quiz"},
-     *      summary="Iniciar tentativa de quiz",
-     *      description="Cria uma nova tentativa de quiz para o utilizador autenticado.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID do quiz",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=201,
-     *          description="Tentativa iniciada",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Attempt started."),
-     *              @OA\Property(property="id", type="string", format="uuid")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Quiz não encontrado"
-     *      )
-     * )
-     */
     public function startAttempt(string $id, Request $request): JsonResponse
     {
         $attemptId = $this->attemptService->startAttempt($id, $request->user());
         return response()->json(['message' => 'Attempt started.', 'id' => $attemptId], 201);
     }
 
-    /**
-     * @OA\Get(
-     *      path="/quiz-attempts/{id}",
-     *      operationId="showQuizAttempt",
-     *      tags={"Quiz"},
-     *      summary="Visualizar detalhes de uma tentativa",
-     *      description="Obtém informações sobre o estado de uma tentativa de quiz.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID da tentativa",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Detalhes obtidos",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="data", type="object")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Tentativa não encontrada"
-     *      )
-     * )
-     */
     public function showAttempt(string $id, Request $request): JsonResponse
     {
         $attempt = DB::table('quiz_attempts')->where('id', $id)->first();
@@ -670,48 +381,6 @@ class QuizController extends Controller
         return response()->json(['data' => $attempt]);
     }
 
-    /**
-     * @OA\Post(
-     *      path="/quiz-attempts/{id}/answers",
-     *      operationId="answerQuizAttempt",
-     *      tags={"Quiz"},
-     *      summary="Responder a uma pergunta do quiz",
-     *      description="Regista uma resposta a uma das perguntas da tentativa ativa.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID da tentativa",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\RequestBody(
-     *          required=true,
-     *          @OA\JsonContent(
-     *              required={"question_id", "selected_option_id"},
-     *              @OA\Property(property="question_id", type="string", format="uuid"),
-     *              @OA\Property(property="selected_option_id", type="string", format="uuid"),
-     *              @OA\Property(property="time_spent_secs", type="integer", nullable=true, example=15)
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Resposta gravada",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Answer recorded."),
-     *              @OA\Property(property="is_correct", type="boolean", example=true)
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=422,
-     *          description="Erro de validação"
-     *      )
-     * )
-     */
     public function answerAttempt(string $id, Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -735,46 +404,6 @@ class QuizController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *      path="/quiz-attempts/{id}/complete",
-     *      operationId="completeQuizAttempt",
-     *      tags={"Quiz"},
-     *      summary="Finalizar tentativa de quiz",
-     *      description="Conclui a tentativa, calcula pontuação e atribui experiência/pontos ao utilizador.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          required=true,
-     *          description="ID da tentativa",
-     *          @OA\Schema(type="string")
-     *      ),
-     *      @OA\RequestBody(
-     *          required=false,
-     *          @OA\JsonContent(
-     *              @OA\Property(property="time_spent_secs", type="integer", nullable=true, example=120)
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Tentativa concluída",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Attempt completed."),
-     *              @OA\Property(property="data", type="object"),
-     *              @OA\Property(property="gamification", type="object")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      ),
-     *      @OA\Response(
-     *          response=422,
-     *          description="Erro de validação"
-     *      )
-     * )
-     */
     public function completeAttempt(string $id, Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -794,31 +423,6 @@ class QuizController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *      path="/quizzes/{id}/documents",
-     *      operationId="quizRelatedDocuments",
-     *      tags={"Quiz"},
-     *      summary="Listar documentos associados a um quiz",
-     *      description="Retorna os documentos publicados associados ao quiz. Suporta paginação e ordenação opcionais.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string")),
-     *      @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", default=1)),
-     *      @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", default=15, maximum=100)),
-     *      @OA\Parameter(name="sort_by", in="query", required=false, @OA\Schema(type="string", enum={"sort_order","title","published_at"})),
-     *      @OA\Parameter(name="sort_direction", in="query", required=false, @OA\Schema(type="string", enum={"asc","desc"})),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Documentos obtidos com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="data", type="array", @OA\Items(type="object")),
-     *              @OA\Property(property="meta", type="object")
-     *          )
-     *      ),
-     *      @OA\Response(response=401, description="Não autenticado"),
-     *      @OA\Response(response=404, description="Quiz não encontrado")
-     * )
-     */
     public function relatedDocuments(string $id, Request $request): JsonResponse
     {
         $quiz = DB::table('quizzes')->where('id', $id)->first();
@@ -855,27 +459,6 @@ class QuizController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *      path="/me/quiz-attempts",
-     *      operationId="myQuizAttempts",
-     *      tags={"Quiz"},
-     *      summary="Listar as minhas tentativas de quiz",
-     *      description="Histórico de quizzes resolvidos pelo utilizador autenticado.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Response(
-     *          response=200,
-     *          description="Histórico obtido com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Não autenticado"
-     *      )
-     * )
-     */
     public function myAttempts(Request $request): JsonResponse
     {
         return response()->json([
@@ -887,29 +470,6 @@ class QuizController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *      path="/quizzes/{id}/documents",
-     *      operationId="syncQuizDocuments",
-     *      tags={"Quiz"},
-     *      summary="Sincronizar documentos de um quiz (Admin/Professor)",
-     *      description="Substitui todas as associações documento-quiz. Enviar array vazio remove todos.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string")),
-     *      @OA\RequestBody(
-     *          required=true,
-     *          @OA\JsonContent(
-     *              required={"documents"},
-     *              @OA\Property(property="documents", type="array", description="IDs de documentos (índice define sort_order)", @OA\Items(type="string", format="uuid"))
-     *          )
-     *      ),
-     *      @OA\Response(response=200, description="Documentos sincronizados"),
-     *      @OA\Response(response=401, description="Não autenticado"),
-     *      @OA\Response(response=403, description="Acesso proibido"),
-     *      @OA\Response(response=404, description="Quiz não encontrado"),
-     *      @OA\Response(response=422, description="Erro de validação")
-     * )
-     */
     public function syncDocuments(string $id, Request $request): JsonResponse
     {
         $quiz = DB::table('quizzes')->where('id', $id)->first();
@@ -930,22 +490,6 @@ class QuizController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Delete(
-     *      path="/quizzes/{id}/documents/{documentId}",
-     *      operationId="detachQuizDocument",
-     *      tags={"Quiz"},
-     *      summary="Remover documento de um quiz (Admin/Professor)",
-     *      description="Remove a associação entre o documento e o quiz.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string")),
-     *      @OA\Parameter(name="documentId", in="path", required=true, description="ID do documento", @OA\Schema(type="string")),
-     *      @OA\Response(response=200, description="Documento removido do quiz"),
-     *      @OA\Response(response=401, description="Não autenticado"),
-     *      @OA\Response(response=403, description="Acesso proibido"),
-     *      @OA\Response(response=404, description="Quiz ou associação não encontrada")
-     * )
-     */
     public function detachDocument(string $id, string $documentId): JsonResponse
     {
         $quiz = DB::table('quizzes')->where('id', $id)->first();
