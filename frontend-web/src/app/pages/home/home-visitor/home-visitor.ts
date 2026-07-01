@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
@@ -51,7 +51,8 @@ export class HomeVisitorComponent implements OnInit {
     private router: Router,
     private documentService: DocumentService,
     private communityService: CommunityService,
-    private quizService: QuizService
+    private quizService: QuizService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -96,6 +97,7 @@ export class HomeVisitorComponent implements OnInit {
       // mantém arrays vazios
     } finally {
       this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 

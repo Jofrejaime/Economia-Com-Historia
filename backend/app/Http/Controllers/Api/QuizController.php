@@ -160,14 +160,14 @@ class QuizController extends Controller
     }
 
     public function show(string $id, Request $request): JsonResponse
-    {
-        $quiz = DB::table('quizzes')->where('id', $id)->first();
-        if ($quiz === null) {
-            abort(404, 'Quiz not found.');
-        }
-        $this->checkQuizAccess($quiz, $request->user());
-        return response()->json(['data' => $quiz]);
+{
+    $quiz = DB::table('quizzes')->where('id', $id)->first();
+    if ($quiz === null) {
+        abort(404, 'Quiz not found.');
     }
+    $this->checkQuizAccess($quiz, $request->user());
+    return response()->json(['data' => $quiz]);
+}
 
     public function update(string $id, Request $request): JsonResponse
     {
@@ -307,62 +307,62 @@ class QuizController extends Controller
      * Para admins, expõe tudo — necessário para o formulário de edição.
      */
     public function questions(string $id, Request $request): JsonResponse
-    {
-        $quiz = DB::table('quizzes')->where('id', $id)->first();
-        if ($quiz === null) {
-            abort(404, 'Quiz not found.');
-        }
-        $this->checkQuizAccess($quiz, $request->user());
-
-        $isAdmin = $request->user()->role === 'admin';
-
-        $questions = DB::table('quiz_questions')
-            ->where('quiz_id', $id)
-            ->orderBy('question_order')
-            ->get();
-
-        $options = DB::table('quiz_options')
-            ->whereIn('question_id', $questions->pluck('id'))
-            ->get();
-
-        $data = $questions->map(function ($q) use ($options, $isAdmin) {
-            $qOptions = $options->where('question_id', $q->id)->map(function ($o) use ($isAdmin) {
-                $option = [
-                    'id' => $o->id,
-                    'option_text' => $o->text,
-                    'option_key' => $o->option_key,
-                ];
-
-                if ($isAdmin) {
-                    $option['is_correct'] = (bool) $o->is_correct;
-                    $option['explanation'] = $o->explanation;
-                }
-
-                return $option;
-            })->values()->all();
-
-            return [
-                'id' => $q->id,
-                'quiz_id' => $q->quiz_id,
-                'question_order' => $q->question_order,
-                'question' => $q->title,
-                'title' => $q->title,
-                'subtitle' => $q->subtitle,
-                'module_label' => $q->module_label,
-                'question_type' => $q->question_type,
-                'points' => $q->points,
-                'hint_title' => $q->hint_title,
-                'hint_quote' => $q->hint_quote,
-                'expert_name' => $q->expert_name,
-                'expert_role' => $q->expert_role,
-                'reading_title' => $q->reading_title,
-                'reading_text' => $q->reading_text,
-                'options' => $qOptions,
-            ];
-        });
-
-        return response()->json(['data' => $data]);
+{
+    $quiz = DB::table('quizzes')->where('id', $id)->first();
+    if ($quiz === null) {
+        abort(404, 'Quiz not found.');
     }
+    $this->checkQuizAccess($quiz, $request->user());
+
+    $isAdmin = $request->user() !== null && $request->user()->role === 'admin';
+
+    $questions = DB::table('quiz_questions')
+        ->where('quiz_id', $id)
+        ->orderBy('question_order')
+        ->get();
+
+    $options = DB::table('quiz_options')
+        ->whereIn('question_id', $questions->pluck('id'))
+        ->get();
+
+    $data = $questions->map(function ($q) use ($options, $isAdmin) {
+        $qOptions = $options->where('question_id', $q->id)->map(function ($o) use ($isAdmin) {
+            $option = [
+                'id' => $o->id,
+                'option_text' => $o->text,
+                'option_key' => $o->option_key,
+            ];
+
+            if ($isAdmin) {
+                $option['is_correct'] = (bool) $o->is_correct;
+                $option['explanation'] = $o->explanation;
+            }
+
+            return $option;
+        })->values()->all();
+
+        return [
+            'id' => $q->id,
+            'quiz_id' => $q->quiz_id,
+            'question_order' => $q->question_order,
+            'question' => $q->title,
+            'title' => $q->title,
+            'subtitle' => $q->subtitle,
+            'module_label' => $q->module_label,
+            'question_type' => $q->question_type,
+            'points' => $q->points,
+            'hint_title' => $q->hint_title,
+            'hint_quote' => $q->hint_quote,
+            'expert_name' => $q->expert_name,
+            'expert_role' => $q->expert_role,
+            'reading_title' => $q->reading_title,
+            'reading_text' => $q->reading_text,
+            'options' => $qOptions,
+        ];
+    });
+
+    return response()->json(['data' => $data]);
+}
 
     public function startAttempt(string $id, Request $request): JsonResponse
     {
@@ -504,18 +504,18 @@ class QuizController extends Controller
         return response()->json(['message' => 'Document removed from quiz.']);
     }
 
-    private function checkQuizAccess(object $quiz, User $user): void
-    {
-        if ($user->role === 'admin') {
-            return;
-        }
-
-        if ($quiz->created_by === $user->id) {
-            return;
-        }
-
-        if (!$this->accessGate->canAccess($user, $quiz->access_level_id)) {
-            abort(403, 'Access denied.');
-        }
+    private function checkQuizAccess(object $quiz, ?User $user): void
+{
+    if ($user !== null && $user->role === 'admin') {
+        return;
     }
+
+    if ($user !== null && $quiz->created_by === $user->id) {
+        return;
+    }
+
+    if (!$this->accessGate->canAccess($user, $quiz->access_level_id)) {
+        abort(403, 'Access denied.');
+    }
+}
 }

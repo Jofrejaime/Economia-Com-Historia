@@ -430,93 +430,131 @@ p, span, div, button, input, textarea, a {
   color: #6B0119;
 }
 
-/* Conteúdos Grid */
-.home-contents-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+/* ============================================
+   VISITOR DOCS LIST — mesmo modelo visual da
+   contents.html (home-user), cards horizontais
+   ============================================ */
+
+.visitor-docs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.home-content-card {
+.visitor-doc-item {
+  display: flex;
   background: #FFFFFF;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s;
   border: 1px solid #E5E7EB;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 100%;
+  min-height: 180px;
+  position: relative;
 }
 
-.home-content-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+.visitor-doc-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   border-color: rgba(139, 30, 45, 0.15);
 }
 
-.home-content-image {
-  position: relative;
-  height: 160px;
+.visitor-doc-item-image {
+  width: 280px;
+  min-height: 180px;
+  flex-shrink: 0;
   overflow: hidden;
+  position: relative;
 }
 
-.home-content-image img {
+.visitor-doc-item-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s;
+  transition: transform 0.5s ease;
 }
 
-.home-content-card:hover .home-content-image img {
+.visitor-doc-item:hover .visitor-doc-item-image img {
   transform: scale(1.03);
 }
 
-.home-content-badge {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: #8B1E2D;
-  color: #FFFFFF;
-  padding: 4px 12px;
-  border-radius: 9999px;
-  font-family: 'Source Sans 3', sans-serif;
+.visitor-doc-item-body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  gap: 6px;
+}
+
+.visitor-doc-item-category {
+  color: #8B1E2D;
   font-size: 10px;
   font-weight: 700;
-  line-height: 1.7;
-}
-
-.home-content-body {
-  padding: 20px;
-}
-
-.home-content-title {
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-weight: 700;
-  font-size: 17px;
-  color: #1F2937;
-  margin: 0 0 8px 0;
-  line-height: 1.3;
-}
-
-.home-content-description {
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
   font-family: 'Source Sans 3', sans-serif;
-  font-size: 13px;
-  color: #1F2937;
-  margin: 0 0 12px 0;
   line-height: 1.7;
+}
+
+.visitor-doc-item-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+  line-height: 1.3;
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  transition: color 0.2s;
+}
+
+.visitor-doc-item:hover .visitor-doc-item-title {
+  color: #8B1E2D;
+}
+
+.visitor-doc-item-description {
+  color: #1F2937;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 4px 0 8px 0;
+  font-family: 'Source Sans 3', sans-serif;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.home-content-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: 'Source Sans 3', sans-serif;
+.visitor-doc-item-meta {
   font-size: 12px;
   color: #9CA3AF;
+  margin: 0 0 8px 0;
+  font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
+  display: flex;
+  align-items: center;
+}
+
+.visitor-doc-item-link {
+  color: #8B1E2D;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+}
+
+.visitor-doc-item-link:hover {
+  color: #6B0119;
+  gap: 8px;
 }
 
 /* ============================================
@@ -1046,11 +1084,11 @@ p, span, div, button, input, textarea, a {
   .home-header-container {
     padding: 16px 24px;
   }
-  
+
   .home-nav {
     gap: 20px;
   }
-  
+
   .home-nav-link {
     font-size: 14px;
   }
@@ -1061,7 +1099,7 @@ p, span, div, button, input, textarea, a {
     padding: 12px 16px;
     flex-wrap: wrap;
   }
-  
+
   .home-nav {
     order: 3;
     width: 100%;
@@ -1070,11 +1108,11 @@ p, span, div, button, input, textarea, a {
     padding: 8px 0;
     border-top: 1px solid rgba(107, 1, 25, 0.08);
   }
-  
+
   .home-nav-link {
     font-size: 13px;
   }
-  
+
   .btn-login {
     padding: 8px 20px;
     font-size: 13px;
@@ -1086,31 +1124,31 @@ p, span, div, button, input, textarea, a {
   .home-header-container {
     padding: 10px 12px;
   }
-  
+
   .home-logo-text {
     font-size: 16px;
   }
-  
+
   .home-logo-icon {
     width: 32px;
     height: 32px;
   }
-  
+
   .home-logo-icon svg {
     width: 16px;
     height: 16px;
   }
-  
+
   .home-nav {
     gap: 12px;
     flex-wrap: wrap;
   }
-  
+
   .home-nav-link {
     font-size: 12px;
     padding: 4px 8px;
   }
-  
+
   .btn-login {
     padding: 6px 16px;
     font-size: 12px;
@@ -1127,41 +1165,37 @@ p, span, div, button, input, textarea, a {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  
+
   .home-hero-title {
     font-size: 40px;
   }
-  
+
   .home-features-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .home-access-grid {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  
+
   .home-hero-stats-card {
     left: 20px;
     bottom: 20px;
   }
-  
+
   .home-featured-contents-container {
     padding: 0 24px;
   }
-  
+
   .home-ranking-container {
     padding: 0 24px;
   }
-  
-  .home-contents-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
+
   .home-ranking-grid {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .home-ranking-cta {
     grid-column: span 2;
   }
@@ -1171,94 +1205,106 @@ p, span, div, button, input, textarea, a {
   .home-hero-container {
     padding: 48px 24px;
   }
-  
+
   .home-hero-title {
     font-size: 32px;
   }
-  
+
   .home-hero-description {
     font-size: 16px;
   }
-  
+
   .home-hero-actions {
     flex-direction: column;
   }
-  
+
   .home-hero-trust {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .home-features-container {
     padding: 0 24px;
   }
-  
+
   .home-features-title {
     font-size: 32px;
   }
-  
+
   .home-features-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .home-access-container {
     padding: 0 24px;
   }
-  
+
   .home-access-title {
     font-size: 32px;
   }
-  
+
   .home-footer-container {
     padding: 0 24px;
   }
-  
+
   .home-footer-content {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .home-hero-stats-card {
     position: relative;
     left: 0;
     bottom: 0;
     margin-top: 16px;
   }
-  
+
   .home-featured-contents {
     padding: 48px 0;
   }
-  
+
   .home-ranking-section {
     padding: 48px 0;
   }
-  
+
   .home-featured-contents-container {
     padding: 0 16px;
   }
-  
+
   .home-ranking-container {
     padding: 0 16px;
   }
-  
+
   .home-section-title {
     font-size: 24px;
   }
-  
-  .home-contents-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  
+
   .home-ranking-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .home-ranking-cta {
     grid-column: span 1;
   }
-  
-  .home-content-image {
-    height: 120px;
+
+  .visitor-doc-item {
+    flex-direction: column;
+    min-height: auto;
+    border-radius: 8px;
+  }
+
+  .visitor-doc-item-image {
+    width: 100%;
+    height: 200px;
+    min-height: 200px;
+  }
+
+  .visitor-doc-item-body {
+    padding: 18px 20px;
+  }
+
+  .visitor-doc-item-title {
+    font-size: 18px;
   }
 }
 
@@ -1266,84 +1312,93 @@ p, span, div, button, input, textarea, a {
   .home-hero-container {
     padding: 32px 16px;
   }
-  
+
   .home-hero-title {
     font-size: 28px;
   }
-  
+
   .home-hero-description {
     font-size: 14px;
   }
-  
+
   .home-hero-image-decoration,
   .home-hero-image-decoration-2 {
     display: none;
   }
-  
+
   .home-features-title {
     font-size: 28px;
   }
-  
+
   .home-access-title {
     font-size: 28px;
   }
-  
+
   .home-access-card {
     padding: 24px;
   }
-  
+
   .home-footer-left {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
   }
-  
+
   .home-featured-contents {
     padding: 32px 0;
   }
-  
+
   .home-ranking-section {
     padding: 32px 0;
   }
-  
+
   .home-featured-contents-container {
     padding: 0 12px;
   }
-  
+
   .home-ranking-container {
     padding: 0 12px;
   }
-  
+
   .home-section-title {
     font-size: 20px;
   }
-  
-  .home-contents-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .home-content-image {
-    height: 140px;
-  }
-  
+
   .home-section-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .home-ranking-card {
     padding: 16px;
   }
-  
+
   .position-number {
     font-size: 16px;
   }
-  
+
   .ranking-name {
     font-size: 14px;
   }
-  
+
   .points-number {
     font-size: 16px;
+  }
+
+  .visitor-doc-item-image {
+    height: 160px;
+    min-height: 160px;
+  }
+
+  .visitor-doc-item-body {
+    padding: 14px 16px;
+  }
+
+  .visitor-doc-item-title {
+    font-size: 16px;
+  }
+
+  .visitor-doc-item-description {
+    font-size: 13px;
   }
 }

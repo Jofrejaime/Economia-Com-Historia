@@ -6,6 +6,8 @@ import { firstValueFrom } from 'rxjs';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { CommunityCategory, CommunityService, DiscussionTopic } from '../../../services/community.service';
+import { HostListener } from '@angular/core';
+import { AuthService } from '../../../services/auth.service';
 
 type TabType = 'recent' | 'popular' | 'pinned';
 
@@ -21,6 +23,10 @@ export class CommunityComponent implements OnInit {
   categories: CommunityCategory[] = [];
   discussions: DiscussionTopic[] = [];
   error: string | null = null;
+  currentUserId: string | null = null;
+  openCardMenuId: string | null = null;
+  showDeleteCardModal = false;
+  deleteCardTargetId: string | null = null;
 
   featuredResearches: { date: string; title: string }[] = [
     { date: '12 Mar 1975', title: 'Os documentos fundadores do BNA e a política fiscal inicial.' },
@@ -31,10 +37,12 @@ export class CommunityComponent implements OnInit {
   constructor(
     private router: Router,
     private communityService: CommunityService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.currentUserId = (this.authService.getUser() as any)?.id ?? null;
     this.loadData();
   }
 
@@ -85,6 +93,13 @@ export class CommunityComponent implements OnInit {
     }
   }
 
+  getTopicVisibilityBadge(discussion: DiscussionTopic): { show: boolean; label: string } | null {
+    if (discussion.visibility === 'INVITE_ONLY') {
+      return { show: true, label: 'Privado' };
+    }
+    return null;
+  }
+
   getAuthorInitials(name: string): string {
     return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
   }
@@ -109,6 +124,50 @@ export class CommunityComponent implements OnInit {
 
   private formatDate(value: string): string {
     return new Intl.DateTimeFormat('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
+  }
+
+  isCardOwner(discussion: DiscussionTopic): boolean {
+    return !!this.currentUserId && discussion.author_id === this.currentUserId;
+  }
+
+  toggleCardMenu(event: Event, id: string): void {
+    event.stopPropagation();
+    this.openCardMenuId = this.openCardMenuId === id ? null : id;
+  }
+
+  @HostListener('document:click')
+  closeCardMenu(): void {
+    this.openCardMenuId = null;
+  }
+
+  editCard(event: Event, id: string): void {
+    event.stopPropagation();
+    this.openCardMenuId = null;
+    this.router.navigate(['/forum/community/discussao', id], { queryParams: { edit: '1' } });
+  }
+
+  openDeleteCardModal(event: Event, id: string): void {
+    event.stopPropagation();
+    this.openCardMenuId = null;
+    this.deleteCardTargetId = id;
+    this.showDeleteCardModal = true;
+  }
+
+  closeDeleteCardModal(): void {
+    this.showDeleteCardModal = false;
+    this.deleteCardTargetId = null;
+  }
+
+  async confirmDeleteCard(): Promise<void> {
+    if (!this.deleteCardTargetId) return;
+    try {
+      await firstValueFrom(this.communityService.deleteTopic(this.deleteCardTargetId));
+      this.discussions = this.discussions.filter(d => d.id !== this.deleteCardTargetId);
+      this.closeDeleteCardModal();
+      this.cdr.detectChanges();
+    } catch {
+      alert('Erro ao eliminar discussão.');
+    }
   }
 
   navigateTo(path: string): void { this.router.navigate([path]); }

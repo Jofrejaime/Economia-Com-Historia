@@ -144,19 +144,41 @@
               <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
               <p class="contents-doc-item-description">{{ doc.summary }}</p>
               <div class="contents-doc-item-footer">
-                <span class="contents-doc-item-access" 
-                      [style.background]="getAccessBadgeStyle(doc.access_level_id).bg"
-                      [style.color]="getAccessBadgeStyle(doc.access_level_id).text">
-                  {{ getAccessLabel(doc.access_level_id) }}
-                </span>
-                <span class="contents-doc-item-date" *ngIf="doc.period_start">
-                  {{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}
-                </span>
-                <span class="contents-doc-item-date" *ngIf="!doc.period_start && doc.publication_date">
-                  {{ doc.publication_date | date:'yyyy' }}
-                </span>
-                <span class="contents-doc-item-link">Ler Conteúdo →</span>
-              </div>
+  <span class="contents-doc-item-access" 
+        [style.background]="getAccessBadgeStyle(doc.access_level_id).bg"
+        [style.color]="getAccessBadgeStyle(doc.access_level_id).text">
+    {{ getAccessLabel(doc.access_level_id) }}
+  </span>
+  <span class="contents-doc-item-date" *ngIf="doc.period_start">
+    {{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}
+  </span>
+  <span class="contents-doc-item-date" *ngIf="!doc.period_start && doc.publication_date">
+    {{ doc.publication_date | date:'yyyy' }}
+  </span>
+
+  <div class="contents-doc-item-actions">
+    <button class="contents-doc-item-action-btn" 
+            [class.active]="doc.is_liked"
+            (click)="toggleLike($event, doc)"
+            [title]="doc.is_liked ? 'Remover gosto' : 'Gostar'">
+      <svg width="16" height="16" viewBox="0 0 24 24" [attr.fill]="doc.is_liked ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 17.83 12H14V6a2 2 0 0 0-2-2l-3 7H2Z"></path>
+      </svg>
+      <span *ngIf="doc.likes_count">{{ doc.likes_count }}</span>
+    </button>
+
+    <button class="contents-doc-item-action-btn" 
+            [class.active]="doc.is_favorited"
+            (click)="toggleFavorite($event, doc)"
+            [title]="doc.is_favorited ? 'Remover dos guardados' : 'Guardar'">
+      <svg width="16" height="16" viewBox="0 0 24 24" [attr.fill]="doc.is_favorited ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <span class="contents-doc-item-link">Ler Conteúdo →</span>
+</div>
             </div>
           </div>
         </div>

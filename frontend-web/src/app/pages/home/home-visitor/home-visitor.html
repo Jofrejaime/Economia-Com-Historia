@@ -3,7 +3,7 @@
   <!-- Header - Versão Visitor com Links -->
   <header class="home-header">
     <div class="home-header-container">
-      
+
       <!-- Logo -->
       <div class="home-logo" routerLink="/home">
         <div class="home-logo-icon">
@@ -96,35 +96,55 @@
     </div>
   </section>
 
-  <!-- ===== CONTEÚDOS EM DESTAQUE ===== -->
+  <!-- ===== CONTEÚDOS EM DESTAQUE (mesmo modelo da home-user / contents) ===== -->
   <section class="home-featured-contents">
     <div class="home-featured-contents-container">
       <div class="home-section-header">
         <div>
-          <h2 class="home-section-title"> Conteúdos em Destaque</h2>
+          <h2 class="home-section-title">Conteúdos em Destaque</h2>
           <p class="home-section-subtitle">Explore os documentos mais recentes do arquivo</p>
         </div>
         <a (click)="navigateTo('/contents')" class="home-section-link">Ver todos →</a>
       </div>
 
+      <!-- Loading -->
+      <div *ngIf="isLoading" style="padding:40px;text-align:center;color:#9CA3AF">
+        A carregar conteúdos...
+      </div>
+
       <!-- Empty -->
-      <div  *ngIf="featuredContents.length === 0" style="padding:40px;text-align:center;color:#9CA3AF">
+      <div *ngIf="!isLoading && featuredContents.length === 0" style="padding:40px;text-align:center;color:#9CA3AF">
         Ainda não há conteúdos disponíveis.
       </div>
 
-      <div class="home-contents-grid" *ngIf="!isLoading && featuredContents.length > 0">
-        <div *ngFor="let content of featuredContents" (click)="navigateTo('/contents/view/' + content.id)" class="home-content-card">
-          <div class="home-content-image">
+      <!-- Lista de conteúdos — mesma estrutura visual da contents.html (home-user) -->
+      <div class="visitor-docs-list" *ngIf="!isLoading && featuredContents.length > 0">
+        <div *ngFor="let content of featuredContents" (click)="navigateTo('/contents/view/' + content.id)" class="visitor-doc-item">
+          <div class="visitor-doc-item-image">
             <img [src]="content.image || 'assets/images/default-doc.jpg'" [alt]="content.title">
-            <span class="home-content-badge">{{ content.category }}</span>
           </div>
-          <div class="home-content-body">
-            <h3 class="home-content-title">{{ content.title }}</h3>
-            <p class="home-content-description">{{ content.description }}</p>
-            <div class="home-content-footer">
-              <span class="home-content-date">{{ content.date }}</span>
-              <span class="home-content-views">👁️ {{ content.views }}</span>
-            </div>
+          <div class="visitor-doc-item-body">
+            <span class="visitor-doc-item-category">{{ content.category }}</span>
+            <h3 class="visitor-doc-item-title">{{ content.title }}</h3>
+            <p class="visitor-doc-item-description">{{ content.description }}</p>
+
+            <p class="visitor-doc-item-meta">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              {{ content.date }}
+              <span style="margin: 0 6px;">•</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              {{ content.views }} visualizações
+            </p>
+
+            <span class="visitor-doc-item-link">Ler Conteúdo →</span>
           </div>
         </div>
       </div>
@@ -185,14 +205,14 @@
     <div class="home-ranking-container">
       <div class="home-section-header">
         <div>
-          <h2 class="home-section-title"> Ranking de Investigadores</h2>
+          <h2 class="home-section-title">Ranking de Investigadores</h2>
           <p class="home-section-subtitle">Conheça os investigadores mais ativos da plataforma</p>
         </div>
         <button (click)="navigateTo('/ranking')" class="home-section-link">Ver ranking completo →</button>
       </div>
 
       <!-- Loading -->
-      <div style="padding:40px;text-align:center;color:#9CA3AF">
+      <div *ngIf="isLoading" style="padding:40px;text-align:center;color:#9CA3AF">
         A carregar ranking...
       </div>
 
