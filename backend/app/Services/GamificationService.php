@@ -189,9 +189,19 @@ class GamificationService
                 ->where('id', '!=', $attempt->id)
                 ->exists();
 
-            if (!$alreadyCompleted) {
-                $this->incrementCounters($user, ['quizzes_completed' => 1]);
-            }
+            // Recompute from quiz_attempts using DISTINCT quiz_id so the counter
+            // is always accurate regardless of seed data or any previous drift.
+            // This also naturally enforces the "each quiz counts only once" rule.
+            $realQuizzesCompleted = DB::table('quiz_attempts')
+                ->where('user_id', $user->id)
+                ->where('status', 'completed')
+                ->distinct()
+                ->count('quiz_id');
+
+            $this->getOrCreateUserLevel($user);
+            DB::table('user_levels')
+                ->where('user_id', $user->id)
+                ->update(['quizzes_completed' => $realQuizzesCompleted, 'updated_at' => now()]);
 
             $accuracy = $attempt->score;
             $totalQuestions = $attempt->total_questions;

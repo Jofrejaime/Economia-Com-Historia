@@ -53,7 +53,7 @@ class AdminSeeder extends Seeder
             'total_points' => 1500,
             'weekly_points' => 120,
             'monthly_points' => 450,
-            'quizzes_completed' => 15,
+            'quizzes_completed' => 0,
             'documents_read' => 40,
             'topics_created' => 8,
             'replies_posted' => 25,
