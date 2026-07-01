@@ -28,7 +28,10 @@
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">⏳</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v5l3.5 2"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">TOTAL PENDENTES</p>
@@ -37,7 +40,9 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">🔥</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a6 6 0 0 1-10.6-3.8C7.1 10.8 8.5 8 12 2Z"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">JINDUNGO</p>
@@ -46,7 +51,10 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon">
-        <span class="stat-icon-emoji">✓</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="m8.5 12.5 2.5 2.5 4.5-5"></path>
+        </svg>
       </div>
       <div>
         <p class="stat-label">PROCESSADOS HOJE</p>
@@ -78,7 +86,11 @@
     
     <!-- Empty State -->
     <div *ngIf="pending.length === 0" class="empty-state">
-      <div class="empty-icon">✓</div>
+      <div class="empty-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
       <h2 class="empty-title">Sem pedidos pendentes</h2>
       <p class="empty-subtitle">Todos os pedidos foram processados.</p>
     </div>
@@ -90,7 +102,9 @@
       <div *ngIf="jindungoPending.length > 0" class="section">
         <div class="section-header">
           <div class="section-title">
-            <span class="section-icon">🔥</span>
+            <svg class="section-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a6 6 0 0 1-10.6-3.8C7.1 10.8 8.5 8 12 2Z"></path>
+            </svg>
             <h2 class="section-heading">Pedidos Jindungo</h2>
             <span class="section-badge">{{ jindungoPending.length }}</span>
             <p class="section-desc">— Acesso a conteúdos premium. Aprovação directa.</p>
@@ -101,13 +115,21 @@
             <!-- Feedback Overlay -->
             <div *ngIf="isConfirmAction(req.id, 'approved')" class="feedback-overlay approved">
               <div class="feedback-content">
-                <div class="feedback-icon approved">✓</div>
+                <div class="feedback-icon approved">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
                 <p class="feedback-text approved">Acesso aprovado!</p>
               </div>
             </div>
             <div *ngIf="isConfirmAction(req.id, 'rejected')" class="feedback-overlay rejected">
               <div class="feedback-content">
-                <div class="feedback-icon rejected">✗</div>
+                <div class="feedback-icon rejected">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 6 12 12M18 6 6 18"></path>
+                  </svg>
+                </div>
                 <p class="feedback-text rejected">Pedido rejeitado</p>
               </div>
             </div>
@@ -128,10 +150,29 @@
                     </div>
                     <div class="request-badges">
                       <span class="type-badge">
-                        {{ getTypeIcon(req.type) }} {{ getTypeLabel(req.type) }}
+                        <ng-container [ngSwitch]="req.type">
+                          <svg *ngSwitchCase="'jindungo'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a6 6 0 0 1-10.6-3.8C7.1 10.8 8.5 8 12 2Z"></path>
+                          </svg>
+                          <svg *ngSwitchCase="'restrito'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="10" width="16" height="10" rx="2"></rect>
+                            <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                          </svg>
+                          <svg *ngSwitchDefault width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M3 12h18"></path>
+                            <path d="M12 3a14 14 0 0 1 0 18"></path>
+                            <path d="M12 3a14 14 0 0 0 0 18"></path>
+                          </svg>
+                        </ng-container>
+                        {{ getTypeLabel(req.type) }}
                       </span>
                       <span class="request-time">
-                        <span class="clock-icon">⏱️</span> {{ req.timeAgo }}
+                        <svg class="clock-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="9"></circle>
+                          <path d="M12 7v5l3.5 2"></path>
+                        </svg>
+                        {{ req.timeAgo }}
                       </span>
                     </div>
                   </div>
@@ -163,13 +204,17 @@
                   <button *ngIf="req.type === 'restrito' && !noteOpenStates[req.id]" 
                           (click)="toggleNoteOpen(req.id)" 
                           class="action-link">
-                    <span class="chevron-down">▼</span>
+                    <svg class="chevron-down" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
                     Adicionar nota
                   </button>
                   <button *ngIf="req.type === 'restrito' && noteOpenStates[req.id]" 
                           (click)="toggleNoteOpen(req.id)" 
                           class="action-link close">
-                    <span class="chevron-up">▲</span>
+                    <svg class="chevron-up" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="18 15 12 9 6 15"></polyline>
+                    </svg>
                     Fechar nota
                   </button>
                 </div>
@@ -195,7 +240,10 @@
     <!-- Filters -->
     <div class="filters-bar">
       <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-3.5-3.5"></path>
+        </svg>
         <input 
           type="text" 
           [(ngModel)]="search"
@@ -204,7 +252,10 @@
       </div>
 
       <div class="filter-select">
-        <span class="filter-icon">⚙️</span>
+        <svg class="filter-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+        </svg>
         <select [(ngModel)]="filterDecision" class="select">
           <option value="todos">Todas as decisões</option>
           <option value="aprovado">Aprovados</option>
@@ -247,21 +298,44 @@
               </td>
               <td>
                 <span class="type-badge-small">
-                  {{ getTypeIcon(item.type) }} {{ getTypeLabel(item.type) }}
+                  <ng-container [ngSwitch]="item.type">
+                    <svg *ngSwitchCase="'jindungo'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a6 6 0 0 1-10.6-3.8C7.1 10.8 8.5 8 12 2Z"></path>
+                    </svg>
+                    <svg *ngSwitchCase="'restrito'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="4" y="10" width="16" height="10" rx="2"></rect>
+                      <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                    </svg>
+                    <svg *ngSwitchDefault width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="9"></circle>
+                      <path d="M3 12h18"></path>
+                      <path d="M12 3a14 14 0 0 1 0 18"></path>
+                      <path d="M12 3a14 14 0 0 0 0 18"></path>
+                    </svg>
+                  </ng-container>
+                  {{ getTypeLabel(item.type) }}
                 </span>
               </td>
               <td class="history-category">{{ item.category }}</td>
               <td class="history-date">{{ item.date }}</td>
               <td>
                 <span class="decision-badge" [class.badge-approved]="item.decision === 'aprovado'" [class.badge-rejected]="item.decision === 'rejeitado'">
-                  {{ getDecisionIcon(item.decision) }} {{ getDecisionLabel(item.decision) }}
+                  <svg *ngIf="item.decision === 'aprovado'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <svg *ngIf="item.decision === 'rejeitado'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 6 12 12M18 6 6 18"></path>
+                  </svg>
+                  {{ getDecisionLabel(item.decision) }}
                 </span>
               </td>
               <td class="history-processed">
                 <div class="processed-cell">
                   <span>{{ item.processedBy }}</span>
                   <button *ngIf="item.note" (click)="toggleHistoryNoteOpen(item.id)" class="note-toggle">
-                    <span class="chevron-down-small">▼</span>
+                    <svg class="chevron-down-small" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
                   </button>
                 </div>
               </td>

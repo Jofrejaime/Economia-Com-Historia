@@ -20,39 +20,65 @@
   </div>
 
   <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">🔗</span></div>
-      <div>
-        <p class="stat-label">TOTAL</p>
-        <p class="stat-number">{{ getStats().total }}</p>
-      </div>
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.5 1.5"></path>
+        <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07l1.5-1.5"></path>
+      </svg>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">✅</span></div>
-      <div>
-        <p class="stat-label">ACTIVAS</p>
-        <p class="stat-number">{{ getStats().active }}</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">⏳</span></div>
-      <div>
-        <p class="stat-label">A EXPIRAR</p>
-        <p class="stat-number">{{ getStats().expiring }}</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon"><span class="stat-icon-emoji">🚫</span></div>
-      <div>
-        <p class="stat-label">REVOGADAS</p>
-        <p class="stat-number">{{ getStats().revoked }}</p>
-      </div>
+    <div>
+      <p class="stat-label">TOTAL</p>
+      <p class="stat-number">{{ getStats().total }}</p>
     </div>
   </div>
 
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="m8.5 12.5 2.5 2.5 4.5-5"></path>
+      </svg>
+    </div>
+    <div>
+      <p class="stat-label">ACTIVAS</p>
+      <p class="stat-number">{{ getStats().active }}</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M12 7v5l3.5 2"></path>
+      </svg>
+    </div>
+    <div>
+      <p class="stat-label">A EXPIRAR</p>
+      <p class="stat-number">{{ getStats().expiring }}</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="m5.5 5.5 13 13"></path>
+      </svg>
+    </div>
+    <div>
+      <p class="stat-label">REVOGADAS</p>
+      <p class="stat-number">{{ getStats().revoked }}</p>
+    </div>
+  </div>
+</div>
+
   <div class="filters-bar">
     <div class="search-wrapper">
-      <span class="search-icon">🔍</span>
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.5-3.5"></path>
+      </svg>
       <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="resetPagination()" placeholder="Pesquisar por utilizador, acesso ou id..." class="search-input">
     </div>
     <div class="filter-select">

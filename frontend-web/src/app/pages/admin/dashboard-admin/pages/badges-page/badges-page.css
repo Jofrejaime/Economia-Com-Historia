@@ -139,9 +139,9 @@ p, span, div, button, input, textarea, select {
   flex-shrink: 0;
 }
 
-.stat-icon-emoji {
-  font-size: 22px;
-  color: #FFFFFF;
+.stat-icon svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stat-label {
@@ -235,6 +235,7 @@ p, span, div, button, input, textarea, select {
 .actions-cell {
   display: flex;
   gap: 6px;
+  align-items: center;
 }
 
 .action-btn {
@@ -250,6 +251,15 @@ p, span, div, button, input, textarea, select {
   color: #8B1E2D;
   line-height: 1.7;
   min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.action-btn svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .action-btn:hover {
@@ -327,12 +337,18 @@ p, span, div, button, input, textarea, select {
 .modal-close {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: #9CA3AF;
   padding: 4px 8px;
   border-radius: 4px;
   font-family: 'Source Sans 3', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close svg {
+  display: block;
 }
 
 .modal-close:hover {

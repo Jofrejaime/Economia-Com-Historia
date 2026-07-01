@@ -107,6 +107,11 @@ p, span, div, button, input, textarea, select {
   transform: none;
 }
 
+.btn-primary svg {
+  display: block;
+  flex-shrink: 0;
+}
+
 /* ============================================
    STATS GRID - DESIGN SYSTEM
    ============================================ */
@@ -145,9 +150,9 @@ p, span, div, button, input, textarea, select {
   flex-shrink: 0;
 }
 
-.stat-icon-emoji {
-  font-size: 22px;
-  color: #FFFFFF;
+.stat-icon svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stat-label {
@@ -191,8 +196,8 @@ p, span, div, button, input, textarea, select {
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
   color: #9CA3AF;
+  pointer-events: none;
 }
 
 .search-input {
@@ -324,8 +329,9 @@ p, span, div, button, input, textarea, select {
   line-height: 1.7;
 }
 
-.stat-icon-small {
-  font-size: 14px;
+.stat-item svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 /* ============================================
@@ -393,6 +399,15 @@ p, span, div, button, input, textarea, select {
   background: rgba(139, 30, 45, 0.1);
   color: #8B1E2D;
   line-height: 1.7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.action-btn svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .action-btn:hover {
@@ -463,12 +478,18 @@ p, span, div, button, input, textarea, select {
 .modal-close {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: #9CA3AF;
   padding: 4px 8px;
   border-radius: 4px;
   font-family: 'Source Sans 3', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close svg {
+  display: block;
 }
 
 .modal-close:hover {
@@ -500,6 +521,13 @@ p, span, div, button, input, textarea, select {
   transition: all 0.2s;
   border-bottom: 2px solid transparent;
   line-height: 1.7;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tab-btn svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .tab-btn:hover {
@@ -608,8 +636,15 @@ textarea.form-input {
 }
 
 .info-icon {
-  font-size: 20px;
   color: #8B1E2D;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon svg {
+  display: block;
 }
 
 .info-text {
@@ -688,6 +723,14 @@ textarea.form-input {
   transition: all 0.2s;
   font-size: 14px;
   font-family: 'Source Sans 3', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.icon-btn svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .icon-btn:hover {
@@ -729,6 +772,9 @@ textarea.form-input {
 }
 
 .correct-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: rgba(139, 30, 45, 0.1);
   padding: 2px 8px;
   border-radius: 9999px;
@@ -740,6 +786,11 @@ textarea.form-input {
   line-height: 1.7;
 }
 
+.correct-badge svg {
+  display: block;
+  flex-shrink: 0;
+}
+
 .question-meta {
   display: flex;
   gap: 16px;
@@ -749,6 +800,11 @@ textarea.form-input {
   border-top: 1px solid #E5E7EB;
   font-family: 'Source Sans 3', sans-serif;
   line-height: 1.7;
+}
+
+.question-meta span {
+  display: inline-flex;
+  align-items: center;
 }
 
 /* ============================================
@@ -867,6 +923,11 @@ textarea.form-input {
   border-top: 1px solid #E5E7EB;
 }
 
+.batch-actions .btn-primary svg {
+  display: block;
+  flex-shrink: 0;
+}
+
 /* ============================================
    MODAL FOOTER - DESIGN SYSTEM
    ============================================ */
@@ -911,6 +972,14 @@ textarea.form-input {
   cursor: pointer;
   transition: all 0.3s;
   line-height: 1.7;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-save svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .btn-save:hover:not(:disabled) {

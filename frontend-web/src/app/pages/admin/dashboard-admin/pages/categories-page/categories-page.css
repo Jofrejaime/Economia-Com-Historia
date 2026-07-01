@@ -139,9 +139,9 @@ p, span, div, button, input, textarea, select {
   flex-shrink: 0;
 }
 
-.stat-icon-emoji {
-  font-size: 22px;
-  color: #FFFFFF;
+.stat-icon svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stat-label {
@@ -185,8 +185,8 @@ p, span, div, button, input, textarea, select {
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
   color: #9CA3AF;
+  pointer-events: none;
 }
 
 .search-input {
@@ -279,9 +279,13 @@ p, span, div, button, input, textarea, select {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
   background: rgba(139, 30, 45, 0.1);
   color: #8B1E2D;
+  flex-shrink: 0;
+}
+
+.category-icon svg {
+  display: block;
 }
 
 .category-name {
@@ -300,7 +304,9 @@ p, span, div, button, input, textarea, select {
 }
 
 .type-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 4px 12px;
   border-radius: 9999px;
   font-family: 'Source Sans 3', sans-serif;
@@ -309,6 +315,11 @@ p, span, div, button, input, textarea, select {
   background: rgba(139, 30, 45, 0.1);
   color: #8B1E2D;
   line-height: 1.7;
+}
+
+.type-badge svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .status-badge {
@@ -371,8 +382,10 @@ p, span, div, button, input, textarea, select {
   line-height: 1.7;
 }
 
-.stat-icon-small {
-  font-size: 14px;
+.stat-item svg {
+  display: block;
+  flex-shrink: 0;
+  color: #9CA3AF;
 }
 
 .card-actions {
@@ -465,12 +478,18 @@ p, span, div, button, input, textarea, select {
 .modal-close {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: #9CA3AF;
   padding: 4px 8px;
   border-radius: 4px;
   font-family: 'Source Sans 3', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close svg {
+  display: block;
 }
 
 .modal-close:hover {
@@ -641,9 +660,13 @@ textarea.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
   background: rgba(139, 30, 45, 0.1);
   color: #8B1E2D;
+  flex-shrink: 0;
+}
+
+.preview-icon svg {
+  display: block;
 }
 
 .preview-name {
@@ -666,6 +689,39 @@ textarea.form-input {
   color: #1F2937;
   line-height: 1.7;
   margin: 0;
+}
+
+/* ============================================
+   INFO BOX
+   ============================================ */
+
+.info-box {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(139, 30, 45, 0.06);
+  border: 1px solid rgba(139, 30, 45, 0.15);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-top: 20px;
+}
+
+.info-icon {
+  color: #8B1E2D;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.info-icon svg {
+  display: block;
+}
+
+.info-text {
+  font-size: 12px;
+  line-height: 1.7;
 }
 
 /* ============================================
