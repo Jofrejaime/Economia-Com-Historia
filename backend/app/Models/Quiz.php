@@ -22,6 +22,7 @@ class Quiz extends Model
         'access_level_id', 'is_featured', 'status',
         'category_id', 'created_by', 'published_at',
         'attempts_count', 'completions_count', 'avg_score',
+        'published_by', 'reviewed_by', 'archived_by',
     ];
 
     protected function casts(): array
@@ -149,9 +150,29 @@ class Quiz extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function publishedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'published_by');
+    }
+
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function archivedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
     public function attempts(): HasMany
     {
         return $this->hasMany(QuizAttempt::class, 'quiz_id');
+    }
+
+    public function questions(): HasMany
+    {
+        return $this->hasMany(QuizQuestion::class, 'quiz_id');
     }
 
     public function documents(): BelongsToMany
