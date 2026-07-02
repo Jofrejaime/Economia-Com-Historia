@@ -135,6 +135,27 @@ export type DocumentType = 'article' | 'thesis' | 'report' | 'manuscript' | 'arc
 export type AcademicLevel = 'intro' | 'advanced' | 'doctorate';
 export type AccessLevelId = 'public' | 'jindungo' | 'restricted';
 
+export interface DocumentQuizPreview {
+  id: string;
+  title: string;
+  description: string | null;
+  difficulty: 'Básico' | 'Intermédio' | 'Avançado';
+  base_points: number;
+  questions_count: number;
+  estimated_time: number;
+  estimated_minutes: number;
+  status: 'draft' | 'published';
+}
+
+export interface DocumentTopicPreview {
+  id: string;
+  title: string;
+  replies_count: number;
+  created_at: string;
+  category_color_bg?: string | null;
+  author?: { display_name: string | null; avatar_url: string | null } | null;
+}
+
 // documents table
 export interface Document {
   id: string;
@@ -168,6 +189,11 @@ export interface Document {
   tags?: Tag[];
   is_liked?: boolean;
   is_favorited?: boolean;
+  quizzes?: DocumentQuizPreview[];
+  topics_preview?: DocumentTopicPreview[];
+  quizzes_count?: number;
+  topics_count?: number;
+  learning?: { category_documents: number; quizzes: number; discussions: number } | null;
 }
 
 // quizzes table

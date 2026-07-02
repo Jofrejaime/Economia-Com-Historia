@@ -26,7 +26,9 @@ class DatabaseSeeder extends Seeder
         // Seeders de conteúdo — Documentos, Quizzes, Comunidade
         $this->call([
             DocumentSeeder::class,
+            MediaDocumentSeeder::class,
             QuizSeeder::class,
+            QuizDocumentSeeder::class,
             CommunitySeeder::class,
         ]);
     }

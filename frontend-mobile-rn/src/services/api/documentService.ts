@@ -33,7 +33,14 @@ export const documentService = {
 
   async detail(id: string): Promise<Document> {
     const { data } = await httpClient.get(API_ENDPOINTS.DOCUMENTS.DETAIL(id));
-    return data.data ?? data;
+    const doc: Document = data.data ?? data;
+    if (data.data) {
+      doc.is_liked       = data.is_liked ?? false;
+      doc.is_favorited   = data.is_favorited ?? false;
+      doc.tags           = data.tags ?? [];
+      doc.topics_preview = data.topics_preview ?? [];
+    }
+    return doc;
   },
 
   async relatedQuizzes(documentId: string): Promise<Quiz[]> {

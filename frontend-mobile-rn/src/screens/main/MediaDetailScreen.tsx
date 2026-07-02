@@ -1,14 +1,3 @@
-/**
- * MediaDetailScreen — detalhe de vídeo ou áudio.
- *
- * Reprodução real: requer `npx expo install expo-av`.
- * Enquanto o pacote não estiver instalado, o player é mockado com
- * estado local (play/pause, seek). As chamadas à API e toda a UI
- * estão funcionais independentemente do player nativo.
- *
- * Para activar expo-av: descomenta os blocos marcados com [expo-av].
- */
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   StyleSheet,
@@ -22,19 +11,15 @@ import {
   Dimensions,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { Audio, AVPlaybackStatus } from "expo-av";
+import WebView from "react-native-webview";
 import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { documentService } from "../../services/api/documentService";
-import { communityService } from "../../services/api/communityService";
-import type { Document, DiscussionTopic } from "../../types/api";
-
-// ─── [expo-av] Descomenta quando `npx expo install expo-av` for executado ───
-// import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
-// import { Audio } from "expo-av";
-// ────────────────────────────────────────────────────────────────────────────
+import type { Document, DocumentQuizPreview, DocumentTopicPreview } from "../../types/api";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const VIDEO_HEIGHT = Math.round(SCREEN_WIDTH * (9 / 16));
@@ -61,36 +46,86 @@ function navigateToDocument(navigation: any, doc: Document) {
   navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: doc.id });
 }
 
-// ─── Mock player state (substituído por expo-av quando instalado) ─────────
-function useMockPlayer() {
+// Extrai o ID de um URL do YouTube (formato watch ou youtu.be)
+function difficultyColor(d: string): string {
+  if (d === "Básico") return appTheme.colors.success;
+  if (d === "Intermédio") return appTheme.colors.warning;
+  if (d === "Avançado") return appTheme.colors.danger;
+  return appTheme.colors.textSecondary;
+}
+
+function getYouTubeId(url: string): string | null {
+  const m = url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m?.[1] ?? null;
+}
+
+// Player de áudio com expo-av — carrega e toca URLs directos (mp3, m4a, etc.)
+function useAudioPlayer() {
+  const soundRef = useRef<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [position, setPosition] = useState(0);
-  const [duration] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [duration, setDuration] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const play = useCallback(() => {
-    setIsPlaying(true);
-    intervalRef.current = setInterval(() => {
-      setPosition((p) => p + 1);
-    }, 1000);
+  const onStatusUpdate = useCallback((status: AVPlaybackStatus) => {
+    if (!status.isLoaded) return;
+    setIsPlaying(status.isPlaying);
+    setPosition(Math.floor((status.positionMillis ?? 0) / 1000));
+    if (status.durationMillis) setDuration(Math.floor(status.durationMillis / 1000));
+    if (status.didJustFinish) {
+      void soundRef.current?.setPositionAsync(0);
+      setIsPlaying(false);
+      setPosition(0);
+    }
   }, []);
 
-  const pause = useCallback(() => {
-    setIsPlaying(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
+  useEffect(() => {
+    return () => { void soundRef.current?.unloadAsync(); };
   }, []);
 
-  const togglePlay = useCallback(() => {
-    isPlaying ? pause() : play();
-  }, [isPlaying, play, pause]);
+  const togglePlay = useCallback(async (mediaUrl: string) => {
+    try {
+      if (!soundRef.current) {
+        setIsLoading(true);
+        setError(null);
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          staysActiveInBackground: false,
+          playsInSilentModeIOS: true,
+        });
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: mediaUrl },
+          { shouldPlay: true },
+          onStatusUpdate
+        );
+        soundRef.current = sound;
+        setIsLoading(false);
+        return;
+      }
+      if (isPlaying) {
+        await soundRef.current.pauseAsync();
+      } else {
+        await soundRef.current.playAsync();
+      }
+    } catch {
+      setError("Não foi possível carregar o áudio. Verifica a tua ligação.");
+      setIsLoading(false);
+    }
+  }, [isPlaying, onStatusUpdate]);
 
-  const seek = useCallback((secs: number) => setPosition(secs), []);
+  const seek = useCallback(async (seconds: number) => {
+    if (!soundRef.current) return;
+    await soundRef.current.setPositionAsync(Math.max(0, seconds * 1000));
+    setPosition(Math.max(0, Math.floor(seconds)));
+  }, []);
 
-  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
+  const setSpeed = useCallback(async (rate: number) => {
+    await soundRef.current?.setRateAsync(rate, true);
+  }, []);
 
-  return { isPlaying, position, duration, togglePlay, seek, play, pause };
+  return { isPlaying, position, duration, isLoading, error, togglePlay, seek, setSpeed };
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function MediaDetailScreen() {
   const navigation = useNavigation<any>();
@@ -98,7 +133,7 @@ export function MediaDetailScreen() {
   const { id } = route.params as { id: string };
   const { user } = useAuth();
 
-  const player = useMockPlayer();
+  const audioPlayer = useAudioPlayer();
 
   const [doc, setDoc] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
@@ -107,8 +142,11 @@ export function MediaDetailScreen() {
   const [likesCount, setLikesCount] = useState(0);
   const [descExpanded, setDescExpanded] = useState(false);
   const [relatedDocs, setRelatedDocs] = useState<Document[]>([]);
-  const [relatedTopics, setRelatedTopics] = useState<DiscussionTopic[]>([]);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+
+  // Dados embebidos no documento — sem chamadas extra
+  const relatedQuizzes: DocumentQuizPreview[] = doc?.quizzes ?? [];
+  const relatedTopics: DocumentTopicPreview[] = doc?.topics_preview ?? [];
 
   useEffect(() => {
     const load = async () => {
@@ -120,7 +158,7 @@ export function MediaDetailScreen() {
         setIsFavorited(data.is_favorited ?? false);
         setLikesCount(data.likes_count);
 
-        // Carregar relacionados em background (não bloqueante)
+        // Mais vídeos/áudios da mesma categoria (não bloqueante)
         if (data.category_id) {
           documentService.list({
             category_id: data.category_id,
@@ -128,21 +166,6 @@ export function MediaDetailScreen() {
             per_page: 6,
           })
             .then((res) => setRelatedDocs(res.data.filter((d) => d.id !== id)))
-            .catch(() => {});
-        }
-
-        if (data.category) {
-          communityService.categories()
-            .then((cats) => {
-              const match = cats.find(
-                (c) => c.name.toLowerCase() === data.category!.name.toLowerCase()
-              );
-              if (!match) return;
-              communityService
-                .topics({ category_id: match.id, per_page: 4, sort: "recent" })
-                .then((res) => setRelatedTopics(res.data))
-                .catch(() => {});
-            })
             .catch(() => {});
         }
       } catch {
@@ -184,7 +207,7 @@ export function MediaDetailScreen() {
     const speeds = [0.75, 1, 1.25, 1.5, 2];
     const next = speeds[(speeds.indexOf(playbackSpeed) + 1) % speeds.length];
     setPlaybackSpeed(next);
-    // [expo-av] soundRef.current?.setRateAsync(next, true);
+    void audioPlayer.setSpeed(next);
   };
 
   // ── Loading ──────────────────────────────────────────────────────────────
@@ -222,46 +245,38 @@ export function MediaDetailScreen() {
     <ScreenContainer style={styles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
 
-      {/* ── Área multimédia (topo, fora do ScrollView) ── */}
+      {/* ── Área de vídeo (topo, fora do ScrollView) ── */}
       {isVideo && (
         <View style={styles.videoWrapper}>
           {hasMedia ? (
-            // ─── [expo-av] Substituir View por: ───────────────────────────
-            // <Video
-            //   ref={videoRef}
-            //   source={{ uri: doc.media_url! }}
-            //   style={styles.videoPlayer}
-            //   resizeMode={ResizeMode.CONTAIN}
-            //   useNativeControls
-            //   shouldPlay={false}
-            //   onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-            // />
-            // ──────────────────────────────────────────────────────────────
-            <View style={styles.videoPlayer}>
-              {doc.cover_image_url ? (
-                <Image source={{ uri: doc.cover_image_url }} style={styles.videoThumbnail} resizeMode="cover" />
-              ) : (
-                <View style={styles.videoThumbnailFallback} />
-              )}
-              <TouchableOpacity
-                style={styles.videoPlayOverlay}
-                onPress={player.togglePlay}
-                activeOpacity={0.85}
-              >
-                <View style={styles.videoPlayBtn}>
-                  <Ionicons name={player.isPlaying ? "pause" : "play"} size={32} color="white" style={!player.isPlaying ? { marginLeft: 4 } : undefined} />
+            (() => {
+              const ytId = getYouTubeId(doc.media_url!);
+              if (ytId) {
+                return (
+                  <WebView
+                    source={{ uri: `https://www.youtube.com/embed/${ytId}?playsinline=1&rel=0&modestbranding=1` }}
+                    style={styles.videoPlayer}
+                    allowsInlineMediaPlayback
+                    mediaPlaybackRequiresUserAction={false}
+                    javaScriptEnabled
+                    allowsFullscreenVideo
+                  />
+                );
+              }
+              // URL directa (mp4) — thumbnail com fallback
+              return (
+                <View style={styles.videoPlayer}>
+                  {doc.cover_image_url ? (
+                    <Image source={{ uri: doc.cover_image_url }} style={styles.videoThumbnail} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.videoThumbnailFallback} />
+                  )}
+                  <View style={styles.videoPlayOverlay}>
+                    <Text style={styles.noMediaText}>Formato de vídeo não suportado no player</Text>
+                  </View>
                 </View>
-                {!player.isPlaying && (
-                  <Text style={styles.videoInstallHint}>
-                    {hasMedia ? "Toque para reproduzir" : "URL de média não definido"}
-                  </Text>
-                )}
-              </TouchableOpacity>
-              {/* Fullscreen button */}
-              <TouchableOpacity style={styles.fullscreenBtn} activeOpacity={0.8}>
-                <Ionicons name="expand-outline" size={20} color="white" />
-              </TouchableOpacity>
-            </View>
+              );
+            })()
           ) : (
             <View style={styles.videoPlayer}>
               <View style={styles.videoThumbnailFallback} />
@@ -296,29 +311,56 @@ export function MediaDetailScreen() {
 
             {/* Progress */}
             <View style={styles.progressRow}>
-              <Text style={styles.progressTime}>{formatDuration(player.position)}</Text>
+              <Text style={styles.progressTime}>{formatDuration(audioPlayer.position)}</Text>
               <View style={styles.progressBar}>
                 <View
                   style={[
                     styles.progressFill,
-                    { width: player.duration > 0 ? `${(player.position / player.duration) * 100}%` : "0%" },
+                    { width: audioPlayer.duration > 0 ? `${Math.min(100, (audioPlayer.position / audioPlayer.duration) * 100)}%` : "0%" },
                   ]}
                 />
               </View>
-              <Text style={styles.progressTime}>{formatDuration(player.duration)}</Text>
+              <Text style={styles.progressTime}>{formatDuration(audioPlayer.duration)}</Text>
             </View>
+
+            {/* Erro de carregamento */}
+            {audioPlayer.error && (
+              <Text style={styles.noMediaHint}>{audioPlayer.error}</Text>
+            )}
 
             {/* Controls */}
             <View style={styles.audioControls}>
-              <TouchableOpacity onPress={() => player.seek(Math.max(0, player.position - 15))} style={styles.skipBtn}>
+              <TouchableOpacity
+                onPress={() => void audioPlayer.seek(audioPlayer.position - 15)}
+                style={styles.skipBtn}
+                disabled={!doc.media_url}
+              >
                 <Ionicons name="play-back" size={26} color={appTheme.colors.textPrimary} />
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={player.togglePlay} style={styles.playBtnAudio} activeOpacity={0.85}>
-                <Ionicons name={player.isPlaying ? "pause" : "play"} size={30} color="white" style={!player.isPlaying ? { marginLeft: 4 } : undefined} />
+              <TouchableOpacity
+                onPress={() => doc.media_url && void audioPlayer.togglePlay(doc.media_url)}
+                style={[styles.playBtnAudio, !doc.media_url && { opacity: 0.4 }]}
+                activeOpacity={0.85}
+                disabled={!doc.media_url || audioPlayer.isLoading}
+              >
+                {audioPlayer.isLoading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Ionicons
+                    name={audioPlayer.isPlaying ? "pause" : "play"}
+                    size={30}
+                    color="white"
+                    style={!audioPlayer.isPlaying ? { marginLeft: 4 } : undefined}
+                  />
+                )}
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => player.seek(player.position + 30)} style={styles.skipBtn}>
+              <TouchableOpacity
+                onPress={() => void audioPlayer.seek(audioPlayer.position + 30)}
+                style={styles.skipBtn}
+                disabled={!doc.media_url}
+              >
                 <Ionicons name="play-forward" size={26} color={appTheme.colors.textPrimary} />
               </TouchableOpacity>
             </View>
@@ -373,7 +415,7 @@ export function MediaDetailScreen() {
               <Ionicons name="eye-outline" size={15} color={appTheme.colors.textMuted} />
               <Text style={styles.statText}>{doc.views_count.toLocaleString()} visualizações</Text>
             </View>
-            {doc.comments_count > 0 && (
+            {(doc.comments_count ?? 0) > 0 && (
               <View style={styles.stat}>
                 <Ionicons name="chatbubble-outline" size={15} color={appTheme.colors.textMuted} />
                 <Text style={styles.statText}>{doc.comments_count} comentários</Text>
@@ -498,6 +540,45 @@ export function MediaDetailScreen() {
           </>
         )}
 
+        {/* ── Quizzes relacionados ── */}
+        {relatedQuizzes.length > 0 && (
+          <>
+            <View style={styles.divider} />
+            <View style={styles.relatedBlock}>
+              <Text style={styles.sectionLabel}>QUIZZES RELACIONADOS</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quizList}>
+                {relatedQuizzes.slice(0, 5).map((quiz) => (
+                  <TouchableOpacity
+                    key={quiz.id}
+                    style={styles.quizCard}
+                    onPress={() => {
+                      if (!user) {
+                        navigation.navigate("LoginPrompt", { type: "quiz" });
+                      } else {
+                        navigation.navigate("Quiz", { quizId: quiz.id });
+                      }
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.quizCardTop}>
+                      <View style={[styles.diffDot, { backgroundColor: difficultyColor(quiz.difficulty) }]} />
+                      <Text style={[styles.quizDiff, { color: difficultyColor(quiz.difficulty) }]}>
+                        {quiz.difficulty}
+                      </Text>
+                    </View>
+                    <Text style={styles.quizCardTitle} numberOfLines={3}>{quiz.title}</Text>
+                    <View style={styles.quizCardFooter}>
+                      <Ionicons name="star-outline" size={12} color={appTheme.colors.textMuted} />
+                      <Text style={styles.quizCardMeta}>{quiz.base_points} pts</Text>
+                      <Feather name="arrow-right" size={14} color={appTheme.colors.primary} style={{ marginLeft: "auto" }} />
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </>
+        )}
+
         {/* ── Fóruns relacionados ── */}
         {relatedTopics.length > 0 && (
           <>
@@ -512,8 +593,8 @@ export function MediaDetailScreen() {
                     onPress={() => navigation.navigate("TopicDiscussion", { id: topic.id })}
                     activeOpacity={0.8}
                   >
-                    {topic.category?.color_bg && (
-                      <View style={[styles.topicCatBar, { backgroundColor: topic.category.color_bg }]} />
+                    {topic.category_color_bg && (
+                      <View style={[styles.topicCatBar, { backgroundColor: topic.category_color_bg }]} />
                     )}
                     <Text style={styles.topicTitle} numberOfLines={3}>{topic.title}</Text>
                     <View style={styles.topicMeta}>
@@ -966,6 +1047,57 @@ const styles = StyleSheet.create({
   relatedViews: {
     fontFamily: "Source_Sans_3",
     fontSize: 11,
+    color: appTheme.colors.textMuted,
+  },
+
+  // ── Quizzes ──
+  quizList: {
+    gap: 12,
+    paddingBottom: 4,
+  },
+  quizCard: {
+    width: 180,
+    backgroundColor: appTheme.colors.background,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+    padding: 14,
+    justifyContent: "space-between",
+    minHeight: 130,
+  },
+  quizCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  diffDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  quizDiff: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  quizCardTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 14,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    lineHeight: 20,
+    flex: 1,
+  },
+  quizCardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 10,
+  },
+  quizCardMeta: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 12,
     color: appTheme.colors.textMuted,
   },
 
