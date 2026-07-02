@@ -335,9 +335,19 @@ class DocumentController extends Controller
      *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
-     *          description="Detalhes do documento",
+     *          description="Documento recuperado com sucesso.",
      *          @OA\JsonContent(
-     *              @OA\Property(property="data", type="object"),
+     *              @OA\Property(property="data", type="object",
+     *                  @OA\Property(property="topics_count", type="integer"),
+     *                  @OA\Property(property="quizzes_count", type="integer"),
+     *                  @OA\Property(property="topics_preview", type="array", @OA\Items(type="object")),
+     *                  @OA\Property(property="quizzes", type="array", @OA\Items(type="object")),
+     *                  @OA\Property(property="learning", type="object",
+     *                      @OA\Property(property="documents_in_category", type="integer"),
+     *                      @OA\Property(property="related_quizzes", type="integer"),
+     *                      @OA\Property(property="related_topics", type="integer")
+     *                  )
+     *              ),
      *              @OA\Property(property="tags", type="array", @OA\Items(type="object")),
      *              @OA\Property(property="is_liked", type="boolean"),
      *              @OA\Property(property="is_favorited", type="boolean")
@@ -351,9 +361,25 @@ class DocumentController extends Controller
     public function show(string $id, Request $request): JsonResponse
 {
     $user = $request->user();
-    $document = Document::with(['category', 'accessLevel', 'createdBy.profile'])
-        ->withCount('topics')
-        ->find($id);
+    $document = Document::with([
+        'category' => function ($q) {
+            $q->withCount('documents');
+        },
+        'accessLevel',
+        'createdBy.profile',
+        'quizzes' => function ($q) {
+            $q->select('quizzes.id', 'quizzes.title', 'quizzes.difficulty', 'quizzes.time_limit_secs', 'quizzes.attempts_count', 'quizzes.avg_score', 'quizzes.status')
+              ->withCount('questions');
+        },
+        'topics' => function ($q) {
+            $q->select('id', 'document_id', 'author_id', 'title', 'replies_count', 'created_at')
+              ->with('author.profile')
+              ->orderByDesc('created_at')
+              ->limit(3);
+        }
+    ])
+    ->withCount(['topics', 'quizzes'])
+    ->find($id);
 
     if ($document === null) {
         return response()->json(['message' => 'Document not found.'], 404);

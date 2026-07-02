@@ -3456,12 +3456,46 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Detalhes do documento",
+                        "description": "Documento recuperado com sucesso.",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "data": {
+                                            "properties": {
+                                                "topics_count": {
+                                                    "type": "integer"
+                                                },
+                                                "quizzes_count": {
+                                                    "type": "integer"
+                                                },
+                                                "topics_preview": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "quizzes": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "learning": {
+                                                    "properties": {
+                                                        "documents_in_category": {
+                                                            "type": "integer"
+                                                        },
+                                                        "related_quizzes": {
+                                                            "type": "integer"
+                                                        },
+                                                        "related_topics": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
                                             "type": "object"
                                         },
                                         "tags": {
