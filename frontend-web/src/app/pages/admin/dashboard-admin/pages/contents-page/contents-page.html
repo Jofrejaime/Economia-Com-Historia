@@ -131,6 +131,9 @@
     <table class="contents-table">
       <thead>
         <tr>
+          <th style="width: 40px; text-align: center;">
+            <input type="checkbox" (change)="toggleSelectAll($event)" [checked]="isAllSelected()">
+          </th>
           <th>Título</th>
           <th>Categoria</th>
           <th>Autor</th>
@@ -144,9 +147,12 @@
       </thead>
       <tbody>
         <tr *ngIf="!loading && filteredDocuments.length === 0">
-          <td colspan="9" class="empty-row">Nenhum documento encontrado.</td>
+          <td colspan="10" class="empty-row">Nenhum documento encontrado.</td>
         </tr>
-        <tr *ngFor="let document of pagedDocuments">
+        <tr *ngFor="let document of pagedDocuments" [class.selected]="isDocumentSelected(document.id)">
+          <td style="text-align: center;">
+            <input type="checkbox" (change)="toggleSelectDocument(document.id)" [checked]="isDocumentSelected(document.id)">
+          </td>
           <td class="title-cell">
             <div class="title-content">
               <span class="title-text">{{ document.title }}</span>
@@ -390,6 +396,18 @@
           {{ saving ? 'A guardar...' : 'Guardar' }}
         </button>
       </div>
+    </div>
+  </div>
+
+  <div class="bulk-actions-bar" *ngIf="selectedDocumentIds.size > 0">
+    <span class="selected-count"><strong>{{ selectedDocumentIds.size }}</strong> selecionados</span>
+    <div class="actions-buttons">
+      <button class="btn-bulk" (click)="bulkPublish()">Publicar</button>
+      <button class="btn-bulk" (click)="bulkUnpublish()">Despublicar</button>
+      <button class="btn-bulk" (click)="bulkPin()">Destacar</button>
+      <button class="btn-bulk" (click)="bulkUnpin()">Desafixar</button>
+      <button class="btn-bulk btn-bulk-danger" (click)="bulkDelete()">Eliminar</button>
+      <button class="btn-bulk btn-bulk-secondary" (click)="clearSelection()">Cancelar</button>
     </div>
   </div>
 </div>

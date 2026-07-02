@@ -25,6 +25,7 @@ import { RequestsPageComponent } from './pages/admin/dashboard-admin/pages/reque
 import { AccessGrantsPageComponent } from './pages/admin/dashboard-admin/pages/access-grants-page/access-grants-page';
 import { UsersPageComponent } from './pages/admin/dashboard-admin/pages/users-page/users-page';
 import { CategoriesPageComponent } from './pages/admin/dashboard-admin/pages/categories-page/categories-page';
+import { TagsPageComponent } from './pages/admin/dashboard-admin/pages/tags-page/tags-page';
 import { ContentsPageComponent } from './pages/admin/dashboard-admin/pages/contents-page/contents-page';
 import { CommunityPageComponent } from './pages/admin/dashboard-admin/pages/community-page/community-page';
 import { SettingsPageComponent } from './pages/admin/dashboard-admin/pages/settings-page/settings-page';
@@ -70,6 +71,7 @@ export const routes: Routes = [
       { path: 'concessoes', component: AccessGrantsPageComponent },
       { path: 'utilizadores', component: UsersPageComponent },
       { path: 'categorias', component: CategoriesPageComponent },
+      { path: 'tags', component: TagsPageComponent },
       { path: 'conteudos', component: ContentsPageComponent },
       { path: 'comunidade', component: CommunityPageComponent },
       { path: 'configuracoes', component: SettingsPageComponent },

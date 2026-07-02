@@ -2,10 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { Category, CategoryCreatePayload } from '../../../../../models/community-admin.models';
-import { CommunityAdminService } from '../../../../../services/community-admin.service';
-
-type CategoryFilter = 'todos' | 'public' | 'jindungo' | 'restricted';
+import { DocumentCategory } from '../../../../../models/document-admin.models';
+import { DocumentAdminService } from '../../../../../services/document-admin.service';
 
 @Component({
   selector: 'app-categories-page',
@@ -16,29 +14,25 @@ type CategoryFilter = 'todos' | 'public' | 'jindungo' | 'restricted';
 })
 export class CategoriesPageComponent implements OnInit {
   searchQuery = '';
-  filterType: CategoryFilter = 'todos';
-  filterStatus = 'todos';
   loading = false;
   saving = false;
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
   showCategoryModal = false;
-  editingCategory: Category | null = null;
+  editingCategory: DocumentCategory | null = null;
 
   categoryForm: {
     slug: string;
     name: string;
     description: string;
-    access_level_id: 'public' | 'jindungo' | 'restricted';
     color_bg: string | null;
     color_text: string | null;
-    cover_image_url: string | null;
+    icon: string | null;
     sort_order: number;
-    is_active: boolean;
   } = this.createEmptyForm();
 
-  categories: Category[] = [];
+  categories: DocumentCategory[] = [];
 
   colorOptions = [
     { value: '#acf0e0', name: 'Verde água' },
@@ -50,32 +44,25 @@ export class CategoriesPageComponent implements OnInit {
     { value: '#d1fae5', name: 'Verde menta' },
   ];
 
-  constructor(private communityAdmin: CommunityAdminService) {}
+  constructor(private documentAdmin: DocumentAdminService) {}
 
   ngOnInit(): void {
     void this.loadCategories();
   }
 
-  get filteredCategories(): Category[] {
+  get filteredCategories(): DocumentCategory[] {
     return this.categories.filter((cat) => {
       const search = this.searchQuery.trim().toLowerCase();
-      const matchSearch = search === '' ||
+      return search === '' ||
         cat.name.toLowerCase().includes(search) ||
         (cat.description || '').toLowerCase().includes(search) ||
         cat.slug.toLowerCase().includes(search);
-      const matchType = this.filterType === 'todos' || cat.access_level_id === this.filterType;
-      const matchStatus = this.filterStatus === 'todos' ||
-        (this.filterStatus === 'active' ? cat.is_active === true : cat.is_active === false);
-      return matchSearch && matchType && matchStatus;
     });
   }
 
   getStats() {
     return {
       total: this.categories.length,
-      active: this.categories.filter((c) => c.is_active).length,
-      public: this.categories.filter((c) => c.access_level_id === 'public').length,
-      restricted: this.categories.filter((c) => c.access_level_id === 'restricted').length,
     };
   }
 
@@ -83,7 +70,7 @@ export class CategoriesPageComponent implements OnInit {
     this.loading = true;
     this.errorMessage = null;
 
-    const result = await firstValueFrom(this.communityAdmin.getCategories());
+    const result = await firstValueFrom(this.documentAdmin.getCategories());
 
     if (!result.ok || !result.data) {
       this.categories = [];
@@ -104,18 +91,16 @@ export class CategoriesPageComponent implements OnInit {
     this.successMessage = null;
   }
 
-  openEditCategoryModal(category: Category): void {
+  openEditCategoryModal(category: DocumentCategory): void {
     this.editingCategory = category;
     this.categoryForm = {
       slug: category.slug,
       name: category.name,
       description: category.description || '',
-      access_level_id: category.access_level_id === 'jindungo' ? 'jindungo' : category.access_level_id === 'restricted' ? 'restricted' : 'public',
-      color_bg: category.color_bg,
-      color_text: category.color_text,
-      cover_image_url: category.cover_image_url,
-      sort_order: category.sort_order,
-      is_active: category.is_active,
+      color_bg: category.color_bg || '#acf0e0',
+      color_text: category.color_text || '#000000',
+      icon: category.icon || null,
+      sort_order: category.sort_order || 0,
     };
     this.showCategoryModal = true;
     this.errorMessage = null;
@@ -137,55 +122,60 @@ export class CategoriesPageComponent implements OnInit {
       return;
     }
 
-    if (!this.categoryForm.description.trim()) {
-      this.errorMessage = 'Por favor, insira a descrição da categoria.';
-      return;
-    }
-
     this.saving = true;
     this.errorMessage = null;
     this.successMessage = null;
 
-    const payload: CategoryCreatePayload = {
+    const payload: Partial<DocumentCategory> = {
       slug: this.categoryForm.slug.trim() || this.generateSlug(this.categoryForm.name),
       name: this.categoryForm.name.trim(),
-      description: this.categoryForm.description.trim(),
-      access_level_id: this.categoryForm.access_level_id,
+      description: this.categoryForm.description.trim() || null,
       color_bg: this.categoryForm.color_bg,
       color_text: this.categoryForm.color_text,
-      cover_image_url: this.categoryForm.cover_image_url,
+      icon: this.categoryForm.icon,
       sort_order: this.categoryForm.sort_order,
     };
 
-    const result = await firstValueFrom(this.communityAdmin.createCategory(payload));
+    let result;
+    if (this.editingCategory) {
+      result = await firstValueFrom(this.documentAdmin.updateCategory(this.editingCategory.id, payload));
+    } else {
+      result = await firstValueFrom(this.documentAdmin.createCategory(payload));
+    }
 
     if (!result.ok || !result.data) {
-      this.errorMessage = result.message || 'Não foi possível criar a categoria.';
+      this.errorMessage = result.message || 'Não foi possível salvar a categoria.';
       this.saving = false;
       return;
     }
 
-    this.successMessage = result.message || 'Categoria criada com sucesso.';
+    this.successMessage = this.editingCategory ? 'Categoria actualizada com sucesso.' : 'Categoria criada com sucesso.';
     this.showCategoryModal = false;
+    this.editingCategory = null;
     await this.loadCategories();
     this.saving = false;
   }
 
-  deleteCategory(): void {
-    this.errorMessage = 'A remoção de categorias ainda não está disponível na API.';
-  }
+  async deleteCategory(category: DocumentCategory): Promise<void> {
+    if (!confirm(`Tem a certeza que deseja eliminar a categoria "${category.name}"?`)) {
+      return;
+    }
 
-  getTypeLabel(type: string): string {
-    const types: Record<string, string> = {
-      public: 'Público',
-      jindungo: 'Jindungo',
-      restricted: 'Restrito',
-    };
-    return types[type] || type;
-  }
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
 
-  getStatusLabel(isActive: boolean): string {
-    return isActive ? 'Ativo' : 'Inativo';
+    const result = await firstValueFrom(this.documentAdmin.deleteCategory(category.id));
+
+    if (!result.ok) {
+      this.errorMessage = result.message || 'Não foi possível eliminar a categoria.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = 'Categoria eliminada com sucesso.';
+    await this.loadCategories();
+    this.loading = false;
   }
 
   private createEmptyForm() {
@@ -193,12 +183,10 @@ export class CategoriesPageComponent implements OnInit {
       slug: '',
       name: '',
       description: '',
-      access_level_id: 'public' as const,
       color_bg: '#acf0e0',
       color_text: '#000000',
-      cover_image_url: null as string | null,
+      icon: null as string | null,
       sort_order: 0,
-      is_active: true,
     };
   }
 

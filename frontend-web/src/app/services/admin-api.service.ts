@@ -272,6 +272,43 @@ export class AdminApiService {
     );
   }
 
+  createUser(payload: Partial<AdminUser> & { password?: string; research_areas?: string[] }): Observable<ApiResult<AdminUser>> {
+    return this.http.post<ApiEnvelope<AdminUser>>(`${environment.apiBaseUrl}/api/admin/users`, payload, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AdminUser> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<AdminUser>(error, 'Erro ao criar utilizador')))
+    );
+  }
+
+  getUserProfile(id: string): Observable<ApiResult<any>> {
+    return this.http.get<ApiEnvelope<any>>(`${environment.apiBaseUrl}/api/admin/users/${id}/profile`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<any> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<any>(error, 'Erro ao carregar perfil de progresso')))
+    );
+  }
+
+  getUserSessions(id: string): Observable<ApiResult<any[]>> {
+    return this.http.get<ApiEnvelope<any[]>>(`${environment.apiBaseUrl}/api/admin/users/${id}/sessions`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<any[]> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        data: response.body?.data ?? [],
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<any[]>(error, 'Erro ao carregar sessões de auditoria')))
+    );
+  }
+
   private cleanParams(params?: Record<string, string | undefined>): Record<string, string> {
     const cleaned: Record<string, string> = {};
 

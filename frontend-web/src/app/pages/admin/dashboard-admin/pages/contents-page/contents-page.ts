@@ -43,6 +43,7 @@ export class ContentsPageComponent implements OnInit {
   accessLevels: AccessLevel[] = [];
   documents: DocumentView[] = [];
   selectedDocumentId: string | null = null;
+  selectedDocumentIds: Set<string> = new Set<string>();
 
   showDocumentModal = false;
   documentModalMode: 'view' | 'edit' = 'view';
@@ -148,7 +149,7 @@ export class ContentsPageComponent implements OnInit {
       return;
     }
 
-    this.documents = documentsResult.value.data.data.map((document) => this.toDocumentView(document));
+    this.documents = documentsResult.value.data.data.map((document: Document) => this.toDocumentView(document));
     this.currentPage = 1;
     this.selectedDocumentId = this.selectedDocumentId && this.documents.some((document) => document.id === this.selectedDocumentId)
       ? this.selectedDocumentId
@@ -374,5 +375,131 @@ export class ContentsPageComponent implements OnInit {
 
   getAccessLevelName(accessLevelId: string): string {
     return this.accessLevels.find((accessLevel) => accessLevel.id === accessLevelId)?.name || accessLevelId;
+  }
+
+  // ===== SELECTION AND BULK ACTIONS =====
+
+  toggleSelectDocument(id: string): void {
+    if (this.selectedDocumentIds.has(id)) {
+      this.selectedDocumentIds.delete(id);
+    } else {
+      this.selectedDocumentIds.add(id);
+    }
+  }
+
+  toggleSelectAll(event: any): void {
+    const checked = event.target.checked;
+    if (checked) {
+      this.pagedDocuments.forEach(doc => this.selectedDocumentIds.add(doc.id));
+    } else {
+      this.pagedDocuments.forEach(doc => this.selectedDocumentIds.delete(doc.id));
+    }
+  }
+
+  isAllSelected(): boolean {
+    const paged = this.pagedDocuments;
+    if (paged.length === 0) return false;
+    return paged.every(doc => this.selectedDocumentIds.has(doc.id));
+  }
+
+  isDocumentSelected(id: string): boolean {
+    return this.selectedDocumentIds.has(id);
+  }
+
+  clearSelection(): void {
+    this.selectedDocumentIds.clear();
+  }
+
+  async bulkPublish(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.publishDocument(id))));
+      this.successMessage = `${ids.length} documentos publicados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao publicar documentos.';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async bulkUnpublish(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.unpublishDocument(id))));
+      this.successMessage = `${ids.length} documentos despublicados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao despublicar documentos.';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async bulkPin(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.pinDocument(id))));
+      this.successMessage = `${ids.length} documentos destacados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao destacar documentos.';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async bulkUnpin(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.unpinDocument(id))));
+      this.successMessage = `${ids.length} documentos desafixados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao desafixar documentos.';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async bulkDelete(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    if (!confirm(`Tem a certeza que deseja eliminar permanentemente os ${this.selectedDocumentIds.size} documentos selecionados?`)) {
+      return;
+    }
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.deleteDocument(id))));
+      this.successMessage = `${ids.length} documentos eliminados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao eliminar documentos.';
+    } finally {
+      this.loading = false;
+    }
   }
 }
