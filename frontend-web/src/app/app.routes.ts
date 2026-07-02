@@ -16,6 +16,7 @@ import { DiscussionThreadComponent } from './pages/forum/discussion-thread/discu
 import { HomeVisitorComponent } from './pages/home/home-visitor/home-visitor';
 import { CategoryViewComponent } from './pages/forum/category-view/category-view';
 import { CategoryDetailComponent } from './pages/forum/category-detail/category-detail';
+import { AccessLevelsPageComponent } from './pages/admin/dashboard-admin/pages/access-levels-page/access-levels-page';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
 import { adminGuard } from './guards/admin.guard';
@@ -80,7 +81,8 @@ export const routes: Routes = [
       // ===== NOVAS ROTAS =====
       { path: 'niveis', component: LevelsPageComponent },
       { path: 'badges', component: BadgesPageComponent },
-      { path: 'notificacoes', component: NotificationsPageComponent }
+      { path: 'notificacoes', component: NotificationsPageComponent },
+      { path: 'niveis-acesso', component: AccessLevelsPageComponent },
     ]
   },
   { path: 'notificacoes', canActivate: [authGuard], component: UserNotificationsComponent },

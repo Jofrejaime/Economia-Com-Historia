@@ -1,5 +1,5 @@
 <div class="settings-container">
-  
+
   <!-- Page Header -->
   <div class="page-header">
     <div>
@@ -8,121 +8,78 @@
     </div>
   </div>
 
-  <!-- Settings Form -->
-  <div class="settings-form">
-    
-    <!-- General Settings -->
-    <div class="settings-section">
-      <h2 class="section-title">Configurações Gerais</h2>
-      <div class="form-group">
-        <label>Nome do Site</label>
-        <input type="text" [(ngModel)]="siteName" class="form-input">
-      </div>
-      <div class="form-group">
-        <label>Descrição</label>
-        <textarea [(ngModel)]="siteDescription" rows="3" class="form-input"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Email de Contacto</label>
-        <input type="email" [(ngModel)]="contactEmail" class="form-input">
-      </div>
-    </div>
+  <!-- Erro -->
+  <div *ngIf="error" style="padding:16px;background:#fef2f2;color:#dc2626;border-radius:8px;margin-bottom:20px;">
+    {{ error }}
+  </div>
 
-    <!-- Security Settings -->
-    <div class="settings-section">
-      <h2 class="section-title">Segurança</h2>
-      <div class="form-group toggle">
-        <div class="toggle-label">
-          <span class="toggle-title">Autenticação de Dois Factores</span>
-          <span class="toggle-desc">Requerer código adicional no login</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" [(ngModel)]="twoFactorAuth">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="form-group">
-        <label>Tempo de Sessão (minutos)</label>
-        <input type="number" [(ngModel)]="sessionTimeout" class="form-input form-input-sm">
-      </div>
-      <div class="form-group">
-        <label>Tentativas de Login máximas</label>
-        <input type="number" [(ngModel)]="maxLoginAttempts" class="form-input form-input-sm">
-      </div>
-    </div>
+  <!-- Loading -->
+  <div *ngIf="loading" style="text-align:center; padding:40px; color:#64748b;">
+    A carregar configurações...
+  </div>
 
-    <!-- Notification Settings -->
-    <div class="settings-section">
-      <h2 class="section-title">Notificações</h2>
-      <div class="form-group toggle">
-        <div class="toggle-label">
-          <span class="toggle-title">Notificações por Email</span>
-          <span class="toggle-desc">Receber alertas por email</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" [(ngModel)]="emailNotifications">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="form-group toggle">
-        <div class="toggle-label">
-          <span class="toggle-title">Alertas do Sistema</span>
-          <span class="toggle-desc">Notificações sobre atividades do sistema</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" [(ngModel)]="systemAlerts">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="form-group toggle">
-        <div class="toggle-label">
-          <span class="toggle-title">Resumo Semanal</span>
-          <span class="toggle-desc">Receber resumo de atividades semanais</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" [(ngModel)]="weeklyDigest">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-    </div>
+  <!-- Empty -->
+  <div *ngIf="!loading && settings.length === 0 && !error" style="text-align:center; padding:40px; color:#64748b;">
+    Nenhuma configuração disponível.
+  </div>
 
-    <!-- Content Settings -->
-    <div class="settings-section">
-      <h2 class="section-title">Conteúdos</h2>
-      <div class="form-group toggle">
-        <div class="toggle-label">
-          <span class="toggle-title">Aprovação Automática</span>
-          <span class="toggle-desc">Publicar conteúdos sem revisão</span>
+  <!-- Settings Form (dinâmico, agrupado por group vindo do backend) -->
+  <div class="settings-form" *ngIf="!loading && settings.length > 0">
+
+    <div class="settings-section" *ngFor="let grouped of groupedSettings; trackBy: trackByGroup">
+      <h2 class="section-title">{{ grouped.label }}</h2>
+
+      <div *ngFor="let setting of grouped.items; trackBy: trackBySettingKey">
+
+        <!-- Boolean → toggle -->
+        <div class="form-group toggle" *ngIf="setting.type === 'boolean'">
+          <div class="toggle-label">
+            <span class="toggle-title">{{ setting.description || setting.key }}</span>
+            <span class="toggle-desc" *ngIf="setting.draftValue !== setting.originalValue">Alteração não guardada</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="setting.draftValue" (ngModelChange)="onFieldChanged(setting)">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <label class="toggle-switch">
-          <input type="checkbox" [(ngModel)]="autoApproveContent">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="form-group toggle">
-        <div class="toggle-label">
-          <span class="toggle-title">Revisão por Pares</span>
-          <span class="toggle-desc">Requerer revisão antes da publicação</span>
+
+        <!-- Integer / Float → number -->
+        <div class="form-group" *ngIf="setting.type === 'integer' || setting.type === 'float'">
+          <label>
+            {{ setting.description || setting.key }}
+            <span *ngIf="setting.draftValue !== setting.originalValue" style="color:#8B1E2D; font-size:12px;"> (alterado)</span>
+          </label>
+          <input type="number" [(ngModel)]="setting.draftValue" (ngModelChange)="onFieldChanged(setting)"
+                 class="form-input form-input-sm" [step]="setting.type === 'float' ? 0.1 : 1">
         </div>
-        <label class="toggle-switch">
-          <input type="checkbox" [(ngModel)]="requirePeerReview">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="form-group">
-        <label>Tamanho máximo de ficheiro (MB)</label>
-        <input type="number" [(ngModel)]="maxFileSize" class="form-input form-input-sm">
-      </div>
-      <div class="form-group">
-        <label>Tipos de ficheiro permitidos</label>
-        <input type="text" [(ngModel)]="allowedFileTypes" class="form-input">
+
+        <!-- JSON → textarea -->
+        <div class="form-group" *ngIf="setting.type === 'json'">
+          <label>
+            {{ setting.description || setting.key }}
+            <span *ngIf="setting.draftValue !== setting.originalValue" style="color:#8B1E2D; font-size:12px;"> (alterado)</span>
+          </label>
+          <textarea [(ngModel)]="setting.draftValue" (ngModelChange)="onFieldChanged(setting)" rows="3" class="form-input"></textarea>
+        </div>
+
+        <!-- String (default) → text -->
+        <div class="form-group" *ngIf="setting.type === 'string'">
+          <label>
+            {{ setting.description || setting.key }}
+            <span *ngIf="setting.draftValue !== setting.originalValue" style="color:#8B1E2D; font-size:12px;"> (alterado)</span>
+          </label>
+          <input type="text" [(ngModel)]="setting.draftValue" (ngModelChange)="onFieldChanged(setting)" class="form-input">
+        </div>
+
       </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="form-actions">
-      <button class="btn-save" (click)="saveSettings()">Guardar Configurações</button>
-      <button class="btn-reset" (click)="resetSettings()">Repor Padrões</button>
+      <button class="btn-save" (click)="saveSettings()" [disabled]="saving || !hasAnyChanges">
+        {{ saving ? 'A guardar...' : 'Guardar Configurações' }}
+      </button>
+      <button class="btn-reset" (click)="resetChanges()" [disabled]="!hasAnyChanges">Descartar Alterações</button>
     </div>
   </div>
 </div>
