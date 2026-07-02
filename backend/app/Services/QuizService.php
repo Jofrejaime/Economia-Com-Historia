@@ -7,11 +7,26 @@ use App\Exceptions\QuizNotFoundException;
 use App\Exceptions\InvalidQuizTransitionException;
 use App\Models\Quiz;
 use App\Models\User;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class QuizService
 {
+    /**
+     * Campos exclusivos da máquina de estados (publish/review/archive).
+     * Nunca podem ser persistidos por um update genérico — mesmo que um
+     * Controller futuro os envie por engano, o Service continua a bloqueá-los.
+     */
+    private const STATE_MACHINE_PROTECTED_FIELDS = [
+        'status',
+        'published_at',
+        'published_by',
+        'reviewed_by',
+        'archived_by',
+        'archived_at',
+    ];
+
     private const ALLOWED_TRANSITIONS = [
         'publish' => [
             QuizStatus::DRAFT,
@@ -157,7 +172,11 @@ class QuizService
     public function update(Quiz $quiz, array $validated): Quiz
     {
         DB::transaction(function () use ($quiz, $validated) {
-            $quizData = collect($validated)->except(['questions', 'documents'])->all();
+            $quizData = Arr::except($validated, [
+                'questions',
+                'documents',
+                ...self::STATE_MACHINE_PROTECTED_FIELDS,
+            ]);
             $quizData['updated_at'] = now();
 
             DB::table('quizzes')->where('id', $quiz->id)->update($quizData);

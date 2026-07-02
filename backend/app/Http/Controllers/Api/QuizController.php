@@ -8,24 +8,24 @@ use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Services\AccessGateService;
-use App\Services\GamificationService;
 use App\Services\QuizAttemptService;
 use App\Services\QuizDocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
-use App\Services\QuizService;
-
+/**
+ * Endpoints de leitura + participação em Quizzes (qualquer utilizador
+ * autenticado). A gestão administrativa (CRUD, transições de estado,
+ * sincronização de documentos) vive exclusivamente em QuizAdminController,
+ * sob as rotas /admin/quizzes — ver routes/api.php.
+ */
 class QuizController extends Controller
 {
     public function __construct(
-        private readonly GamificationService  $gamification,
         private readonly AccessGateService    $accessGate,
         private readonly QuizAttemptService   $attemptService,
         private readonly QuizDocumentService  $quizDocuments,
-        private readonly QuizService          $quizService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -66,52 +66,6 @@ class QuizController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'module' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'cover_image_url' => ['nullable', 'string', 'url', 'max:500'],
-            'difficulty' => ['nullable', 'string', 'in:Básico,Intermédio,Avançado'],
-            'base_points' => ['nullable', 'integer', 'min:0'],
-            'time_limit_secs' => ['nullable', 'integer', 'min:0'],
-            'access_level_id' => ['nullable', 'string', 'exists:access_levels,id'],
-            'is_featured' => ['nullable', 'boolean'],
-            'status' => ['nullable', \Illuminate\Validation\Rule::enum(\App\Enums\QuizStatus::class)],
-            'category_id' => ['nullable', 'uuid', 'exists:document_categories,id'],
-            'questions' => ['nullable', 'array'],
-            'questions.*.id' => ['nullable', 'uuid'],
-            'questions.*.question_order' => ['required', 'integer'],
-            'questions.*.title' => ['required', 'string'],
-            'questions.*.subtitle' => ['nullable', 'string'],
-            'questions.*.module_label' => ['nullable', 'string'],
-            'questions.*.question_type' => ['nullable', 'string', 'in:multiple_choice'],
-            'questions.*.points' => ['nullable', 'integer', 'min:0'],
-            'questions.*.hint_title' => ['nullable', 'string'],
-            'questions.*.hint_quote' => ['nullable', 'string'],
-            'questions.*.expert_name' => ['nullable', 'string'],
-            'questions.*.expert_role' => ['nullable', 'string'],
-            'questions.*.reading_title' => ['nullable', 'string'],
-            'questions.*.reading_text' => ['nullable', 'string'],
-            'questions.*.options' => ['required_with:questions', 'array', 'min:2'],
-            'questions.*.options.*.id' => ['nullable', 'uuid'],
-            'questions.*.options.*.option_key' => ['required', 'string', 'size:1'],
-            'questions.*.options.*.text' => ['required', 'string'],
-            'questions.*.options.*.is_correct' => ['required', 'boolean'],
-            'questions.*.options.*.explanation' => ['nullable', 'string'],
-            'documents'   => ['nullable', 'array'],
-            'documents.*' => ['nullable', 'uuid', 'exists:documents,id'],
-        ]);
-
-        $quiz = $this->quizService->store($validated, $request->user());
-
-        return response()->json([
-            'message' => 'Quiz created successfully.',
-            'data' => $quiz,
-        ], 201);
-    }
-
     public function show(string $id, Request $request): JsonResponse
     {
         $quiz = DB::table('quizzes')->where('id', $id)->first();
@@ -120,69 +74,6 @@ class QuizController extends Controller
         }
         $this->checkQuizAccess($quiz, $request->user());
         return response()->json(['data' => $quiz]);
-    }
-
-    public function update(string $id, Request $request): JsonResponse
-    {
-        $quiz = Quiz::find($id);
-        if ($quiz === null) {
-            abort(404, 'Quiz not found.');
-        }
-
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'module' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'cover_image_url' => ['nullable', 'string', 'url', 'max:500'],
-            'difficulty' => ['nullable', 'string', 'in:Básico,Intermédio,Avançado'],
-            'base_points' => ['nullable', 'integer', 'min:0'],
-            'time_limit_secs' => ['nullable', 'integer', 'min:0'],
-            'access_level_id' => ['nullable', 'string', 'exists:access_levels,id'],
-            'is_featured' => ['nullable', 'boolean'],
-            'status' => ['nullable', \Illuminate\Validation\Rule::enum(\App\Enums\QuizStatus::class)],
-            'category_id' => ['nullable', 'uuid', 'exists:document_categories,id'],
-            'questions' => ['nullable', 'array'],
-            'questions.*.id' => ['nullable', 'uuid'],
-            'questions.*.question_order' => ['required', 'integer'],
-            'questions.*.title' => ['required', 'string'],
-            'questions.*.subtitle' => ['nullable', 'string'],
-            'questions.*.module_label' => ['nullable', 'string'],
-            'questions.*.question_type' => ['nullable', 'string', 'in:multiple_choice'],
-            'questions.*.points' => ['nullable', 'integer', 'min:0'],
-            'questions.*.hint_title' => ['nullable', 'string'],
-            'questions.*.hint_quote' => ['nullable', 'string'],
-            'questions.*.expert_name' => ['nullable', 'string'],
-            'questions.*.expert_role' => ['nullable', 'string'],
-            'questions.*.reading_title' => ['nullable', 'string'],
-            'questions.*.reading_text' => ['nullable', 'string'],
-            'questions.*.options' => ['required_with:questions', 'array', 'min:2'],
-            'questions.*.options.*.id' => ['nullable', 'uuid'],
-            'questions.*.options.*.option_key' => ['required', 'string', 'size:1'],
-            'questions.*.options.*.text' => ['required', 'string'],
-            'questions.*.options.*.is_correct' => ['required', 'boolean'],
-            'questions.*.options.*.explanation' => ['nullable', 'string'],
-            'documents'   => ['nullable', 'array'],
-            'documents.*' => ['nullable', 'uuid', 'exists:documents,id'],
-        ]);
-
-        $updatedQuiz = $this->quizService->update($quiz, $validated);
-
-        return response()->json([
-            'message' => 'Quiz updated successfully.',
-            'data' => $updatedQuiz,
-        ]);
-    }
-
-    public function destroy(string $id): JsonResponse
-    {
-        $quiz = Quiz::find($id);
-        if ($quiz === null) {
-            abort(404, 'Quiz not found.');
-        }
-
-        $this->quizService->destroy($quiz);
-
-        return response()->json(['message' => 'Quiz deleted successfully.']);
     }
 
     /**
@@ -376,52 +267,19 @@ class QuizController extends Controller
         ]);
     }
 
-    public function syncDocuments(string $id, Request $request): JsonResponse
-    {
-        $quiz = DB::table('quizzes')->where('id', $id)->first();
-        if ($quiz === null) {
-            abort(404, 'Quiz not found.');
-        }
-
-        $validated = $request->validate([
-            'documents'   => ['present', 'array'],
-            'documents.*' => ['uuid', 'exists:documents,id'],
-        ]);
-
-        $this->quizDocuments->syncDocuments($id, $validated['documents']);
-
-        return response()->json([
-            'message' => 'Documents synced successfully.',
-            'count'   => count($validated['documents']),
-        ]);
-    }
-
-    public function detachDocument(string $id, string $documentId): JsonResponse
-    {
-        $quiz = DB::table('quizzes')->where('id', $id)->first();
-        if ($quiz === null) {
-            abort(404, 'Quiz not found.');
-        }
-
-        if (!$this->quizDocuments->detachDocument($id, $documentId)) {
-            return response()->json(['message' => 'Document not associated with this quiz.'], 404);
-        }
-
-        return response()->json(['message' => 'Document removed from quiz.']);
-    }
-
+    /**
+     * O bypass de admin já é feito internamente por AccessGateService::canAccess()
+     * — não repetir aqui a verificação de role (mecanismo de autorização
+     * centralizado, ver AccessGateService::bypassesAccessChecks()).
+     */
     private function checkQuizAccess(object $quiz, ?User $user): void
-{
-    if ($user !== null && $user->role === 'admin') {
-        return;
-    }
+    {
+        if ($user !== null && $quiz->created_by === $user->id) {
+            return;
+        }
 
-    if ($user !== null && $quiz->created_by === $user->id) {
-        return;
+        if ($user === null || !$this->accessGate->canAccess($user, $quiz->access_level_id)) {
+            abort(403, 'Access denied.');
+        }
     }
-
-    if (!$this->accessGate->canAccess($user, $quiz->access_level_id)) {
-        abort(403, 'Access denied.');
-    }
-}
 }

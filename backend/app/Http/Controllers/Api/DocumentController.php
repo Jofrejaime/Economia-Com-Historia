@@ -172,7 +172,12 @@ class DocumentController extends Controller
             'al.color_text as access_level_color_text',
             'up.display_name as author_display_name',
             'up.avatar_url as author_avatar_url'
-        );
+        )
+        ->addSelect([
+            'topics_count' => DB::table('discussion_topics')
+                ->whereColumn('document_id', 'd.id')
+                ->selectRaw('count(*)')
+        ]);
 
     if ($request->filled('q')) {
         $term = $request->string('q')->toString();
@@ -281,7 +286,12 @@ class DocumentController extends Controller
             'dc.slug as category_slug',
             'al.name as access_level_name',
             'up.display_name as author_display_name'
-        );
+        )
+        ->addSelect([
+            'topics_count' => DB::table('discussion_topics')
+                ->whereColumn('document_id', 'd.id')
+                ->selectRaw('count(*)')
+        ]);
 
     if ($term !== '') {
         $query->where(function ($builder) use ($term): void {
@@ -341,7 +351,9 @@ class DocumentController extends Controller
     public function show(string $id, Request $request): JsonResponse
 {
     $user = $request->user();
-    $document = Document::with(['category', 'accessLevel', 'createdBy.profile'])->find($id);
+    $document = Document::with(['category', 'accessLevel', 'createdBy.profile'])
+        ->withCount('topics')
+        ->find($id);
 
     if ($document === null) {
         return response()->json(['message' => 'Document not found.'], 404);

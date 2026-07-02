@@ -18,6 +18,7 @@ class DiscussionTopic extends Model
 
     protected $fillable = [
         'category_id',
+        'document_id',
         'author_id',
         'title',
         'content',
@@ -49,6 +50,15 @@ class DiscussionTopic extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(CommunityCategory::class, 'category_id');
+    }
+
+    /**
+     * Documento contextual da discussão (Sprint 17.3). Opcional — uma
+     * discussão pode não estar associada a nenhum documento (discussão geral).
+     */
+    public function document(): BelongsTo
+    {
+        return $this->belongsTo(Document::class, 'document_id');
     }
 
     public function author(): BelongsTo
