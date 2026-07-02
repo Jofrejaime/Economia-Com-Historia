@@ -1,233 +1,355 @@
 <div class="contents-view-page">
-  
-  <!-- Header -->
+
   <app-header></app-header>
 
   <main class="contents-view-main">
 
-
     <!-- Erro -->
-<div *ngIf="error" style="text-align:center;padding:80px;color:#991B1B">
-  {{ error }}
-</div>
-
-<!-- Skeleton -->
-<div *ngIf="!doc && !error" style="text-align:center;padding:80px;color:#9CA3AF;font-size:15px;font-family:'Source Sans 3',sans-serif">
-  A carregar documento...
-</div>
-
-<ng-container *ngIf="doc && !error">
-
-  <!-- Breadcrumbs -->
-  <div class="contents-view-breadcrumbs">
-    <div class="contents-view-breadcrumbs-inner">
-      <button (click)="navigateTo('/contents')" class="contents-view-breadcrumb-btn">Conteúdos</button>
-      <span class="contents-view-breadcrumb-separator">
-        <svg width="3" height="5" viewBox="0 0 3 5" fill="none"><path d="M0.5 0.5L2.5 2.5L0.5 4.5" stroke="#9CA3AF" stroke-linecap="round"/></svg>
-      </span>
-      <span class="contents-view-breadcrumb-current">{{ doc.title | uppercase }}</span>
+    <div *ngIf="error" style="text-align:center;padding:80px;color:#991B1B">
+      {{ error }}
     </div>
-  </div>
 
-  <!-- Hero Section -->
-<div class="contents-view-hero">
-  <div class="contents-view-hero-image">
-    <img *ngIf="hasDocumentImage()" [alt]="doc.title" [src]="getDocumentImage()" />
-    <div *ngIf="!hasDocumentImage()" class="contents-view-hero-placeholder"></div>
-    <div class="contents-view-hero-overlay"></div>
-  </div>
-  <div class="contents-view-hero-gradient"></div>
-  <div class="contents-view-hero-content">
-    <div class="contents-view-hero-inner">
-      <div class="contents-view-hero-tags">
-        <div class="contents-view-hero-tag" *ngIf="doc.category_name">
-          <span>{{ doc.category_name | uppercase }}</span>
-        </div>
-        <div class="contents-view-hero-tag" *ngIf="doc.period_start">
-          <span>{{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}</span>
-        </div>
-        <div class="contents-view-hero-tag" *ngIf="!doc.period_start && doc.publication_date">
-          <span>{{ doc.publication_date | date:'yyyy' }}</span>
+    <!-- Skeleton -->
+    <div *ngIf="!doc && !error" style="text-align:center;padding:80px;color:#9CA3AF;font-size:15px;font-family:'Source Sans 3',sans-serif">
+      A carregar documento...
+    </div>
+
+    <ng-container *ngIf="doc && !error">
+
+      <!-- Breadcrumbs -->
+      <div class="contents-view-breadcrumbs">
+        <div class="contents-view-breadcrumbs-inner">
+          <button (click)="navigateTo('/contents')" class="contents-view-breadcrumb-btn">Conteúdos</button>
+          <span class="contents-view-breadcrumb-separator">
+            <svg width="3" height="5" viewBox="0 0 3 5" fill="none"><path d="M0.5 0.5L2.5 2.5L0.5 4.5" stroke="#9CA3AF" stroke-linecap="round"/></svg>
+          </span>
+          <span class="contents-view-breadcrumb-current">{{ doc.title | uppercase }}</span>
         </div>
       </div>
-      <h1 class="contents-view-hero-title">{{ doc.title }}</h1>
-    </div>
-  </div>
-</div>
 
-  <!-- Two-Column Layout -->
-  <div class="contents-view-layout">
-    <div class="contents-view-grid">
-      
-      <!-- Left Column -->
-      <div class="contents-view-main-content">
-        
-        <section class="contents-view-section">
-          <h2 class="contents-view-section-title">Resumo Executivo</h2>
-          <p class="contents-view-section-text">{{ doc.summary }}</p>
-        </section>
-
-        <section class="contents-view-section" *ngIf="doc.content">
-          <h2 class="contents-view-section-title">Conteúdo</h2>
-          <p class="contents-view-section-text" style="white-space: pre-line;">{{ doc.content }}</p>
-        </section>
-
-        <section class="contents-view-section" *ngIf="doc.tags && doc.tags.length > 0">
-          <h2 class="contents-view-section-title">Temas</h2>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-            <span *ngFor="let tag of doc.tags"
-                  style="background:#f1f5f9;padding:4px 12px;border-radius:20px;font-size:13px;color:#475569">
-              {{ tag.name }}
-            </span>
+      <!-- Hero Section -->
+      <div class="contents-view-hero">
+        <div class="contents-view-hero-image">
+          <img *ngIf="hasDocumentImage()" [alt]="doc.title" [src]="getDocumentImage()" />
+          <div *ngIf="!hasDocumentImage()" class="contents-view-hero-placeholder"></div>
+          <div class="contents-view-hero-overlay"></div>
+        </div>
+        <div class="contents-view-hero-gradient"></div>
+        <div class="contents-view-hero-content">
+          <div class="contents-view-hero-inner">
+            <div class="contents-view-hero-tags">
+              <div class="contents-view-hero-tag" *ngIf="doc.category_name">
+                <span>{{ doc.category_name | uppercase }}</span>
+              </div>
+              <div class="contents-view-hero-tag">
+                <span>{{ mediaKind | uppercase }}</span>
+              </div>
+              <div class="contents-view-hero-tag" *ngIf="doc.period_start">
+                <span>{{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}</span>
+              </div>
+              <div class="contents-view-hero-tag" *ngIf="!doc.period_start && doc.publication_date">
+                <span>{{ doc.publication_date | date:'yyyy' }}</span>
+              </div>
+            </div>
+            <h1 class="contents-view-hero-title">{{ doc.title }}</h1>
           </div>
-        </section>
-      </div>
-
-      <!-- Right Column - Sidebar -->
-      <div class="contents-view-sidebar">
-        
-      <div class="contents-view-doc-card">
-  <div class="contents-view-doc-actions">
-    <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
-            [class.active]="doc.is_liked"
-            (click)="toggleLike()">
-      <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="doc.is_liked ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 17.83 12H14V6a2 2 0 0 0-2-2l-3 7H2Z"></path>
-      </svg>
-      <span>{{ doc.is_liked ? 'Gostei' : 'Gostar' }}{{ doc.likes_count ? ' · ' + doc.likes_count : '' }}</span>
-    </button>
-
-    <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
-            [class.active]="doc.is_favorited"
-            (click)="toggleFavorite()">
-      <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="doc.is_favorited ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"></path>
-      </svg>
-      <span>{{ doc.is_favorited ? 'Guardado' : 'Guardar' }}</span>
-    </button>
-  </div>
-</div>
-
-        <div class="contents-view-metadata">
-  <h3 class="contents-view-metadata-title">METADADOS DO ARQUIVO</h3>
-  <div class="contents-view-metadata-list">
-
-    <div class="contents-view-metadata-item contents-view-metadata-item--full">
-      <div class="contents-view-metadata-label">AUTOR</div>
-      <div class="contents-view-metadata-value">{{ doc.author ?? '—' }}</div>
-    </div>
-
-    <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.institution">
-      <div class="contents-view-metadata-label">INSTITUIÇÃO</div>
-      <div class="contents-view-metadata-value">{{ doc.institution }}</div>
-    </div>
-
-    <div class="contents-view-metadata-item">
-      <div class="contents-view-metadata-label">DATA DE EMISSÃO</div>
-      <div class="contents-view-metadata-value">{{ formatDate(doc.publication_date) }}</div>
-    </div>
-
-    <div class="contents-view-metadata-item" *ngIf="doc.period_start">
-      <div class="contents-view-metadata-label">PERÍODO HISTÓRICO</div>
-      <div class="contents-view-metadata-value">
-        {{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}
-      </div>
-    </div>
-
-    <div class="contents-view-metadata-item">
-      <div class="contents-view-metadata-label">TIPO DE DOCUMENTO</div>
-      <div class="contents-view-metadata-value">{{ doc.document_type ?? '—' }}</div>
-    </div>
-
-    <div class="contents-view-metadata-item" *ngIf="doc.record_type">
-      <div class="contents-view-metadata-label">TIPO DE REGISTO</div>
-      <div class="contents-view-metadata-value">{{ doc.record_type }}</div>
-    </div>
-
-    <div class="contents-view-metadata-item">
-      <div class="contents-view-metadata-label">NÍVEL ACADÉMICO</div>
-      <div class="contents-view-metadata-value">{{ getAcademicLevelLabel() }}</div>
-    </div>
-
-    <div class="contents-view-metadata-item">
-      <div class="contents-view-metadata-label">NÍVEL DE ACESSO</div>
-      <div class="contents-view-metadata-value">{{ doc.access_level_id ?? '—' }}</div>
-    </div>
-
-    <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.physical_location">
-      <div class="contents-view-metadata-label">LOCALIZAÇÃO FÍSICA</div>
-      <div class="contents-view-metadata-value">{{ doc.physical_location }}</div>
-    </div>
-
-    <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.unique_id">
-      <div class="contents-view-metadata-label">ID ÚNICO</div>
-      <div class="contents-view-metadata-value" style="font-family:monospace">{{ doc.unique_id }}</div>
-    </div>
-
-  </div>
-
-  <div class="contents-view-metadata-stats">
-    <div class="contents-view-metadata-stat">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 17.83 12H14V6a2 2 0 0 0-2-2l-3 7H2Z"></path>
-      </svg>
-      <span>{{ doc.likes_count }}</span>
-    </div>
-    <div class="contents-view-metadata-stat">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3v12"></path>
-        <path d="m7 10 5 5 5-5"></path>
-        <path d="M5 21h14"></path>
-      </svg>
-      <span>{{ doc.downloads_count }}</span>
-    </div>
-    <div class="contents-view-metadata-stat">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
-        <circle cx="12" cy="12" r="3"></circle>
-      </svg>
-      <span>{{ doc.views_count }}</span>
-    </div>
-  </div>
-</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Discussion Section -->
-  <div class="contents-view-discussion">
-    <div class="contents-view-discussion-inner">
-      
-      <div class="contents-view-discussion-header">
-        <div class="contents-view-discussion-title-group">
-          <div class="contents-view-discussion-badge">COMUNIDADE</div>
-          <h2 class="contents-view-discussion-title">Discussão Académica</h2>
-          <p class="contents-view-discussion-subtitle">Comentários recentes de investigadores da rede.</p>
-        </div>
-        <div class="contents-view-discussion-actions">
-          <button (click)="navigateTo('/quiz')" class="contents-view-discussion-btn contents-view-discussion-btn-primary">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5">
-              <path d="M8 3V13M3 8H13"/>
-            </svg>
-            <span style="color: #ffffff;">Fazer Quiz</span>
-          </button>
-          <button (click)="navigateTo('/forum/community')" class="contents-view-discussion-btn-link">
-            <span>Discutir na Comunidade</span>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="#8B1E2D">
-              <path d="M6 3L11 8L6 13" stroke="#8B1E2D" stroke-width="1.5"/>
-            </svg>
-          </button>
         </div>
       </div>
 
-      <div *ngIf="!isAuthenticated" style="text-align:center;padding:40px;color:#64748b">
-        <p>Faz <a routerLink="/auth/login" style="color:#8B1E2D">login</a> para participar na discussão.</p>
+      <!-- Two-Column Layout -->
+      <div class="contents-view-layout">
+        <div class="contents-view-grid">
+
+          <!-- Left Column -->
+          <div class="contents-view-main-content">
+
+            <section class="contents-view-section">
+              <h2 class="contents-view-section-title">Resumo Executivo</h2>
+              <p class="contents-view-section-text">{{ doc.summary }}</p>
+            </section>
+
+            <!-- Conteúdo — renderização condicional por tipo de media -->
+            <section class="contents-view-section">
+              <h2 class="contents-view-section-title">Conteúdo</h2>
+
+              <!-- TEXT -->
+              <p *ngIf="mediaKind === 'text' && doc.content" class="contents-view-section-text" style="white-space: pre-line;">{{ doc.content }}</p>
+
+              <!-- IMAGE (já mostrada no hero; mostra descrição se existir conteúdo textual associado) -->
+              <p *ngIf="mediaKind === 'image' && doc.content" class="contents-view-section-text" style="white-space: pre-line;">{{ doc.content }}</p>
+
+              <!-- AUDIO -->
+              <div *ngIf="mediaKind === 'audio' && mediaUrl" style="background:#F5F5F5;border-radius:8px;padding:24px;">
+                <audio [src]="mediaUrl" controls style="width:100%;"></audio>
+                <p *ngIf="doc.content" class="contents-view-section-text" style="margin-top:16px;white-space: pre-line;">{{ doc.content }}</p>
+              </div>
+
+              <!-- VIDEO -->
+              <div *ngIf="mediaKind === 'video' && mediaUrl" style="background:#000;border-radius:8px;overflow:hidden;">
+                <video [src]="mediaUrl" controls style="width:100%;display:block;"></video>
+              </div>
+              <p *ngIf="mediaKind === 'video' && doc.content" class="contents-view-section-text" style="margin-top:16px;white-space: pre-line;">{{ doc.content }}</p>
+
+              <!-- PDF -->
+              <div *ngIf="mediaKind === 'pdf' && mediaUrl" style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">
+                <iframe [src]="mediaUrl" style="width:100%;height:600px;border:none;"></iframe>
+                <div style="padding:16px;text-align:center;background:#F5F5F5;">
+                  <a [href]="mediaUrl" target="_blank" style="color:#8B1E2D;font-weight:600;text-decoration:none;font-size:14px;">
+                    Abrir PDF numa nova janela ↗
+                  </a>
+                </div>
+              </div>
+
+              <p *ngIf="!doc.content && !mediaUrl" class="contents-view-section-text" style="color:#9CA3AF;">
+                Sem conteúdo adicional disponível para este documento.
+              </p>
+            </section>
+
+            <section class="contents-view-section" *ngIf="doc.tags && doc.tags.length > 0">
+              <h2 class="contents-view-section-title">Temas</h2>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+                <span *ngFor="let tag of doc.tags"
+                      style="background:#f1f5f9;padding:4px 12px;border-radius:20px;font-size:13px;color:#475569">
+                  {{ tag.name }}
+                </span>
+              </div>
+            </section>
+          </div>
+
+          <!-- Right Column - Sidebar -->
+          <div class="contents-view-sidebar">
+
+            <div class="contents-view-doc-card">
+              <div class="contents-view-doc-actions">
+                <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
+                        [class.active]="doc.is_liked"
+                        (click)="toggleLike()">
+                  <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="doc.is_liked ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 17.83 12H14V6a2 2 0 0 0-2-2l-3 7H2Z"></path>
+                  </svg>
+                  <span>{{ doc.is_liked ? 'Gostei' : 'Gostar' }}{{ doc.likes_count ? ' · ' + doc.likes_count : '' }}</span>
+                </button>
+
+                <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
+                        [class.active]="doc.is_favorited"
+                        (click)="toggleFavorite()">
+                  <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="doc.is_favorited ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"></path>
+                  </svg>
+                  <span>{{ doc.is_favorited ? 'Guardado' : 'Guardar' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="contents-view-metadata">
+              <h3 class="contents-view-metadata-title">METADADOS DO ARQUIVO</h3>
+              <div class="contents-view-metadata-list">
+
+                <div class="contents-view-metadata-item contents-view-metadata-item--full">
+                  <div class="contents-view-metadata-label">AUTOR</div>
+                  <div class="contents-view-metadata-value">{{ doc.author ?? '—' }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.institution">
+                  <div class="contents-view-metadata-label">INSTITUIÇÃO</div>
+                  <div class="contents-view-metadata-value">{{ doc.institution }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">DATA DE EMISSÃO</div>
+                  <div class="contents-view-metadata-value">{{ formatDate(doc.publication_date) }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item" *ngIf="doc.period_start">
+                  <div class="contents-view-metadata-label">PERÍODO HISTÓRICO</div>
+                  <div class="contents-view-metadata-value">
+                    {{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}
+                  </div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">TIPO DE DOCUMENTO</div>
+                  <div class="contents-view-metadata-value">{{ doc.document_type ?? '—' }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item" *ngIf="doc.record_type">
+                  <div class="contents-view-metadata-label">TIPO DE REGISTO</div>
+                  <div class="contents-view-metadata-value">{{ doc.record_type }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">NÍVEL ACADÉMICO</div>
+                  <div class="contents-view-metadata-value">{{ getAcademicLevelLabel() }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item">
+                  <div class="contents-view-metadata-label">NÍVEL DE ACESSO</div>
+                  <div class="contents-view-metadata-value">{{ doc.access_level_id ?? '—' }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.physical_location">
+                  <div class="contents-view-metadata-label">LOCALIZAÇÃO FÍSICA</div>
+                  <div class="contents-view-metadata-value">{{ doc.physical_location }}</div>
+                </div>
+
+                <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.unique_id">
+                  <div class="contents-view-metadata-label">ID ÚNICO</div>
+                  <div class="contents-view-metadata-value" style="font-family:monospace">{{ doc.unique_id }}</div>
+                </div>
+
+              </div>
+
+              <div class="contents-view-metadata-stats">
+                <div class="contents-view-metadata-stat">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 17.83 12H14V6a2 2 0 0 0-2-2l-3 7H2Z"></path>
+                  </svg>
+                  <span>{{ doc.likes_count }}</span>
+                </div>
+                <div class="contents-view-metadata-stat">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3v12"></path>
+                    <path d="m7 10 5 5 5-5"></path>
+                    <path d="M5 21h14"></path>
+                  </svg>
+                  <span>{{ doc.downloads_count }}</span>
+                </div>
+                <div class="contents-view-metadata-stat">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <span>{{ doc.views_count }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-    </div>
-  </div>
+      <!-- ═══════════════════════════════════════════════════════════════
+           SECÇÃO DE RELACIONADOS — Conteúdos / Quizzes / Fóruns
+           Substitui a antiga secção de "Discussão Académica" (comentários),
+           que não corresponde a uma funcionalidade real do domínio.
+           ═══════════════════════════════════════════════════════════════ -->
+      <div class="contents-view-discussion">
+        <div class="contents-view-discussion-inner">
 
-</ng-container>
+          <!-- Conteúdos Relacionados -->
+          <div style="margin-bottom:48px;">
+            <div class="contents-view-discussion-header">
+              <div class="contents-view-discussion-title-group">
+                <div class="contents-view-discussion-badge">MESMA CATEGORIA</div>
+                <h2 class="contents-view-discussion-title">Conteúdos Relacionados</h2>
+                <p class="contents-view-discussion-subtitle">Outros documentos da categoria "{{ doc.category_name ?? '—' }}".</p>
+              </div>
+            </div>
+
+            <div *ngIf="!loadingRelated && relatedContents.length === 0" style="text-align:center;padding:24px;color:#9CA3AF;">
+              Nenhum conteúdo relacionado encontrado.
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));gap:16px;">
+              <div *ngFor="let item of relatedContents" (click)="navigateToDocument(item.id)"
+                   style="background:#FFFFFF;border-radius:8px;overflow:hidden;cursor:pointer;border:1px solid #E5E7EB;transition:all 0.2s;"
+                   onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="height:120px;overflow:hidden;background:#F5F5F5;">
+                  <img *ngIf="item.cover_image_url" [src]="item.cover_image_url" [alt]="item.title" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div style="padding:14px;">
+                  <span style="color:#8B1E2D;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">{{ item.document_type }}</span>
+                  <h4 style="font-size:14px;font-weight:700;color:#1F2937;margin:6px 0 0;line-height:1.4;">{{ item.title }}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quizzes Relacionados -->
+          <div style="margin-bottom:48px;">
+            <div class="contents-view-discussion-header">
+              <div class="contents-view-discussion-title-group">
+                <div class="contents-view-discussion-badge">AVALIAÇÃO</div>
+                <h2 class="contents-view-discussion-title">Quizzes Relacionados</h2>
+                <p class="contents-view-discussion-subtitle">Teste os seus conhecimentos sobre este tema.</p>
+              </div>
+            </div>
+
+            <div *ngIf="!loadingRelated && relatedQuizzes.length === 0" style="text-align:center;padding:24px;color:#9CA3AF;">
+              Nenhum quiz relacionado disponível de momento.
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div *ngFor="let quiz of relatedQuizzes" (click)="navigateToQuiz(quiz.id)"
+                   style="background:#FFFFFF;border-radius:8px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-left:3px solid #8B1E2D;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                <div>
+                  <h4 style="font-size:15px;font-weight:700;color:#1F2937;margin:0 0 4px;">{{ quiz.title }}</h4>
+                  <span style="font-size:12px;color:#9CA3AF;">{{ getDifficultyLabel(quiz.difficulty) }}</span>
+                </div>
+                <span style="color:#8B1E2D;font-weight:600;font-size:13px;white-space:nowrap;">Iniciar Quiz →</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fóruns Relacionados -->
+          <div>
+            <div class="contents-view-discussion-header">
+              <div class="contents-view-discussion-title-group">
+                <div class="contents-view-discussion-badge">COMUNIDADE</div>
+                <h2 class="contents-view-discussion-title">Fóruns Relacionados</h2>
+                <p class="contents-view-discussion-subtitle">Discussões criadas a partir deste conteúdo.</p>
+              </div>
+              <div class="contents-view-discussion-actions">
+                <button (click)="navigateToCreateTopicForDocument()" class="contents-view-discussion-btn contents-view-discussion-btn-primary">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5">
+                    <path d="M8 3V13M3 8H13"/>
+                  </svg>
+                  <span style="color: #ffffff;">Criar Tópico sobre este Conteúdo</span>
+                </button>
+                <button (click)="navigateTo('/forum/community')" class="contents-view-discussion-btn-link">
+                  <span>Ver toda a Comunidade</span>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="#8B1E2D">
+                    <path d="M6 3L11 8L6 13" stroke="#8B1E2D" stroke-width="1.5"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="!loadingRelated && relatedTopics.length === 0" style="text-align:center;padding:24px;color:#9CA3AF;">
+              Ainda não existem tópicos criados a partir deste conteúdo.
+            </div>
+
+            <div class="contents-view-comments">
+              <div *ngFor="let topic of relatedTopics" (click)="navigateToTopic(topic.id)" class="contents-view-comment-card">
+                <div class="contents-view-comment-author">
+                  <div class="contents-view-comment-avatar">
+                    <span>{{ (topic.author?.display_name ?? '?').charAt(0) | uppercase }}</span>
+                  </div>
+                  <div>
+                    <div class="contents-view-comment-name">{{ topic.title }}</div>
+                    <div class="contents-view-comment-institution">{{ topic.author?.display_name ?? 'Utilizador' }}</div>
+                  </div>
+                </div>
+                <div class="contents-view-comment-meta">
+                  <span class="contents-view-comment-time">{{ formatTimeAgo(topic.created_at) }}</span>
+                  <div class="contents-view-comment-replies">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span>{{ topic.replies_count }} respostas</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!isAuthenticated" style="text-align:center;padding:24px;color:#64748b;margin-top:24px;">
+            <p>Faz <a routerLink="/auth/login" style="color:#8B1E2D">login</a> para participar em quizzes e discussões.</p>
+          </div>
+
+        </div>
+      </div>
+
+    </ng-container>
 
   </main>
   <app-footer></app-footer>

@@ -69,6 +69,29 @@ export interface DocumentsResponse {
   data: Document[];
 }
 
+export interface RelatedQuiz {
+  id: string;
+  title: string;
+  description: string | null;
+  difficulty: string;
+  category_id: string | null;
+  published_at: string | null;
+  sort_order: number;
+}
+
+export interface RelatedTopicAuthor {
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
+export interface RelatedTopic {
+  id: string;
+  title: string;
+  replies_count: number;
+  created_at: string;
+  author: RelatedTopicAuthor | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DocumentService {
   private readonly base = `${environment.apiBaseUrl}/api`;
@@ -126,6 +149,44 @@ export class DocumentService {
   return res.data;
 }
 
+/**
+   * Quizzes relacionados com este documento — associação primariamente por
+   * categoria, complementada por associação directa opcional (quiz_documents).
+   * Endpoint: GET /documents/{id}/quizzes
+   */
+  async getRelatedQuizzes(documentId: string): Promise<RelatedQuiz[]> {
+    try {
+      const res = await firstValueFrom(
+        this.http.get<{ data: RelatedQuiz[] }>(
+          `${this.base}/documents/${documentId}/quizzes`,
+          { headers: this.headers }
+        )
+      );
+      return res.data ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Tópicos de fórum relacionados com este documento — associação directa e
+   * explícita, definida no momento em que o tópico é criado a partir desta
+   * página (document_id em discussion_topics).
+   * Endpoint: GET /documents/{id}/topics
+   */
+  async getRelatedTopics(documentId: string): Promise<RelatedTopic[]> {
+    try {
+      const res = await firstValueFrom(
+        this.http.get<{ data: RelatedTopic[] }>(
+          `${this.base}/documents/${documentId}/topics`,
+          { headers: this.headers }
+        )
+      );
+      return res.data ?? [];
+    } catch {
+      return [];
+    }
+  }
   async getDocument(id: string): Promise<DocumentDetail> {
     const res = await firstValueFrom(
       this.http.get<{ data: any; tags: DocumentTag[]; is_liked: boolean; is_favorited: boolean }>(
