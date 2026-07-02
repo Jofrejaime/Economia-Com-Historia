@@ -105,6 +105,19 @@ export interface LevelDefinitionRecord {
   perks: string[] | null;
 }
 
+/** Nível de ACESSO A CONTEÚDO (público/jindungo/restrito) — não confundir com
+ *  LevelDefinitionRecord, que são os níveis de gamificação do utilizador. */
+export interface AccessLevelRecord {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  color_bg: string | null;
+  color_text: string | null;
+  requires_approval: boolean;
+  auto_grant: boolean;
+}
+
 export interface ApiResult<T> {
   ok: boolean;
   status?: number;
@@ -309,6 +322,63 @@ export class AdminApiService {
     );
   }
 
+  // ─── Access Levels (público/jindungo/restrito — controlo de acesso a conteúdo) ───
+
+  listAccessLevels(): Observable<ApiResult<AccessLevelRecord[]>> {
+    return this.http.get<ApiEnvelope<AccessLevelRecord[]>>(`${environment.apiBaseUrl}/api/admin/access-levels`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AccessLevelRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
+      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord[]>(error, 'Erro ao carregar níveis de acesso')))
+    );
+  }
+
+  getAccessLevel(id: string): Observable<ApiResult<AccessLevelRecord>> {
+    return this.http.get<ApiEnvelope<AccessLevelRecord>>(`${environment.apiBaseUrl}/api/admin/access-levels/${id}`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AccessLevelRecord> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data })),
+      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord>(error, 'Erro ao carregar nível de acesso')))
+    );
+  }
+
+  createAccessLevel(payload: Partial<AccessLevelRecord> & { id: string; name: string }): Observable<ApiResult<AccessLevelRecord>> {
+    return this.http.post<ApiEnvelope<AccessLevelRecord>>(`${environment.apiBaseUrl}/api/admin/access-levels`, payload, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AccessLevelRecord> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord>(error, 'Erro ao criar nível de acesso')))
+    );
+  }
+
+  updateAccessLevel(id: string, payload: Partial<AccessLevelRecord>): Observable<ApiResult<AccessLevelRecord>> {
+    return this.http.patch<ApiEnvelope<AccessLevelRecord>>(`${environment.apiBaseUrl}/api/admin/access-levels/${id}`, payload, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AccessLevelRecord> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord>(error, 'Erro ao actualizar nível de acesso')))
+    );
+  }
+
+  deleteAccessLevel(id: string): Observable<ApiResult<null>> {
+    return this.http.delete<ApiEnvelope<null>>(`${environment.apiBaseUrl}/api/admin/access-levels/${id}`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<null> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: null,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<null>(error, 'Erro ao eliminar nível de acesso')))
+    );
+  }
+
   private cleanParams(params?: Record<string, string | undefined>): Record<string, string> {
     const cleaned: Record<string, string> = {};
 
@@ -371,5 +441,3 @@ export class AdminApiService {
     return '';
   }
 }
-
-

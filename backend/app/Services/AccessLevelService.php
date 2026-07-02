@@ -13,9 +13,11 @@ class AccessLevelService
 
     public function getAll(): Collection
     {
-        return Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
-            return AccessLevel::orderBy('id')->get();
+        $rows = Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
+            return AccessLevel::orderBy('id')->get()->toArray();
         });
+
+        return AccessLevel::hydrate($rows);
     }
 
     public function getById(string $id): AccessLevel
@@ -35,7 +37,7 @@ class AccessLevelService
     public function update(string $id, array $data): AccessLevel
     {
         $accessLevel = $this->getById($id);
-        
+
         return DB::transaction(function () use ($accessLevel, $data) {
             $accessLevel->update($data);
             Cache::forget(self::CACHE_KEY_ALL);
