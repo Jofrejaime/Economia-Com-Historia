@@ -1,0 +1,99 @@
+<div class="tags-container">
+  <div *ngIf="loading" class="empty-state banner banner-info">
+    <p>A carregar tags...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="empty-state banner banner-error">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="successMessage" class="empty-state banner banner-success">
+    <p>{{ successMessage }}</p>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Etiquetas (Tags)</h1>
+      <p class="page-subtitle">Gestão das etiquetas associadas aos documentos para otimização de busca.</p>
+    </div>
+
+    <button class="btn-primary" type="button" (click)="openAddTagModal()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round" />
+      </svg>
+      Nova Tag
+    </button>
+  </div>
+
+  <div class="filters-bar">
+    <div class="search-wrapper">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.5-3.5"></path>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="loadTags()"
+        placeholder="Pesquisar por nome ou slug..."
+        class="search-input"
+      />
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="contents-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Slug</th>
+          <th>Documentos associados</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="!loading && filteredTags.length === 0">
+          <td colspan="4" class="empty-row">Nenhuma tag encontrada.</td>
+        </tr>
+        <tr *ngFor="let tag of filteredTags">
+          <td class="title-cell">
+            <span class="tag-badge">{{ tag.name }}</span>
+          </td>
+          <td>{{ tag.slug }}</td>
+          <td>{{ tag.documents_count ?? 0 }}</td>
+          <td class="actions-cell">
+            <button class="action-btn" type="button" (click)="openEditTagModal(tag)">Editar</button>
+            <button class="action-btn action-btn-danger" type="button" (click)="deleteTag(tag)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showTagModal" (click)="closeTagModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingTag ? 'Editar Tag' : 'Nova Tag' }}</h2>
+        <button class="modal-close" type="button" (click)="closeTagModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 6 12 12M18 6 6 18"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nome da Tag <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="tagForm.name" class="form-input" placeholder="Ex: Microeconomia" />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeTagModal()">Cancelar</button>
+        <button class="btn-save" type="button" (click)="saveTag()" [disabled]="saving">
+          {{ saving ? 'A guardar...' : 'Guardar Tag' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

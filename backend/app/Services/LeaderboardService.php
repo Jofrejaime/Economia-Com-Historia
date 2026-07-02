@@ -188,5 +188,51 @@ class LeaderboardService
         // Limpa o cache de rankings provinciais
         Cache::flush();
     }
+
+    /**
+     * Regista o snapshot diário do leaderboard nacional.
+     */
+    public function takeDailySnapshot(): void
+    {
+        $today = now()->toDateString();
+
+        $nacionalCache = DB::table('leaderboard_nacional_cache')
+            ->select([
+                'user_id',
+                'rank_position',
+                'total_points',
+                'quizzes_completed',
+            ])
+            ->get();
+
+        $rows = [];
+        foreach ($nacionalCache as $row) {
+            $rows[] = [
+                'id' => (string) \Illuminate\Support\Str::uuid(),
+                'user_id' => $row->user_id,
+                'snapshot_date' => $today,
+                'scope' => 'nacional',
+                'province' => null,
+                'rank_position' => $row->rank_position,
+                'total_points' => $row->total_points,
+                'quizzes_completed' => $row->quizzes_completed,
+                'accuracy_pct' => null,
+                'created_at' => now(),
+            ];
+        }
+
+        DB::transaction(function () use ($rows, $today): void {
+            DB::table('leaderboard_snapshots')
+                ->where('snapshot_date', $today)
+                ->where('scope', 'nacional')
+                ->delete();
+
+            if ($rows !== []) {
+                foreach (array_chunk($rows, 100) as $chunk) {
+                    DB::table('leaderboard_snapshots')->insert($chunk);
+                }
+            }
+        });
+    }
 }
 

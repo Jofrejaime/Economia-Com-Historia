@@ -32,6 +32,12 @@ class StoreDocumentRequest extends FormRequest
             'pdf_url'          => ['nullable', 'string', 'max:500'],  // legacy
             'tags'             => ['nullable', 'array'],
             'tags.*'           => ['string', 'max:100'],
+
+            // Uploads (Sprint 18.4) — processados exclusivamente pelo MediaService
+            'file'             => ['nullable', 'file', 'max:51200', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,csv,txt,zip,rar,odt'],
+            'cover_image'      => ['nullable', 'file', 'max:4096', 'mimes:jpg,jpeg,png,webp,svg,gif'],
+            'gallery'          => ['nullable', 'array', 'max:12'],
+            'gallery.*'        => ['file', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
         ];
     }
 }

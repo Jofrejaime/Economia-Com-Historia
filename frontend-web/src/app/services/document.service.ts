@@ -34,6 +34,8 @@ export interface Document {
   category_color_bg: string | null;
   category_icon: string | null;
   document_type: string;
+  media_type: string | null;
+  media_url: string | null;
   academic_level: 'intro' | 'advanced' | 'doctorate';
   access_level_id: string;
   access_level_name: string | null;
@@ -79,46 +81,50 @@ export class DocumentService {
   }
 
   async getDocuments(params: {
-    category_id?: string;
-    access_level_id?: string;
-    academic_level?: string;
-    document_type?: string;
-    status?: string;
-  } = {}): Promise<Document[]> {
-    let httpParams = new HttpParams();
-    if (params.category_id)    httpParams = httpParams.set('category_id', params.category_id);
-    if (params.access_level_id) httpParams = httpParams.set('access_level_id', params.access_level_id);
-    if (params.academic_level) httpParams = httpParams.set('academic_level', params.academic_level);
-    if (params.document_type)  httpParams = httpParams.set('document_type', params.document_type);
-    if (params.status)         httpParams = httpParams.set('status', params.status);
+  category_id?: string;
+  access_level_id?: string;
+  academic_level?: string;
+  document_type?: string;
+  media_type?: string;
+  status?: string;
+} = {}): Promise<Document[]> {
+  let httpParams = new HttpParams();
+  if (params.category_id)     httpParams = httpParams.set('category_id', params.category_id);
+  if (params.access_level_id) httpParams = httpParams.set('access_level_id', params.access_level_id);
+  if (params.academic_level)  httpParams = httpParams.set('academic_level', params.academic_level);
+  if (params.document_type)   httpParams = httpParams.set('document_type', params.document_type);
+  if (params.media_type)      httpParams = httpParams.set('media_type', params.media_type);
+  if (params.status)          httpParams = httpParams.set('status', params.status);
 
-    const res = await firstValueFrom(
-      this.http.get<{ data: Document[] }>(`${this.base}/documents`, {
-        headers: this.headers,
-        params: httpParams,
-      })
-    );
-    return res.data;
-  }
+  const res = await firstValueFrom(
+    this.http.get<{ data: Document[] }>(`${this.base}/documents`, {
+      headers: this.headers,
+      params: httpParams,
+    })
+  );
+  return res.data;
+}
 
   async searchDocuments(params: {
-    q?: string;
-    category_id?: string;
-    document_type?: string;
-  } = {}): Promise<Document[]> {
-    let httpParams = new HttpParams();
-    if (params.q)             httpParams = httpParams.set('q', params.q);
-    if (params.category_id)   httpParams = httpParams.set('category_id', params.category_id);
-    if (params.document_type) httpParams = httpParams.set('document_type', params.document_type);
+  q?: string;
+  category_id?: string;
+  document_type?: string;
+  media_type?: string;
+} = {}): Promise<Document[]> {
+  let httpParams = new HttpParams();
+  if (params.q)             httpParams = httpParams.set('q', params.q);
+  if (params.category_id)   httpParams = httpParams.set('category_id', params.category_id);
+  if (params.document_type) httpParams = httpParams.set('document_type', params.document_type);
+  if (params.media_type)    httpParams = httpParams.set('media_type', params.media_type);
 
-    const res = await firstValueFrom(
-      this.http.get<{ data: Document[] }>(`${this.base}/documents/search`, {
-        headers: this.headers,
-        params: httpParams,
-      })
-    );
-    return res.data;
-  }
+  const res = await firstValueFrom(
+    this.http.get<{ data: Document[] }>(`${this.base}/documents/search`, {
+      headers: this.headers,
+      params: httpParams,
+    })
+  );
+  return res.data;
+}
 
   async getDocument(id: string): Promise<DocumentDetail> {
     const res = await firstValueFrom(

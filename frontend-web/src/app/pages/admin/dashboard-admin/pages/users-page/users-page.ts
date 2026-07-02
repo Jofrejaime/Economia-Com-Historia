@@ -21,6 +21,7 @@ interface UserFormState {
   website_url: string;
   research_areas_input: string;
   avatarColor: string;
+  password?: string;
 }
 
 interface AdminUserView extends AdminUser {
@@ -54,6 +55,12 @@ export class UsersPageComponent implements OnInit {
   pageSizeOptions = [10, 20, 50];
 
   users: AdminUserView[] = [];
+
+  modalTab: 'general' | 'gamification' | 'sessions' = 'general';
+  profileDetails: any = null;
+  sessionDetails: any[] = [];
+  loadingDetails = false;
+  detailsErrorMessage: string | null = null;
 
   provinces = [
     'Bengo',
@@ -158,9 +165,20 @@ export class UsersPageComponent implements OnInit {
     void this.loadUsers();
   }
 
+  openCreateUserModal(): void {
+    this.editingUser = null;
+    this.modalMode = 'edit';
+    this.modalTab = 'general';
+    this.userForm = this.createEmptyForm();
+    this.showUserModal = true;
+    this.successMessage = null;
+    this.errorMessage = null;
+  }
+
   openEditUserModal(user: AdminUserView): void {
     this.editingUser = user;
     this.modalMode = 'edit';
+    this.modalTab = 'general';
     this.userForm = {
       email: user.email,
       role: (user.role as UserRole) || 'estudante',
@@ -175,6 +193,7 @@ export class UsersPageComponent implements OnInit {
       website_url: user.website_url || '',
       research_areas_input: Array.isArray(user.research_areas) ? user.research_areas.join(', ') : '',
       avatarColor: user.avatarColor,
+      password: '',
     };
     this.showUserModal = true;
     this.successMessage = null;
@@ -184,6 +203,7 @@ export class UsersPageComponent implements OnInit {
   openViewUserModal(user: AdminUserView): void {
     this.editingUser = user;
     this.modalMode = 'view';
+    this.modalTab = 'general';
     this.userForm = {
       email: user.email,
       role: (user.role as UserRole) || 'estudante',
@@ -198,6 +218,7 @@ export class UsersPageComponent implements OnInit {
       website_url: user.website_url || '',
       research_areas_input: Array.isArray(user.research_areas) ? user.research_areas.join(', ') : '',
       avatarColor: user.avatarColor,
+      password: '',
     };
     this.showUserModal = true;
     this.successMessage = null;
@@ -212,6 +233,39 @@ export class UsersPageComponent implements OnInit {
     this.showUserModal = false;
     this.editingUser = null;
     this.modalMode = 'view';
+    this.modalTab = 'general';
+    this.profileDetails = null;
+    this.sessionDetails = [];
+  }
+
+  async loadUserProfileData(): Promise<void> {
+    if (!this.editingUser) return;
+    this.loadingDetails = true;
+    this.detailsErrorMessage = null;
+    this.profileDetails = null;
+
+    const result = await firstValueFrom(this.adminApi.getUserProfile(this.editingUser.id));
+    if (result.ok && result.data) {
+      this.profileDetails = result.data;
+    } else {
+      this.detailsErrorMessage = result.message || 'Erro ao carregar progresso.';
+    }
+    this.loadingDetails = false;
+  }
+
+  async loadUserSessionsData(): Promise<void> {
+    if (!this.editingUser) return;
+    this.loadingDetails = true;
+    this.detailsErrorMessage = null;
+    this.sessionDetails = [];
+
+    const result = await firstValueFrom(this.adminApi.getUserSessions(this.editingUser.id));
+    if (result.ok && result.data) {
+      this.sessionDetails = result.data;
+    } else {
+      this.detailsErrorMessage = result.message || 'Erro ao carregar sessões.';
+    }
+    this.loadingDetails = false;
   }
 
   enableEditMode(): void {
@@ -219,16 +273,11 @@ export class UsersPageComponent implements OnInit {
   }
 
   async saveUser(): Promise<void> {
-    if (!this.editingUser) {
-      this.errorMessage = 'A criação de utilizadores ainda não está exposta na API administrativa.';
-      return;
-    }
-
     this.saving = true;
     this.errorMessage = null;
     this.successMessage = null;
 
-    const payload = {
+    const payload: any = {
       email: this.userForm.email.trim(),
       role: this.userForm.role || 'estudante',
       email_verified: this.userForm.email_verified,
@@ -243,7 +292,20 @@ export class UsersPageComponent implements OnInit {
       research_areas: this.parseResearchAreas(this.userForm.research_areas_input),
     };
 
-    const result = await firstValueFrom(this.adminApi.updateUser(this.editingUser.id, payload));
+    if (!this.editingUser) {
+      if (!this.userForm.password || this.userForm.password.trim().length < 8) {
+        this.errorMessage = 'A palavra-passe é obrigatória e deve ter pelo menos 8 caracteres.';
+        this.saving = false;
+        return;
+      }
+      payload.password = this.userForm.password;
+    }
+
+    const result = await firstValueFrom(
+      this.editingUser 
+        ? this.adminApi.updateUser(this.editingUser.id, payload)
+        : this.adminApi.createUser(payload)
+    );
 
     if (!result) {
       this.errorMessage = 'Não foi possível guardar as alterações.';
@@ -257,7 +319,7 @@ export class UsersPageComponent implements OnInit {
       return;
     }
 
-    this.successMessage = result.message || 'Utilizador actualizado com sucesso.';
+    this.successMessage = result.message || (this.editingUser ? 'Utilizador actualizado com sucesso.' : 'Utilizador criado com sucesso.');
     this.showUserModal = false;
     await this.loadUsers();
     this.saving = false;
@@ -499,6 +561,7 @@ export class UsersPageComponent implements OnInit {
       website_url: '',
       research_areas_input: '',
       avatarColor: '#8b1e2d',
+      password: '',
     };
   }
 

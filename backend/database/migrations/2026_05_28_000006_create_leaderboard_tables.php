@@ -67,7 +67,28 @@ WHERE u.is_active = 1
   AND up.province IS NOT NULL
 GROUP BY up.province
 SQL);
+        } elseif (DB::getDriverName() === 'sqlite') {
+            DB::unprepared('DROP VIEW IF EXISTS province_stats');
+            DB::unprepared(<<<'SQL'
+CREATE VIEW province_stats AS
+SELECT
+  up.province,
+  COUNT(u.id) AS total_users,
+  SUM(ul.total_points) AS total_points,
+  CAST(AVG(ul.total_points) AS INTEGER) AS avg_points,
+  MAX(ul.total_points) AS max_points,
+  SUM(ul.quizzes_completed) AS total_quizzes,
+  CAST(AVG(ul.current_level) AS NUMERIC) AS avg_level
+FROM users u
+JOIN user_profiles up ON up.user_id = u.id
+JOIN user_levels ul ON ul.user_id = u.id
+WHERE u.is_active = 1
+  AND up.province IS NOT NULL
+GROUP BY up.province
+SQL);
+        }
 
+        if (DB::getDriverName() === 'mysql') {
             DB::unprepared('DROP PROCEDURE IF EXISTS sp_refresh_leaderboard_nacional');
             DB::unprepared(<<<'SQL'
 CREATE PROCEDURE sp_refresh_leaderboard_nacional()
@@ -119,10 +140,12 @@ SQL);
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'mysql' || DB::getDriverName() === 'sqlite') {
+            DB::unprepared('DROP VIEW IF EXISTS province_stats');
+        }
         if (DB::getDriverName() === 'mysql') {
             DB::unprepared('DROP EVENT IF EXISTS evt_refresh_leaderboard');
             DB::unprepared('DROP PROCEDURE IF EXISTS sp_refresh_leaderboard_nacional');
-            DB::unprepared('DROP VIEW IF EXISTS province_stats');
         }
 
         Schema::dropIfExists('leaderboard_nacional_cache');

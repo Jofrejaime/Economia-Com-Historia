@@ -180,6 +180,12 @@ p, span, div, button {
   font-family: 'IBM Plex Sans', sans-serif;
 }
 
+.contents-view-hero-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #6B0119, #8B1E2D);
+}
+
 /* ============================================
    TWO-COLUMN LAYOUT
    ============================================ */

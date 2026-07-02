@@ -154,6 +154,28 @@ export class CommunityService {
     return this.simpleMutation(`${this.base}/replies/${id}`, 'delete', 'Erro ao eliminar resposta');
   }
 
+  reportContent(payload: {
+  content_type: 'document' | 'topic' | 'reply' | 'user';
+  content_id: string;
+  reason: 'spam' | 'inappropriate' | 'misinformation' | 'copyright' | 'off_topic' | 'other';
+  description?: string;
+}): Observable<ApiResult<{ id: string; status: string }>> {
+  return this.http.post<{ message?: string; data?: { id: string; status: string } }>(
+    `${environment.apiBaseUrl}/api/reports`,
+    payload,
+    { observe: 'response', headers: this.headers }
+  ).pipe(
+    timeout({ first: 15000 }),
+    map((response) => ({
+      ok: response.status >= 200 && response.status < 300,
+      status: response.status,
+      message: response.body?.message,
+      data: response.body?.data,
+    })),
+    catchError((error: unknown) => of(this.toFailureResult<{ id: string; status: string }>(error, 'Erro ao enviar denúncia')))
+  );
+}
+
   updateTopic(id: string, payload: {
   title?: string;
   content?: string;

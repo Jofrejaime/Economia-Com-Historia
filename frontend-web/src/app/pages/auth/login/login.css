@@ -139,7 +139,7 @@ html, body {
   flex: 1 1 55%;
   background-color: #F5F5F5;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 48px;
   height: 100%;
@@ -471,4 +471,24 @@ html, body {
     padding: 10px;
     font-size: 14px;
   }
+}
+
+.login-back-btn {
+  width: 100%;
+  background: transparent;
+  padding: 10px;
+  min-height: 40px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #64748b;
+  font-size: 13px;
+  transition: all 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+  margin-top: 12px;
+}
+
+.login-back-btn:hover {
+  color: #8B1E2D;
 }

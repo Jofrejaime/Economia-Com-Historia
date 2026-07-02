@@ -125,6 +125,15 @@ export class UserNotificationsComponent implements OnInit {
     } catch {}
   }
 
+  async deleteNotification(event: Event, id: string): Promise<void> {
+    event.stopPropagation();
+    try {
+      await this.notificationService.deleteNotification(id);
+      this.notifications = this.notifications.filter(n => n.id !== id);
+      this.cdr.detectChanges();
+    } catch {}
+  }
+
   getTypeBg(rawType: string): string {
     const colors: Record<VisualType, string> = { info: 'rgba(59,130,246,0.1)', success: 'rgba(34,197,94,0.1)', warning: 'rgba(245,158,11,0.1)', achievement: 'rgba(168,85,247,0.1)' };
     return colors[this.getVisualType(rawType)];

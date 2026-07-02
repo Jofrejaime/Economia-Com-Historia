@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AdminApiService, LevelDefinitionRecord } from '../../../../../services/admin-api.service';
 
 interface Level {
   level: number;
@@ -35,19 +36,12 @@ interface Transaction {
   templateUrl: './levels-page.html',
   styleUrls: ['./levels-page.css']
 })
-export class LevelsPageComponent {
+export class LevelsPageComponent implements OnInit {
   activeTab: 'levels' | 'users' | 'transactions' = 'levels';
   showLevelModal = false;
   editingLevel: Level | null = null;
 
-  levels: Level[] = [
-    { level: 1, name: 'Iniciante', min_points: 0, max_points: 100, color_hex: '#94a3b8', perks: null },
-    { level: 2, name: 'Aprendiz', min_points: 101, max_points: 300, color_hex: '#3b82f6', perks: ['Acesso a conteúdos básicos'] },
-    { level: 3, name: 'Conhecedor', min_points: 301, max_points: 600, color_hex: '#8b5cf6', perks: ['Pode criar tópicos'] },
-    { level: 4, name: 'Especialista', min_points: 601, max_points: 1000, color_hex: '#f59e0b', perks: ['Acesso a conteúdos restritos'] },
-    { level: 5, name: 'Mestre', min_points: 1001, max_points: 1500, color_hex: '#ef4444', perks: ['Badge exclusivo'] },
-    { level: 6, name: 'Arquivista', min_points: 1501, max_points: null, color_hex: '#8b1e2d', perks: ['Acesso total', 'Badge de Honra'] }
-  ];
+  levels: Level[] = [];
 
   userLevels: UserLevel[] = [
     { display_name: 'Dr. Manuel Costa', current_level: 4, total_points: 850, quizzes_completed: 12, documents_read: 45 },
@@ -59,6 +53,30 @@ export class LevelsPageComponent {
     { id: '1', user_name: 'Dr. Manuel Costa', points: 50, reason: 'Quiz concluído', created_at: '2024-06-15T10:30:00Z' },
     { id: '2', user_name: 'Dra. Ana Silva', points: 30, reason: 'Documento lido', created_at: '2024-06-14T14:20:00Z' }
   ];
+
+  constructor(private adminApi: AdminApiService) {}
+
+  ngOnInit(): void {
+    this.loadLevelDefinitions();
+  }
+
+  loadLevelDefinitions(): void {
+    this.adminApi.listLevelDefinitions().subscribe({
+      next: (res) => {
+        if (res.ok && res.data) {
+          this.levels = res.data.map(l => ({
+            level: l.level,
+            name: l.name,
+            min_points: l.min_points,
+            max_points: l.max_points,
+            color_hex: l.color_hex,
+            perks: l.perks,
+          }));
+        }
+      },
+      error: (err) => console.error('Erro ao carregar níveis:', err)
+    });
+  }
 
   get totalPoints(): number {
     return this.userLevels.reduce((sum, u) => sum + u.total_points, 0);
@@ -81,7 +99,8 @@ export class LevelsPageComponent {
   }
 
   refreshData(): void {
-    alert('Dados recarregados!');
+    this.loadLevelDefinitions();
+    alert('Dados recarregados do servidor!');
   }
 
   openEditLevelModal(level: Level): void {
@@ -114,12 +133,28 @@ export class LevelsPageComponent {
       this.editingLevel.perks = null;
     }
 
-    const index = this.levels.findIndex(l => l.level === this.editingLevel!.level);
-    if (index !== -1) {
-      this.levels[index] = { ...this.editingLevel };
-    }
+    const payload: Partial<LevelDefinitionRecord> = {
+      name: this.editingLevel.name,
+      min_points: this.editingLevel.min_points,
+      max_points: this.editingLevel.max_points,
+      color_hex: this.editingLevel.color_hex,
+      perks: this.editingLevel.perks
+    };
 
-    this.closeLevelModal();
-    alert(`Nível ${this.editingLevel.level} atualizado com sucesso!`);
+    this.adminApi.updateLevelDefinition(this.editingLevel.level, payload).subscribe({
+      next: (res) => {
+        if (res.ok) {
+          alert(`Nível ${this.editingLevel!.level} atualizado com sucesso!`);
+          this.loadLevelDefinitions();
+          this.closeLevelModal();
+        } else {
+          alert(`Erro ao atualizar nível: ${res.message}`);
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao salvar nível:', err);
+        alert('Ocorreu um erro ao salvar o nível.');
+      }
+    });
   }
 }

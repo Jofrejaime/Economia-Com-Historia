@@ -30,29 +30,30 @@
   </div>
 
   <!-- Hero Section -->
-  <div class="contents-view-hero">
-    <div class="contents-view-hero-image">
-      <img [alt]="doc.title" [src]="getDocumentImage()" />
-      <div class="contents-view-hero-overlay"></div>
-    </div>
-    <div class="contents-view-hero-gradient"></div>
-    <div class="contents-view-hero-content">
-      <div class="contents-view-hero-inner">
-        <div class="contents-view-hero-tags">
-          <div class="contents-view-hero-tag" *ngIf="doc.category_name">
-            <span>{{ doc.category_name | uppercase }}</span>
-          </div>
-          <div class="contents-view-hero-tag" *ngIf="doc.period_start">
-            <span>{{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}</span>
-          </div>
-          <div class="contents-view-hero-tag" *ngIf="!doc.period_start && doc.publication_date">
-            <span>{{ doc.publication_date | date:'yyyy' }}</span>
-          </div>
+<div class="contents-view-hero">
+  <div class="contents-view-hero-image">
+    <img *ngIf="hasDocumentImage()" [alt]="doc.title" [src]="getDocumentImage()" />
+    <div *ngIf="!hasDocumentImage()" class="contents-view-hero-placeholder"></div>
+    <div class="contents-view-hero-overlay"></div>
+  </div>
+  <div class="contents-view-hero-gradient"></div>
+  <div class="contents-view-hero-content">
+    <div class="contents-view-hero-inner">
+      <div class="contents-view-hero-tags">
+        <div class="contents-view-hero-tag" *ngIf="doc.category_name">
+          <span>{{ doc.category_name | uppercase }}</span>
         </div>
-        <h1 class="contents-view-hero-title">{{ doc.title }}</h1>
+        <div class="contents-view-hero-tag" *ngIf="doc.period_start">
+          <span>{{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}</span>
+        </div>
+        <div class="contents-view-hero-tag" *ngIf="!doc.period_start && doc.publication_date">
+          <span>{{ doc.publication_date | date:'yyyy' }}</span>
+        </div>
       </div>
+      <h1 class="contents-view-hero-title">{{ doc.title }}</h1>
     </div>
   </div>
+</div>
 
   <!-- Two-Column Layout -->
   <div class="contents-view-layout">
@@ -89,8 +90,7 @@
   <div class="contents-view-doc-actions">
     <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
             [class.active]="doc.is_liked"
-            (click)="toggleLike()"
-            [disabled]="!isAuthenticated">
+            (click)="toggleLike()">
       <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="doc.is_liked ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 17.83 12H14V6a2 2 0 0 0-2-2l-3 7H2Z"></path>
       </svg>
@@ -99,8 +99,7 @@
 
     <button class="contents-view-doc-btn contents-view-doc-btn-ghost"
             [class.active]="doc.is_favorited"
-            (click)="toggleFavorite()"
-            [disabled]="!isAuthenticated">
+            (click)="toggleFavorite()">
       <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="doc.is_favorited ? '#8B1E2D' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"></path>
       </svg>

@@ -759,3 +759,9 @@ p, span, div, button, input {
   display: block;
   flex-shrink: 0;
 }
+
+.contents-doc-placeholder {
+  background: linear-gradient(135deg, #E5E7EB, #F5F5F5);
+  width: 100%;
+  height: 100%;
+}

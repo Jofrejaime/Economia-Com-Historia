@@ -9,7 +9,12 @@ import {
   DocumentListFilters,
   DocumentUpdatePayload,
 } from '../../../../../models/document-admin.models';
+import { MediaCollections } from '../../../../../models/media.models';
 import { DocumentAdminService } from '../../../../../services/document-admin.service';
+import { FileUploadComponent } from '../../../../../components/uploads/file-upload.component';
+import { GalleryUploadComponent } from '../../../../../components/uploads/gallery-upload.component';
+import { ImageUploadComponent } from '../../../../../components/uploads/image-upload.component';
+import { MediaPreviewComponent } from '../../../../../components/uploads/media-preview.component';
 
 type DocumentStatusFilter = 'todos' | 'draft' | 'published' | 'archived';
 
@@ -21,7 +26,7 @@ interface DocumentView extends Document {
 @Component({
   selector: 'app-contents-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FileUploadComponent, ImageUploadComponent, GalleryUploadComponent, MediaPreviewComponent],
   templateUrl: './contents-page.html',
   styleUrls: ['./contents-page.css']
 })
@@ -43,10 +48,18 @@ export class ContentsPageComponent implements OnInit {
   accessLevels: AccessLevel[] = [];
   documents: DocumentView[] = [];
   selectedDocumentId: string | null = null;
+  selectedDocumentIds: Set<string> = new Set<string>();
 
   showDocumentModal = false;
   documentModalMode: 'view' | 'edit' = 'view';
   editingDocument: DocumentView | null = null;
+
+  // Sprint 18.4 — uploads (pipeline único de media)
+  coverFile: File | null = null;
+  mainFile: File | null = null;
+  galleryFiles: File[] = [];
+  documentMedia: MediaCollections | null = null;
+  uploadProgress: number | null = null;
   documentForm: DocumentUpdatePayload & {
     title: string;
     author: string;
@@ -148,7 +161,7 @@ export class ContentsPageComponent implements OnInit {
       return;
     }
 
-    this.documents = documentsResult.value.data.data.map((document) => this.toDocumentView(document));
+    this.documents = documentsResult.value.data.data.map((document: Document) => this.toDocumentView(document));
     this.currentPage = 1;
     this.selectedDocumentId = this.selectedDocumentId && this.documents.some((document) => document.id === this.selectedDocumentId)
       ? this.selectedDocumentId
@@ -196,6 +209,8 @@ export class ContentsPageComponent implements OnInit {
     const detailedDocument = this.toDocumentView(result.data);
     this.selectedDocumentId = detailedDocument.id;
     this.editingDocument = detailedDocument;
+    this.documentMedia = result.data.media ?? null;
+    this.resetFileSelection();
     this.documentForm = {
       title: detailedDocument.title,
       author: detailedDocument.author,
@@ -226,14 +241,43 @@ export class ContentsPageComponent implements OnInit {
     this.showDocumentModal = false;
     this.editingDocument = null;
     this.documentModalMode = 'view';
+    this.documentMedia = null;
+    this.resetFileSelection();
+  }
+
+  openCreateDocumentModal(): void {
+    this.editingDocument = null;
+    this.documentForm = this.createEmptyForm();
+    this.documentModalMode = 'edit';
+    this.showDocumentModal = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    this.documentMedia = null;
+    this.resetFileSelection();
+  }
+
+  private resetFileSelection(): void {
+    this.coverFile = null;
+    this.mainFile = null;
+    this.galleryFiles = [];
+    this.uploadProgress = null;
+  }
+
+  onCoverFileChange(file: File | null): void {
+    this.coverFile = file;
+    if (file === null) {
+      this.documentForm.cover_image_url = null;
+    }
+  }
+
+  onMainFileChange(file: File | null): void {
+    this.mainFile = file;
+    if (file === null) {
+      this.documentForm.pdf_url = null;
+    }
   }
 
   async saveDocument(): Promise<void> {
-    if (!this.editingDocument) {
-      this.errorMessage = 'Selecione um documento para editar.';
-      return;
-    }
-
     if (!this.documentForm.title.trim() || !this.documentForm.author.trim() || !this.documentForm.summary.trim()) {
       this.errorMessage = 'Título, autor e resumo são obrigatórios.';
       return;
@@ -248,13 +292,13 @@ export class ContentsPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const payload: DocumentUpdatePayload = {
+    const payload = {
       title: this.documentForm.title.trim(),
       author: this.documentForm.author.trim(),
       summary: this.documentForm.summary.trim(),
       content: this.documentForm.content.trim() || null,
-      document_type: this.documentForm.document_type as DocumentUpdatePayload['document_type'],
-      academic_level: this.documentForm.academic_level as DocumentUpdatePayload['academic_level'],
+      document_type: this.documentForm.document_type,
+      academic_level: this.documentForm.academic_level,
       access_level_id: this.documentForm.access_level_id,
       category_id: this.documentForm.category_id || null,
       institution: this.documentForm.institution || null,
@@ -266,17 +310,43 @@ export class ContentsPageComponent implements OnInit {
       status: this.documentForm.status,
     };
 
-    const result = await firstValueFrom(this.documentAdmin.updateDocument(this.editingDocument.id, payload));
+    const hasFiles = this.coverFile !== null || this.mainFile !== null || this.galleryFiles.length > 0;
+
+    let result;
+    if (hasFiles) {
+      // Sprint 18.4 — envio multipart com progresso; os ficheiros passam
+      // pelo pipeline único do MediaService no backend.
+      this.uploadProgress = 0;
+      result = await new Promise<any>((resolve) => {
+        this.documentAdmin.saveDocumentWithFiles(
+          this.editingDocument?.id ?? null,
+          payload as unknown as Record<string, unknown>,
+          { file: this.mainFile, cover_image: this.coverFile, gallery: this.galleryFiles },
+        ).subscribe((event) => {
+          if (event.state === 'progress') {
+            this.uploadProgress = event.progress;
+          } else {
+            resolve(event.result);
+          }
+        });
+      });
+      this.uploadProgress = null;
+    } else if (this.editingDocument) {
+      result = await firstValueFrom(this.documentAdmin.updateDocument(this.editingDocument.id, payload));
+    } else {
+      result = await firstValueFrom(this.documentAdmin.createDocument(payload));
+    }
 
     if (!result.ok || !result.data) {
-      this.errorMessage = result.message || 'Não foi possível actualizar o documento.';
+      this.errorMessage = result.message || 'Não foi possível salvar o documento.';
       this.saving = false;
       return;
     }
 
-    this.successMessage = result.message || 'Documento actualizado com sucesso.';
+    this.successMessage = this.editingDocument ? 'Documento actualizado com sucesso.' : 'Documento criado com sucesso.';
     this.showDocumentModal = false;
     this.editingDocument = null;
+    this.resetFileSelection();
     await this.loadInitialData();
     this.saving = false;
   }
@@ -374,5 +444,131 @@ export class ContentsPageComponent implements OnInit {
 
   getAccessLevelName(accessLevelId: string): string {
     return this.accessLevels.find((accessLevel) => accessLevel.id === accessLevelId)?.name || accessLevelId;
+  }
+
+  // ===== SELECTION AND BULK ACTIONS =====
+
+  toggleSelectDocument(id: string): void {
+    if (this.selectedDocumentIds.has(id)) {
+      this.selectedDocumentIds.delete(id);
+    } else {
+      this.selectedDocumentIds.add(id);
+    }
+  }
+
+  toggleSelectAll(event: any): void {
+    const checked = event.target.checked;
+    if (checked) {
+      this.pagedDocuments.forEach(doc => this.selectedDocumentIds.add(doc.id));
+    } else {
+      this.pagedDocuments.forEach(doc => this.selectedDocumentIds.delete(doc.id));
+    }
+  }
+
+  isAllSelected(): boolean {
+    const paged = this.pagedDocuments;
+    if (paged.length === 0) return false;
+    return paged.every(doc => this.selectedDocumentIds.has(doc.id));
+  }
+
+  isDocumentSelected(id: string): boolean {
+    return this.selectedDocumentIds.has(id);
+  }
+
+  clearSelection(): void {
+    this.selectedDocumentIds.clear();
+  }
+
+  async bulkPublish(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.publishDocument(id))));
+      this.successMessage = `${ids.length} documentos publicados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao publicar documentos.';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async bulkUnpublish(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.unpublishDocument(id))));
+      this.successMessage = `${ids.length} documentos despublicados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao despublicar documentos.';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async bulkPin(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.pinDocument(id))));
+      this.successMessage = `${ids.length} documentos destacados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao destacar documentos.';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async bulkUnpin(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.unpinDocument(id))));
+      this.successMessage = `${ids.length} documentos desafixados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao desafixar documentos.';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async bulkDelete(): Promise<void> {
+    if (this.selectedDocumentIds.size === 0) return;
+    if (!confirm(`Tem a certeza que deseja eliminar permanentemente os ${this.selectedDocumentIds.size} documentos selecionados?`)) {
+      return;
+    }
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    try {
+      const ids = Array.from(this.selectedDocumentIds);
+      await Promise.all(ids.map(id => firstValueFrom(this.documentAdmin.deleteDocument(id))));
+      this.successMessage = `${ids.length} documentos eliminados com sucesso.`;
+      this.selectedDocumentIds.clear();
+      await this.loadInitialData();
+    } catch (e: any) {
+      this.errorMessage = e.message || 'Erro ao eliminar documentos.';
+    } finally {
+      this.loading = false;
+    }
   }
 }

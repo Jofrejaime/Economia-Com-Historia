@@ -506,11 +506,6 @@ class CommunityController extends Controller
 
             return $topic->load(['author.profile', 'category', 'members.user.profile']);
         });
-
-        return response()->json([
-            'message' => 'Topic created successfully.',
-            'data' => $topic,
-        ], 201);
     }
 
     /**

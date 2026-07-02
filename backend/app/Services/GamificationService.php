@@ -477,4 +477,45 @@ class GamificationService
             default => false,
         };
     }
+
+    /**
+     * Reseta os pontos periódicos (semanais ou mensais) dos utilizadores.
+     */
+    public function resetPeriodicPoints(string $period): void
+    {
+        if ($period !== 'weekly' && $period !== 'monthly') {
+            throw new \InvalidArgumentException("Invalid period [{$period}]. Expected 'weekly' or 'monthly'.");
+        }
+
+        $column = $period === 'weekly' ? 'weekly_points' : 'monthly_points';
+
+        DB::transaction(function () use ($column): void {
+            DB::table('user_levels')->update([
+                $column => 0,
+                'updated_at' => now(),
+            ]);
+
+            if ($column === 'weekly_points') {
+                DB::table('leaderboard_nacional_cache')->update([
+                    'weekly_points' => 0,
+                    'refreshed_at' => now(),
+                ]);
+            }
+        });
+    }
+
+    /**
+     * Recalcula e atualiza os níveis de todos os utilizadores na base de dados (de forma segura para a memória).
+     */
+    public function recalculateAllUserLevels(): void
+    {
+        DB::table('user_levels')->orderBy('user_id')->chunk(500, function ($userLevels) {
+            foreach ($userLevels as $ul) {
+                $user = User::find($ul->user_id);
+                if ($user !== null) {
+                    $this->updateLevel($user, (int) $ul->total_points);
+                }
+            }
+        });
+    }
 }

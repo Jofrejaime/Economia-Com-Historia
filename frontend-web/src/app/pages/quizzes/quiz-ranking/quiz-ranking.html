@@ -88,10 +88,9 @@
               <span *ngIf="i > 2" class="ranking-number">{{ i + 1 }}º</span>
             </div>
 
-            <div class="ranking-avatar">
-              <img [src]="getAvatarUrl(player.display_name)" [alt]="player.display_name">
-            </div>
-
+           <div class="ranking-avatar" [style.background]="getAvatarColor(player.display_name)">
+  <span style="color: #ffffff;">{{ getInitials(player.display_name) }}</span>
+</div>
             <div class="ranking-info">
               <div class="ranking-name">{{ player.display_name }}</div>
               <div class="ranking-community">{{ player.province ?? '—' }}</div>

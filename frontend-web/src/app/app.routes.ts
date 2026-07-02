@@ -16,6 +16,7 @@ import { DiscussionThreadComponent } from './pages/forum/discussion-thread/discu
 import { HomeVisitorComponent } from './pages/home/home-visitor/home-visitor';
 import { CategoryViewComponent } from './pages/forum/category-view/category-view';
 import { CategoryDetailComponent } from './pages/forum/category-detail/category-detail';
+import { AccessLevelsPageComponent } from './pages/admin/dashboard-admin/pages/access-levels-page/access-levels-page';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
 import { adminGuard } from './guards/admin.guard';
@@ -25,6 +26,7 @@ import { RequestsPageComponent } from './pages/admin/dashboard-admin/pages/reque
 import { AccessGrantsPageComponent } from './pages/admin/dashboard-admin/pages/access-grants-page/access-grants-page';
 import { UsersPageComponent } from './pages/admin/dashboard-admin/pages/users-page/users-page';
 import { CategoriesPageComponent } from './pages/admin/dashboard-admin/pages/categories-page/categories-page';
+import { TagsPageComponent } from './pages/admin/dashboard-admin/pages/tags-page/tags-page';
 import { ContentsPageComponent } from './pages/admin/dashboard-admin/pages/contents-page/contents-page';
 import { CommunityPageComponent } from './pages/admin/dashboard-admin/pages/community-page/community-page';
 import { SettingsPageComponent } from './pages/admin/dashboard-admin/pages/settings-page/settings-page';
@@ -70,6 +72,7 @@ export const routes: Routes = [
       { path: 'concessoes', component: AccessGrantsPageComponent },
       { path: 'utilizadores', component: UsersPageComponent },
       { path: 'categorias', component: CategoriesPageComponent },
+      { path: 'tags', component: TagsPageComponent },
       { path: 'conteudos', component: ContentsPageComponent },
       { path: 'comunidade', component: CommunityPageComponent },
       { path: 'configuracoes', component: SettingsPageComponent },
@@ -78,7 +81,8 @@ export const routes: Routes = [
       // ===== NOVAS ROTAS =====
       { path: 'niveis', component: LevelsPageComponent },
       { path: 'badges', component: BadgesPageComponent },
-      { path: 'notificacoes', component: NotificationsPageComponent }
+      { path: 'notificacoes', component: NotificationsPageComponent },
+      { path: 'niveis-acesso', component: AccessLevelsPageComponent },
     ]
   },
   { path: 'notificacoes', canActivate: [authGuard], component: UserNotificationsComponent },

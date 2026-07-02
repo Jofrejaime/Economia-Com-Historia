@@ -44,40 +44,72 @@ export class QuizListComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    const user = this.authService.getUser() as any;
-    if (user) {
-      this.userLevel = {
-        current: user.level ?? 1,
-        name: user.level_name ?? 'Investigador',
-        points: user.total_points ?? 0,
-        nextLevel: user.next_level_points ?? 1000,
-        progress: user.level_progress_pct ?? 0,
-      };
-      this.cdr.detectChanges();
-    }
+    this.loadUserLevel();
     this.loadQuizzes();
     this.loadLeaderboard();
   }
 
- private async loadQuizzes(): Promise<void> {
-  try {
-    const quizzes = await this.quizService.getQuizzes();
-    this.allQuizzes = quizzes;
-    this.featuredQuizzes = quizzes.filter(q => q.is_featured);
+  private async loadUserLevel(): Promise<void> {
+    try {
+      const user = this.authService.getUser() as any;
+      if (!user) return;
 
-    // extrai dificuldades únicas da API, ordenadas
-    const seen = new Set<string>();
-    this.difficulties = quizzes
-      .map(q => q.difficulty)
-      .filter(d => d && !seen.has(d) && seen.add(d))
-      .map(d => ({ id: d, label: d }));
+      const userLevels = user.user_levels || {};
+      const currentLevel = userLevels.current_level ?? 1;
+      const totalPoints = userLevels.total_points ?? 0;
 
-    this.cdr.detectChanges();
-  } catch {
-    this.error = 'Erro ao carregar quizzes.';
-    this.cdr.detectChanges();
+      this.userLevel = {
+        current: currentLevel,
+        name: this.getLevelName(currentLevel),
+        points: totalPoints,
+        nextLevel: this.getNextLevelThreshold(currentLevel),
+        progress: this.getLevelProgress(currentLevel, totalPoints),
+      };
+      this.cdr.detectChanges();
+    } catch {
+      // Mantém os valores por defeito
+    }
   }
-}
+
+  private getLevelName(level: number): string {
+    const names: Record<number, string> = {
+      1: 'Iniciante',
+      2: 'Aprendiz',
+      3: 'Investigador',
+      4: 'Mestre',
+      5: 'Arquivista'
+    };
+    return names[level] ?? 'Investigador';
+  }
+
+  private getNextLevelThreshold(level: number): number {
+    const thresholds: Record<number, number> = { 1: 250, 2: 750, 3: 1500, 4: 3000, 5: 3000 };
+    return thresholds[level] ?? 1000;
+  }
+
+  private getLevelProgress(level: number, points: number): number {
+    const next = this.getNextLevelThreshold(level);
+    return Math.min(100, Math.round((points / next) * 100));
+  }
+
+  private async loadQuizzes(): Promise<void> {
+    try {
+      const quizzes = await this.quizService.getQuizzes();
+      this.allQuizzes = quizzes;
+      this.featuredQuizzes = quizzes.filter(q => q.is_featured);
+
+      const seen = new Set<string>();
+      this.difficulties = quizzes
+        .map(q => q.difficulty)
+        .filter(d => d && !seen.has(d) && seen.add(d))
+        .map(d => ({ id: d, label: d }));
+
+      this.cdr.detectChanges();
+    } catch {
+      this.error = 'Erro ao carregar quizzes.';
+      this.cdr.detectChanges();
+    }
+  }
 
   private async loadLeaderboard(): Promise<void> {
     try {
@@ -148,11 +180,20 @@ export class QuizListComponent implements OnInit {
     }
   }
 
-  getAvatarUrl(name: string): string {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8B1E2D&color=fff&size=80`;
+  getInitials(name: string): string {
+    return name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  }
+
+  getAvatarColor(name: string): string {
+    return name.charCodeAt(0) % 2 === 0 ? '#8b1e2d' : '#6b0119';
   }
 
   async startQuiz(quizId: string): Promise<void> {
+    if (!this.authService.getUser()) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
     try {
       const attemptId = await this.quizService.startAttempt(quizId);
       this.router.navigate(['/quiz/pergunta'], {

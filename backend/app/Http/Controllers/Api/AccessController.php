@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\AccessLevel;
+use App\Http\Resources\AccessLevelResource;
 use App\Services\AccessGateService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
@@ -41,9 +43,11 @@ class AccessController extends Controller
      */
     public function index(): JsonResponse
     {
-        $levels = DB::table('access_levels')->orderBy('id')->get();
+        $levels = AccessLevel::orderBy('id')->get();
 
-        return response()->json(['data' => $levels]);
+        return response()->json([
+            'data' => AccessLevelResource::collection($levels)
+        ]);
     }
 
     /**

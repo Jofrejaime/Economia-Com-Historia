@@ -47,7 +47,11 @@ export class ContentsViewComponent implements OnInit {
   }
 
   async toggleLike(): Promise<void> {
-    if (!this.doc || !this.isAuthenticated) return;
+    if (!this.doc) return;
+    if (!this.isAuthenticated) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
     try {
       if (this.doc.is_liked) {
         await this.documentService.unlikeDocument(this.doc.id);
@@ -63,7 +67,11 @@ export class ContentsViewComponent implements OnInit {
   }
 
   async toggleFavorite(): Promise<void> {
-    if (!this.doc || !this.isAuthenticated) return;
+    if (!this.doc) return;
+    if (!this.isAuthenticated) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
     try {
       if (this.doc.is_favorited) {
         await this.documentService.unfavoriteDocument(this.doc.id);
@@ -77,7 +85,11 @@ export class ContentsViewComponent implements OnInit {
   }
 
   async onDownload(): Promise<void> {
-    if (!this.doc || !this.isAuthenticated) return;
+    if (!this.doc) return;
+    if (!this.isAuthenticated) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
     try {
       const pdfUrl = await this.documentService.downloadDocument(this.doc.id);
       const url = pdfUrl ?? this.doc.pdf_url;
@@ -89,8 +101,12 @@ export class ContentsViewComponent implements OnInit {
     this.router.navigate([path]);
   }
 
+  hasDocumentImage(): boolean {
+    return !!this.doc?.cover_image_url?.trim();
+  }
+
   getDocumentImage(): string {
-    return this.doc?.cover_image_url ?? 'assets/images/document-placeholder.jpg';
+    return this.doc?.cover_image_url ?? '';
   }
 
   getAcademicLevelLabel(): string {

@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, Observable, of, timeout, TimeoutError } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -81,6 +81,41 @@ export interface AccessGrantRecord {
   expires_at: string | null;
   revoked_at: string | null;
   is_active: boolean;
+}
+
+export interface SettingRecord {
+  id: string;
+  key: string;
+  value: any;
+  type: 'string' | 'integer' | 'boolean' | 'json' | 'float';
+  group: string;
+  description: string | null;
+  is_public: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface LevelDefinitionRecord {
+  level: number;
+  name: string;
+  min_points: number;
+  max_points: number | null;
+  color_hex: string | null;
+  icon_url: string | null;
+  perks: string[] | null;
+}
+
+/** Nível de ACESSO A CONTEÚDO (público/jindungo/restrito) — não confundir com
+ *  LevelDefinitionRecord, que são os níveis de gamificação do utilizador. */
+export interface AccessLevelRecord {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  color_bg: string | null;
+  color_text: string | null;
+  requires_approval: boolean;
+  auto_grant: boolean;
 }
 
 export interface ApiResult<T> {
@@ -208,6 +243,142 @@ export class AdminApiService {
     );
   }
 
+  listSettings(): Observable<ApiResult<SettingRecord[]>> {
+    return this.http.get<ApiEnvelope<SettingRecord[]>>(`${environment.apiBaseUrl}/api/admin/settings`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<SettingRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
+      catchError((error: unknown) => of(this.toFailureResult<SettingRecord[]>(error, 'Erro ao carregar configurações')))
+    );
+  }
+
+  updateSetting(key: string, value: any): Observable<ApiResult<SettingRecord>> {
+    return this.http.patch<ApiEnvelope<SettingRecord>>(`${environment.apiBaseUrl}/api/admin/settings/${key}`, { value }, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<SettingRecord> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<SettingRecord>(error, 'Erro ao actualizar configuração')))
+    );
+  }
+
+  listLevelDefinitions(): Observable<ApiResult<LevelDefinitionRecord[]>> {
+    return this.http.get<ApiEnvelope<LevelDefinitionRecord[]>>(`${environment.apiBaseUrl}/api/admin/level-definitions`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<LevelDefinitionRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
+      catchError((error: unknown) => of(this.toFailureResult<LevelDefinitionRecord[]>(error, 'Erro ao carregar definições de níveis')))
+    );
+  }
+
+  updateLevelDefinition(level: number, payload: Partial<LevelDefinitionRecord>): Observable<ApiResult<LevelDefinitionRecord>> {
+    return this.http.patch<ApiEnvelope<LevelDefinitionRecord>>(`${environment.apiBaseUrl}/api/admin/level-definitions/${level}`, payload, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<LevelDefinitionRecord> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<LevelDefinitionRecord>(error, 'Erro ao actualizar nível')))
+    );
+  }
+
+  createUser(payload: Partial<AdminUser> & { password?: string; research_areas?: string[] }): Observable<ApiResult<AdminUser>> {
+    return this.http.post<ApiEnvelope<AdminUser>>(`${environment.apiBaseUrl}/api/admin/users`, payload, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AdminUser> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<AdminUser>(error, 'Erro ao criar utilizador')))
+    );
+  }
+
+  getUserProfile(id: string): Observable<ApiResult<any>> {
+    return this.http.get<ApiEnvelope<any>>(`${environment.apiBaseUrl}/api/admin/users/${id}/profile`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<any> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<any>(error, 'Erro ao carregar perfil de progresso')))
+    );
+  }
+
+  getUserSessions(id: string): Observable<ApiResult<any[]>> {
+    return this.http.get<ApiEnvelope<any[]>>(`${environment.apiBaseUrl}/api/admin/users/${id}/sessions`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<any[]> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        data: response.body?.data ?? [],
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<any[]>(error, 'Erro ao carregar sessões de auditoria')))
+    );
+  }
+
+  // ─── Access Levels (público/jindungo/restrito — controlo de acesso a conteúdo) ───
+
+  listAccessLevels(): Observable<ApiResult<AccessLevelRecord[]>> {
+    return this.http.get<ApiEnvelope<AccessLevelRecord[]>>(`${environment.apiBaseUrl}/api/admin/access-levels`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AccessLevelRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
+      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord[]>(error, 'Erro ao carregar níveis de acesso')))
+    );
+  }
+
+  getAccessLevel(id: string): Observable<ApiResult<AccessLevelRecord>> {
+    return this.http.get<ApiEnvelope<AccessLevelRecord>>(`${environment.apiBaseUrl}/api/admin/access-levels/${id}`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AccessLevelRecord> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data })),
+      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord>(error, 'Erro ao carregar nível de acesso')))
+    );
+  }
+
+  createAccessLevel(payload: Partial<AccessLevelRecord> & { id: string; name: string }): Observable<ApiResult<AccessLevelRecord>> {
+    return this.http.post<ApiEnvelope<AccessLevelRecord>>(`${environment.apiBaseUrl}/api/admin/access-levels`, payload, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AccessLevelRecord> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord>(error, 'Erro ao criar nível de acesso')))
+    );
+  }
+
+  updateAccessLevel(id: string, payload: Partial<AccessLevelRecord>): Observable<ApiResult<AccessLevelRecord>> {
+    return this.http.patch<ApiEnvelope<AccessLevelRecord>>(`${environment.apiBaseUrl}/api/admin/access-levels/${id}`, payload, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<AccessLevelRecord> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord>(error, 'Erro ao actualizar nível de acesso')))
+    );
+  }
+
+  deleteAccessLevel(id: string): Observable<ApiResult<null>> {
+    return this.http.delete<ApiEnvelope<null>>(`${environment.apiBaseUrl}/api/admin/access-levels/${id}`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<null> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: null,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<null>(error, 'Erro ao eliminar nível de acesso')))
+    );
+  }
+
   private cleanParams(params?: Record<string, string | undefined>): Record<string, string> {
     const cleaned: Record<string, string> = {};
 
@@ -270,5 +441,3 @@ export class AdminApiService {
     return '';
   }
 }
-
-

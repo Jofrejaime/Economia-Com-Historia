@@ -11,7 +11,7 @@ return new class extends Migration
         // status VARCHAR(20) NOT NULL DEFAULT 'PENDING'
         if (DB::getDriverName() === 'mysql') {
             DB::statement("ALTER TABLE document_subscriptions MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'PENDING'");
-        } else {
+        } elseif (DB::getDriverName() !== 'sqlite') {
             DB::statement("ALTER TABLE document_subscriptions ALTER COLUMN status SET DEFAULT 'PENDING'");
         }
     }
@@ -20,7 +20,7 @@ return new class extends Migration
     {
         if (DB::getDriverName() === 'mysql') {
             DB::statement("ALTER TABLE document_subscriptions MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'");
-        } else {
+        } elseif (DB::getDriverName() !== 'sqlite') {
             DB::statement("ALTER TABLE document_subscriptions ALTER COLUMN status SET DEFAULT 'ACTIVE'");
         }
     }

@@ -15,6 +15,13 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\QuizController;
 use App\Http\Controllers\Api\QuizAdminController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\Api\LevelDefinitionController;
+use App\Http\Controllers\Api\AccessLevelController;
+use App\Http\Controllers\Api\DocumentCategoryController;
+use App\Http\Controllers\Api\TagController;
+use App\Http\Controllers\Api\UserAdminController;
+use App\Http\Controllers\Api\MediaController;
 use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\OptionalAuthenticateApiSession;
 use Illuminate\Support\Facades\Route;
@@ -23,10 +30,10 @@ use App\Http\Controllers\Api\BadgeController;
 Route::get('/health', HealthController::class);
 
 Route::prefix('auth')->group(function (): void {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth');
     Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth');
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
@@ -63,9 +70,15 @@ Route::middleware(OptionalAuthenticateApiSession::class)->group(function (): voi
 Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::middleware('role:admin')->prefix('admin')->group(function (): void {
         Route::get('/dashboard/summary', [AdminController::class, 'summary']);
-        Route::get('/users', [AdminController::class, 'users']);
-        Route::patch('/users/{id}', [AdminController::class, 'updateUser']);
-        Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+
+        // Users Management
+        Route::get('/users', [UserAdminController::class, 'index']);
+        Route::get('/users/{id}', [UserAdminController::class, 'show']);
+        Route::post('/users', [UserAdminController::class, 'store']);
+        Route::patch('/users/{id}', [UserAdminController::class, 'update']);
+        Route::delete('/users/{id}', [UserAdminController::class, 'destroy']);
+        Route::get('/users/{id}/profile', [UserAdminController::class, 'profile']);
+        Route::get('/users/{id}/sessions', [UserAdminController::class, 'sessions']);
 
         // Document subscription management
         Route::get('/document-subscriptions', [AdminDocumentSubscriptionController::class, 'index']);
@@ -97,33 +110,51 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::delete('/quizzes/{id}', [QuizAdminController::class, 'destroy']);
         Route::post('/quizzes/{id}/documents', [QuizAdminController::class, 'syncDocuments']);
         Route::delete('/quizzes/{id}/documents/{documentId}', [QuizAdminController::class, 'detachDocument']);
-    });
 
-    Route::middleware('role:admin')->prefix('v1/admin')->group(function (): void {
-        // Quizzes Dashboard
-        Route::get('/quizzes/dashboard', [QuizAdminController::class, 'dashboard']);
+        // Settings management
+        Route::get('/settings', [SettingsController::class, 'index']);
+        Route::get('/settings/{key}', [SettingsController::class, 'show']);
+        Route::patch('/settings/{key}', [SettingsController::class, 'update']);
 
-        // Quizzes — State transitions
-        Route::patch('/quizzes/{id}/publish', [QuizAdminController::class, 'publish']);
-        Route::post('/quizzes/{id}/publish', [QuizAdminController::class, 'publish']);
-        Route::patch('/quizzes/{id}/review', [QuizAdminController::class, 'review']);
-        Route::post('/quizzes/{id}/review', [QuizAdminController::class, 'review']);
-        Route::patch('/quizzes/{id}/archive', [QuizAdminController::class, 'archive']);
-        Route::post('/quizzes/{id}/archive', [QuizAdminController::class, 'archive']);
+        // Level Definitions management
+        Route::get('/level-definitions', [LevelDefinitionController::class, 'index']);
+        Route::get('/level-definitions/{level}', [LevelDefinitionController::class, 'show']);
+        Route::post('/level-definitions', [LevelDefinitionController::class, 'store']);
+        Route::patch('/level-definitions/{level}', [LevelDefinitionController::class, 'update']);
+        Route::delete('/level-definitions/{level}', [LevelDefinitionController::class, 'destroy']);
 
-        // Quiz documents N:N list
-        Route::get('/quizzes/{id}/documents', [QuizAdminController::class, 'documents']);
-        // Document quizzes N:N list (admin version)
-        Route::get('/documents/{id}/quizzes', [QuizAdminController::class, 'documentQuizzes']);
+        // Access Levels management
+        Route::get('/access-levels', [AccessLevelController::class, 'index']);
+        Route::get('/access-levels/{id}', [AccessLevelController::class, 'show']);
+        Route::post('/access-levels', [AccessLevelController::class, 'store']);
+        Route::patch('/access-levels/{id}', [AccessLevelController::class, 'update']);
+        Route::delete('/access-levels/{id}', [AccessLevelController::class, 'destroy']);
 
-        // Quizzes — CRUD
-        Route::get('/quizzes', [QuizAdminController::class, 'index']);
-        Route::get('/quizzes/{id}', [QuizAdminController::class, 'show']);
-        Route::post('/quizzes', [QuizAdminController::class, 'store']);
-        Route::patch('/quizzes/{id}', [QuizAdminController::class, 'update']);
-        Route::delete('/quizzes/{id}', [QuizAdminController::class, 'destroy']);
-        Route::post('/quizzes/{id}/documents', [QuizAdminController::class, 'syncDocuments']);
-        Route::delete('/quizzes/{id}/documents/{documentId}', [QuizAdminController::class, 'detachDocument']);
+        // Documents Management (Admin)
+        // Listagem admin: o DocumentSearchService é role-aware (admins veem
+        // todos os estados e podem filtrar por ?status=...).
+        Route::get('/documents', [DocumentController::class, 'index']);
+        Route::post('/documents', [DocumentController::class, 'store']);
+        Route::patch('/documents/{id}', [DocumentController::class, 'update']);
+        Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
+        Route::patch('/documents/{id}/publish', [DocumentController::class, 'publish']);
+        Route::patch('/documents/{id}/unpublish', [DocumentController::class, 'unpublish']);
+        Route::patch('/documents/{id}/pin', [DocumentController::class, 'pin']);
+        Route::patch('/documents/{id}/unpin', [DocumentController::class, 'unpin']);
+
+        // Categories Management (Admin)
+        Route::get('/document-categories', [DocumentCategoryController::class, 'index']);
+        Route::get('/document-categories/{id}', [DocumentCategoryController::class, 'show']);
+        Route::post('/document-categories', [DocumentCategoryController::class, 'store']);
+        Route::patch('/document-categories/{id}', [DocumentCategoryController::class, 'update']);
+        Route::delete('/document-categories/{id}', [DocumentCategoryController::class, 'destroy']);
+
+        // Tags Management (Admin)
+        Route::get('/tags', [TagController::class, 'index']);
+        Route::get('/tags/{id}', [TagController::class, 'show']);
+        Route::post('/tags', [TagController::class, 'store']);
+        Route::patch('/tags/{id}', [TagController::class, 'update']);
+        Route::delete('/tags/{id}', [TagController::class, 'destroy']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -218,6 +249,10 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::post('/documents', [DocumentController::class, 'store']);
         Route::patch('/documents/{id}', [DocumentController::class, 'update']);
         Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
+
+        // Media — pipeline único de uploads (editor rico, ícones, capas soltas)
+        Route::post('/media/uploads', [MediaController::class, 'store']);
+        Route::delete('/media/{id}', [MediaController::class, 'destroy']);
     });
 
     // ─── Admin only ─────────────────────────────────────────────────────

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         // Seeders de Pessoa 1 (Jofre Jaime) - Core e Autenticação
         // Ordem importa: níveis primeiro, depois users
         $this->call([
+            SettingsSeeder::class,
             LevelDefinitionsSeeder::class,
             AdminSeeder::class,
             UserSeeder::class,

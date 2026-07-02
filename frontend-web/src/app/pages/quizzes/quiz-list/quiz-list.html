@@ -92,53 +92,59 @@
           </div>
           
           <div class="quizzes-podium" *ngIf="topPlayers.length >= 3">
-            <div class="quizzes-podium-item quizzes-podium-item-second" (click)="goToRanking()">
-              <div class="quizzes-podium-avatar">
-                <img [src]="getAvatarUrl(topPlayers[1].display_name)" [alt]="topPlayers[1].display_name">
-                <div class="quizzes-podium-badge quizzes-podium-badge-silver">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#9CA3AF">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="quizzes-podium-rank">2º</div>
-              <div class="quizzes-podium-name">{{ topPlayers[1].display_name }}</div>
-              <div class="quizzes-podium-points">{{ topPlayers[1].total_points | number }} pts</div>
-            </div>
+  <div class="quizzes-podium-item quizzes-podium-item-second" (click)="goToRanking()">
+    <div class="quizzes-podium-avatar">
+      <div class="quizzes-podium-avatar-fallback" [style.background]="getAvatarColor(topPlayers[1].display_name)">
+        <span style="color: #ffffff;">{{ getInitials(topPlayers[1].display_name) }}</span>
+      </div>
+      <div class="quizzes-podium-badge quizzes-podium-badge-silver">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#9CA3AF">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="quizzes-podium-rank">2º</div>
+    <div class="quizzes-podium-name">{{ topPlayers[1].display_name }}</div>
+    <div class="quizzes-podium-points">{{ topPlayers[1].total_points | number }} pts</div>
+  </div>
 
-            <div class="quizzes-podium-item quizzes-podium-item-first" (click)="goToRanking()">
-              <div class="quizzes-podium-crown">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="#FBBF24">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-              </div>
-              <div class="quizzes-podium-avatar">
-                <img [src]="getAvatarUrl(topPlayers[0].display_name)" [alt]="topPlayers[0].display_name">
-                <div class="quizzes-podium-badge quizzes-podium-badge-gold">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="quizzes-podium-rank">1º</div>
-              <div class="quizzes-podium-name">{{ topPlayers[0].display_name }}</div>
-              <div class="quizzes-podium-points">{{ topPlayers[0].total_points | number }} pts</div>
-            </div>
+  <div class="quizzes-podium-item quizzes-podium-item-first" (click)="goToRanking()">
+    <div class="quizzes-podium-crown">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="#FBBF24">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+      </svg>
+    </div>
+    <div class="quizzes-podium-avatar">
+      <div class="quizzes-podium-avatar-fallback" [style.background]="getAvatarColor(topPlayers[0].display_name)">
+        <span style="color: #ffffff;">{{ getInitials(topPlayers[0].display_name) }}</span>
+      </div>
+      <div class="quizzes-podium-badge quizzes-podium-badge-gold">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="quizzes-podium-rank">1º</div>
+    <div class="quizzes-podium-name">{{ topPlayers[0].display_name }}</div>
+    <div class="quizzes-podium-points">{{ topPlayers[0].total_points | number }} pts</div>
+  </div>
 
-            <div class="quizzes-podium-item quizzes-podium-item-third" (click)="goToRanking()">
-              <div class="quizzes-podium-avatar">
-                <img [src]="getAvatarUrl(topPlayers[2].display_name)" [alt]="topPlayers[2].display_name">
-                <div class="quizzes-podium-badge quizzes-podium-badge-bronze">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#CD7F32">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="quizzes-podium-rank">3º</div>
-              <div class="quizzes-podium-name">{{ topPlayers[2].display_name }}</div>
-              <div class="quizzes-podium-points">{{ topPlayers[2].total_points | number }} pts</div>
-            </div>
-          </div>
+  <div class="quizzes-podium-item quizzes-podium-item-third" (click)="goToRanking()">
+    <div class="quizzes-podium-avatar">
+      <div class="quizzes-podium-avatar-fallback" [style.background]="getAvatarColor(topPlayers[2].display_name)">
+        <span style="color: #ffffff;">{{ getInitials(topPlayers[2].display_name) }}</span>
+      </div>
+      <div class="quizzes-podium-badge quizzes-podium-badge-bronze">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#CD7F32">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="quizzes-podium-rank">3º</div>
+    <div class="quizzes-podium-name">{{ topPlayers[2].display_name }}</div>
+    <div class="quizzes-podium-points">{{ topPlayers[2].total_points | number }} pts</div>
+  </div>
+</div>
 
           <div *ngIf="topPlayers.length === 0" style="text-align:center;padding:40px;color:#64748b">
             <p>Ainda não há dados de ranking disponíveis.</p>
