@@ -99,33 +99,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::delete('/quizzes/{id}/documents/{documentId}', [QuizAdminController::class, 'detachDocument']);
     });
 
-    Route::middleware('role:admin')->prefix('v1/admin')->group(function (): void {
-        // Quizzes Dashboard
-        Route::get('/quizzes/dashboard', [QuizAdminController::class, 'dashboard']);
-
-        // Quizzes — State transitions
-        Route::patch('/quizzes/{id}/publish', [QuizAdminController::class, 'publish']);
-        Route::post('/quizzes/{id}/publish', [QuizAdminController::class, 'publish']);
-        Route::patch('/quizzes/{id}/review', [QuizAdminController::class, 'review']);
-        Route::post('/quizzes/{id}/review', [QuizAdminController::class, 'review']);
-        Route::patch('/quizzes/{id}/archive', [QuizAdminController::class, 'archive']);
-        Route::post('/quizzes/{id}/archive', [QuizAdminController::class, 'archive']);
-
-        // Quiz documents N:N list
-        Route::get('/quizzes/{id}/documents', [QuizAdminController::class, 'documents']);
-        // Document quizzes N:N list (admin version)
-        Route::get('/documents/{id}/quizzes', [QuizAdminController::class, 'documentQuizzes']);
-
-        // Quizzes — CRUD
-        Route::get('/quizzes', [QuizAdminController::class, 'index']);
-        Route::get('/quizzes/{id}', [QuizAdminController::class, 'show']);
-        Route::post('/quizzes', [QuizAdminController::class, 'store']);
-        Route::patch('/quizzes/{id}', [QuizAdminController::class, 'update']);
-        Route::delete('/quizzes/{id}', [QuizAdminController::class, 'destroy']);
-        Route::post('/quizzes/{id}/documents', [QuizAdminController::class, 'syncDocuments']);
-        Route::delete('/quizzes/{id}/documents/{documentId}', [QuizAdminController::class, 'detachDocument']);
-    });
-
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/sessions', [AuthController::class, 'sessions']);
     Route::delete('/auth/sessions/others', [AuthController::class, 'destroyOtherSessions']);
