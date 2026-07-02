@@ -177,7 +177,7 @@ class LeaderboardService
         }
 
         DB::transaction(function () use ($rows) {
-            DB::table('leaderboard_nacional_cache')->truncate();
+            DB::table('leaderboard_nacional_cache')->delete();
             if (!empty($rows)) {
                 foreach (array_chunk($rows, 100) as $chunk) {
                     DB::table('leaderboard_nacional_cache')->insert($chunk);

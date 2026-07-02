@@ -106,8 +106,8 @@ export function QuizResultScreen() {
   const label = scoreLabel(pct);
   const totalPoints = (attempt.points_earned ?? 0) + (attempt.bonus_points ?? 0);
   const hasBonus = (attempt.bonus_points ?? 0) > 0;
-  const leveledUp = gamification?.levelChanged === true;
-  const newBadges = gamification?.badgesEarned ?? [];
+  const leveledUp = gamification?.level_changed === true;
+  const newBadges = gamification?.badges_earned ?? [];
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
@@ -125,7 +125,7 @@ export function QuizResultScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.levelUpTitle}>NÍVEL ALCANÇADO!</Text>
               <Text style={styles.levelUpDesc}>
-                Subiste do Nível {gamification?.previousLevel} para o Nível {gamification?.currentLevel}
+                Subiste do Nível {gamification?.previous_level} para o Nível {gamification?.current_level}
               </Text>
             </View>
           </View>
@@ -242,7 +242,10 @@ export function QuizResultScreen() {
               <Pressable
                 key={doc.id}
                 style={styles.docCard}
-                onPress={() => navigation.navigate("Article", { id: doc.id })}
+                onPress={() => {
+                  const isMedia = doc.document_type === "video" || doc.document_type === "audio";
+                  navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: doc.id });
+                }}
               >
                 <View style={styles.docCardLeft}>
                   <Text style={styles.docType}>

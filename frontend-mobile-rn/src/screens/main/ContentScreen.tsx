@@ -129,7 +129,10 @@ export function ContentScreen() {
     const accessInfo = accessLevelLabel(item.access_level_id);
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate("Article", { id: item.id })}
+        onPress={() => {
+          const isMedia = item.document_type === "video" || item.document_type === "audio";
+          navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: item.id });
+        }}
         style={styles.card}
       >
         <View style={styles.cardHeader}>

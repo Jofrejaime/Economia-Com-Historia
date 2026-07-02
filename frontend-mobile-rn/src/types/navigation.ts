@@ -28,10 +28,11 @@ export type MainStackParamList = {
   Login: undefined;
   Register: undefined;
   Article: { id: string };
+  MediaDetail: { id: string };
   Quiz: { quizId: string; attemptId?: string };
   QuizFeedback: { isCorrect: boolean; explanation: string | null; isLast: boolean; attemptId: string; quizId: string; gamification?: GamificationResult };
   QuizResult: { attemptId: string; quizId: string; gamification?: GamificationResult };
-  CreateTopic: { initialTitle?: string };
+  CreateTopic: { initialTitle?: string; initialCategoryId?: string };
   TopicDiscussion: { id: string };
   ManageMembers: { topicId: string; topicTitle?: string; initialMembers?: Array<{ id: string; name: string; username: string; avatarUri: string | null }> };
   PersonalInfo: undefined;

@@ -1,6 +1,6 @@
 import { httpClient } from '../http/client';
 import { API_ENDPOINTS } from '../../constants/api';
-import type { Document, DocumentCategory, PaginatedResponse } from '../../types/api';
+import type { Document, DocumentCategory, Quiz, PaginatedResponse } from '../../types/api';
 
 export interface DocumentFilters {
   q?: string;
@@ -33,6 +33,11 @@ export const documentService = {
 
   async detail(id: string): Promise<Document> {
     const { data } = await httpClient.get(API_ENDPOINTS.DOCUMENTS.DETAIL(id));
+    return data.data ?? data;
+  },
+
+  async relatedQuizzes(documentId: string): Promise<Quiz[]> {
+    const { data } = await httpClient.get(API_ENDPOINTS.DOCUMENTS.RELATED_QUIZZES(documentId));
     return data.data ?? data;
   },
 

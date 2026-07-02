@@ -101,8 +101,9 @@ export function DashboardScreen() {
     }
   };
 
-  const handleOpenDocument = (id: string) => {
-    navigation.navigate("Article", { id });
+  const handleOpenDocument = (doc: Document) => {
+    const isMedia = doc.document_type === "video" || doc.document_type === "audio";
+    navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: doc.id });
   };
 
   const handleOpenDiscussion = (id: string) => {
@@ -191,7 +192,7 @@ export function DashboardScreen() {
               <TouchableOpacity
                 key={doc.id}
                 style={styles.jindungoCard}
-                onPress={() => handleOpenDocument(doc.id)}
+                onPress={() => handleOpenDocument(doc)}
               >
                 <View style={styles.jindungoCardContent}>
                   <View style={styles.jindungoBadgeRow}>
@@ -256,7 +257,7 @@ export function DashboardScreen() {
                 duration={doc.author}
                 documentType={doc.document_type}
                 accessLevelId={doc.access_level_id}
-                onPress={() => handleOpenDocument(doc.id)}
+                onPress={() => handleOpenDocument(doc)}
               />
             ))}
           </View>
