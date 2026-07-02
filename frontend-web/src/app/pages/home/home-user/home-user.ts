@@ -79,13 +79,20 @@ export class HomeUser implements OnInit {
     }
   }
 
+  hasDocumentImage(doc: Document): boolean {
+    return !!doc.cover_image_url?.trim();
+  }
+
   getDocumentImage(doc: Document): string {
-    return doc.cover_image_url ?? 'assets/images/document-placeholder.jpg';
+    return doc.cover_image_url ?? '';
+  }
+
+  hasFeaturedImage(): boolean {
+    return !!this.featuredDocument?.cover_image_url?.trim();
   }
 
   getFeaturedImage(): string {
-    return this.featuredDocument?.cover_image_url
-      ?? 'https://images.unsplash.com/photo-1447069387593-a5de0862481e?w=1536&q=80';
+    return this.featuredDocument?.cover_image_url ?? '';
   }
 
   getFormatLabel(type: string): string {
@@ -103,14 +110,18 @@ export class HomeUser implements OnInit {
     return count === 1 ? '1 resposta' : `${count} respostas`;
   }
 
-  getAvatarUrl(name: string): string {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8B1E2D&color=fff&size=48`;
+  getInitials(name: string): string {
+    return name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  }
+
+  getAvatarColor(name: string): string {
+    return name.charCodeAt(0) % 2 === 0 ? '#8b1e2d' : '#6b0119';
   }
 
   navigateToContent(id: string): void { this.router.navigate(['/contents/view', id]); }
   navigateToCategory(id: string): void {
-  this.router.navigate(['/contents'], { queryParams: { category_id: id } });
-}
+    this.router.navigate(['/contents'], { queryParams: { category_id: id } });
+  }
   navigateToDiscussion(id: string): void { this.router.navigate(['/forum/community/discussao', id]); }
   navigateTo(path: string): void { this.router.navigate([path]); }
 }

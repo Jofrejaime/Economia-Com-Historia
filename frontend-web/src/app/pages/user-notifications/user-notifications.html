@@ -74,16 +74,25 @@
               </div>
               <p class="notification-message">{{ notif.message }}</p>
               <div class="notification-footer">
-                <span class="notification-tag" [class]="'notification-tag-' + getVisualType(notif.type)">
-                  {{ getTypeTag(notif.type) }}
-                </span>
-                <button *ngIf="!notif.is_read" (click)="markAsRead(notif.id)" class="notification-mark-read">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                  Marcar como lida
-                </button>
-              </div>
+  <span class="notification-tag" [class]="'notification-tag-' + getVisualType(notif.type)">
+    {{ getTypeTag(notif.type) }}
+  </span>
+  <div class="notification-footer-actions">
+    <button *ngIf="!notif.is_read" (click)="markAsRead(notif.id)" class="notification-mark-read">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Marcar como lida
+    </button>
+    <button (click)="deleteNotification($event, notif.id)" class="notification-delete">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+      Eliminar
+    </button>
+  </div>
+</div>
             </div>
           </div>
         </ng-container>

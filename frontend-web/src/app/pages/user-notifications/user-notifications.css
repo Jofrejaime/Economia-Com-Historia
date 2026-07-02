@@ -491,3 +491,31 @@ h1, h2, h3, h4 {
     gap: 8px;
   }
 }
+.notification-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9CA3AF;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.notification-delete:hover {
+  color: #DC2626;
+}
+
+.notification-delete svg {
+  flex-shrink: 0;
+}

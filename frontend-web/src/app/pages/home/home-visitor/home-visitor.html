@@ -1,35 +1,7 @@
 <div style="background-color: #F5F5F5; min-height: 100vh;">
 
-  <!-- Header - Versão Visitor com Links -->
-  <header class="home-header">
-    <div class="home-header-container">
-
-      <!-- Logo -->
-      <div class="home-logo" routerLink="/home">
-        <div class="home-logo-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
-            <path d="M2 17L12 22L22 17"/>
-            <path d="M2 12L12 17L22 12"/>
-          </svg>
-        </div>
-        <span class="home-logo-text">Economia com História</span>
-      </div>
-
-      <!-- Navigation Links -->
-      <nav class="home-nav">
-        <a routerLink="/landing" routerLinkActive="active" class="home-nav-link">Início</a>
-        <a routerLink="/contents" routerLinkActive="active" class="home-nav-link">Conteúdos</a>
-        <a routerLink="/forum/community" routerLinkActive="active" class="home-nav-link">Comunidade</a>
-        <a routerLink="/quiz" routerLinkActive="active" class="home-nav-link">Quiz</a>
-      </nav>
-
-      <!-- Login Button -->
-      <button (click)="navigateTo('/auth/login')" class="btn-login">
-        Entrar
-      </button>
-    </div>
-  </header>
+  <!-- Header partilhado (mesmo componente de toda a app) -->
+  <app-header></app-header>
 
   <!-- Hero Section -->
   <section class="home-hero">
@@ -121,13 +93,13 @@
       <div class="visitor-docs-list" *ngIf="!isLoading && featuredContents.length > 0">
         <div *ngFor="let content of featuredContents" (click)="navigateTo('/contents/view/' + content.id)" class="visitor-doc-item">
           <div class="visitor-doc-item-image">
-            <img [src]="content.image || 'assets/images/default-doc.jpg'" [alt]="content.title">
+            <img *ngIf="content.image" [src]="content.image" [alt]="content.title">
+            <div *ngIf="!content.image" class="visitor-doc-item-placeholder"></div>
           </div>
           <div class="visitor-doc-item-body">
             <span class="visitor-doc-item-category">{{ content.category }}</span>
             <h3 class="visitor-doc-item-title">{{ content.title }}</h3>
             <p class="visitor-doc-item-description">{{ content.description }}</p>
-
             <p class="visitor-doc-item-meta">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -217,8 +189,21 @@
       </div>
 
       <div class="home-ranking-grid" *ngIf="!isLoading">
-        <div *ngFor="let rank of leaderboard; let i = index" class="home-ranking-card" [class.top-1]="i === 0" [class.top-2]="i === 1" [class.top-3]="i === 2">
+        <div *ngFor="let rank of leaderboard; let i = index"
+             class="home-ranking-card"
+             [class.top-1]="i === 0"
+             [class.top-2]="i === 1"
+             [class.top-3]="i === 2">
           <div class="home-ranking-position">
+            <svg *ngIf="i === 0" width="20" height="20" viewBox="0 0 24 24" fill="#FBBF24">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+            <svg *ngIf="i === 1" width="18" height="18" viewBox="0 0 24 24" fill="#C0C0C0">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+            <svg *ngIf="i === 2" width="16" height="16" viewBox="0 0 24 24" fill="#CD7F32">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
             <span class="position-number">{{ i + 1 }}º</span>
           </div>
           <div class="home-ranking-info">
@@ -273,6 +258,7 @@
                 <p class="home-access-item-text">Acesse milhões de documentos, relatórios e publicações económicas sem necessidade de login.</p>
               </div>
             </div>
+
             <div class="home-access-item">
               <div class="home-access-item-icon">
                 <svg width="14" height="14" viewBox="0 0 20 20" fill="white"><path d="M10 0L20 10L10 20L0 10L10 0Z"/></svg>
@@ -323,6 +309,7 @@
                 <svg class="home-access-card-item-icon" viewBox="0 0 16 16"><path d="M8 1L9 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L7 5L8 1Z"/></svg>
                 <span class="home-access-card-item-text">Contribuir com novos documentos ao arquivo</span>
               </div>
+
               <div class="home-access-card-item">
                 <svg class="home-access-card-item-icon" viewBox="0 0 16 16"><path d="M8 1L9 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L7 5L8 1Z"/></svg>
                 <span class="home-access-card-item-text">Guardar pesquisas e criar colecções personalizadas</span>

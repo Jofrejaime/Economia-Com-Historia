@@ -236,14 +236,17 @@ p, span, div, button, input {
 
 .ranking-avatar {
   flex-shrink: 0;
-}
-
-.ranking-avatar img {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  object-fit: cover;
   border: 2px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
 }
 
 .ranking-info {

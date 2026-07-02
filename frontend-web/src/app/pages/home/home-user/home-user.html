@@ -7,18 +7,19 @@
     <ng-container>
 
       <!-- Hero Section -->
-      <div class="contents-hero">
-        <img [src]="getFeaturedImage()" alt="Hero" class="contents-hero-image" />
-        <div class="contents-hero-overlay"></div>
-        <div class="contents-hero-content">
-          <p class="contents-hero-badge">DOCUMENTO EM DESTAQUE</p>
-          <h1 class="contents-hero-title">{{ featuredDocument?.title ?? 'Arquivo de Conteúdos' }}</h1>
-          <p class="contents-hero-description">{{ featuredDocument?.summary ?? 'Explore a nossa colecção de documentos históricos e económicos.' }}</p>
-          <div class="contents-hero-actions" *ngIf="featuredDocument">
-            <a (click)="navigateToContent(featuredDocument.id)" class="contents-hero-btn">Ler Documento →</a>
-          </div>
-        </div>
-      </div>
+<div class="contents-hero">
+  <img *ngIf="hasFeaturedImage()" [src]="getFeaturedImage()" alt="Hero" class="contents-hero-image" />
+  <div *ngIf="!hasFeaturedImage()" class="contents-hero-image contents-hero-placeholder"></div>
+  <div class="contents-hero-overlay"></div>
+  <div class="contents-hero-content">
+    <p class="contents-hero-badge">DOCUMENTO EM DESTAQUE</p>
+    <h1 class="contents-hero-title">{{ featuredDocument?.title ?? 'Arquivo de Conteúdos' }}</h1>
+    <p class="contents-hero-description">{{ featuredDocument?.summary ?? 'Explore a nossa colecção de documentos históricos e económicos.' }}</p>
+    <div class="contents-hero-actions" *ngIf="featuredDocument">
+      <a (click)="navigateToContent(featuredDocument.id)" class="contents-hero-btn">Ler Documento →</a>
+    </div>
+  </div>
+</div>
 
       <!-- Grid principal -->
       <div class="contents-grid">
@@ -39,18 +40,19 @@
           </div>
 
           <div class="contents-docs-list">
-            <div *ngFor="let doc of documents" class="contents-doc-item" (click)="navigateToContent(doc.id)">
-              <div class="contents-doc-item-image">
-                <img [src]="getDocumentImage(doc)" [alt]="doc.title" />
-              </div>
-              <div class="contents-doc-item-body">
-                <span class="contents-doc-item-category">{{ getFormatLabel(doc.document_type) }}</span>
-                <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
-                <p class="contents-doc-item-description">{{ doc.summary }}</p>
-                <span class="contents-doc-item-link">Ler Conteúdo →</span>
-              </div>
-            </div>
-          </div>
+  <div *ngFor="let doc of documents" class="contents-doc-item" (click)="navigateToContent(doc.id)">
+    <div class="contents-doc-item-image">
+      <img *ngIf="hasDocumentImage(doc)" [src]="getDocumentImage(doc)" [alt]="doc.title" />
+      <div *ngIf="!hasDocumentImage(doc)" class="contents-doc-item-placeholder"></div>
+    </div>
+    <div class="contents-doc-item-body">
+      <span class="contents-doc-item-category">{{ getFormatLabel(doc.document_type) }}</span>
+      <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
+      <p class="contents-doc-item-description">{{ doc.summary }}</p>
+      <span class="contents-doc-item-link">Ler Conteúdo →</span>
+    </div>
+  </div>
+</div>
         </div>
 
         <!-- Sidebar -->

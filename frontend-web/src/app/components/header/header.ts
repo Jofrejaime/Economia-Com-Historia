@@ -26,8 +26,17 @@ export class HeaderComponent implements OnInit {
   displayName = 'Conta';
   userRole = '';
 
+  // Cache partilhado entre TODAS as instâncias do HeaderComponent (cada
+  // página tem o seu próprio <app-header>, o que recria o componente a
+  // cada navegação). Sem isto, o avatar "pisca" a cada mudança de página
+  // enquanto se espera por uma nova chamada a getMe().
+  private static cachedAvatarUrl: string | null = null;
+  private static cachedDisplayName: string | null = null;
+  private static cachedUserRole: string | null = null;
+  private static cacheUserId: string | null = null;
+
   constructor(
-    private router: Router,
+    public router: Router,
     private auth: AuthService,
     private profileService: ProfileService,
     private notificationService: NotificationService
@@ -37,6 +46,7 @@ export class HeaderComponent implements OnInit {
     this.syncSessionState();
 
     if (this.isAuthenticated) {
+      this.applyCacheIfAvailable();
       this.loadUserAvatar();
       this.loadUnreadCount();
     }
@@ -50,22 +60,48 @@ export class HeaderComponent implements OnInit {
       this.unreadCount = 0;
       this.displayName = 'Conta';
       this.userRole = '';
+      HeaderComponent.cachedAvatarUrl = null;
+      HeaderComponent.cachedDisplayName = null;
+      HeaderComponent.cachedUserRole = null;
+      HeaderComponent.cacheUserId = null;
       return;
     }
 
-    const user = this.auth.getUser() as HeaderUser | null;
+    const user = this.auth.getUser() as (HeaderUser & { id?: string }) | null;
     this.displayName = user?.display_name || user?.email || 'Conta';
     this.userRole = user?.role || '';
+
+    // Se o utilizador mudou (ex: logout + login com outra conta), invalida a cache.
+    const userId = user?.id ?? null;
+    if (HeaderComponent.cacheUserId !== userId) {
+      HeaderComponent.cachedAvatarUrl = null;
+      HeaderComponent.cacheUserId = userId;
+    }
+  }
+
+  /** Mostra imediatamente o último avatar conhecido, sem esperar pela API. */
+  private applyCacheIfAvailable(): void {
+    if (HeaderComponent.cachedAvatarUrl !== null) {
+      this.avatarUrl = HeaderComponent.cachedAvatarUrl;
+    }
+    if (HeaderComponent.cachedDisplayName) {
+      this.displayName = HeaderComponent.cachedDisplayName;
+    }
+    if (HeaderComponent.cachedUserRole) {
+      this.userRole = HeaderComponent.cachedUserRole;
+    }
   }
 
   private async loadUserAvatar(): Promise<void> {
     try {
       const me = await this.profileService.getMe();
-      if (me?.profile?.avatar_url) {
-        this.avatarUrl = me.profile.avatar_url;
-      }
+      const url = me?.profile?.avatar_url ?? '';
+      this.avatarUrl = url;
+      HeaderComponent.cachedAvatarUrl = url;
+      HeaderComponent.cachedDisplayName = this.displayName;
+      HeaderComponent.cachedUserRole = this.userRole;
     } catch {
-      this.avatarUrl = '';
+      // Em caso de erro, mantém o que já estava (cache ou vazio) em vez de limpar.
     }
   }
 
@@ -77,6 +113,23 @@ export class HeaderComponent implements OnInit {
       this.unreadCount = 0;
     }
   }
+
+  hasAvatar(): boolean {
+    return !!this.avatarUrl?.trim();
+  }
+
+  onAvatarLoadError(): void {
+    this.avatarUrl = '';
+    HeaderComponent.cachedAvatarUrl = '';
+  }
+
+  goToHome(): void {
+  if (this.isAuthenticated) {
+    this.router.navigate(['/home']);
+  } else {
+    this.router.navigate(['/landing']);
+  }
+}
 
   goToNotifications(): void {
     void this.router.navigate(['/notificacoes']);
@@ -99,6 +152,10 @@ export class HeaderComponent implements OnInit {
   }
 
   async logout(): Promise<void> {
+    HeaderComponent.cachedAvatarUrl = null;
+    HeaderComponent.cachedDisplayName = null;
+    HeaderComponent.cachedUserRole = null;
+    HeaderComponent.cacheUserId = null;
     await this.auth.logout();
     this.closeMobileMenu();
     await this.router.navigate(['/landing']);

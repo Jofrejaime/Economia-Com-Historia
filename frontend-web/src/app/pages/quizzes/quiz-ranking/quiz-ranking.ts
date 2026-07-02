@@ -18,7 +18,14 @@ export class RankingComponent implements OnInit {
   searchTerm = '';
   selectedProvince = '';
   players: LeaderboardEntry[] = [];
+  isLoading = false;
   error: string | null = null;
+
+  provinces = [
+    'Luanda', 'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
+    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla', 'Kuando Kubango',
+    'Kwanza Norte', 'Kwanza Sul', 'Malanje', 'Moxico', 'Namibe', 'Uíge', 'Zaire'
+  ].sort();
 
   constructor(
     private router: Router,
@@ -30,26 +37,40 @@ export class RankingComponent implements OnInit {
     this.loadRanking();
   }
 
+  async onProvinceChange(): Promise<void> {
+    this.loadRanking();
+  }
+
   private async loadRanking(): Promise<void> {
+    this.isLoading = true;
+    this.error = null;
+    this.cdr.detectChanges();
+
     try {
-      this.players = await this.quizService.getNationalLeaderboard();
+      this.players = this.selectedProvince
+        ? await this.quizService.getProvincialLeaderboard(this.selectedProvince)
+        : await this.quizService.getNationalLeaderboard();
     } catch {
       this.error = 'Erro ao carregar ranking.';
+      this.players = [];
     } finally {
+      this.isLoading = false;
       this.cdr.detectChanges();
     }
   }
 
   get filteredRanking(): LeaderboardEntry[] {
-    return this.players.filter(p => {
-      const matchName = p.display_name.toLowerCase().includes(this.searchTerm.toLowerCase());
-      const matchProvince = this.selectedProvince ? p.province === this.selectedProvince : true;
-      return matchName && matchProvince;
-    });
+    if (!this.searchTerm.trim()) return this.players;
+    const term = this.searchTerm.toLowerCase();
+    return this.players.filter(p => p.display_name.toLowerCase().includes(term));
   }
 
-  getAvatarUrl(name: string): string {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8B1E2D&color=fff&size=48`;
+  getInitials(name: string): string {
+    return name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  }
+
+  getAvatarColor(name: string): string {
+    return name.charCodeAt(0) % 2 === 0 ? '#8b1e2d' : '#6b0119';
   }
 
   goBack(): void {
