@@ -17,8 +17,14 @@
       <p class="page-subtitle">Gestão real de documentos com estados do backend: draft, published e archived.</p>
     </div>
 
-    <div class="page-actions">
+    <div class="page-actions" style="display: flex; gap: 8px;">
       <button class="btn-secondary" type="button" (click)="goToReports()">Ver denúncias</button>
+      <button class="btn-primary" type="button" (click)="openCreateDocumentModal()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="margin-right: 4px; display: inline-block; vertical-align: middle;">
+          <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+        Novo Documento
+      </button>
       <button class="btn-primary" type="button" (click)="refreshDocuments()">Actualizar</button>
     </div>
   </div>
@@ -225,166 +231,164 @@
       </div>
 
       <div class="modal-body">
-        <ng-container *ngIf="editingDocument">
-          <div *ngIf="documentModalMode === 'view'" class="detail-grid">
-            <div class="detail-card">
-              <div class="detail-label">Título</div>
-              <div class="detail-value">{{ editingDocument.title }}</div>
+        <div *ngIf="documentModalMode === 'view' && editingDocument" class="detail-grid">
+          <div class="detail-card">
+            <div class="detail-label">Título</div>
+            <div class="detail-value">{{ editingDocument.title }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Autor</div>
+            <div class="detail-value">{{ editingDocument.author_name }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Categoria</div>
+            <div class="detail-value">{{ editingDocument.category_name }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Access level</div>
+            <div class="detail-value">{{ getAccessLevelName(editingDocument.access_level_id) }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Estado</div>
+            <div class="detail-value">{{ getStatusLabel(editingDocument.status) }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Views</div>
+            <div class="detail-value">{{ editingDocument.views_count }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Likes</div>
+            <div class="detail-value">{{ editingDocument.likes_count }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Downloads</div>
+            <div class="detail-value">{{ editingDocument.downloads_count }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Criado em</div>
+            <div class="detail-value">{{ editingDocument.created_at | date:'dd MMM yyyy, HH:mm' }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Actualizado em</div>
+            <div class="detail-value">{{ editingDocument.updated_at | date:'dd MMM yyyy, HH:mm' }}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Publicado em</div>
+            <div class="detail-value">{{ editingDocument.published_at ? (editingDocument.published_at | date:'dd MMM yyyy, HH:mm') : 'Ainda não publicado' }}</div>
+          </div>
+          <div class="detail-card detail-card--full">
+            <div class="detail-label">Resumo</div>
+            <div class="detail-value detail-value--pre">{{ editingDocument.summary }}</div>
+          </div>
+          <div class="detail-card detail-card--full">
+            <div class="detail-label">Conteúdo</div>
+            <div class="detail-value detail-value--pre">{{ editingDocument.content || 'Sem conteúdo disponível.' }}</div>
+          </div>
+        </div>
+
+        <ng-container *ngIf="documentModalMode === 'edit'">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Título</label>
+              <input type="text" [(ngModel)]="documentForm.title" class="form-input" />
             </div>
-            <div class="detail-card">
-              <div class="detail-label">Autor</div>
-              <div class="detail-value">{{ editingDocument.author_name }}</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Categoria</div>
-              <div class="detail-value">{{ editingDocument.category_name }}</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Access level</div>
-              <div class="detail-value">{{ getAccessLevelName(editingDocument.access_level_id) }}</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Estado</div>
-              <div class="detail-value">{{ getStatusLabel(editingDocument.status) }}</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Views</div>
-              <div class="detail-value">{{ editingDocument.views_count }}</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Likes</div>
-              <div class="detail-value">{{ editingDocument.likes_count }}</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Downloads</div>
-              <div class="detail-value">{{ editingDocument.downloads_count }}</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Criado em</div>
-              <div class="detail-value">{{ editingDocument.created_at | date:'dd MMM yyyy, HH:mm' }}</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Actualizado em</div>
-              <div class="detail-value">{{ editingDocument.updated_at | date:'dd MMM yyyy, HH:mm' }}</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Publicado em</div>
-              <div class="detail-value">{{ editingDocument.published_at ? (editingDocument.published_at | date:'dd MMM yyyy, HH:mm') : 'Ainda não publicado' }}</div>
-            </div>
-            <div class="detail-card detail-card--full">
-              <div class="detail-label">Resumo</div>
-              <div class="detail-value detail-value--pre">{{ editingDocument.summary }}</div>
-            </div>
-            <div class="detail-card detail-card--full">
-              <div class="detail-label">Conteúdo</div>
-              <div class="detail-value detail-value--pre">{{ editingDocument.content || 'Sem conteúdo disponível.' }}</div>
+            <div class="form-group">
+              <label>Autor</label>
+              <input type="text" [(ngModel)]="documentForm.author" class="form-input" />
             </div>
           </div>
 
-          <ng-container *ngIf="documentModalMode === 'edit'">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Título</label>
-                <input type="text" [(ngModel)]="documentForm.title" class="form-input" />
-              </div>
-              <div class="form-group">
-                <label>Autor</label>
-                <input type="text" [(ngModel)]="documentForm.author" class="form-input" />
-              </div>
-            </div>
+          <div class="form-group">
+            <label>Resumo</label>
+            <textarea [(ngModel)]="documentForm.summary" rows="4" class="form-input"></textarea>
+          </div>
 
+          <div class="form-group">
+            <label>Conteúdo</label>
+            <textarea [(ngModel)]="documentForm.content" rows="8" class="form-input"></textarea>
+          </div>
+
+          <div class="form-row">
             <div class="form-group">
-              <label>Resumo</label>
-              <textarea [(ngModel)]="documentForm.summary" rows="4" class="form-input"></textarea>
+              <label>Tipo de documento</label>
+              <select [(ngModel)]="documentForm.document_type" class="form-input">
+                <option value="manuscript">manuscript</option>
+                <option value="article">article</option>
+                <option value="report">report</option>
+                <option value="thesis">thesis</option>
+                <option value="archive">archive</option>
+              </select>
             </div>
-
             <div class="form-group">
-              <label>Conteúdo</label>
-              <textarea [(ngModel)]="documentForm.content" rows="8" class="form-input"></textarea>
+              <label>Nível académico</label>
+              <select [(ngModel)]="documentForm.academic_level" class="form-input">
+                <option value="intro">intro</option>
+                <option value="advanced">advanced</option>
+                <option value="doctorate">doctorate</option>
+              </select>
             </div>
+          </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label>Tipo de documento</label>
-                <select [(ngModel)]="documentForm.document_type" class="form-input">
-                  <option value="manuscript">manuscript</option>
-                  <option value="article">article</option>
-                  <option value="report">report</option>
-                  <option value="thesis">thesis</option>
-                  <option value="archive">archive</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Nível académico</label>
-                <select [(ngModel)]="documentForm.academic_level" class="form-input">
-                  <option value="intro">intro</option>
-                  <option value="advanced">advanced</option>
-                  <option value="doctorate">doctorate</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Categoria</label>
-                <select [(ngModel)]="documentForm.category_id" class="form-input">
-                  <option [ngValue]="null">Sem categoria</option>
-                  <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Access level</label>
-                <select [(ngModel)]="documentForm.access_level_id" class="form-input">
-                  <option value="">Selecione um nível</option>
-                  <option *ngFor="let accessLevel of accessLevels" [value]="accessLevel.id">
-                    {{ accessLevel.name }} ({{ accessLevel.id }})
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Instituição</label>
-                <input type="text" [(ngModel)]="documentForm.institution" class="form-input" />
-              </div>
-              <div class="form-group">
-                <label>Status</label>
-                <select [(ngModel)]="documentForm.status" class="form-input">
-                  <option value="draft">draft</option>
-                  <option value="published">published</option>
-                  <option value="archived">archived</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Data de publicação</label>
-                <input type="date" [(ngModel)]="documentForm.publication_date" class="form-input" />
-              </div>
-              <div class="form-group">
-                <label>Período inicial</label>
-                <input type="number" [(ngModel)]="documentForm.period_start" class="form-input" />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Período final</label>
-                <input type="number" [(ngModel)]="documentForm.period_end" class="form-input" />
-              </div>
-              <div class="form-group">
-                <label>PDF URL</label>
-                <input type="text" [(ngModel)]="documentForm.pdf_url" class="form-input" />
-              </div>
-            </div>
-
+          <div class="form-row">
             <div class="form-group">
-              <label>Cover image URL</label>
-              <input type="text" [(ngModel)]="documentForm.cover_image_url" class="form-input" />
+              <label>Categoria</label>
+              <select [(ngModel)]="documentForm.category_id" class="form-input">
+                <option [ngValue]="null">Sem categoria</option>
+                <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
+              </select>
             </div>
-          </ng-container>
+            <div class="form-group">
+              <label>Access level</label>
+              <select [(ngModel)]="documentForm.access_level_id" class="form-input">
+                <option value="">Selecione um nível</option>
+                <option *ngFor="let accessLevel of accessLevels" [value]="accessLevel.id">
+                  {{ accessLevel.name }} ({{ accessLevel.id }})
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Instituição</label>
+              <input type="text" [(ngModel)]="documentForm.institution" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select [(ngModel)]="documentForm.status" class="form-input">
+                <option value="draft">draft</option>
+                <option value="published">published</option>
+                <option value="archived">archived</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Data de publicação</label>
+              <input type="date" [(ngModel)]="documentForm.publication_date" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>Período inicial</label>
+              <input type="number" [(ngModel)]="documentForm.period_start" class="form-input" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Período final</label>
+              <input type="number" [(ngModel)]="documentForm.period_end" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>PDF URL</label>
+              <input type="text" [(ngModel)]="documentForm.pdf_url" class="form-input" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Cover image URL</label>
+            <input type="text" [(ngModel)]="documentForm.cover_image_url" class="form-input" />
+          </div>
         </ng-container>
       </div>
 

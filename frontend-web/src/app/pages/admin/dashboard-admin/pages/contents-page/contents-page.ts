@@ -229,12 +229,16 @@ export class ContentsPageComponent implements OnInit {
     this.documentModalMode = 'view';
   }
 
-  async saveDocument(): Promise<void> {
-    if (!this.editingDocument) {
-      this.errorMessage = 'Selecione um documento para editar.';
-      return;
-    }
+  openCreateDocumentModal(): void {
+    this.editingDocument = null;
+    this.documentForm = this.createEmptyForm();
+    this.documentModalMode = 'edit';
+    this.showDocumentModal = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+  }
 
+  async saveDocument(): Promise<void> {
     if (!this.documentForm.title.trim() || !this.documentForm.author.trim() || !this.documentForm.summary.trim()) {
       this.errorMessage = 'Título, autor e resumo são obrigatórios.';
       return;
@@ -249,13 +253,13 @@ export class ContentsPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const payload: DocumentUpdatePayload = {
+    const payload = {
       title: this.documentForm.title.trim(),
       author: this.documentForm.author.trim(),
       summary: this.documentForm.summary.trim(),
       content: this.documentForm.content.trim() || null,
-      document_type: this.documentForm.document_type as DocumentUpdatePayload['document_type'],
-      academic_level: this.documentForm.academic_level as DocumentUpdatePayload['academic_level'],
+      document_type: this.documentForm.document_type,
+      academic_level: this.documentForm.academic_level,
       access_level_id: this.documentForm.access_level_id,
       category_id: this.documentForm.category_id || null,
       institution: this.documentForm.institution || null,
@@ -267,15 +271,20 @@ export class ContentsPageComponent implements OnInit {
       status: this.documentForm.status,
     };
 
-    const result = await firstValueFrom(this.documentAdmin.updateDocument(this.editingDocument.id, payload));
+    let result;
+    if (this.editingDocument) {
+      result = await firstValueFrom(this.documentAdmin.updateDocument(this.editingDocument.id, payload));
+    } else {
+      result = await firstValueFrom(this.documentAdmin.createDocument(payload));
+    }
 
     if (!result.ok || !result.data) {
-      this.errorMessage = result.message || 'Não foi possível actualizar o documento.';
+      this.errorMessage = result.message || 'Não foi possível salvar o documento.';
       this.saving = false;
       return;
     }
 
-    this.successMessage = result.message || 'Documento actualizado com sucesso.';
+    this.successMessage = this.editingDocument ? 'Documento actualizado com sucesso.' : 'Documento criado com sucesso.';
     this.showDocumentModal = false;
     this.editingDocument = null;
     await this.loadInitialData();
