@@ -182,6 +182,9 @@
               <div class="actions-cell">
                 <button class="action-btn" type="button" (click)="openTopic(topic)">Ver</button>
                 <button class="action-btn" type="button" (click)="openTopic(topic, 'edit')">Editar</button>
+                <button class="action-btn action-btn-warning" type="button" (click)="pinTopic(topic)" title="Fixar tópico">📌</button>
+                <button *ngIf="!topic.locked" class="action-btn action-btn-warning" type="button" (click)="lockTopic(topic)" title="Bloquear">🔒</button>
+                <button *ngIf="topic.locked" class="action-btn" type="button" (click)="unlockTopic(topic)" title="Desbloquear">🔓</button>
                 <button class="action-btn action-btn-danger" type="button" (click)="deleteTopic(topic)">Eliminar</button>
               </div>
             </td>

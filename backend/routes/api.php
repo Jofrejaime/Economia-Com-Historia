@@ -26,6 +26,8 @@ use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\OptionalAuthenticateApiSession;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BadgeController;
+use App\Http\Controllers\Api\CommunityCategoryAdminController;
+use App\Http\Controllers\Api\TopicAdminController;
 
 Route::get('/health', HealthController::class);
 
@@ -155,6 +157,22 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::post('/tags', [TagController::class, 'store']);
         Route::patch('/tags/{id}', [TagController::class, 'update']);
         Route::delete('/tags/{id}', [TagController::class, 'destroy']);
+
+        // Community Categories Management (Admin)
+        Route::get('/community/categories', [CommunityCategoryAdminController::class, 'index']);
+        Route::post('/community/categories', [CommunityCategoryAdminController::class, 'store']);
+        Route::patch('/community/categories/{id}', [CommunityCategoryAdminController::class, 'update']);
+        Route::delete('/community/categories/{id}', [CommunityCategoryAdminController::class, 'destroy']);
+
+        // Topics Management (Admin)
+        Route::get('/topics', [TopicAdminController::class, 'index']);
+        Route::get('/topics/{id}', [TopicAdminController::class, 'show']);
+        Route::patch('/topics/{id}', [TopicAdminController::class, 'update']);
+        Route::delete('/topics/{id}', [TopicAdminController::class, 'destroy']);
+        Route::patch('/topics/{id}/pin', [TopicAdminController::class, 'pin']);
+        Route::patch('/topics/{id}/unpin', [TopicAdminController::class, 'unpin']);
+        Route::patch('/topics/{id}/lock', [TopicAdminController::class, 'lock']);
+        Route::patch('/topics/{id}/unlock', [TopicAdminController::class, 'unlock']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
