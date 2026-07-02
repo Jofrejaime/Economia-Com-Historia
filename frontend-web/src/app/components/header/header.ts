@@ -36,7 +36,7 @@ export class HeaderComponent implements OnInit {
   private static cacheUserId: string | null = null;
 
   constructor(
-    private router: Router,
+    public router: Router,
     private auth: AuthService,
     private profileService: ProfileService,
     private notificationService: NotificationService
@@ -122,6 +122,14 @@ export class HeaderComponent implements OnInit {
     this.avatarUrl = '';
     HeaderComponent.cachedAvatarUrl = '';
   }
+
+  goToHome(): void {
+  if (this.isAuthenticated) {
+    this.router.navigate(['/home']);
+  } else {
+    this.router.navigate(['/landing']);
+  }
+}
 
   goToNotifications(): void {
     void this.router.navigate(['/notificacoes']);

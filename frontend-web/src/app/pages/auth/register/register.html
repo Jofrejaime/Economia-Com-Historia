@@ -103,14 +103,17 @@
         </div>
 
         <!-- Secondary Action -->
-        <div style="text-align: center;">
-          <p style="color: #64748b; font-size: 14px; margin-bottom: 16px; font-family: 'Source Sans 3', sans-serif;">Já possui credenciais de acesso?</p>
-          <a routerLink="/auth/login">
-            <button type="button" class="register-secondary-btn">
-              Aceder à conta existente
-            </button>
-          </a>
-        </div>
+<div style="text-align: center;">
+  <p style="color: #64748b; font-size: 14px; margin-bottom: 16px; font-family: 'Source Sans 3', sans-serif;">Já possui credenciais de acesso?</p>
+  <a routerLink="/auth/login">
+    <button type="button" class="register-secondary-btn">
+      Aceder à conta existente
+    </button>
+  </a>
+  <button type="button" (click)="goBack()" class="register-back-btn">
+    ← Voltar
+  </button>
+</div>
       </div>
 
       <!-- Footer Notice -->

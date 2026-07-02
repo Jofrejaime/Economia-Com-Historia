@@ -15,7 +15,7 @@ interface FeaturedContent {
   category: string;
   date: string;
   views: string;
-  image: string;
+  image: string; // pode vir vazia — o template deve mostrar placeholder nesse caso
 }
 
 interface LeaderboardRow {
@@ -72,7 +72,7 @@ export class HomeVisitorComponent implements OnInit {
         category: d.category_name ?? '—',
         date: this.formatDate(d.published_at ?? d.publication_date),
         views: this.formatViews(d.views_count ?? 0),
-        image: d.cover_image_url ?? 'assets/images/default-doc.jpg',
+        image: d.cover_image_url ?? '',
       }));
 
       // Ranking (primeiros 5)
