@@ -61,6 +61,13 @@ export interface DiscussionTopic {
   status: 'open' | 'locked' | 'archived' | 'published' | 'draft' | string;
   is_pinned: boolean;
   is_featured: boolean;
+  pinned: boolean;
+  featured: boolean;
+  locked: boolean;
+  solved: boolean;
+  hidden?: boolean;
+  closed_at: string | null;
+  closed_by: string | null;
   last_reply_at: string | null;
   replies_count: number;
   views_count: number;
@@ -96,6 +103,10 @@ export interface TopicReply {
   content: string;
   is_accepted: boolean;
   is_flagged: boolean;
+  hidden?: boolean;
+  best_answer?: boolean;
+  edited_at?: string | null;
+  edited_by?: string | null;
   likes_count: number;
   created_at: string;
   updated_at: string;

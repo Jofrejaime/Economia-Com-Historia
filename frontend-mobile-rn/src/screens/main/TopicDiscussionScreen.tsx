@@ -147,8 +147,8 @@ export function TopicDiscussionScreen() {
     try {
       await communityService.updateTopic(topicId, { visibility: newVisibility });
       setTopic((prev) => prev ? { ...prev, visibility: newVisibility } : prev);
-    } catch (error) {
-      console.warn("Erro ao alterar visibilidade", error);
+    } catch {
+      Alert.alert("Erro", "Não foi possível alterar a visibilidade. Tente novamente.");
     }
   };
 
@@ -239,6 +239,7 @@ export function TopicDiscussionScreen() {
       }
     } catch (error) {
       console.warn("Erro ao publicar comentário", error);
+      Alert.alert("Erro", "Não foi possível enviar o comentário. Verifique se tem acesso a esta discussão e tente novamente.");
     } finally {
       setSubmitting(false);
     }
@@ -257,6 +258,7 @@ export function TopicDiscussionScreen() {
       setReplyingTo(null);
     } catch (error) {
       console.warn("Erro ao publicar resposta", error);
+      Alert.alert("Erro", "Não foi possível enviar a resposta. Verifique se tem acesso a esta discussão e tente novamente.");
     } finally {
       setSubmitting(false);
     }
@@ -543,33 +545,33 @@ export function TopicDiscussionScreen() {
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => void handleToggleVisibility()}
-              >
-                <Feather
-                  name={isPrivateTopic ? "unlock" : "lock"}
-                  size={20}
-                  color={appTheme.colors.textPrimary}
-                />
-                <Text style={styles.menuItemText}>
-                  {isPrivateTopic ? "Tornar Público" : "Tornar Privado"}
-                </Text>
-              </TouchableOpacity>
+              {!isTerminated && (
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => void handleToggleVisibility()}
+                >
+                  <Feather
+                    name={isPrivateTopic ? "unlock" : "lock"}
+                    size={20}
+                    color={appTheme.colors.textPrimary}
+                  />
+                  <Text style={styles.menuItemText}>
+                    {isPrivateTopic ? "Tornar Público" : "Tornar Privado"}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => void handleToggleStatus()}
-              >
-                <Feather
-                  name={isTerminated ? "play-circle" : "x-circle"}
-                  size={20}
-                  color={isTerminated ? appTheme.colors.success : appTheme.colors.danger}
-                />
-                <Text style={[styles.menuItemText, { color: isTerminated ? appTheme.colors.success : appTheme.colors.danger }]}>
-                  {isTerminated ? "Reabrir Discussão" : "Encerrar Discussão"}
-                </Text>
-              </TouchableOpacity>
+              {!isTerminated && (
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => void handleToggleStatus()}
+                >
+                  <Feather name="x-circle" size={20} color={appTheme.colors.danger} />
+                  <Text style={[styles.menuItemText, { color: appTheme.colors.danger }]}>
+                    Encerrar Discussão
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <View style={styles.menuDivider} />
 

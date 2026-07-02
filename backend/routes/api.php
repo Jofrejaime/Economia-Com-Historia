@@ -26,6 +26,12 @@ use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\OptionalAuthenticateApiSession;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BadgeController;
+use App\Http\Controllers\Api\CommunityCategoryAdminController;
+use App\Http\Controllers\Api\TopicAdminController;
+use App\Http\Controllers\Api\AccessRequestAdminController;
+use App\Http\Controllers\Api\AccessGrantAdminController;
+use App\Http\Controllers\Api\ReportAdminController;
+use App\Http\Controllers\Api\GamificationAdminController;
 
 Route::get('/health', HealthController::class);
 
@@ -40,12 +46,6 @@ Route::prefix('auth')->group(function (): void {
 });
 
 // ─── Rotas públicas (visitante) — autenticação opcional ────────────────────
-// Um utilizador autenticado que aceda a estas rotas continua a ver os dados
-// extra normais (is_liked, is_favorited, conteúdo exclusivo, etc.), porque o
-// OptionalAuthenticateApiSession preenche $request->user() sempre que houver
-// um token válido. Um visitante sem token (ou com token inválido/expirado,
-// ou utilizador suspenso) simplesmente recebe $request->user() === null, e os
-// controllers/services já tratam esse caso devolvendo apenas conteúdo público.
 Route::middleware(OptionalAuthenticateApiSession::class)->group(function (): void {
     // Conteúdos — página inicial + view completa do conteúdo
     Route::get('/document-categories', [DocumentController::class, 'categories']);
@@ -131,8 +131,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::delete('/access-levels/{id}', [AccessLevelController::class, 'destroy']);
 
         // Documents Management (Admin)
-        // Listagem admin: o DocumentSearchService é role-aware (admins veem
-        // todos os estados e podem filtrar por ?status=...).
         Route::get('/documents', [DocumentController::class, 'index']);
         Route::post('/documents', [DocumentController::class, 'store']);
         Route::patch('/documents/{id}', [DocumentController::class, 'update']);
@@ -155,6 +153,63 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::post('/tags', [TagController::class, 'store']);
         Route::patch('/tags/{id}', [TagController::class, 'update']);
         Route::delete('/tags/{id}', [TagController::class, 'destroy']);
+
+        // Community Categories Management (Admin)
+        Route::get('/community/categories', [CommunityCategoryAdminController::class, 'index']);
+        Route::post('/community/categories', [CommunityCategoryAdminController::class, 'store']);
+        Route::patch('/community/categories/{id}', [CommunityCategoryAdminController::class, 'update']);
+        Route::delete('/community/categories/{id}', [CommunityCategoryAdminController::class, 'destroy']);
+
+        // Topics Management (Admin)
+        Route::get('/topics', [TopicAdminController::class, 'index']);
+        Route::get('/topics/{id}', [TopicAdminController::class, 'show']);
+        Route::patch('/topics/{id}', [TopicAdminController::class, 'update']);
+        Route::delete('/topics/{id}', [TopicAdminController::class, 'destroy']);
+        Route::patch('/topics/{id}/pin', [TopicAdminController::class, 'pin']);
+        Route::patch('/topics/{id}/unpin', [TopicAdminController::class, 'unpin']);
+        Route::patch('/topics/{id}/lock', [TopicAdminController::class, 'lock']);
+        Route::patch('/topics/{id}/unlock', [TopicAdminController::class, 'unlock']);
+
+        // Notifications — send to others (Admin)
+        Route::post('/notifications/send', [NotificationController::class, 'send']);
+        Route::post('/notifications/invite', [NotificationController::class, 'sendInvite']);
+
+        // Access Request Admin (Sprint 18.6)
+        Route::get('/access-requests', [AccessRequestAdminController::class, 'index']);
+        Route::post('/access-requests', [AccessRequestAdminController::class, 'store']);
+        Route::get('/access-requests/{id}', [AccessRequestAdminController::class, 'show']);
+        Route::patch('/access-requests/{id}/approve', [AccessRequestAdminController::class, 'approve']);
+        Route::patch('/access-requests/{id}/reject', [AccessRequestAdminController::class, 'reject']);
+
+        // Access Grant Admin (Sprint 18.6)
+        Route::post('/access-grants/{id}/revoke', [AccessGrantAdminController::class, 'revoke']);
+
+        // Reports Admin (Sprint 18.6)
+        Route::get('/reports', [ReportAdminController::class, 'index']);
+        Route::get('/reports/{id}', [ReportAdminController::class, 'show']);
+        Route::patch('/reports/{id}', [ReportAdminController::class, 'update']);
+        Route::post('/reports/{id}/action', [ReportAdminController::class, 'action']);
+
+        // Badges Admin (Sprint 18.7)
+        Route::get('/badges', [BadgeController::class, 'index']);
+        Route::post('/badges', [BadgeController::class, 'store']);
+        Route::patch('/badges/{id}', [BadgeController::class, 'update']);
+        Route::post('/badges/{id}/toggle-status', [BadgeController::class, 'toggleStatus']);
+        Route::post('/badges/{id}/recalculate', [BadgeController::class, 'recalculate']);
+        Route::post('/badges/{id}/assign', [BadgeController::class, 'assign']);
+        Route::post('/badges/{id}/remove', [BadgeController::class, 'remove']);
+        Route::delete('/badges/{id}', [BadgeController::class, 'destroy']);
+
+        // Gamification Admin (Sprint 18.7)
+        Route::get('/gamification/dashboard', [GamificationAdminController::class, 'dashboard']);
+        Route::get('/leaderboard', [GamificationAdminController::class, 'leaderboard']);
+        Route::post('/leaderboard/refresh', [GamificationAdminController::class, 'refreshLeaderboard']);
+        Route::get('/leaderboard/snapshots', [GamificationAdminController::class, 'snapshots']);
+        Route::get('/point-transactions', [GamificationAdminController::class, 'pointTransactions']);
+        Route::get('/point-transactions/export', [GamificationAdminController::class, 'exportPointTransactions']);
+        Route::get('/point-transactions/{id}', [GamificationAdminController::class, 'showPointTransaction']);
+        Route::get('/quiz-attempts', [GamificationAdminController::class, 'quizAttempts']);
+        Route::get('/quiz-attempts/{id}', [GamificationAdminController::class, 'showQuizAttempt']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -180,7 +235,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::get('/access-requests/{id}', [AccessController::class, 'showRequest']);
     Route::get('/access-grants', [AccessController::class, 'grants']);
 
-    // Documents — interações (leitura pública já está fora deste grupo)
+    // Documents — interações
     Route::post('/documents/{id}/like', [DocumentController::class, 'like']);
     Route::delete('/documents/{id}/like', [DocumentController::class, 'unlike']);
     Route::post('/documents/{id}/download', [DocumentController::class, 'download']);
@@ -196,20 +251,20 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::post('/documents/{id}/subscribe', [DocumentController::class, 'subscribe']);
     Route::delete('/documents/{id}/subscription', [DocumentController::class, 'cancelSubscription']);
 
-    // Quizzes — tentativa (leitura já está no grupo público acima)
+    // Quizzes — tentativa
     Route::post('/quizzes/{id}/attempts', [QuizController::class, 'startAttempt']);
     Route::get('/quiz-attempts/{id}', [QuizController::class, 'showAttempt']);
     Route::post('/quiz-attempts/{id}/answers', [QuizController::class, 'answerAttempt']);
     Route::post('/quiz-attempts/{id}/complete', [QuizController::class, 'completeAttempt']);
     Route::get('/me/quiz-attempts', [QuizController::class, 'myAttempts']);
 
-    // Community — interações (leitura pública já está fora deste grupo)
+    // Community — interações
     Route::post('/topics/{id}/like', [CommunityController::class, 'likeTopic']);
     Route::delete('/topics/{id}/like', [CommunityController::class, 'unlikeTopic']);
     Route::post('/topics/{id}/follow', [CommunityController::class, 'followTopic']);
     Route::delete('/topics/{id}/follow', [CommunityController::class, 'unfollowTopic']);
 
-    // Topics/Replies — create (any authenticated user)
+    // Topics/Replies — create
     Route::post('/topics', [CommunityController::class, 'storeTopic']);
     Route::patch('/topics/{id}', [CommunityController::class, 'updateTopic']);
     Route::delete('/topics/{id}', [CommunityController::class, 'destroyTopic']);
@@ -250,18 +305,16 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::patch('/documents/{id}', [DocumentController::class, 'update']);
         Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
 
-        // Media — pipeline único de uploads (editor rico, ícones, capas soltas)
+        // Media — pipeline único de uploads
         Route::post('/media/uploads', [MediaController::class, 'store']);
         Route::delete('/media/{id}', [MediaController::class, 'destroy']);
     });
 
-    // ─── Admin only ─────────────────────────────────────────────────────
+    // ─── Admin only (Legacy/Mobile compatibility) ───────────────────────────
     Route::middleware('role:admin')->group(function (): void {
         // Documents — pin management
         Route::post('/documents/{id}/pin', [DocumentController::class, 'pin']);
         Route::delete('/documents/{id}/pin', [DocumentController::class, 'unpin']);
-
-
 
         // Access management
         Route::patch('/access-requests/{id}', [AccessController::class, 'reviewRequest']);

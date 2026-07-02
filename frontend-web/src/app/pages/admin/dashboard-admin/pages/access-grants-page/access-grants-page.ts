@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { AccessGrantRecord, AdminApiService } from '../../../../../services/admin-api.service';
+import { ModerationAdminService } from '../../../../../services/moderation-admin.service';
+import { AccessGrant as ApiAccessGrant } from '../../../../../models/moderation-admin.models';
 
 type GrantStatusFilter = 'todos' | 'active' | 'expiring' | 'expired' | 'revoked';
 
-interface GrantView extends AccessGrantRecord {
+interface GrantView extends ApiAccessGrant {
   userLabel: string;
   accessLabel: string;
   grantLabel: string;
@@ -37,7 +38,7 @@ export class AccessGrantsPageComponent implements OnInit {
 
   grants: GrantView[] = [];
 
-  constructor(private adminApi: AdminApiService) {}
+  constructor(private moderationService: ModerationAdminService) {}
 
   ngOnInit(): void {
     void this.loadGrants();
@@ -86,7 +87,7 @@ export class AccessGrantsPageComponent implements OnInit {
     this.loading = true;
     this.errorMessage = null;
 
-    const result = await firstValueFrom(this.adminApi.listAccessGrants({ scope: 'all' }));
+    const result = await firstValueFrom(this.moderationService.getAccessGrants());
 
     if (!result.ok || !result.data) {
       this.grants = [];
@@ -105,15 +106,16 @@ export class AccessGrantsPageComponent implements OnInit {
   }
 
   async revokeGrant(id: string): Promise<void> {
-    if (!confirm('Tem a certeza que deseja revogar esta concessão de acesso?')) {
-      return;
+    const reason = prompt('Indique o motivo da revogação (opcional):');
+    if (reason === null) {
+      return; // Cancelled prompt
     }
 
     this.revokingId = id;
     this.errorMessage = null;
     this.successMessage = null;
 
-    const result = await firstValueFrom(this.adminApi.revokeAccessGrant(id));
+    const result = await firstValueFrom(this.moderationService.revokeAccessGrant(id, reason || undefined));
 
     if (!result.ok) {
       this.errorMessage = result.message || 'Não foi possível revogar a concessão.';
@@ -172,12 +174,12 @@ export class AccessGrantsPageComponent implements OnInit {
     }
   }
 
-  private toViewGrant(grant: AccessGrantRecord): GrantView {
+  private toViewGrant(grant: ApiAccessGrant): GrantView {
     const accessLabel = grant.access_level_name || grant.access_level_id;
-    const userLabel = grant.user_id ? `Utilizador ${grant.user_id.slice(0, 8)}` : 'Utilizador';
+    const userLabel = grant.user_display_name || (grant.user_id ? `Utilizador ${grant.user_id.slice(0, 8)}` : 'Utilizador');
     const expiry = grant.expires_at ? new Date(grant.expires_at) : null;
     const now = Date.now();
-    const statusTone: GrantView['statusTone'] = grant.revoked_at
+    const statusTone: GrantView['statusTone'] = grant.revoked_at || !grant.is_active
       ? 'revoked'
       : expiry && expiry.getTime() < now
         ? 'expired'

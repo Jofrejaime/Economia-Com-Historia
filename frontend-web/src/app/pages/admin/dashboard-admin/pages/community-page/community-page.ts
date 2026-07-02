@@ -111,8 +111,9 @@ export class CommunityPageComponent implements OnInit {
   get topicStats() {
     return {
       total: this.topics.length,
-      open: this.topics.filter((topic) => topic.status === 'open').length,
-      locked: this.topics.filter((topic) => topic.status === 'locked').length,
+      open: this.topics.filter((topic) => topic.status === 'open' || topic.status === 'published').length,
+      locked: this.topics.filter((topic) => topic.status === 'locked' || topic.locked).length,
+      pinned: this.topics.filter((topic) => topic.pinned || topic.is_pinned).length,
       archived: this.topics.filter((topic) => topic.status === 'archived').length,
     };
   }
@@ -145,7 +146,7 @@ export class CommunityPageComponent implements OnInit {
     this.errorMessage = null;
 
     const [categoriesResult, topicsResult] = await Promise.all([
-      firstValueFrom(this.communityAdmin.getCategories()),
+      firstValueFrom(this.communityAdmin.getAdminCategories()),
       firstValueFrom(this.communityAdmin.getTopics()),
     ]);
 
@@ -292,6 +293,58 @@ export class CommunityPageComponent implements OnInit {
     }
 
     this.successMessage = result.message || 'Tópico eliminado com sucesso.';
+    await this.loadInitialData();
+  }
+
+  async pinTopic(topic: TopicView): Promise<void> {
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.pinTopic(topic.id));
+    if (!result.ok) {
+      this.errorMessage = result.message || 'Não foi possível fixar o tópico.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = 'Tópico fixado com sucesso.';
+    await this.loadInitialData();
+  }
+
+  async lockTopic(topic: TopicView): Promise<void> {
+    if (!confirm('Bloquear este tópico? Os utilizadores não poderão adicionar novas respostas.')) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.lockTopic(topic.id));
+    if (!result.ok) {
+      this.errorMessage = result.message || 'Não foi possível bloquear o tópico.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = 'Tópico bloqueado com sucesso.';
+    await this.loadInitialData();
+  }
+
+  async unlockTopic(topic: TopicView): Promise<void> {
+    this.loading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const result = await firstValueFrom(this.communityAdmin.unlockTopic(topic.id));
+    if (!result.ok) {
+      this.errorMessage = result.message || 'Não foi possível desbloquear o tópico.';
+      this.loading = false;
+      return;
+    }
+
+    this.successMessage = 'Tópico desbloqueado com sucesso.';
     await this.loadInitialData();
   }
 

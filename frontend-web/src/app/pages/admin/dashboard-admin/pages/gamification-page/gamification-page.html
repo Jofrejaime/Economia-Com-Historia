@@ -1,0 +1,199 @@
+<div class="gamification-container">
+  <!-- Tab navigation -->
+  <nav class="tabs">
+    <button class="tab" [class.active]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">Dashboard</button>
+    <button class="tab" [class.active]="activeTab === 'badges'" (click)="switchTab('badges')">Badges</button>
+    <button class="tab" [class.active]="activeTab === 'leaderboard'" (click)="switchTab('leaderboard')">Leaderboard</button>
+    <button class="tab" [class.active]="activeTab === 'transactions'" (click)="switchTab('transactions')">Transações</button>
+    <button class="tab" [class.active]="activeTab === 'attempts'" (click)="switchTab('attempts')">Tentativas</button>
+  </nav>
+
+  <!-- Dashboard tab -->
+  <section *ngIf="activeTab === 'dashboard'" class="tab-content">
+    <h2 class="section-title">Visão Geral da Gamificação</h2>
+    <div *ngIf="loading" class="loader">Carregando...</div>
+    <div *ngIf="!loading && dashboardData" class="dashboard-grid">
+      <div class="card">
+        <h3>Total de Badges</h3>
+        <p>{{ badgeStats.total }}</p>
+      </div>
+      <div class="card">
+        <h3>Transações Hoje</h3>
+        <p>{{ dashboardData.transactions_today ?? 0 }}</p>
+      </div>
+      <div class="card">
+        <h3>Ranking Nacional</h3>
+        <p>{{ dashboardData.leaderboard_top?.[0]?.score ?? '-' }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Badges tab -->
+  <section *ngIf="activeTab === 'badges'" class="tab-content">
+    <h2 class="section-title">Gestão de Badges</h2>
+    <div class="actions">
+      <button class="primary" (click)="openAddBadgeModal()">Novo Badge</button>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Ícone</th>
+          <th>Nome</th>
+          <th>Categoria</th>
+          <th>Ativo</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let badge of badges">
+          <td><img [src]="badge.icon_url" alt="{{badge.name}}" class="badge-icon" /></td>
+          <td>{{ badge.name }}</td>
+          <td>{{ badge.category }}</td>
+          <td>{{ badge.is_active ? 'Sim' : 'Não' }}</td>
+          <td>
+            <button (click)="openEditBadgeModal(badge)" class="secondary">Editar</button>
+            <button (click)="toggleBadgeStatus(badge)" class="secondary">{{ badge.is_active ? 'Desativar' : 'Ativar' }}</button>
+            <button (click)="deleteBadge(badge)" class="danger">Eliminar</button>
+            <button (click)="openAssignModal(badge, 'assign')" class="secondary">Atribuir</button>
+            <button (click)="openAssignModal(badge, 'remove')" class="secondary">Remover</button>
+            <button (click)="recalculateBadge(badge)" class="secondary">Recalcular</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Leaderboard tab -->
+  <section *ngIf="activeTab === 'leaderboard'" class="tab-content">
+    <h2 class="section-title">Leaderboard</h2>
+    <div class="filters">
+      <select [(ngModel)]="leaderboardScope" (change)="loadLeaderboard()">
+        <option value="national">Nacional</option>
+        <option value="provincial">Provincial</option>
+        <option value="institutional">Institucional</option>
+      </select>
+      <input *ngIf="leaderboardScope === 'provincial'" [(ngModel)]="leaderboardProvince" placeholder="Província" />
+      <input *ngIf="leaderboardScope === 'institutional'" [(ngModel)]="leaderboardInstitution" placeholder="Instituição" />
+      <button class="secondary" (click)="loadLeaderboard()">Aplicar</button>
+    </div>
+    <div *ngIf="loading" class="loader">Carregando...</div>
+    <table *ngIf="!loading && leaderboardData?.entries?.length" class="data-table">
+      <thead>
+        <tr>
+          <th>Posição</th>
+          <th>Utilizador</th>
+          <th>Pontos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let entry of leaderboardData.entries; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ entry.user_name }}</td>
+          <td>{{ entry.points }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="secondary" (click)="refreshLeaderboardCache()">Recalcular Cache</button>
+    <div class="snapshots" *ngIf="snapshots?.length">
+      <h3>Snapshots recentes</h3>
+      <ul>
+        <li *ngFor="let snap of snapshots">
+          {{ snap.created_at | date:'short' }} – {{ snap.description }}
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Transactions tab -->
+  <section *ngIf="activeTab === 'transactions'" class="tab-content">
+    <h2 class="section-title">Transações de Pontos</h2>
+    <div class="filters">
+      <input [(ngModel)]="txSearch" placeholder="Pesquisa" />
+      <input [(ngModel)]="txReason" placeholder="Motivo" />
+      <select [(ngModel)]="txType"><option value="">Todos</option><option value="award">Award</option><option value="deduction">Deduction</option></select>
+      <input type="date" [(ngModel)]="txDateFrom" />
+      <input type="date" [(ngModel)]="txDateTo" />
+      <button class="secondary" (click)="filterTransactions()">Filtrar</button>
+      <button class="secondary" (click)="resetTxFilters()">Limpar</button>
+      <button class="primary" (click)="exportTransactions()">Exportar CSV</button>
+    </div>
+    <div *ngIf="loading" class="loader">Carregando...</div>
+    <table *ngIf="!loading && transactions?.length" class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Utilizador</th>
+          <th>Tipo</th>
+          <th>Pontos</th>
+          <th>Data</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tx of transactions">
+          <td>{{ tx.id }}</td>
+          <td>{{ tx.user_name }}</td>
+          <td>{{ tx.type }}</td>
+          <td>{{ tx.amount }}</td>
+          <td>{{ tx.created_at | date:'short' }}</td>
+          <td><button class="secondary" (click)="viewTxDetails(tx)">Detalhes</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination" *ngIf="txLastPage > 1">
+      <button class="secondary" (click)="txPagePrev()" [disabled]="txCurrentPage === 1">Anterior</button>
+      <span>Página {{ txCurrentPage }} de {{ txLastPage }}</span>
+      <button class="secondary" (click)="txPageNext()" [disabled]="txCurrentPage === txLastPage">Seguinte</button>
+    </div>
+  </section>
+
+  <!-- Attempts tab -->
+  <section *ngIf="activeTab === 'attempts'" class="tab-content">
+    <h2 class="section-title">Tentativas de Quiz</h2>
+    <div class="filters">
+      <input [(ngModel)]="attemptSearch" placeholder="Pesquisa" />
+      <select [(ngModel)]="attemptStatus"><option value="">Todas</option><option value="passed">Passada</option><option value="failed">Falhada</option></select>
+      <input type="number" [(ngModel)]="attemptMinScore" placeholder="Score mín." min="0" max="100" />
+      <input type="number" [(ngModel)]="attemptMaxScore" placeholder="Score máx." min="0" max="100" />
+      <button class="secondary" (click)="filterAttempts()">Filtrar</button>
+      <button class="secondary" (click)="resetAttemptFilters()">Limpar</button>
+    </div>
+    <div *ngIf="loading" class="loader">Carregando...</div>
+    <table *ngIf="!loading && attempts?.length" class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Utilizador</th>
+          <th>Quiz</th>
+          <th>Status</th>
+          <th>Score</th>
+          <th>Data</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let attempt of attempts">
+          <td>{{ attempt.id }}</td>
+          <td>{{ attempt.user_name }}</td>
+          <td>{{ attempt.quiz_title }}</td>
+          <td>{{ attempt.status }}</td>
+          <td>{{ attempt.score }}</td>
+          <td>{{ attempt.created_at | date:'short' }}</td>
+          <td><button class="secondary" (click)="viewAttemptDetails(attempt)">Detalhes</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination" *ngIf="attemptLastPage > 1">
+      <button class="secondary" (click)="attemptPagePrev()" [disabled]="attemptCurrentPage === 1">Anterior</button>
+      <span>Página {{ attemptCurrentPage }} de {{ attemptLastPage }}</span>
+      <button class="secondary" (click)="attemptPageNext()" [disabled]="attemptCurrentPage === attemptLastPage">Seguinte</button>
+    </div>
+  </section>
+
+  <!-- Modals (Badge, Assign, Details) -->
+  <app-badge-modal *ngIf="showBadgeModal" [badgeForm]="badgeForm" [editingBadge]="editingBadge" (close)="closeBadgeModal()" (save)="saveBadge()"></app-badge-modal>
+  <app-assign-modal *ngIf="showAssignModal" [badge]="selectedBadgeForAssign" [action]="assignAction" [(userId)]="assignUserId" (close)="closeAssignModal()" (submit)="submitAssignment()"></app-assign-modal>
+  <app-tx-detail-modal *ngIf="selectedTx" [tx]="selectedTx" (close)="closeTxDetails()"></app-tx-detail-modal>
+  <app-attempt-detail-modal *ngIf="selectedAttempt" [attempt]="selectedAttempt" (close)="closeAttemptDetails()"></app-attempt-detail-modal>
+
+</div>

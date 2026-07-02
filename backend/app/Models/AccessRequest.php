@@ -13,6 +13,8 @@ class AccessRequest extends Model
 
     protected $table = 'user_access_requests';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'id',
         'user_id',
@@ -29,6 +31,7 @@ class AccessRequest extends Model
     protected $casts = [
         'reviewed_at' => 'datetime',
         'expires_at' => 'datetime',
+        'created_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -39,5 +42,10 @@ class AccessRequest extends Model
     public function reviewedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function accessLevel(): BelongsTo
+    {
+        return $this->belongsTo(AccessLevel::class, 'access_level_id');
     }
 }

@@ -13,6 +13,8 @@ class AccessGrant extends Model
 
     protected $table = 'user_access_grants';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'id',
         'user_id',

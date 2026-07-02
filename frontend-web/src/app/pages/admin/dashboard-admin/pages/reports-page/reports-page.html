@@ -56,8 +56,8 @@
         </svg>
       </div>
       <div>
-        <p class="stat-label">REVIEWED</p>
-        <p class="stat-number">{{ getStats().reviewed }}</p>
+        <p class="stat-label">RESOLVED</p>
+        <p class="stat-number">{{ getStats().resolved }}</p>
       </div>
     </div>
     <div class="stat-card">
@@ -71,17 +71,6 @@
       <div>
         <p class="stat-label">DISMISSED</p>
         <p class="stat-number">{{ getStats().dismissed }}</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path>
-        </svg>
-      </div>
-      <div>
-        <p class="stat-label">ACTIONED</p>
-        <p class="stat-number">{{ getStats().actioned }}</p>
       </div>
     </div>
   </div>
@@ -106,8 +95,8 @@
         <option value="todos">Todos os estados</option>
         <option value="pending">Pendente</option>
         <option value="reviewed">Revisado</option>
+        <option value="resolved">Resolvido</option>
         <option value="dismissed">Arquivado</option>
-        <option value="actioned">Actionado</option>
       </select>
     </div>
 
@@ -329,8 +318,8 @@
           <select [(ngModel)]="reportForm.status" class="form-input">
             <option value="pending">pending</option>
             <option value="reviewed">reviewed</option>
+            <option value="resolved">resolved</option>
             <option value="dismissed">dismissed</option>
-            <option value="actioned">actioned</option>
           </select>
         </div>
 

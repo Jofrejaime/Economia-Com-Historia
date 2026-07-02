@@ -17,20 +17,22 @@ import {
 export class CommunityAdminService {
   constructor(private http: HttpClient) {}
 
-  getCategories(): Observable<ApiResult<Category[]>> {
-    return this.http.get<ApiEnvelope<Category[]>>(`${environment.apiBaseUrl}/api/community/categories`, { observe: 'response' }).pipe(
+  // ── Admin Categories (via /api/admin/community/categories) ──────────────
+
+  getAdminCategories(): Observable<ApiResult<Category[]>> {
+    return this.http.get<ApiEnvelope<Category[]>>(`${environment.apiBaseUrl}/api/admin/community/categories`, { observe: 'response' }).pipe(
       timeout({ first: 15000 }),
       map((response) => ({
         ok: response.status >= 200 && response.status < 300,
         status: response.status,
         data: response.body?.data ?? [],
       })),
-      catchError((error: unknown) => of(this.toFailureResult<Category[]>(error, 'Erro ao carregar categorias')))
+      catchError((error: unknown) => of(this.toFailureResult<Category[]>(error, 'Erro ao carregar categorias (admin)')))
     );
   }
 
-  createCategory(payload: CategoryCreatePayload): Observable<ApiResult<Category>> {
-    return this.http.post<ApiEnvelope<Category>>(`${environment.apiBaseUrl}/api/community/categories`, payload, { observe: 'response' }).pipe(
+  createAdminCategory(payload: CategoryCreatePayload): Observable<ApiResult<Category>> {
+    return this.http.post<ApiEnvelope<Category>>(`${environment.apiBaseUrl}/api/admin/community/categories`, payload, { observe: 'response' }).pipe(
       timeout({ first: 15000 }),
       map((response) => ({
         ok: response.status >= 200 && response.status < 300,
@@ -42,11 +44,39 @@ export class CommunityAdminService {
     );
   }
 
-  getTopics(params?: { search?: string; category_id?: string; status?: string; page?: number; per_page?: number }): Observable<ApiResult<DiscussionTopic[]>> {
+  updateAdminCategory(id: string, payload: Partial<CategoryCreatePayload>): Observable<ApiResult<Category>> {
+    return this.http.patch<ApiEnvelope<Category>>(`${environment.apiBaseUrl}/api/admin/community/categories/${id}`, payload, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<Category>(error, 'Erro ao atualizar categoria')))
+    );
+  }
+
+  deleteAdminCategory(id: string): Observable<ApiResult<null>> {
+    return this.http.delete<ApiEnvelope<null>>(`${environment.apiBaseUrl}/api/admin/community/categories/${id}`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: null,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<null>(error, 'Erro ao eliminar categoria')))
+    );
+  }
+
+  // ── Admin Topics (via /api/admin/topics) ──────────────────────────────────
+
+  getTopics(params?: { search?: string; category_id?: string; status?: string; locked?: boolean; pinned?: boolean; page?: number; per_page?: number }): Observable<ApiResult<DiscussionTopic[]>> {
     const httpParams = this.cleanParams(params);
     const options = httpParams ? { observe: 'response' as const, params: httpParams } : { observe: 'response' as const };
 
-    return this.http.get<ApiEnvelope<DiscussionTopic[]>>(`${environment.apiBaseUrl}/api/topics`, options).pipe(
+    return this.http.get<ApiEnvelope<DiscussionTopic[]>>(`${environment.apiBaseUrl}/api/admin/topics`, options).pipe(
       timeout({ first: 15000 }),
       map((response) => ({
         ok: response.status >= 200 && response.status < 300,
@@ -58,7 +88,7 @@ export class CommunityAdminService {
   }
 
   getTopic(id: string): Observable<ApiResult<DiscussionTopic>> {
-    return this.http.get<ApiEnvelope<DiscussionTopic>>(`${environment.apiBaseUrl}/api/topics/${id}`, { observe: 'response' }).pipe(
+    return this.http.get<ApiEnvelope<DiscussionTopic>>(`${environment.apiBaseUrl}/api/admin/topics/${id}`, { observe: 'response' }).pipe(
       timeout({ first: 15000 }),
       map((response) => ({
         ok: response.status >= 200 && response.status < 300,
@@ -70,7 +100,7 @@ export class CommunityAdminService {
   }
 
   updateTopic(id: string, payload: DiscussionTopicPayload): Observable<ApiResult<DiscussionTopic>> {
-    return this.http.patch<ApiEnvelope<DiscussionTopic>>(`${environment.apiBaseUrl}/api/topics/${id}`, payload, { observe: 'response' }).pipe(
+    return this.http.patch<ApiEnvelope<DiscussionTopic>>(`${environment.apiBaseUrl}/api/admin/topics/${id}`, payload, { observe: 'response' }).pipe(
       timeout({ first: 15000 }),
       map((response) => ({
         ok: response.status >= 200 && response.status < 300,
@@ -83,7 +113,7 @@ export class CommunityAdminService {
   }
 
   deleteTopic(id: string): Observable<ApiResult<null>> {
-    return this.http.delete<ApiEnvelope<null>>(`${environment.apiBaseUrl}/api/topics/${id}`, { observe: 'response' }).pipe(
+    return this.http.delete<ApiEnvelope<null>>(`${environment.apiBaseUrl}/api/admin/topics/${id}`, { observe: 'response' }).pipe(
       timeout({ first: 15000 }),
       map((response) => ({
         ok: response.status >= 200 && response.status < 300,
@@ -92,6 +122,45 @@ export class CommunityAdminService {
         data: null,
       })),
       catchError((error: unknown) => of(this.toFailureResult<null>(error, 'Erro ao eliminar tópico')))
+    );
+  }
+
+  pinTopic(id: string): Observable<ApiResult<DiscussionTopic>> {
+    return this.http.patch<ApiEnvelope<DiscussionTopic>>(`${environment.apiBaseUrl}/api/admin/topics/${id}/pin`, {}, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data ? this.normalizeTopic(response.body.data) : undefined,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<DiscussionTopic>(error, 'Erro ao fixar tópico')))
+    );
+  }
+
+  lockTopic(id: string): Observable<ApiResult<DiscussionTopic>> {
+    return this.http.patch<ApiEnvelope<DiscussionTopic>>(`${environment.apiBaseUrl}/api/admin/topics/${id}/lock`, {}, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data ? this.normalizeTopic(response.body.data) : undefined,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<DiscussionTopic>(error, 'Erro ao bloquear tópico')))
+    );
+  }
+
+  unlockTopic(id: string): Observable<ApiResult<DiscussionTopic>> {
+    return this.http.patch<ApiEnvelope<DiscussionTopic>>(`${environment.apiBaseUrl}/api/admin/topics/${id}/unlock`, {}, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data ? this.normalizeTopic(response.body.data) : undefined,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<DiscussionTopic>(error, 'Erro ao desbloquear tópico')))
     );
   }
 
