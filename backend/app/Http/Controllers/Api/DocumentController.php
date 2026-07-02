@@ -368,8 +368,11 @@ class DocumentController extends Controller
         'accessLevel',
         'createdBy.profile',
         'quizzes' => function ($q) {
-            $q->select('quizzes.id', 'quizzes.title', 'quizzes.difficulty', 'quizzes.time_limit_secs', 'quizzes.attempts_count', 'quizzes.avg_score', 'quizzes.status')
-              ->withCount('questions');
+            $q->select(
+                'quizzes.id', 'quizzes.title', 'quizzes.description',
+                'quizzes.difficulty', 'quizzes.base_points', 'quizzes.time_limit_secs',
+                'quizzes.attempts_count', 'quizzes.avg_score', 'quizzes.status'
+            )->withCount('questions');
         },
         'topics' => function ($q) {
             $q->select('id', 'document_id', 'author_id', 'title', 'replies_count', 'created_at')
@@ -393,6 +396,18 @@ class DocumentController extends Controller
         if ($user === null || $document->created_by !== $user->id) {
             return response()->json(['message' => 'Document not found.'], 404);
         }
+    }
+
+    // Fallback de quizzes: sem ligações directas → publicados da mesma categoria
+    if ($document->quizzes->isEmpty() && $document->category_id) {
+        $fallbackQuizzes = \App\Models\Quiz::published()
+            ->where('category_id', $document->category_id)
+            ->withCount('questions')
+            ->orderByDesc('is_featured')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get(['id', 'title', 'description', 'difficulty', 'base_points', 'time_limit_secs', 'attempts_count', 'avg_score', 'status']);
+        $document->setRelation('quizzes', $fallbackQuizzes);
     }
 
     $tags = DB::table('document_tags as dt')
@@ -423,11 +438,14 @@ class DocumentController extends Controller
         ->where('user_id', $userId)
         ->exists();
 
+    $topicsPreview = $this->buildTopicsPreview($document);
+
     return response()->json([
-        'data'         => (new DocumentResource($document))->toArray($request),
-        'tags'         => $tags,
-        'is_liked'     => $isLiked,
-        'is_favorited' => $isFavorited,
+        'data'            => (new DocumentResource($document))->toArray($request),
+        'tags'            => $tags,
+        'is_liked'        => $isLiked,
+        'is_favorited'    => $isFavorited,
+        'topics_preview'  => $topicsPreview,
     ]);
 }
 
@@ -1160,17 +1178,95 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        $result = $this->quizDocuments->availableQuizzesForDocument($id, [
+        $options = [
             'page'           => $request->input('page', 1),
-            'per_page'       => $request->input('per_page', 15),
+            'per_page'       => $request->input('per_page', 10),
             'sort_by'        => $request->input('sort_by'),
             'sort_direction' => $request->input('sort_direction'),
-        ]);
+        ];
+
+        $result = $this->quizDocuments->availableQuizzesForDocument($id, $options);
+
+        // Fallback: sem ligações directas → quizzes publicados da mesma categoria
+        if ($result['meta']['total'] === 0 && $document->category_id) {
+            $quizzes = \App\Models\Quiz::published()
+                ->where('category_id', $document->category_id)
+                ->orderByDesc('is_featured')
+                ->orderByDesc('created_at')
+                ->limit(10)
+                ->get();
+
+            return response()->json([
+                'data' => QuizSummaryResource::collection($quizzes),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page'    => 1,
+                    'per_page'     => $quizzes->count(),
+                    'total'        => $quizzes->count(),
+                ],
+            ]);
+        }
 
         return response()->json([
             'data' => QuizSummaryResource::collection($result['data']),
             'meta' => $result['meta'],
         ]);
+    }
+
+    private function buildTopicsPreview(Document $document): array
+    {
+        // Tópicos directamente ligados ao documento (via document_id)
+        if ($document->topics->isNotEmpty()) {
+            return $document->topics->map(fn ($t) => [
+                'id'                => $t->id,
+                'title'             => $t->title,
+                'replies_count'     => (int) $t->replies_count,
+                'created_at'        => $t->created_at,
+                'category_color_bg' => null,
+                'author'            => [
+                    'display_name' => $t->author?->profile?->display_name,
+                    'avatar_url'   => $t->author?->profile?->avatar_url,
+                ],
+            ])->all();
+        }
+
+        // Fallback: tópicos da categoria comunitária com o mesmo nome
+        if (!$document->category) {
+            return [];
+        }
+
+        $communityCategory = DB::table('community_categories')
+            ->whereRaw('LOWER(name) = LOWER(?)', [$document->category->name])
+            ->first(['id', 'color_bg']);
+
+        if (!$communityCategory) {
+            return [];
+        }
+
+        return DB::table('discussion_topics as dt')
+            ->leftJoin('user_profiles as up', 'dt.author_id', '=', 'up.user_id')
+            ->where('dt.category_id', $communityCategory->id)
+            ->where('dt.status', 'open')
+            ->whereIn('dt.visibility', ['PUBLIC', 'CATEGORY'])
+            ->orderByDesc('dt.created_at')
+            ->limit(3)
+            ->select(
+                'dt.id', 'dt.title', 'dt.replies_count', 'dt.created_at',
+                'up.display_name as author_display_name', 'up.avatar_url as author_avatar_url'
+            )
+            ->get()
+            ->map(fn ($t) => [
+                'id'                => $t->id,
+                'title'             => $t->title,
+                'replies_count'     => (int) $t->replies_count,
+                'created_at'        => $t->created_at,
+                'category_color_bg' => $communityCategory->color_bg,
+                'author'            => [
+                    'display_name' => $t->author_display_name,
+                    'avatar_url'   => $t->author_avatar_url,
+                ],
+            ])
+            ->all();
     }
 
     private function generateCitation(object $document, string $format): string

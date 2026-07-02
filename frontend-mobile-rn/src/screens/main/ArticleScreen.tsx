@@ -15,8 +15,7 @@ import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { documentService } from "../../services/api/documentService";
-import { communityService } from "../../services/api/communityService";
-import type { Document, Quiz, DiscussionTopic } from "../../types/api";
+import type { Document, DocumentQuizPreview, DocumentTopicPreview } from "../../types/api";
 
 
 function documentTypeLabel(type: string): string {
@@ -55,11 +54,10 @@ export function ArticleScreen() {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
 
-  const [relatedQuizzes, setRelatedQuizzes] = useState<Quiz[]>([]);
-  const [relatedTopics, setRelatedTopics] = useState<DiscussionTopic[]>([]);
-  const [matchedCategoryId, setMatchedCategoryId] = useState<string | null>(null);
+  // Dados embebidos no documento — sem chamadas extra
+  const relatedQuizzes: DocumentQuizPreview[] = document?.quizzes ?? [];
+  const relatedTopics: DocumentTopicPreview[] = document?.topics_preview ?? [];
 
-  // Load document
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -68,23 +66,6 @@ export function ArticleScreen() {
         setDocument(doc);
         setIsLiked(doc.is_liked ?? false);
         setLikesCount(doc.likes_count);
-
-        // Load forum topics from matching community category (public — no auth needed)
-        if (doc.category) {
-          communityService.categories()
-            .then((cats) => {
-              const match = cats.find(
-                (c) => c.name.toLowerCase() === doc.category!.name.toLowerCase()
-              );
-              if (!match) return;
-              setMatchedCategoryId(match.id);
-              communityService
-                .topics({ category_id: match.id, per_page: 5, sort: "recent" })
-                .then((res) => setRelatedTopics(res.data))
-                .catch(() => {});
-            })
-            .catch(() => {});
-        }
       } catch {
         // document not found handled in render
       } finally {
@@ -93,14 +74,6 @@ export function ArticleScreen() {
     };
     void load();
   }, [id]);
-
-  // Load related quizzes separately — only when authenticated (endpoint requires auth)
-  useEffect(() => {
-    if (!user || !id) return;
-    documentService.relatedQuizzes(id)
-      .then((q) => setRelatedQuizzes(q))
-      .catch(() => {});
-  }, [user, id]);
 
   const handleToggleLike = async () => {
     if (!user) {
@@ -123,10 +96,7 @@ export function ArticleScreen() {
 
   const handleOpenForum = () => {
     if (user) {
-      navigation.navigate("CreateTopic", {
-        initialTitle: document?.title,
-        initialCategoryId: matchedCategoryId ?? undefined,
-      });
+      navigation.navigate("CreateTopic", { initialTitle: document?.title });
     } else {
       navigation.navigate("LoginPrompt", { type: "create-topic" });
     }
@@ -307,8 +277,8 @@ export function ArticleScreen() {
                     onPress={() => navigation.navigate("TopicDiscussion", { id: topic.id })}
                     activeOpacity={0.8}
                   >
-                    {topic.category && (
-                      <View style={[styles.topicCatDot, { backgroundColor: topic.category.color_bg ?? appTheme.colors.primary }]} />
+                    {topic.category_color_bg && (
+                      <View style={[styles.topicCatDot, { backgroundColor: topic.category_color_bg }]} />
                     )}
                     <Text style={styles.topicCardTitle} numberOfLines={3}>{topic.title}</Text>
                     <View style={styles.topicCardFooter}>

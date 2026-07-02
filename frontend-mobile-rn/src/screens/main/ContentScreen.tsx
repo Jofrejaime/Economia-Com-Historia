@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -62,9 +62,11 @@ export function ContentScreen() {
 
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
+  // Usar ref para página evita que fetchDocuments seja recriado a cada fetch,
+  // eliminando o ciclo useCallback → setPage → novo fetchDocuments → re-render.
+  const pageRef = useRef(1);
 
   useEffect(() => {
     const params = route.params as ContentParams | undefined;
@@ -85,8 +87,14 @@ export function ContentScreen() {
   }, [route.params]);
 
   const fetchDocuments = useCallback(async (reset = false) => {
+    if (reset) {
+      pageRef.current = 1;
+      setDocuments([]);
+      setTotal(0);
+      setHasMore(true);
+    }
     setLoading(true);
-    const currentPage = reset ? 1 : page;
+    const currentPage = pageRef.current;
     try {
       const response = await documentService.list({
         q: searchQuery.trim() || undefined,
@@ -99,21 +107,17 @@ export function ContentScreen() {
       setDocuments((prev) => (reset ? response.data : [...prev, ...response.data]));
       setTotal(response.meta.total);
       setHasMore(response.meta.current_page < response.meta.last_page);
-      setPage(currentPage + 1);
+      pageRef.current = currentPage + 1;
     } catch (error) {
       console.warn("Erro ao carregar documentos", error);
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedType, selectedAccessLevel, sortBy, page]);
+  }, [searchQuery, selectedType, selectedAccessLevel, sortBy]);
 
   useEffect(() => {
-    setPage(1);
-    setDocuments([]);
-    setTotal(0);
-    setHasMore(true);
-    fetchDocuments(true);
-  }, [searchQuery, selectedType, selectedAccessLevel, sortBy]);
+    void fetchDocuments(true);
+  }, [fetchDocuments]);
 
   const applySearch = () => {
     const q = draftSearch.trim();

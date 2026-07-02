@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             DocumentSeeder::class,
             MediaDocumentSeeder::class,
             QuizSeeder::class,
+            QuizDocumentSeeder::class,
             CommunitySeeder::class,
         ]);
     }

@@ -59,10 +59,10 @@ class DocumentResource extends JsonResource
             'views_count'      => (int) $this->views_count,
             'likes_count'      => (int) $this->likes_count,
             'downloads_count'  => (int) $this->downloads_count,
-            'topics_count'     => $this->whenCounted('topics', fn() => (int) $this->topics_count, (int) ($this->topics_count ?? 0)),
-            'quizzes_count'    => $this->whenCounted('quizzes'),
+            'topics_count'     => (int) ($this->topics_count ?? 0),
+            'quizzes_count'    => (int) ($this->quizzes_count ?? 0),
 
-            'topics_preview'   => $this->whenLoaded('topics', function () {
+            'topics_preview'   => $isModel ? $this->whenLoaded('topics', function () {
                 return $this->resource->topics->map(fn($t) => [
                     'id'            => $t->id,
                     'title'         => $t->title,
@@ -74,30 +74,34 @@ class DocumentResource extends JsonResource
                     'replies_count' => (int) $t->replies_count,
                     'created_at'    => $t->created_at,
                 ]);
-            }),
+            }) : null,
 
-            'quizzes'          => $this->whenLoaded('quizzes', function () {
+            'quizzes'          => $isModel ? $this->whenLoaded('quizzes', function () {
                 return $this->resource->quizzes->map(fn($q) => [
                     'id'                => $q->id,
                     'title'             => $q->title,
+                    'description'       => $q->description,
                     'difficulty'        => $q->difficulty,
+                    'base_points'       => (int) ($q->base_points ?? 0),
                     'questions_count'   => (int) $q->questions_count,
+                    'estimated_time'    => (int) ($q->time_limit_secs ? ceil($q->time_limit_secs / 60) : 0),
                     'estimated_minutes' => (int) ($q->time_limit_secs ? ceil($q->time_limit_secs / 60) : 0),
                     'attempts_count'    => (int) $q->attempts_count,
                     'avg_score'         => (float) $q->avg_score,
                     'status'            => $q->status,
                 ]);
-            }),
+            }) : null,
 
-            'learning'         => $this->whenLoaded('category', function () use ($isModel) {
-                return $this->when($isModel && $this->resource->relationLoaded('topics') && $this->resource->relationLoaded('quizzes'), function () {
-                    return [
-                        'documents_in_category' => (int) ($this->resource->category->documents_count ?? 0),
-                        'related_quizzes'       => (int) ($this->quizzes_count ?? 0),
-                        'related_topics'        => (int) ($this->topics_count ?? 0),
-                    ];
-                });
-            }),
+            'learning'         => $isModel ? $this->whenLoaded('category', function () {
+                if (!$this->resource->relationLoaded('topics') || !$this->resource->relationLoaded('quizzes')) {
+                    return null;
+                }
+                return [
+                    'category_documents' => (int) ($this->resource->category->documents_count ?? 0),
+                    'quizzes'            => (int) ($this->quizzes_count ?? 0),
+                    'discussions'        => (int) ($this->topics_count ?? 0),
+                ];
+            }) : null,
 
             // Category joined fields
             'category_name'     => $isModel ? optional($this->resource->category)->name     : ($this->resource->category_name ?? null),
