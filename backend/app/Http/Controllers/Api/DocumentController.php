@@ -31,6 +31,7 @@ class DocumentController extends Controller
         private readonly QuizDocumentService         $quizDocuments,
         private readonly DocumentSearchService       $documentSearch,
         private readonly DocumentAdminService        $documentAdmin,
+        private readonly \App\Services\MediaService  $mediaService,
     ) {}
 
     /**
@@ -317,6 +318,7 @@ class DocumentController extends Controller
 
     return response()->json([
         'data'            => (new DocumentResource($document))->toArray($request),
+        'media'           => $this->mediaService->payloadsFor('document', $id),
         'tags'            => $tags,
         'is_liked'        => $isLiked,
         'is_favorited'    => $isFavorited,
@@ -368,22 +370,49 @@ class DocumentController extends Controller
      */
     public function store(StoreDocumentRequest $request): JsonResponse
     {
-        $document = $this->documentAdmin->create($request->validated(), $request->user());
+        [$data, $files] = $this->splitMediaFiles($request->validated());
+
+        $document = $this->documentAdmin->create($data, $request->user(), $files);
 
         return response()->json([
             'message' => 'Document created.',
-            'id' => $document->id
+            'id'      => $document->id,
+            'data'    => (new DocumentResource($document))->toArray($request),
+            'media'   => $this->mediaService->payloadsFor('document', $document->id),
         ], 201);
     }
 
     public function update(string $id, UpdateDocumentRequest $request): JsonResponse
     {
-        $document = $this->documentAdmin->update($id, $request->validated(), $request->user());
+        [$data, $files] = $this->splitMediaFiles($request->validated());
+
+        $document = $this->documentAdmin->update($id, $data, $request->user(), $files);
 
         return response()->json([
             'message' => 'Document updated.',
             'data'    => (new DocumentResource($document))->toArray($request),
+            'media'   => $this->mediaService->payloadsFor('document', $id),
         ]);
+    }
+
+    /**
+     * Separa os UploadedFiles dos campos escalares — os ficheiros nunca
+     * entram no insert/update da tabela documents; seguem sempre pelo
+     * MediaService (Sprint 18.4).
+     *
+     * @return array{0: array, 1: array}
+     */
+    private function splitMediaFiles(array $validated): array
+    {
+        $files = array_filter([
+            'file'        => $validated['file'] ?? null,
+            'cover_image' => $validated['cover_image'] ?? null,
+            'gallery'     => $validated['gallery'] ?? null,
+        ]);
+
+        unset($validated['file'], $validated['cover_image'], $validated['gallery']);
+
+        return [$validated, $files];
     }
 
     public function destroy(string $id, Request $request): JsonResponse

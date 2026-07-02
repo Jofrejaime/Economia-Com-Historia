@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\DocumentStatus;
 use App\Models\Document;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
@@ -12,11 +13,19 @@ use Illuminate\Support\Str;
 
 class DocumentAdminService
 {
+    public function __construct(private readonly MediaService $media) {}
+
     /**
      * Create a new document.
+     *
+     * $files (todos opcionais): 'file' (documento principal),
+     * 'cover_image' (capa) e 'gallery' (lista de imagens) — todos
+     * UploadedFile, processados exclusivamente pelo MediaService.
      */
-    public function create(array $data, User $creator): Document
+    public function create(array $data, User $creator, array $files = []): Document
     {
+        $this->validateFiles($files);
+
         $tags = $data['tags'] ?? [];
         unset($data['tags']);
 
@@ -38,6 +47,8 @@ class DocumentAdminService
             $this->syncTags($id, $tags);
         });
 
+        $this->applyMedia($id, $files, $creator);
+
         $this->logAudit($creator->id, $id, 'create', null, $data);
         $this->clearCache();
 
@@ -46,9 +57,14 @@ class DocumentAdminService
 
     /**
      * Update an existing document.
+     *
+     * Ficheiros novos em $files substituem os existentes na mesma coleção
+     * (o antigo só é removido depois de o novo estar armazenado).
      */
-    public function update(string $id, array $data, User $updater): Document
+    public function update(string $id, array $data, User $updater, array $files = []): Document
     {
+        $this->validateFiles($files);
+
         $document = Document::findOrFail($id);
         $oldValues = $document->only(array_keys($data));
 
@@ -77,10 +93,12 @@ class DocumentAdminService
             }
         });
 
+        $this->applyMedia($id, $files, $updater);
+
         $this->logAudit($updater->id, $id, 'update', $oldValues, $data);
         $this->clearCache();
 
-        return $document->load(['category', 'accessLevel', 'createdBy.profile']);
+        return $document->refresh()->load(['category', 'accessLevel', 'createdBy.profile']);
     }
 
     /**
@@ -104,6 +122,10 @@ class DocumentAdminService
             
             $document->delete();
         });
+
+        // Nunca deixar ficheiros órfãos: PDF, capa, thumbnails, previews e
+        // galeria são removidos do disco junto com os registos de media.
+        $this->media->deleteFor('document', $id);
 
         $this->logAudit($deleter->id, $id, 'delete', $oldValues, null);
         $this->clearCache();
@@ -149,6 +171,107 @@ class DocumentAdminService
         return $this->update($id, [
             'is_pinned' => false
         ], $admin);
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // Media (Sprint 18.4 — pipeline único via MediaService)
+    // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Valida todos os ficheiros ANTES de escrever seja o que for,
+     * para que um upload inválido nunca deixe o documento a meio.
+     */
+    private function validateFiles(array $files): void
+    {
+        if (isset($files['file'])) {
+            $this->media->validateUploadedFile($files['file'], MediaService::KIND_DOCUMENT);
+        }
+
+        if (isset($files['cover_image'])) {
+            $this->media->validateUploadedFile($files['cover_image'], MediaService::KIND_IMAGE);
+        }
+
+        foreach ($files['gallery'] ?? [] as $image) {
+            $this->media->validateUploadedFile($image, MediaService::KIND_IMAGE);
+        }
+    }
+
+    /**
+     * Armazena os ficheiros e sincroniza as colunas legadas
+     * (media_url / pdf_url / cover_image_url / media_type) para manter
+     * compatibilidade com os clientes existentes. Ficheiros novos
+     * substituem os antigos da mesma coleção (replace remove o antigo
+     * apenas depois de o novo estar seguro).
+     */
+    private function applyMedia(string $documentId, array $files, User $actor): void
+    {
+        if ($files === []) {
+            return;
+        }
+
+        $columns = [];
+
+        if (isset($files['file'])) {
+            /** @var UploadedFile $file */
+            $file = $files['file'];
+            $current = \App\Models\Media::where('model_type', 'document')
+                ->where('model_id', $documentId)
+                ->where('collection', 'file')
+                ->first();
+
+            $media = $this->media->replace($current, $file, 'documents/pdf', [
+                'model_type' => 'document',
+                'model_id'   => $documentId,
+                'collection' => 'file',
+                'created_by' => $actor->id,
+            ]);
+
+            $url = $this->media->buildPublicUrl($media->path);
+            $columns['media_url'] = $url;
+            $columns['media_type'] = $media->extension === 'pdf' ? 'PDF' : 'TEXT';
+
+            if ($media->extension === 'pdf') {
+                $columns['pdf_url'] = $url; // legacy
+            }
+        }
+
+        if (isset($files['cover_image'])) {
+            $current = \App\Models\Media::where('model_type', 'document')
+                ->where('model_id', $documentId)
+                ->where('collection', 'cover')
+                ->first();
+
+            $media = $this->media->replace($current, $files['cover_image'], 'documents/covers', [
+                'model_type' => 'document',
+                'model_id'   => $documentId,
+                'collection' => 'cover',
+                'created_by' => $actor->id,
+            ]);
+
+            $columns['cover_image_url'] = $this->media->buildPublicUrl($media->path);
+        }
+
+        if (! empty($files['gallery'])) {
+            $nextOrder = (int) \App\Models\Media::where('model_type', 'document')
+                ->where('model_id', $documentId)
+                ->where('collection', 'gallery')
+                ->max('sort_order');
+
+            foreach (array_values($files['gallery']) as $index => $image) {
+                $this->media->upload($image, 'documents/gallery', [
+                    'model_type' => 'document',
+                    'model_id'   => $documentId,
+                    'collection' => 'gallery',
+                    'sort_order' => $nextOrder + $index + 1,
+                    'created_by' => $actor->id,
+                ]);
+            }
+        }
+
+        if ($columns !== []) {
+            $columns['updated_at'] = now();
+            DB::table('documents')->where('id', $documentId)->update($columns);
+        }
     }
 
     /**

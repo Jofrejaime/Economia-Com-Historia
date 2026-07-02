@@ -284,6 +284,18 @@
             <div class="detail-label">Conteúdo</div>
             <div class="detail-value detail-value--pre">{{ editingDocument.content || 'Sem conteúdo disponível.' }}</div>
           </div>
+          <div class="detail-card detail-card--full" *ngIf="documentMedia?.cover || documentMedia?.file || editingDocument.cover_image_url || editingDocument.pdf_url">
+            <div class="detail-label">Ficheiros</div>
+            <div class="detail-value" style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <app-media-preview *ngIf="documentMedia?.cover || editingDocument.cover_image_url"
+                [media]="documentMedia?.cover ?? null"
+                [url]="documentMedia?.cover ? null : editingDocument.cover_image_url" />
+              <app-media-preview *ngIf="documentMedia?.file || editingDocument.pdf_url"
+                [media]="documentMedia?.file ?? null"
+                [url]="documentMedia?.file ? null : editingDocument.pdf_url" />
+              <app-media-preview *ngFor="let item of documentMedia?.gallery ?? []" [media]="item" [showMeta]="false" />
+            </div>
+          </div>
         </div>
 
         <ng-container *ngIf="documentModalMode === 'edit'">
@@ -379,15 +391,42 @@
               <label>Período final</label>
               <input type="number" [(ngModel)]="documentForm.period_end" class="form-input" />
             </div>
-            <div class="form-group">
-              <label>PDF URL</label>
-              <input type="text" [(ngModel)]="documentForm.pdf_url" class="form-input" />
-            </div>
+          </div>
+
+          <!-- Sprint 18.4 — uploads via pipeline único de media -->
+          <div class="form-group">
+            <app-file-upload
+              label="Ficheiro principal"
+              hint="PDF, DOCX, PPT, PPTX, XLSX, CSV, TXT, ZIP, RAR ou ODT — máx. 50 MB"
+              [media]="documentMedia?.file ?? null"
+              [existingUrl]="documentForm.pdf_url"
+              [disabled]="saving"
+              (fileChange)="onMainFileChange($event)" />
           </div>
 
           <div class="form-group">
-            <label>Cover image URL</label>
-            <input type="text" [(ngModel)]="documentForm.cover_image_url" class="form-input" />
+            <app-image-upload
+              label="Imagem de capa"
+              [media]="documentMedia?.cover ?? null"
+              [existingUrl]="documentForm.cover_image_url"
+              [disabled]="saving"
+              (fileChange)="onCoverFileChange($event)" />
+          </div>
+
+          <div class="form-group">
+            <app-gallery-upload
+              [existing]="documentMedia?.gallery ?? []"
+              [files]="galleryFiles"
+              [disabled]="saving"
+              (filesChange)="galleryFiles = $event" />
+          </div>
+
+          <div class="form-group" *ngIf="uploadProgress !== null">
+            <label>A carregar ficheiros… {{ uploadProgress }}%</label>
+            <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+              <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb); transition: width .2s;"
+                [style.width.%]="uploadProgress"></div>
+            </div>
           </div>
         </ng-container>
       </div>

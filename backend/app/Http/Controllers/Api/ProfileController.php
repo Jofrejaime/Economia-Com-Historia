@@ -18,6 +18,7 @@ class ProfileController extends Controller
 {
     public function __construct(
         private readonly GamificationService $gamification,
+        private readonly \App\Services\MediaService $mediaService,
     ) {}
     /**
      * @OA\Get(
@@ -255,26 +256,50 @@ class ProfileController extends Controller
         $userId = $request->user()->id;
         $file = $validated['avatar'];
 
+        // Sprint 18.4 — todo o upload passa pelo MediaService (pipeline único):
+        // valida MIME real, gera thumbnail e remove o avatar antigo apenas
+        // depois de o novo estar armazenado.
+        $current = \App\Models\Media::where('model_type', 'user_profile')
+            ->where('model_id', $userId)
+            ->where('collection', 'avatar')
+            ->first();
+
+        $media = $this->mediaService->replace($current, $file, "avatars/{$userId}", [
+            'kind'       => \App\Services\MediaService::KIND_IMAGE,
+            'max_kb'     => 5120,
+            'model_type' => 'user_profile',
+            'model_id'   => $userId,
+            'collection' => 'avatar',
+            'created_by' => $userId,
+        ]);
+
+        // Limpeza do ficheiro legado (armazenado antes da tabela media existir).
         $oldProfile = DB::table('user_profiles')->where('user_id', $userId)->first();
-        if ($oldProfile && $oldProfile->avatar_url) {
+        if ($oldProfile && $oldProfile->avatar_url && $oldProfile->avatar_url !== $media->path
+            && ! str_starts_with($oldProfile->avatar_url, 'http')) {
             Storage::disk('public')->delete($oldProfile->avatar_url);
         }
 
-        $path = $file->store("avatars/{$userId}", 'public');
-
-        DB::table('user_profiles')->updateOrInsert(
-            ['user_id' => $userId],
-            [
-                'avatar_url' => $path,
+        if ($oldProfile !== null) {
+            DB::table('user_profiles')->where('user_id', $userId)->update([
+                'avatar_url' => $media->path,
                 'updated_at' => now(),
-            ]
-        );
-
-        $url = ProfilePresenter::avatarPublicUrl($path);
+            ]);
+        } else {
+            DB::table('user_profiles')->insert([
+                'id'           => (string) Str::uuid(),
+                'user_id'      => $userId,
+                'display_name' => Str::before($request->user()->email, '@'),
+                'avatar_url'   => $media->path,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+        }
 
         return response()->json([
-            'message' => 'Avatar uploaded successfully.',
-            'avatar_url' => $url,
+            'message'    => 'Avatar uploaded successfully.',
+            'avatar_url' => ProfilePresenter::avatarPublicUrl($media->path), // legacy
+            'avatar'     => $this->mediaService->payload($media),
         ]);
     }
 

@@ -1,7 +1,8 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEventType, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of, timeout, TimeoutError } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { MediaCollections } from '../models/media.models';
 import {
   ApiEnvelope,
   ApiResult,
@@ -40,18 +41,84 @@ export class DocumentAdminService {
     );
   }
 
-  getDocument(id: string): Observable<ApiResult<Document>> {
+  getDocument(id: string): Observable<ApiResult<Document & { media?: MediaCollections }>> {
     // Para ver detalhes, podemos usar a rota pública ou a administrativa. Rota pública /api/documents/{id} já tem contagem, likes, tags, etc.
-    return this.http.get<ApiEnvelope<Document> & { tags?: Document['tags']; is_liked?: boolean; is_favorited?: boolean }>(`${environment.apiBaseUrl}/api/documents/${id}`, {
+    return this.http.get<ApiEnvelope<Document> & { tags?: Document['tags']; is_liked?: boolean; is_favorited?: boolean; media?: MediaCollections }>(`${environment.apiBaseUrl}/api/documents/${id}`, {
       observe: 'response',
     }).pipe(
       timeout({ first: 15000 }),
       map((response) => ({
         ok: response.status >= 200 && response.status < 300,
         status: response.status,
-        data: response.body?.data ? { ...response.body.data, tags: response.body.tags, is_liked: response.body.is_liked, is_favorited: response.body.is_favorited } : undefined,
+        data: response.body?.data ? { ...response.body.data, tags: response.body.tags, is_liked: response.body.is_liked, is_favorited: response.body.is_favorited, media: response.body.media } : undefined,
       })),
-      catchError((error: unknown) => of(this.toFailureResult<Document>(error, 'Erro ao carregar documento')))
+      catchError((error: unknown) => of(this.toFailureResult<Document & { media?: MediaCollections }>(error, 'Erro ao carregar documento')))
+    );
+  }
+
+  /**
+   * Sprint 18.4 — criação/edição com ficheiros (multipart) e progresso real.
+   *
+   * Os ficheiros seguem no mesmo pedido que os dados do documento e são
+   * processados no backend exclusivamente pelo MediaService (capa, ficheiro
+   * principal e galeria). Para PATCH usa method spoofing (_method), porque
+   * o PHP não processa multipart em pedidos PATCH nativos.
+   */
+  saveDocumentWithFiles(
+    id: string | null,
+    payload: Record<string, unknown>,
+    files: { file?: File | null; cover_image?: File | null; gallery?: File[] },
+  ): Observable<{ state: 'progress'; progress: number } | { state: 'done'; result: ApiResult<Document> & { media?: MediaCollections } }> {
+    const form = new FormData();
+
+    for (const [key, value] of Object.entries(payload)) {
+      if (value === null || value === undefined) continue;
+      if (Array.isArray(value)) {
+        for (const item of value) form.append(`${key}[]`, String(item));
+      } else {
+        form.append(key, String(value));
+      }
+    }
+
+    if (files.file) form.append('file', files.file, files.file.name);
+    if (files.cover_image) form.append('cover_image', files.cover_image, files.cover_image.name);
+    for (const image of files.gallery ?? []) {
+      form.append('gallery[]', image, image.name);
+    }
+
+    const url = id
+      ? `${environment.apiBaseUrl}/api/admin/documents/${id}`
+      : `${environment.apiBaseUrl}/api/admin/documents`;
+
+    if (id) form.append('_method', 'PATCH');
+
+    return this.http.post<ApiEnvelope<Document> & { media?: MediaCollections }>(url, form, {
+      observe: 'events',
+      reportProgress: true,
+    }).pipe(
+      map((event) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          const progress = event.total ? Math.round((event.loaded / event.total) * 100) : 0;
+          return { state: 'progress' as const, progress };
+        }
+        if (event.type === HttpEventType.Response) {
+          return {
+            state: 'done' as const,
+            result: {
+              ok: event.status >= 200 && event.status < 300,
+              status: event.status,
+              message: event.body?.message,
+              data: event.body?.data,
+              media: event.body?.media,
+            },
+          };
+        }
+        return { state: 'progress' as const, progress: 0 };
+      }),
+      catchError((error: unknown) => of({
+        state: 'done' as const,
+        result: this.toFailureResult<Document>(error, 'Erro ao guardar documento com ficheiros'),
+      })),
     );
   }
 

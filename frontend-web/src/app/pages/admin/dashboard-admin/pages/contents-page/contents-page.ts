@@ -9,7 +9,12 @@ import {
   DocumentListFilters,
   DocumentUpdatePayload,
 } from '../../../../../models/document-admin.models';
+import { MediaCollections } from '../../../../../models/media.models';
 import { DocumentAdminService } from '../../../../../services/document-admin.service';
+import { FileUploadComponent } from '../../../../../components/uploads/file-upload.component';
+import { GalleryUploadComponent } from '../../../../../components/uploads/gallery-upload.component';
+import { ImageUploadComponent } from '../../../../../components/uploads/image-upload.component';
+import { MediaPreviewComponent } from '../../../../../components/uploads/media-preview.component';
 
 type DocumentStatusFilter = 'todos' | 'draft' | 'published' | 'archived';
 
@@ -21,7 +26,7 @@ interface DocumentView extends Document {
 @Component({
   selector: 'app-contents-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FileUploadComponent, ImageUploadComponent, GalleryUploadComponent, MediaPreviewComponent],
   templateUrl: './contents-page.html',
   styleUrls: ['./contents-page.css']
 })
@@ -48,6 +53,13 @@ export class ContentsPageComponent implements OnInit {
   showDocumentModal = false;
   documentModalMode: 'view' | 'edit' = 'view';
   editingDocument: DocumentView | null = null;
+
+  // Sprint 18.4 — uploads (pipeline único de media)
+  coverFile: File | null = null;
+  mainFile: File | null = null;
+  galleryFiles: File[] = [];
+  documentMedia: MediaCollections | null = null;
+  uploadProgress: number | null = null;
   documentForm: DocumentUpdatePayload & {
     title: string;
     author: string;
@@ -197,6 +209,8 @@ export class ContentsPageComponent implements OnInit {
     const detailedDocument = this.toDocumentView(result.data);
     this.selectedDocumentId = detailedDocument.id;
     this.editingDocument = detailedDocument;
+    this.documentMedia = result.data.media ?? null;
+    this.resetFileSelection();
     this.documentForm = {
       title: detailedDocument.title,
       author: detailedDocument.author,
@@ -227,6 +241,8 @@ export class ContentsPageComponent implements OnInit {
     this.showDocumentModal = false;
     this.editingDocument = null;
     this.documentModalMode = 'view';
+    this.documentMedia = null;
+    this.resetFileSelection();
   }
 
   openCreateDocumentModal(): void {
@@ -236,6 +252,29 @@ export class ContentsPageComponent implements OnInit {
     this.showDocumentModal = true;
     this.errorMessage = null;
     this.successMessage = null;
+    this.documentMedia = null;
+    this.resetFileSelection();
+  }
+
+  private resetFileSelection(): void {
+    this.coverFile = null;
+    this.mainFile = null;
+    this.galleryFiles = [];
+    this.uploadProgress = null;
+  }
+
+  onCoverFileChange(file: File | null): void {
+    this.coverFile = file;
+    if (file === null) {
+      this.documentForm.cover_image_url = null;
+    }
+  }
+
+  onMainFileChange(file: File | null): void {
+    this.mainFile = file;
+    if (file === null) {
+      this.documentForm.pdf_url = null;
+    }
   }
 
   async saveDocument(): Promise<void> {
@@ -271,8 +310,28 @@ export class ContentsPageComponent implements OnInit {
       status: this.documentForm.status,
     };
 
+    const hasFiles = this.coverFile !== null || this.mainFile !== null || this.galleryFiles.length > 0;
+
     let result;
-    if (this.editingDocument) {
+    if (hasFiles) {
+      // Sprint 18.4 — envio multipart com progresso; os ficheiros passam
+      // pelo pipeline único do MediaService no backend.
+      this.uploadProgress = 0;
+      result = await new Promise<any>((resolve) => {
+        this.documentAdmin.saveDocumentWithFiles(
+          this.editingDocument?.id ?? null,
+          payload as unknown as Record<string, unknown>,
+          { file: this.mainFile, cover_image: this.coverFile, gallery: this.galleryFiles },
+        ).subscribe((event) => {
+          if (event.state === 'progress') {
+            this.uploadProgress = event.progress;
+          } else {
+            resolve(event.result);
+          }
+        });
+      });
+      this.uploadProgress = null;
+    } else if (this.editingDocument) {
       result = await firstValueFrom(this.documentAdmin.updateDocument(this.editingDocument.id, payload));
     } else {
       result = await firstValueFrom(this.documentAdmin.createDocument(payload));
@@ -287,6 +346,7 @@ export class ContentsPageComponent implements OnInit {
     this.successMessage = this.editingDocument ? 'Documento actualizado com sucesso.' : 'Documento criado com sucesso.';
     this.showDocumentModal = false;
     this.editingDocument = null;
+    this.resetFileSelection();
     await this.loadInitialData();
     this.saving = false;
   }

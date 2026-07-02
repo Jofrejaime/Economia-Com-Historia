@@ -33,6 +33,13 @@ class UpdateDocumentRequest extends FormRequest
             'media_url'        => ['sometimes', 'nullable', 'string', 'max:500'],
             'pdf_url'          => ['sometimes', 'nullable', 'string', 'max:500'],  // legacy
             'status'           => ['sometimes', Rule::in(array_column(DocumentStatus::cases(), 'value'))],
+
+            // Uploads (Sprint 18.4) — substituem os ficheiros da mesma coleção;
+            // processados exclusivamente pelo MediaService
+            'file'             => ['sometimes', 'file', 'max:51200', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,csv,txt,zip,rar,odt'],
+            'cover_image'      => ['sometimes', 'file', 'max:4096', 'mimes:jpg,jpeg,png,webp,svg,gif'],
+            'gallery'          => ['sometimes', 'array', 'max:12'],
+            'gallery.*'        => ['file', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
         ];
     }
 }

@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\AccessLevelController;
 use App\Http\Controllers\Api\DocumentCategoryController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\UserAdminController;
+use App\Http\Controllers\Api\MediaController;
 use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\OptionalAuthenticateApiSession;
 use Illuminate\Support\Facades\Route;
@@ -130,6 +131,9 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::delete('/access-levels/{id}', [AccessLevelController::class, 'destroy']);
 
         // Documents Management (Admin)
+        // Listagem admin: o DocumentSearchService é role-aware (admins veem
+        // todos os estados e podem filtrar por ?status=...).
+        Route::get('/documents', [DocumentController::class, 'index']);
         Route::post('/documents', [DocumentController::class, 'store']);
         Route::patch('/documents/{id}', [DocumentController::class, 'update']);
         Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
@@ -245,6 +249,10 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::post('/documents', [DocumentController::class, 'store']);
         Route::patch('/documents/{id}', [DocumentController::class, 'update']);
         Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
+
+        // Media — pipeline único de uploads (editor rico, ícones, capas soltas)
+        Route::post('/media/uploads', [MediaController::class, 'store']);
+        Route::delete('/media/{id}', [MediaController::class, 'destroy']);
     });
 
     // ─── Admin only ─────────────────────────────────────────────────────
