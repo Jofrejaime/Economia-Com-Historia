@@ -15,7 +15,8 @@ import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { documentService } from "../../services/api/documentService";
-import type { Document } from "../../types/api";
+import { communityService } from "../../services/api/communityService";
+import type { Document, Quiz, DiscussionTopic } from "../../types/api";
 
 
 function documentTypeLabel(type: string): string {
@@ -36,6 +37,13 @@ function formatDate(dateString: string | null): string {
   });
 }
 
+function difficultyColor(d: string): string {
+  if (d === "Básico") return appTheme.colors.success;
+  if (d === "Intermédio") return appTheme.colors.warning;
+  if (d === "Avançado") return appTheme.colors.danger;
+  return appTheme.colors.textSecondary;
+}
+
 export function ArticleScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
@@ -47,6 +55,11 @@ export function ArticleScreen() {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
 
+  const [relatedQuizzes, setRelatedQuizzes] = useState<Quiz[]>([]);
+  const [relatedTopics, setRelatedTopics] = useState<DiscussionTopic[]>([]);
+  const [matchedCategoryId, setMatchedCategoryId] = useState<string | null>(null);
+
+  // Load document
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -55,14 +68,39 @@ export function ArticleScreen() {
         setDocument(doc);
         setIsLiked(doc.is_liked ?? false);
         setLikesCount(doc.likes_count);
-      } catch (error) {
-        console.warn("Erro ao carregar documento", error);
+
+        // Load forum topics from matching community category (public — no auth needed)
+        if (doc.category) {
+          communityService.categories()
+            .then((cats) => {
+              const match = cats.find(
+                (c) => c.name.toLowerCase() === doc.category!.name.toLowerCase()
+              );
+              if (!match) return;
+              setMatchedCategoryId(match.id);
+              communityService
+                .topics({ category_id: match.id, per_page: 5, sort: "recent" })
+                .then((res) => setRelatedTopics(res.data))
+                .catch(() => {});
+            })
+            .catch(() => {});
+        }
+      } catch {
+        // document not found handled in render
       } finally {
         setLoading(false);
       }
     };
-    load();
+    void load();
   }, [id]);
+
+  // Load related quizzes separately — only when authenticated (endpoint requires auth)
+  useEffect(() => {
+    if (!user || !id) return;
+    documentService.relatedQuizzes(id)
+      .then((q) => setRelatedQuizzes(q))
+      .catch(() => {});
+  }, [user, id]);
 
   const handleToggleLike = async () => {
     if (!user) {
@@ -78,22 +116,17 @@ export function ArticleScreen() {
         setLikesCount((n) => n + 1);
       }
       setIsLiked((v) => !v);
-    } catch (error) {
-      console.warn("Erro ao actualizar like", error);
-    }
-  };
-
-  const handleStartQuiz = () => {
-    if (user) {
-      navigation.navigate("QuizList");
-    } else {
-      navigation.navigate("LoginPrompt", { type: "quiz" });
+    } catch {
+      // ignore
     }
   };
 
   const handleOpenForum = () => {
     if (user) {
-      navigation.navigate("Community");
+      navigation.navigate("CreateTopic", {
+        initialTitle: document?.title,
+        initialCategoryId: matchedCategoryId ?? undefined,
+      });
     } else {
       navigation.navigate("LoginPrompt", { type: "create-topic" });
     }
@@ -166,7 +199,7 @@ export function ArticleScreen() {
           </View>
         </View>
 
-        {/* Category & Level */}
+        {/* Category & Tags */}
         <View style={styles.metaRow}>
           {document.category && (
             <View style={styles.metaChip}>
@@ -197,11 +230,6 @@ export function ArticleScreen() {
           </View>
         )}
 
-        {/* PDF Link */}
-        {document.pdf_url && (
-          <View style={styles.sectionDivider} />
-        )}
-
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <TouchableOpacity onPress={handleToggleLike} style={styles.statBtn}>
@@ -218,21 +246,93 @@ export function ArticleScreen() {
           </View>
         </View>
 
-        {/* Actions */}
+        {/* ── Quizzes relacionados ── */}
+        {relatedQuizzes.length > 0 && (
+          <>
+            <View style={styles.sectionDivider} />
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionLabel}>QUIZZES RELACIONADOS</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalList}
+              >
+                {relatedQuizzes.map((quiz) => (
+                  <TouchableOpacity
+                    key={quiz.id}
+                    style={styles.quizCard}
+                    onPress={() => {
+                      if (!user) {
+                        navigation.navigate("LoginPrompt", { type: "quiz" });
+                      } else {
+                        navigation.navigate("Quiz", { quizId: quiz.id });
+                      }
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.quizCardTop}>
+                      <View style={[styles.diffDot, { backgroundColor: difficultyColor(quiz.difficulty) }]} />
+                      <Text style={[styles.quizDiff, { color: difficultyColor(quiz.difficulty) }]}>
+                        {quiz.difficulty}
+                      </Text>
+                    </View>
+                    <Text style={styles.quizCardTitle} numberOfLines={3}>{quiz.title}</Text>
+                    <View style={styles.quizCardFooter}>
+                      <Ionicons name="star-outline" size={12} color={appTheme.colors.textMuted} />
+                      <Text style={styles.quizCardMeta}>{quiz.base_points} pts</Text>
+                      <Feather name="arrow-right" size={14} color={appTheme.colors.primary} style={{ marginLeft: "auto" }} />
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </>
+        )}
+
+        {/* ── Fóruns da mesma categoria ── */}
+        {relatedTopics.length > 0 && (
+          <>
+            <View style={styles.sectionDivider} />
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionLabel}>DISCUSSÕES RELACIONADAS</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalList}
+              >
+                {relatedTopics.map((topic) => (
+                  <TouchableOpacity
+                    key={topic.id}
+                    style={styles.topicCard}
+                    onPress={() => navigation.navigate("TopicDiscussion", { id: topic.id })}
+                    activeOpacity={0.8}
+                  >
+                    {topic.category && (
+                      <View style={[styles.topicCatDot, { backgroundColor: topic.category.color_bg ?? appTheme.colors.primary }]} />
+                    )}
+                    <Text style={styles.topicCardTitle} numberOfLines={3}>{topic.title}</Text>
+                    <View style={styles.topicCardFooter}>
+                      <Ionicons name="chatbubble-outline" size={12} color={appTheme.colors.textMuted} />
+                      <Text style={styles.topicCardMeta}>{topic.replies_count} respostas</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </>
+        )}
+
+        {/* ── Acção: Debater no Fórum ── */}
         <View style={styles.sectionDivider} />
         <View style={styles.actionsBlock}>
           <Text style={styles.actionsLabel}>ACTIVIDADES</Text>
-          <TouchableOpacity onPress={handleStartQuiz} style={styles.quizBtn}>
-            <Text style={styles.actionBtnLabel}>Realizar Quiz</Text>
-            <Ionicons name="trophy-outline" size={20} color="white" />
-          </TouchableOpacity>
           <TouchableOpacity onPress={handleOpenForum} style={styles.forumBtn}>
             <Text style={styles.actionBtnLabel}>Debater no Fórum</Text>
             <Ionicons name="people-outline" size={20} color="white" />
           </TouchableOpacity>
         </View>
 
-        {/* Period info if present */}
+        {/* Period info */}
         {(document.period_start || document.period_end) && (
           <>
             <View style={styles.sectionDivider} />
@@ -434,6 +534,107 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.background,
     width: "100%",
   },
+  // ── Sections (quiz + forum lists) ──────────────────────────────────────────
+  sectionBlock: {
+    paddingTop: 20,
+    paddingBottom: 4,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: appTheme.colors.textMuted,
+    letterSpacing: 1.2,
+    marginBottom: 12,
+    paddingHorizontal: 20,
+  },
+  horizontalList: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    gap: 12,
+  },
+  // Quiz card
+  quizCard: {
+    width: 180,
+    backgroundColor: appTheme.colors.background,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+    padding: 14,
+    justifyContent: "space-between",
+    minHeight: 130,
+  },
+  quizCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  diffDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  quizDiff: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  quizCardTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 14,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    lineHeight: 20,
+    flex: 1,
+  },
+  quizCardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 10,
+  },
+  quizCardMeta: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 12,
+    color: appTheme.colors.textMuted,
+  },
+  // Topic card
+  topicCard: {
+    width: 200,
+    backgroundColor: appTheme.colors.background,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+    padding: 14,
+    minHeight: 110,
+    justifyContent: "space-between",
+  },
+  topicCatDot: {
+    width: 20,
+    height: 4,
+    borderRadius: 2,
+    marginBottom: 10,
+  },
+  topicCardTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 14,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    lineHeight: 20,
+    flex: 1,
+  },
+  topicCardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 10,
+  },
+  topicCardMeta: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 12,
+    color: appTheme.colors.textMuted,
+  },
+  // Actions
   actionsBlock: {
     paddingHorizontal: 20,
     paddingVertical: 24,
@@ -445,15 +646,6 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
     letterSpacing: 1.2,
     marginBottom: 4,
-  },
-  quizBtn: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: appTheme.colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 8,
   },
   forumBtn: {
     flexDirection: "row",

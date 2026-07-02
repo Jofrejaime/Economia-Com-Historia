@@ -35,12 +35,12 @@ export function CreateTopicScreen() {
   const { user } = useAuth();
   const { addTopicOptimistic } = useCommunity();
 
-  const { initialTitle = "" } = route.params ?? {};
+  const { initialTitle = "", initialCategoryId } = route.params ?? {};
 
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState("");
   const [accessLevel, setAccessLevel] = useState<"public" | "restricted">("public");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialCategoryId ?? null);
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
   const [categories, setCategories] = useState<CommunityCategory[]>([]);

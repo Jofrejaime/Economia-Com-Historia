@@ -34,6 +34,7 @@ import { SupportScreen } from "../screens/main/SupportScreen";
 import { JindungoPermissionScreen } from "../screens/main/JindungoPermissionScreen";
 import { LoginPromptScreen } from "../screens/main/LoginPromptScreen";
 import { ManageMembersScreen } from "../screens/main/ManageMembersScreen";
+import { MediaDetailScreen } from "../screens/main/MediaDetailScreen";
 
 const MainStack = createNativeStackNavigator<MainStackParamList>();
 const Tabs = createBottomTabNavigator<MainTabParamList>();
@@ -175,6 +176,7 @@ export function MainNavigator() {
       <MainStack.Screen name="Register" component={RegisterScreen} />
       <MainStack.Screen name="Podcast" component={PodcastScreen} />
       <MainStack.Screen name="Article" component={ArticleScreen} />
+      <MainStack.Screen name="MediaDetail" component={MediaDetailScreen} />
       <MainStack.Screen name="Quiz" component={QuizScreen} />
       <MainStack.Screen name="QuizFeedback" component={QuizFeedbackScreen} />
       <MainStack.Screen name="QuizResult" component={QuizResultScreen} />

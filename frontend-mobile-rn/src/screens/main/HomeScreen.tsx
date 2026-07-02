@@ -82,7 +82,10 @@ export function HomeScreen() {
                 <TouchableOpacity
                   style={styles.featuredCard}
                   activeOpacity={0.9}
-                  onPress={() => navigation.navigate("Article", { id: featuredDoc.id })}
+                  onPress={() => {
+                    const isMedia = featuredDoc.document_type === "video" || featuredDoc.document_type === "audio";
+                    navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: featuredDoc.id });
+                  }}
                 >
                   {featuredDoc.cover_image_url ? (
                     <ImageBackground
@@ -155,7 +158,10 @@ export function HomeScreen() {
                   <TouchableOpacity
                     key={doc.id}
                     style={styles.card}
-                    onPress={() => navigation.navigate("Article", { id: doc.id })}
+                    onPress={() => {
+                      const isMedia = doc.document_type === "video" || doc.document_type === "audio";
+                      navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: doc.id });
+                    }}
                   >
                     {doc.cover_image_url ? (
                       <ImageBackground

@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
     SEARCH: '/documents/search',
     CATEGORIES: '/document-categories',
     DETAIL: (id: string) => `/documents/${id}`,
+    RELATED_QUIZZES: (id: string) => `/documents/${id}/quizzes`,
     LIKE: (id: string) => `/documents/${id}/like`,
     DOWNLOAD: (id: string) => `/documents/${id}/download`,
     FAVORITE: (id: string) => `/documents/${id}/favorite`,

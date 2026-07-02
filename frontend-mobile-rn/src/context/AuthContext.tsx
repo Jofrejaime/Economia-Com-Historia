@@ -41,7 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setUnauthorizedHandler(() => {
       setAuthToken(null);
-      void AsyncStorage.multiRemove(["@auth_token", "@auth_user"]);
+      void AsyncStorage.removeItem("@auth_token");
+      void AsyncStorage.removeItem("@auth_user");
       setState({ status: "unauthenticated", token: null, user: null });
     });
     return () => setUnauthorizedHandler(null);

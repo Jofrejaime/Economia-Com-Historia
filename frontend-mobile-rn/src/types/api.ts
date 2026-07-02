@@ -152,6 +152,8 @@ export interface Document {
   summary: string;
   content: string | null;
   cover_image_url: string | null;
+  media_type: 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF' | null;
+  media_url: string | null;
   pdf_url: string | null;
   status: 'draft' | 'published';
   created_by: string;
@@ -360,14 +362,14 @@ export interface PointTransaction {
   created_at: string;
 }
 
-// Result from POST /quiz-attempts/{id}/complete → gamification key
+// Result from POST /quiz-attempts/{id}/complete → gamification key (snake_case from backend)
 export interface GamificationResult {
-  pointsDelta: number;
-  totalPoints: number;
-  currentLevel: number;
-  levelChanged: boolean;
-  previousLevel: number | null;
-  badgesEarned: Array<{
+  points_delta: number;
+  total_points: number;
+  current_level: number;
+  level_changed: boolean;
+  previous_level: number | null;
+  badges_earned: Array<{
     id: string;
     name: string;
     description: string;

@@ -48,6 +48,9 @@ export function QuizListScreen() {
   const [firstLoadQuizzes, setFirstLoadQuizzes] = useState(false);
   const [firstLoadRanking, setFirstLoadRanking] = useState(false);
 
+  const [completedQuizIds, setCompletedQuizIds] = useState<Set<string>>(new Set());
+  const [showCompleted, setShowCompleted] = useState(false);
+
   const fetchQuizzes = useCallback(async (showLoading = true) => {
     if (showLoading) setLoadingQuizzes(true);
     setQuizError(false);
@@ -64,6 +67,16 @@ export function QuizListScreen() {
       setLoadingQuizzes(false);
     }
   }, [difficultyFilter]);
+
+  const fetchCompletedIds = useCallback(async () => {
+    if (!user) return;
+    try {
+      const res = await quizService.myAttempts({ status: "completed", per_page: 100 });
+      setCompletedQuizIds(new Set(res.data.map((a) => a.quiz_id)));
+    } catch {
+      // non-critical
+    }
+  }, [user]);
 
   const fetchRanking = useCallback(async (showLoading = true) => {
     if (showLoading) setLoadingRanking(true);
@@ -82,12 +95,17 @@ export function QuizListScreen() {
     useCallback(() => {
       fetchQuizzes(!firstLoadQuizzes);
       setFirstLoadQuizzes(true);
+      void fetchCompletedIds();
       if (activeTab === "ranking") {
         fetchRanking(!firstLoadRanking);
         setFirstLoadRanking(true);
       }
-    }, [activeTab, fetchQuizzes, fetchRanking, firstLoadQuizzes, firstLoadRanking])
+    }, [activeTab, fetchQuizzes, fetchRanking, fetchCompletedIds, firstLoadQuizzes, firstLoadRanking])
   );
+
+  const displayedQuizzes = showCompleted
+    ? quizzes.filter((q) => completedQuizIds.has(q.id))
+    : quizzes;
 
   const handleStartQuiz = (quiz: Quiz) => {
     if (!user) {
@@ -112,6 +130,12 @@ export function QuizListScreen() {
           <View style={styles.featuredBadge}>
             <Ionicons name="star" size={10} color={appTheme.colors.warning} />
             <Text style={styles.featuredText}>Destaque</Text>
+          </View>
+        )}
+        {user && completedQuizIds.has(item.id) && (
+          <View style={styles.completedBadge}>
+            <Ionicons name="checkmark-circle" size={10} color={appTheme.colors.success} />
+            <Text style={styles.completedBadgeText}>Realizado</Text>
           </View>
         )}
       </View>
@@ -225,7 +249,7 @@ export function QuizListScreen() {
 
       {activeTab === "quizzes" && (
         <>
-          {/* Difficulty filter */}
+          {/* Filtros */}
           <View style={styles.filterRow}>
             {(["all", "Básico", "Intermédio", "Avançado"] as DifficultyFilter[]).map((d) => (
               <TouchableOpacity
@@ -238,6 +262,21 @@ export function QuizListScreen() {
                 </Text>
               </TouchableOpacity>
             ))}
+            {user && (
+              <TouchableOpacity
+                onPress={() => setShowCompleted((v) => !v)}
+                style={[styles.filterChip, styles.filterChipCompleted, showCompleted && styles.filterChipCompletedActive]}
+              >
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={13}
+                  color={showCompleted ? "white" : appTheme.colors.success}
+                />
+                <Text style={[styles.filterChipText, showCompleted && styles.filterChipTextActive]}>
+                  Realizados
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {loadingQuizzes ? (
@@ -254,18 +293,24 @@ export function QuizListScreen() {
             </View>
           ) : (
             <FlatList
-              data={quizzes}
+              data={displayedQuizzes}
               keyExtractor={(item) => item.id}
               renderItem={renderQuiz}
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
               ListHeaderComponent={() => (
-                <Text style={styles.resultsCount}>{total} {total === 1 ? "quiz" : "quizzes"} disponíveis</Text>
+                <Text style={styles.resultsCount}>
+                  {showCompleted
+                    ? `${displayedQuizzes.length} ${displayedQuizzes.length === 1 ? "quiz" : "quizzes"} realizados`
+                    : `${total} ${total === 1 ? "quiz" : "quizzes"} disponíveis`}
+                </Text>
               )}
               ListEmptyComponent={() => (
                 <View style={styles.emptyState}>
                   <Ionicons name="help-circle-outline" size={48} color={appTheme.colors.textMuted} />
-                  <Text style={styles.emptyStateText}>Nenhum quiz encontrado</Text>
+                  <Text style={styles.emptyStateText}>
+                    {showCompleted ? "Ainda não realizaste nenhum quiz" : "Nenhum quiz encontrado"}
+                  </Text>
                 </View>
               )}
             />
@@ -340,6 +385,7 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     paddingHorizontal: 16,
     paddingVertical: 10,
     gap: 8,
@@ -356,6 +402,16 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
     borderColor: appTheme.colors.primary,
   },
+  filterChipCompleted: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    borderColor: appTheme.colors.success + "60",
+  },
+  filterChipCompletedActive: {
+    backgroundColor: appTheme.colors.success,
+    borderColor: appTheme.colors.success,
+  },
   filterChipText: {
     fontFamily: "Source_Sans_3",
     fontSize: 13,
@@ -365,6 +421,21 @@ const styles = StyleSheet.create({
   filterChipTextActive: {
     color: "white",
     fontWeight: "700",
+  },
+  completedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: appTheme.colors.successLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  completedBadgeText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 11,
+    fontWeight: "700",
+    color: appTheme.colors.success,
   },
   listContent: {
     paddingHorizontal: 16,
