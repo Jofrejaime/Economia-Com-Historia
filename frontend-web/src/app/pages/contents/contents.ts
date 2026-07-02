@@ -9,6 +9,7 @@ import { AuthService } from '../../services/auth.service';
 
 type AccessCategory = 'all' | 'public' | 'jindungo' | 'restricted';
 interface AccessOption { id: AccessCategory; label: string; }
+interface SimpleOption { id: string; label: string; }
 
 @Component({
   selector: 'app-contents',
@@ -23,12 +24,14 @@ export class ContentsComponent implements OnInit, OnDestroy {
   selectedTheme: string | null = null;
   selectedLevel: string | null = null;
   selectedFormat: string | null = null;
+  selectedMediaType: string | null = null;
   selectedAccessCategory: AccessCategory = 'all';
 
   showAccessDropdown = false;
   showThemeDropdown = false;
   showLevelDropdown = false;
   showFormatDropdown = false;
+  showMediaTypeDropdown = false;
 
   displayedDocuments: Document[] = [];
   hasMore = false;
@@ -40,13 +43,27 @@ export class ContentsComponent implements OnInit, OnDestroy {
 
   isAuthenticated = false;
 
-  formats = [
-    { id: 'manuscript', label: 'Manuscrito' },
-    { id: 'article',    label: 'Artigo' },
-    { id: 'report',     label: 'Relatório' },
-    { id: 'thesis',     label: 'Tese' },
-    { id: 'archive',    label: 'Arquivo' },
-  ];
+  // Labels amigáveis para valores conhecidos; qualquer document_type/media_type
+  // que apareça nos dados mas não esteja aqui usa o próprio valor como label.
+  private documentTypeLabels: Record<string, string> = {
+    manuscript: 'Manuscrito',
+    article:    'Artigo',
+    report:     'Relatório',
+    thesis:     'Tese',
+    archive:    'Arquivo',
+  };
+
+  private mediaTypeLabels: Record<string, string> = {
+    text:  'Texto',
+    audio: 'Áudio',
+    video: 'Vídeo',
+    image: 'Imagem',
+  };
+
+  // Extraídos dinamicamente dos documentos carregados — nunca listas fixas,
+  // já que o backend não expõe um endpoint de metadados/enums dedicado.
+  formats: SimpleOption[] = [];
+  mediaTypes: SimpleOption[] = [];
 
   levels = [
     { id: 'intro',     label: 'Introdutório' },
@@ -65,6 +82,10 @@ export class ContentsComponent implements OnInit, OnDestroy {
   // guarda o category_id vindo da query param
   private preselectedCategoryId: string | null = null;
 
+  // Guarda o conjunto completo de documentos vindos do backend (sem filtros
+  // de formato/tipo aplicados), usado só para descobrir que formatos existem.
+  private allDocumentsForFacets: Document[] = [];
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -80,6 +101,7 @@ export class ContentsComponent implements OnInit, OnDestroy {
     this.preselectedCategoryId = this.route.snapshot.queryParamMap.get('category_id');
 
     await this.loadCategories();
+    await this.loadFacets();
     await this.loadDocuments();
   }
 
@@ -107,6 +129,40 @@ export class ContentsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Carrega uma amostra sem filtros para descobrir dinamicamente que
+   * document_type e media_type existem de facto nos dados — evita listas
+   * fixas no frontend que ficam dessincronizadas do backend.
+   */
+  private async loadFacets(): Promise<void> {
+    try {
+      this.allDocumentsForFacets = await this.documentService.getDocuments();
+const seenTypes = new Set<string>();
+this.formats = this.allDocumentsForFacets
+  .map(d => d.document_type)
+  .filter((t): t is string => {
+    if (!t || seenTypes.has(t)) return false;
+    seenTypes.add(t);
+    return true;
+  })
+  .map(t => ({ id: t, label: this.documentTypeLabels[t] ?? t }));
+
+const seenMedia = new Set<string>();
+this.mediaTypes = this.allDocumentsForFacets
+  .map(d => d.media_type)
+  .filter((t): t is string => {
+    if (!t || seenMedia.has(t)) return false;
+    seenMedia.add(t);
+    return true;
+  })
+  .map(t => ({ id: t, label: this.mediaTypeLabels[t] ?? t }));} catch {
+      this.formats = [];
+      this.mediaTypes = [];
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
   async loadDocuments(): Promise<void> {
     if (this.isLoading) return;
     this.isLoading = true;
@@ -118,6 +174,7 @@ export class ContentsComponent implements OnInit, OnDestroy {
       if (hasSearch) {
         const params: any = { q: this.searchQuery.trim() };
         if (this.selectedFormat) params.document_type = this.selectedFormat;
+        if (this.selectedMediaType) params.media_type = this.selectedMediaType;
         if (this.selectedTheme) {
           const cat = this.categories.find(c => c.name === this.selectedTheme);
           if (cat) params.category_id = cat.id;
@@ -126,8 +183,9 @@ export class ContentsComponent implements OnInit, OnDestroy {
       } else {
         const params: any = {};
         if (this.selectedAccessCategory !== 'all') params.access_level_id = this.selectedAccessCategory;
-        if (this.selectedFormat)  params.document_type  = this.selectedFormat;
-        if (this.selectedLevel)   params.academic_level = this.selectedLevel;
+        if (this.selectedFormat)    params.document_type  = this.selectedFormat;
+        if (this.selectedMediaType) params.media_type     = this.selectedMediaType;
+        if (this.selectedLevel)     params.academic_level = this.selectedLevel;
         if (this.selectedTheme) {
           const cat = this.categories.find(c => c.name === this.selectedTheme);
           if (cat) params.category_id = cat.id;
@@ -187,7 +245,7 @@ export class ContentsComponent implements OnInit, OnDestroy {
   toggleLevelDropdown(): void { this.showLevelDropdown = !this.showLevelDropdown; }
 
   getSelectedFormatLabel(): string {
-    return this.formats.find(f => f.id === this.selectedFormat)?.label ?? 'Todos os Formatos';
+    return this.formats.find(f => f.id === this.selectedFormat)?.label ?? 'Todos os Tipos';
   }
 
   selectFormat(format: string): void {
@@ -199,10 +257,24 @@ export class ContentsComponent implements OnInit, OnDestroy {
   toggleFormatDropdown(): void { this.showFormatDropdown = !this.showFormatDropdown; }
   isFormatSelected(format: string): boolean { return this.selectedFormat === format; }
 
+  getSelectedMediaTypeLabel(): string {
+    return this.mediaTypes.find(m => m.id === this.selectedMediaType)?.label ?? 'Todos os Formatos';
+  }
+
+  selectMediaType(mediaType: string): void {
+    this.selectedMediaType = this.selectedMediaType === mediaType ? null : mediaType;
+    this.showMediaTypeDropdown = false;
+    this.loadDocuments();
+  }
+
+  toggleMediaTypeDropdown(): void { this.showMediaTypeDropdown = !this.showMediaTypeDropdown; }
+  isMediaTypeSelected(mediaType: string): boolean { return this.selectedMediaType === mediaType; }
+
   clearFilters(): void {
     this.selectedTheme = null;
     this.selectedLevel = null;
     this.selectedFormat = null;
+    this.selectedMediaType = null;
     this.selectedAccessCategory = 'all';
     this.searchQuery = '';
     this.loadDocuments();
@@ -225,12 +297,20 @@ export class ContentsComponent implements OnInit, OnDestroy {
   }
 
   getFormatLabel(format: string): string {
-    return this.formats.find(f => f.id === format)?.label ?? format;
+    return this.documentTypeLabels[format] ?? format;
+  }
+
+  getMediaTypeLabel(mediaType: string | null): string {
+    if (!mediaType) return '';
+    return this.mediaTypeLabels[mediaType] ?? mediaType;
+  }
+
+  hasDocumentImage(doc: Document): boolean {
+    return !!doc.cover_image_url?.trim();
   }
 
   getDocumentImage(doc: Document): string {
-    const url = doc.cover_image_url?.trim();
-    return url ? url : 'assets/images/document-placeholder.jpg';
+    return doc.cover_image_url ?? '';
   }
 
   navigateToDocument(id: string): void {
@@ -283,6 +363,7 @@ export class ContentsComponent implements OnInit, OnDestroy {
       this.showThemeDropdown = false;
       this.showLevelDropdown = false;
       this.showFormatDropdown = false;
+      this.showMediaTypeDropdown = false;
     }
   }
 }

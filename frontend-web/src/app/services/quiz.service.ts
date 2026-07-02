@@ -267,4 +267,14 @@ export class QuizService {
     );
     return res.data;
   }
+
+  async getProvincialLeaderboard(province: string): Promise<LeaderboardEntry[]> {
+  const res = await firstValueFrom(
+    this.http.get<{ data: LeaderboardEntry[] }>(
+      `${this.base}/leaderboard/provincial?province=${encodeURIComponent(province)}`,
+      { headers: this.headers }
+    )
+  );
+  return res.data;
+}
 }

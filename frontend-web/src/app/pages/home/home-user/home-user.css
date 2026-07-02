@@ -67,12 +67,16 @@ p, span, div, button, input, textarea, a {
    HERO SECTION - MELHORADA
    ============================================ */
 
+/* ============================================
+   HERO SECTION - MELHORADA
+   ============================================ */
+
 .contents-hero {
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 64px;
   position: relative;
-  height: 500px;
+  min-height: 420px;
   display: flex;
   align-items: center;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
@@ -95,8 +99,10 @@ p, span, div, button, input, textarea, a {
 
 .contents-hero-content {
   position: relative;
-  padding: 0 64px;
+  padding: 56px 64px;
   max-width: 768px;
+  width: 100%;
+  box-sizing: border-box;
   z-index: 1;
 }
 
@@ -119,10 +125,10 @@ p, span, div, button, input, textarea, a {
 
 .contents-hero-title {
   color: #FFFFFF;
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 700;
   margin: 0 0 20px;
-  line-height: 1.15;
+  line-height: 1.2;
   font-family: 'IBM Plex Sans', sans-serif;
   letter-spacing: -0.02em;
   text-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
@@ -130,7 +136,7 @@ p, span, div, button, input, textarea, a {
 
 .contents-hero-description {
   color: rgba(255, 255, 255, 0.92);
-  font-size: 20px;
+  font-size: 18px;
   margin: 0 0 32px;
   line-height: 1.6;
   font-family: 'Source Sans 3', sans-serif;
@@ -180,6 +186,25 @@ p, span, div, button, input, textarea, a {
   border-radius: 9999px;
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Responsivo — reduz padding e fonte em ecrãs menores para não repetir o mesmo problema */
+@media (max-width: 768px) {
+  .contents-hero {
+    min-height: auto;
+  }
+
+  .contents-hero-content {
+    padding: 36px 28px;
+  }
+
+  .contents-hero-title {
+    font-size: 32px;
+  }
+
+  .contents-hero-description {
+    font-size: 16px;
+  }
 }
 
 /* ============================================
@@ -315,6 +340,15 @@ p, span, div, button, input, textarea, a {
   height: 100%;
   object-fit: cover;
   transition: transform 0.5s ease;
+}
+.contents-hero-placeholder,
+.contents-doc-item-placeholder {
+  background: linear-gradient(135deg, #E5E7EB, #F5F5F5);
+}
+
+.contents-doc-item-placeholder {
+  width: 100%;
+  height: 100%;
 }
 
 .contents-doc-item:hover .contents-doc-item-image img {

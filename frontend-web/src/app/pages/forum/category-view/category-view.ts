@@ -23,6 +23,7 @@ interface CategoryWithStatus extends CommunityCategory {
 export class CategoryViewComponent implements OnInit {
   categories: CategoryWithStatus[] = [];
   error: string | null = null;
+  isAuthenticated = false;
 
   constructor(
     private router: Router,
@@ -33,6 +34,7 @@ export class CategoryViewComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.isAuthenticated = await this.authService.ensureSession();
     this.loadCategories();
   }
 
@@ -49,6 +51,11 @@ export class CategoryViewComponent implements OnInit {
   }
 
   async handleRequestAccess(categoryId: string, accessLevelId: string): Promise<void> {
+    if (!this.isAuthenticated) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
     try {
       const token = this.authService.getToken();
       const headers = token ? this.authService.getAuthHeaders(token) : {};
