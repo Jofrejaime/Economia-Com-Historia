@@ -17,6 +17,7 @@ class SettingsResource extends JsonResource
             'group' => $this->group,
             'description' => $this->description,
             'is_public' => (bool) $this->is_public,
+            'updated_by' => $this->updated_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

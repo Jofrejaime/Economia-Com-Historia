@@ -505,16 +505,17 @@ class GamificationService
     }
 
     /**
-     * Recalcula e atualiza os níveis de todos os utilizadores na base de dados.
+     * Recalcula e atualiza os níveis de todos os utilizadores na base de dados (de forma segura para a memória).
      */
     public function recalculateAllUserLevels(): void
     {
-        $userLevels = DB::table('user_levels')->get();
-        foreach ($userLevels as $ul) {
-            $user = User::find($ul->user_id);
-            if ($user !== null) {
-                $this->updateLevel($user, (int) $ul->total_points);
+        DB::table('user_levels')->orderBy('user_id')->chunk(500, function ($userLevels) {
+            foreach ($userLevels as $ul) {
+                $user = User::find($ul->user_id);
+                if ($user !== null) {
+                    $this->updateLevel($user, (int) $ul->total_points);
+                }
             }
-        }
+        });
     }
 }

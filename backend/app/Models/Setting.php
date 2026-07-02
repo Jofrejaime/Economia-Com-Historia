@@ -26,11 +26,17 @@ class Setting extends Model
         'group',
         'description',
         'is_public',
+        'updated_by',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
     ];
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
 
     /**
      * Get setting value cast dynamically according to its type.

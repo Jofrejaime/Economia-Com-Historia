@@ -253,4 +253,49 @@ class Sprint182Test extends TestCase
         $response = $this->auth($admin)->deleteJson('/api/admin/access-levels/jindungo');
         $response->assertStatus(400);
     }
+
+    public function test_settings_validation_invalid_boolean()
+    {
+        $admin = $this->createAdmin();
+        $setting = Setting::factory()->create(['key' => 'bool_key', 'value' => 'true', 'type' => 'boolean']);
+
+        $response = $this->auth($admin)->patchJson("/api/admin/settings/{$setting->key}", [
+            'value' => 'banana'
+        ]);
+
+        $response->assertStatus(422)
+                 ->assertJsonFragment(['message' => 'Setting [bool_key] requires a boolean value.']);
+    }
+
+    public function test_settings_validation_invalid_email()
+    {
+        $admin = $this->createAdmin();
+        $setting = Setting::factory()->create(['key' => 'support_email', 'value' => 'suporte@economiacomhistoria.ao', 'type' => 'string', 'group' => 'general']);
+
+        $response = $this->auth($admin)->patchJson("/api/admin/settings/{$setting->key}", [
+            'value' => 'not-an-email'
+        ]);
+
+        $response->assertStatus(422)
+                 ->assertJsonFragment(['message' => 'Setting [support_email] must be a valid email address.']);
+    }
+
+    public function test_access_level_prevent_delete_last()
+    {
+        $admin = $this->createAdmin();
+
+        // Delete referencing records first to avoid foreign key failures
+        \DB::table('user_access_grants')->delete();
+        \DB::table('user_access_requests')->delete();
+        \DB::table('documents')->delete();
+        \DB::table('quizzes')->delete();
+        \DB::table('community_categories')->delete();
+
+        // Delete all except one
+        AccessLevel::where('id', '!=', 'public')->delete();
+
+        $response = $this->auth($admin)->deleteJson('/api/admin/access-levels/public');
+        $response->assertStatus(400)
+                 ->assertJsonFragment(['message' => 'Cannot delete the only remaining Access Level.']);
+    }
 }

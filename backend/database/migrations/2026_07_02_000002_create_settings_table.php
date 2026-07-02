@@ -16,7 +16,10 @@ return new class extends Migration
             $table->string('group', 50)->default('general');
             $table->text('description')->nullable();
             $table->boolean('is_public')->default(false);
+            $table->uuid('updated_by')->nullable();
             $table->timestamps();
+
+            $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
         });
     }
 

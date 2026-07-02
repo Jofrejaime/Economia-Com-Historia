@@ -4,17 +4,22 @@ namespace App\Services;
 
 use App\Models\LevelDefinition;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class LevelDefinitionService
 {
+    private const CACHE_KEY_ALL = 'level_definitions:all';
+
     public function __construct(
         private readonly GamificationService $gamificationService
     ) {}
 
     public function getAll(): Collection
     {
-        return LevelDefinition::orderBy('level')->get();
+        return Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
+            return LevelDefinition::orderBy('level')->get();
+        });
     }
 
     public function getByLevel(int $level): LevelDefinition
@@ -28,6 +33,7 @@ class LevelDefinitionService
 
         $levelDefinition = DB::transaction(function () use ($data) {
             $level = LevelDefinition::create($data);
+            Cache::forget(self::CACHE_KEY_ALL);
             $this->gamificationService->recalculateAllUserLevels();
             return $level;
         });
@@ -45,6 +51,7 @@ class LevelDefinitionService
 
         DB::transaction(function () use ($levelDefinition, $data) {
             $levelDefinition->update($data);
+            Cache::forget(self::CACHE_KEY_ALL);
             $this->gamificationService->recalculateAllUserLevels();
         });
 
@@ -55,12 +62,10 @@ class LevelDefinitionService
     {
         $levelDefinition = $this->getByLevel($level);
 
-        // Prevent deletion of the last remaining level
         if (LevelDefinition::count() <= 1) {
             throw new \RuntimeException("Cannot delete the only remaining level definition.");
         }
 
-        // Prevent deletion if it leaves the system without a level with min_points = 0
         if ((int) $levelDefinition->min_points === 0) {
             $hasAnotherZeroPointsLevel = LevelDefinition::where('level', '!=', $level)
                 ->where('min_points', 0)
@@ -75,6 +80,7 @@ class LevelDefinitionService
             DB::table('user_levels')->where('current_level', $level)->update(['current_level' => $fallbackLevel]);
 
             $levelDefinition->delete();
+            Cache::forget(self::CACHE_KEY_ALL);
             $this->gamificationService->recalculateAllUserLevels();
         });
     }

@@ -4,13 +4,18 @@ namespace App\Services;
 
 use App\Models\AccessLevel;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class AccessLevelService
 {
+    private const CACHE_KEY_ALL = 'access_levels:all';
+
     public function getAll(): Collection
     {
-        return AccessLevel::orderBy('id')->get();
+        return Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
+            return AccessLevel::orderBy('id')->get();
+        });
     }
 
     public function getById(string $id): AccessLevel
@@ -20,19 +25,31 @@ class AccessLevelService
 
     public function create(array $data): AccessLevel
     {
-        return AccessLevel::create($data);
+        return DB::transaction(function () use ($data) {
+            $level = AccessLevel::create($data);
+            Cache::forget(self::CACHE_KEY_ALL);
+            return $level;
+        });
     }
 
     public function update(string $id, array $data): AccessLevel
     {
         $accessLevel = $this->getById($id);
-        $accessLevel->update($data);
-        return $accessLevel->fresh();
+        
+        return DB::transaction(function () use ($accessLevel, $data) {
+            $accessLevel->update($data);
+            Cache::forget(self::CACHE_KEY_ALL);
+            return $accessLevel->fresh();
+        });
     }
 
     public function delete(string $id): void
     {
         $level = $this->getById($id);
+
+        if (AccessLevel::count() <= 1) {
+            throw new \RuntimeException("Cannot delete the only remaining Access Level.");
+        }
 
         if (DB::table('user_access_grants')->where('access_level_id', $id)->exists()) {
             throw new \RuntimeException("Cannot delete Access Level [{$id}] because it is currently granted to users.");
@@ -54,6 +71,9 @@ class AccessLevelService
             throw new \RuntimeException("Cannot delete Access Level [{$id}] because it is assigned to community categories.");
         }
 
-        $level->delete();
+        DB::transaction(function () use ($level) {
+            $level->delete();
+            Cache::forget(self::CACHE_KEY_ALL);
+        });
     }
 }

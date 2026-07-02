@@ -117,7 +117,7 @@ class SettingsController extends Controller
         ]);
 
         try {
-            $setting = $this->settingsService->update($key, $request->input('value'));
+            $setting = $this->settingsService->update($key, $request->input('value'), $request->user()?->id);
             return response()->json([
                 'message' => 'Setting updated successfully.',
                 'data' => new SettingsResource($setting),
