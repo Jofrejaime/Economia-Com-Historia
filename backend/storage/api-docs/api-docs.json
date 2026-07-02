@@ -3359,6 +3359,220 @@
                 ]
             }
         },
+        "/admin/document-categories": {
+            "get": {
+                "tags": [
+                    "Document Categories"
+                ],
+                "summary": "Listar categorias de documentos (Admin)",
+                "operationId": "listAdminDocumentCategories",
+                "responses": {
+                    "200": {
+                        "description": "Categorias obtidas com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Document Categories"
+                ],
+                "summary": "Criar nova categoria (Admin)",
+                "operationId": "storeAdminDocumentCategory",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "color_bg": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "color_text": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "icon": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "sort_order": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "requires_subscription": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Categoria criada com sucesso"
+                    },
+                    "422": {
+                        "description": "Erros de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/document-categories/{id}": {
+            "get": {
+                "tags": [
+                    "Document Categories"
+                ],
+                "summary": "Visualizar detalhes de uma categoria (Admin)",
+                "operationId": "showAdminDocumentCategory",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da categoria"
+                    },
+                    "404": {
+                        "description": "Categoria não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Document Categories"
+                ],
+                "summary": "Eliminar categoria (Admin)",
+                "operationId": "destroyAdminDocumentCategory",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Categoria eliminada com sucesso"
+                    },
+                    "409": {
+                        "description": "Categoria associada a documentos"
+                    },
+                    "404": {
+                        "description": "Categoria não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Document Categories"
+                ],
+                "summary": "Atualizar categoria (Admin)",
+                "operationId": "updateAdminDocumentCategory",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categoria atualizada com sucesso"
+                    },
+                    "404": {
+                        "description": "Categoria não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/document-categories": {
             "get": {
                 "tags": [
@@ -3865,136 +4079,6 @@
                     },
                     "404": {
                         "description": "Documento não encontrado ou não publicado"
-                    }
-                },
-                "security": [
-                    {
-                        "bearer_token": [],
-                        "session_token": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Documents"
-                ],
-                "summary": "Eliminar documento (Admin/Professor)",
-                "description": "Elimina permanentemente um documento.",
-                "operationId": "destroyDocument",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Documento eliminado com sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Não autenticado"
-                    },
-                    "403": {
-                        "description": "Acesso proibido"
-                    },
-                    "404": {
-                        "description": "Documento não encontrado"
-                    }
-                },
-                "security": [
-                    {
-                        "bearer_token": [],
-                        "session_token": []
-                    }
-                ]
-            },
-            "patch": {
-                "tags": [
-                    "Documents"
-                ],
-                "summary": "Atualizar documento (Admin/Professor)",
-                "description": "Atualiza um documento existente.",
-                "operationId": "updateDocument",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "maxLength": 500
-                                    },
-                                    "status": {
-                                        "type": "string",
-                                        "enum": [
-                                            "draft",
-                                            "published",
-                                            "archived"
-                                        ]
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Documento atualizado com sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Não autenticado"
-                    },
-                    "403": {
-                        "description": "Acesso proibido"
-                    },
-                    "404": {
-                        "description": "Documento não encontrado"
-                    },
-                    "422": {
-                        "description": "Erros de validação"
                     }
                 },
                 "security": [
@@ -5246,6 +5330,175 @@
                     },
                     "422": {
                         "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/media/uploads": {
+            "post": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Upload genérico de ficheiro (admin/professor)",
+                "description": "Pipeline único de uploads. Valida MIME real, extensão, dupla extensão e tamanho. Gera thumbnail automático para imagens. Devolve o objeto de media padronizado com URLs públicas.",
+                "operationId": "uploadMedia",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "description": "Imagem (jpg, png, webp, svg, gif — máx 4MB) ou documento (pdf, docx, ppt, pptx, xlsx, csv, txt, zip, rar, odt — máx 50MB)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "collection": {
+                                        "type": "string",
+                                        "example": "content",
+                                        "enum": [
+                                            "file",
+                                            "cover",
+                                            "gallery",
+                                            "icon",
+                                            "content"
+                                        ]
+                                    },
+                                    "model_type": {
+                                        "type": "string",
+                                        "example": "document"
+                                    },
+                                    "model_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "directory": {
+                                        "description": "Diretório lógico (opcional; por omissão derivado do model_type/collection)",
+                                        "type": "string",
+                                        "example": "content"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ficheiro carregado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "File uploaded."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "url": {
+                                                    "type": "string",
+                                                    "format": "url"
+                                                },
+                                                "thumbnail": {
+                                                    "type": "string",
+                                                    "format": "url",
+                                                    "nullable": true
+                                                },
+                                                "preview": {
+                                                    "type": "string",
+                                                    "format": "url",
+                                                    "nullable": true
+                                                },
+                                                "filename": {
+                                                    "type": "string"
+                                                },
+                                                "mime_type": {
+                                                    "type": "string"
+                                                },
+                                                "extension": {
+                                                    "type": "string"
+                                                },
+                                                "size": {
+                                                    "type": "integer"
+                                                },
+                                                "width": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "height": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sem permissão"
+                    },
+                    "422": {
+                        "description": "Ficheiro inválido (extensão, MIME, tamanho, dupla extensão)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/media/{id}": {
+            "delete": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Eliminar ficheiro (admin/professor)",
+                "description": "Remove o ficheiro, thumbnail, preview e o registo. Professores só podem remover ficheiros que carregaram; admins removem qualquer um.",
+                "operationId": "deleteMedia",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ficheiro eliminado"
+                    },
+                    "403": {
+                        "description": "Sem permissão sobre este ficheiro"
+                    },
+                    "404": {
+                        "description": "Ficheiro não encontrado"
                     }
                 },
                 "security": [
@@ -7123,6 +7376,578 @@
                 ]
             }
         },
+        "/admin/tags": {
+            "get": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Listar e pesquisar tags (Admin)",
+                "operationId": "listAdminTags",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags obtidas com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Criar nova tag (Admin)",
+                "operationId": "storeAdminTag",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tag criada com sucesso"
+                    },
+                    "422": {
+                        "description": "Erros de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/tags/{id}": {
+            "get": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Visualizar detalhes de uma tag (Admin)",
+                "operationId": "showAdminTag",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da tag"
+                    },
+                    "404": {
+                        "description": "Tag não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Eliminar tag (Admin)",
+                "operationId": "destroyAdminTag",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "confirm",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag eliminada com sucesso"
+                    },
+                    "409": {
+                        "description": "Tag em uso; necessita confirmação"
+                    },
+                    "404": {
+                        "description": "Tag não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Atualizar tag (Admin)",
+                "operationId": "updateAdminTag",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tag atualizada com sucesso"
+                    },
+                    "404": {
+                        "description": "Tag não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Listar utilizadores (Admin)",
+                "description": "Lista utilizadores com paginação, filtros e busca.",
+                "operationId": "adminListUsers",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "verified",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Criar novo utilizador (Admin)",
+                "operationId": "adminStoreUser",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password",
+                                    "role",
+                                    "display_name"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@domain.ao"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123",
+                                        "minLength": 8
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "example": "estudante",
+                                        "enum": [
+                                            "admin",
+                                            "professor",
+                                            "investigador",
+                                            "estudante"
+                                        ]
+                                    },
+                                    "display_name": {
+                                        "type": "string",
+                                        "example": "Manuel Costa"
+                                    },
+                                    "full_name": {
+                                        "type": "string",
+                                        "example": "Manuel António Costa",
+                                        "nullable": true
+                                    },
+                                    "institution": {
+                                        "type": "string",
+                                        "example": "ISPTEC",
+                                        "nullable": true
+                                    },
+                                    "province": {
+                                        "type": "string",
+                                        "example": "Luanda",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Criado"
+                    },
+                    "422": {
+                        "description": "Dados inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/users/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Obter detalhe de um utilizador (Admin)",
+                "operationId": "adminShowUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sucesso"
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Eliminar utilizador (Admin)",
+                "operationId": "adminDeleteUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eliminado"
+                    },
+                    "422": {
+                        "description": "Erro de negócio (ex: auto-eliminação)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Atualizar utilizador (Admin)",
+                "operationId": "adminUpdateUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "role",
+                                    "display_name"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@domain.ao"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "example": "professor",
+                                        "enum": [
+                                            "admin",
+                                            "professor",
+                                            "investigador",
+                                            "estudante"
+                                        ]
+                                    },
+                                    "display_name": {
+                                        "type": "string",
+                                        "example": "Manuel Costa"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "email_verified": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Atualizado"
+                    },
+                    "422": {
+                        "description": "Dados inválidos ou erro de negócio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/users/{id}/profile": {
+            "get": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Obter agregado de perfil administrativo (Admin)",
+                "operationId": "adminGetUserProfile",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/users/{id}/sessions": {
+            "get": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Listar sessões do utilizador (Admin)",
+                "operationId": "adminGetUserSessions",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/users/search": {
             "get": {
                 "tags": [
@@ -7417,6 +8242,10 @@
             "description": "Operações de administração de Quizzes"
         },
         {
+            "name": "Admin Users",
+            "description": "Operações administrativas de utilizadores"
+        },
+        {
             "name": "AccessLevels",
             "description": "AccessLevels"
         },
@@ -7425,12 +8254,24 @@
             "description": "Admin - Subscriptions"
         },
         {
+            "name": "Document Categories",
+            "description": "Document Categories"
+        },
+        {
             "name": "LevelDefinitions",
             "description": "LevelDefinitions"
         },
         {
+            "name": "Media",
+            "description": "Media"
+        },
+        {
             "name": "Settings",
             "description": "Settings"
+        },
+        {
+            "name": "Tags",
+            "description": "Tags"
         },
         {
             "name": "Users",

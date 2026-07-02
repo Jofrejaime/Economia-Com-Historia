@@ -17,6 +17,8 @@ use App\Services\QuizDocumentService;
 use App\Support\PointTransactionReason;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\DocumentSearchService;
+use App\Services\DocumentAdminService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -27,6 +29,9 @@ class DocumentController extends Controller
         private readonly DocumentSubscriptionService $subscriptionService,
         private readonly GamificationService         $gamification,
         private readonly QuizDocumentService         $quizDocuments,
+        private readonly DocumentSearchService       $documentSearch,
+        private readonly DocumentAdminService        $documentAdmin,
+        private readonly \App\Services\MediaService  $mediaService,
     ) {}
 
     /**
@@ -147,102 +152,21 @@ class DocumentController extends Controller
      * )
      */
     public function index(Request $request): JsonResponse
-{
-    $user = $request->user();
+    {
+        $paginator = $this->documentSearch->search($request->all(), $request->user());
 
-    $query = DB::table('documents as d')
-        ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
-        ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
-        ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
-        ->select(
-            'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
-            'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
-            'd.publication_date', 'd.period_start', 'd.period_end',
-            'd.summary', 'd.content', 'd.cover_image_url',
-            'd.media_type', 'd.media_url', 'd.pdf_url',
-            'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
-            'd.views_count', 'd.likes_count', 'd.downloads_count',
-            'dc.name as category_name',
-            'dc.slug as category_slug',
-            'dc.color_bg as category_color_bg',
-            'dc.icon as category_icon',
-            'al.name as access_level_name',
-            'al.icon as access_level_icon',
-            'al.color_bg as access_level_color_bg',
-            'al.color_text as access_level_color_text',
-            'up.display_name as author_display_name',
-            'up.avatar_url as author_avatar_url'
-        )
-        ->addSelect([
-            'topics_count' => DB::table('discussion_topics')
-                ->whereColumn('document_id', 'd.id')
-                ->selectRaw('count(*)')
+        return response()->json([
+            'data' => collect($paginator->items())
+                ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
+                ->all(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page'    => $paginator->lastPage(),
+                'per_page'     => $paginator->perPage(),
+                'total'        => $paginator->total(),
+            ],
         ]);
-
-    if ($request->filled('q')) {
-        $term = $request->string('q')->toString();
-        $query->where(function ($builder) use ($term): void {
-            $builder->where('d.title', 'like', "%{$term}%")
-                ->orWhere('d.summary', 'like', "%{$term}%")
-                ->orWhere('d.author', 'like', "%{$term}%");
-        });
     }
-
-    if ($request->filled('category_id')) {
-        $query->where('d.category_id', $request->input('category_id'));
-    }
-
-    if ($request->filled('document_type')) {
-        $query->where('d.document_type', $request->input('document_type'));
-    }
-
-    if ($request->filled('academic_level')) {
-        $query->where('d.academic_level', $request->input('academic_level'));
-    }
-
-    if ($request->filled('access_level_id')) {
-        $query->where('d.access_level_id', $request->input('access_level_id'));
-    }
-
-    if ($request->filled('media_type')) {
-        $query->where('d.media_type', $request->input('media_type'));
-    }
-
-    if ($request->boolean('pinned')) {
-        $query->where('d.is_pinned', true);
-    }
-
-    if ($request->filled('status')) {
-        $query->where('d.status', $request->input('status'));
-    } elseif ($user === null || $user->role !== 'admin') {
-        $query->where('d.status', DocumentStatus::PUBLISHED->value);
-    }
-
-    $this->documentAccess->applyListingFilter($query, $user);
-
-    $query->orderByDesc('d.is_pinned');
-
-    if ($request->input('sort') === 'popular') {
-        $query->orderByDesc('d.likes_count')->orderByDesc('d.views_count');
-    } else {
-        $query->orderByDesc('d.created_at');
-    }
-
-    $perPage = min((int) $request->input('per_page', 15), 50);
-    $paginator = $query->paginate($perPage);
-
-    return response()->json([
-        'data' => collect($paginator->items())
-            ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
-            ->all(),
-        'meta' => [
-            'current_page' => $paginator->currentPage(),
-            'last_page'    => $paginator->lastPage(),
-            'per_page'     => $paginator->perPage(),
-            'total'        => $paginator->total(),
-        ],
-    ]);
-}
 
     /**
      * @OA\Get(
@@ -266,63 +190,15 @@ class DocumentController extends Controller
      * )
      */
     public function search(Request $request): JsonResponse
-{
-    $user = $request->user();
-    $term = $request->string('q')->toString();
+    {
+        $paginator = $this->documentSearch->search($request->all(), $request->user());
 
-    $query = DB::table('documents as d')
-        ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
-        ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
-        ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
-        ->select(
-            'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
-            'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
-            'd.publication_date', 'd.period_start', 'd.period_end',
-            'd.summary', 'd.content', 'd.cover_image_url',
-            'd.media_type', 'd.media_url', 'd.pdf_url',
-            'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
-            'd.views_count', 'd.likes_count', 'd.downloads_count',
-            'dc.name as category_name',
-            'dc.slug as category_slug',
-            'al.name as access_level_name',
-            'up.display_name as author_display_name'
-        )
-        ->addSelect([
-            'topics_count' => DB::table('discussion_topics')
-                ->whereColumn('document_id', 'd.id')
-                ->selectRaw('count(*)')
+        return response()->json([
+            'data' => collect($paginator->items())
+                ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
+                ->all(),
         ]);
-
-    if ($term !== '') {
-        $query->where(function ($builder) use ($term): void {
-            $builder->where('d.title', 'like', "%{$term}%")
-                ->orWhere('d.summary', 'like', "%{$term}%")
-                ->orWhere('d.author', 'like', "%{$term}%");
-        });
     }
-
-    if ($request->filled('category_id')) {
-        $query->where('d.category_id', $request->input('category_id'));
-    }
-
-    if ($request->filled('document_type')) {
-        $query->where('d.document_type', $request->input('document_type'));
-    }
-
-    if ($user === null || $user->role !== 'admin') {
-        $query->where('d.status', DocumentStatus::PUBLISHED->value);
-    }
-
-    $this->documentAccess->applyListingFilter($query, $user);
-
-    $results = $query->orderByDesc('d.created_at')->limit(50)->get();
-
-    return response()->json([
-        'data' => collect($results)
-            ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
-            ->all(),
-    ]);
-}
 
     /**
      * @OA\Get(
@@ -442,6 +318,7 @@ class DocumentController extends Controller
 
     return response()->json([
         'data'            => (new DocumentResource($document))->toArray($request),
+        'media'           => $this->mediaService->payloadsFor('document', $id),
         'tags'            => $tags,
         'is_liked'        => $isLiked,
         'is_favorited'    => $isFavorited,
@@ -493,146 +370,77 @@ class DocumentController extends Controller
      */
     public function store(StoreDocumentRequest $request): JsonResponse
     {
-        $validated = $request->validated();
+        [$data, $files] = $this->splitMediaFiles($request->validated());
 
-        $tags = $validated['tags'] ?? [];
-        unset($validated['tags']);
+        $document = $this->documentAdmin->create($data, $request->user(), $files);
 
-        $id = (string) Str::uuid();
-
-        DB::transaction(function () use ($validated, $id, $request, $tags): void {
-            DB::table('documents')->insert(array_merge($validated, [
-                'id'              => $id,
-                'slug'            => Str::slug($validated['title']).'-'.Str::lower(Str::random(6)),
-                'created_by'      => $request->user()->id,
-                'created_at'      => now(),
-                'updated_at'      => now(),
-                'views_count'     => 0,
-                'likes_count'     => 0,
-                'downloads_count' => 0,
-                'status'          => DocumentStatus::DRAFT->value,
-            ]));
-
-            foreach ($tags as $tagName) {
-                $slug = Str::slug($tagName);
-                $tag  = DB::table('tags')->where('slug', $slug)->first();
-
-                if ($tag === null) {
-                    $tagId = (string) Str::uuid();
-                    DB::table('tags')->insert([
-                        'id'         => $tagId,
-                        'name'       => $tagName,
-                        'slug'       => $slug,
-                        'created_at' => now(),
-                    ]);
-                } else {
-                    $tagId = $tag->id;
-                }
-
-                DB::table('document_tags')->insert([
-                    'document_id' => $id,
-                    'tag_id'      => $tagId,
-                ]);
-            }
-        });
-
-        return response()->json(['message' => 'Document created.', 'id' => $id], 201);
+        return response()->json([
+            'message' => 'Document created.',
+            'id'      => $document->id,
+            'data'    => (new DocumentResource($document))->toArray($request),
+            'media'   => $this->mediaService->payloadsFor('document', $document->id),
+        ], 201);
     }
 
-    /**
-     * @OA\Patch(
-     *      path="/documents/{id}",
-     *      operationId="updateDocument",
-     *      tags={"Documents"},
-     *      summary="Atualizar documento (Admin/Professor)",
-     *      description="Atualiza um documento existente.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
-     *      @OA\RequestBody(
-     *          required=true,
-     *          @OA\JsonContent(
-     *              @OA\Property(property="title", type="string", maxLength=500),
-     *              @OA\Property(property="status", type="string", enum={"draft", "published", "archived"})
-     *          )
-     *      ),
-     *      @OA\Response(response=200, description="Documento atualizado com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string"),
-     *              @OA\Property(property="data", type="object")
-     *          )
-     *      ),
-     *      @OA\Response(response=401, description="Não autenticado"),
-     *      @OA\Response(response=403, description="Acesso proibido"),
-     *      @OA\Response(response=404, description="Documento não encontrado"),
-     *      @OA\Response(response=422, description="Erros de validação")
-     * )
-     */
     public function update(string $id, UpdateDocumentRequest $request): JsonResponse
     {
-        $document = Document::find($id);
+        [$data, $files] = $this->splitMediaFiles($request->validated());
 
-        if ($document === null) {
-            return response()->json(['message' => 'Document not found.'], 404);
-        }
-
-        $validated = $request->validated();
-
-        if (empty($validated)) {
-            return response()->json(['message' => 'No fields to update.'], 422);
-        }
-
-        $validated['updated_at'] = now();
-
-        if (isset($validated['title'])) {
-            $validated['slug'] = Str::slug($validated['title']).'-'.Str::lower(Str::random(6));
-        }
-
-        if (isset($validated['status']) && $validated['status'] === DocumentStatus::PUBLISHED->value && $document->published_at === null) {
-            $validated['published_at'] = now();
-            $validated['reviewed_by']  = $request->user()->id;
-        }
-
-        $document->fill($validated)->save();
-
-        $document->load(['category', 'accessLevel', 'createdBy.profile']);
+        $document = $this->documentAdmin->update($id, $data, $request->user(), $files);
 
         return response()->json([
             'message' => 'Document updated.',
             'data'    => (new DocumentResource($document))->toArray($request),
+            'media'   => $this->mediaService->payloadsFor('document', $id),
         ]);
     }
 
     /**
-     * @OA\Delete(
-     *      path="/documents/{id}",
-     *      operationId="destroyDocument",
-     *      tags={"Documents"},
-     *      summary="Eliminar documento (Admin/Professor)",
-     *      description="Elimina permanentemente um documento.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
-     *      @OA\Response(response=200, description="Documento eliminado com sucesso",
-     *          @OA\JsonContent(@OA\Property(property="message", type="string"))
-     *      ),
-     *      @OA\Response(response=401, description="Não autenticado"),
-     *      @OA\Response(response=403, description="Acesso proibido"),
-     *      @OA\Response(response=404, description="Documento não encontrado")
-     * )
+     * Separa os UploadedFiles dos campos escalares — os ficheiros nunca
+     * entram no insert/update da tabela documents; seguem sempre pelo
+     * MediaService (Sprint 18.4).
+     *
+     * @return array{0: array, 1: array}
      */
-    public function destroy(string $id): JsonResponse
+    private function splitMediaFiles(array $validated): array
     {
-        $document = Document::find($id);
+        $files = array_filter([
+            'file'        => $validated['file'] ?? null,
+            'cover_image' => $validated['cover_image'] ?? null,
+            'gallery'     => $validated['gallery'] ?? null,
+        ]);
 
-        if ($document === null) {
-            return response()->json(['message' => 'Document not found.'], 404);
-        }
+        unset($validated['file'], $validated['cover_image'], $validated['gallery']);
 
-        $document->delete();
+        return [$validated, $files];
+    }
+
+    public function destroy(string $id, Request $request): JsonResponse
+    {
+        $this->documentAdmin->delete($id, $request->user());
 
         return response()->json(['message' => 'Document deleted.']);
     }
 
-    /**
+    public function publish(string $id, Request $request): JsonResponse
+    {
+        $document = $this->documentAdmin->publish($id, $request->user());
+
+        return response()->json([
+            'message' => 'Document published.',
+            'data' => (new DocumentResource($document))->toArray($request)
+        ]);
+    }
+
+    public function unpublish(string $id, Request $request): JsonResponse
+    {
+        $document = $this->documentAdmin->unpublish($id, $request->user());
+
+        return response()->json([
+            'message' => 'Document unpublished.',
+            'data' => (new DocumentResource($document))->toArray($request)
+        ]);
+    }    /**
      * @OA\Post(
      *      path="/documents/{id}/like",
      *      operationId="likeDocument",
@@ -950,16 +758,9 @@ class DocumentController extends Controller
      *      @OA\Response(response=403, description="Apenas administradores")
      * )
      */
-    public function pin(string $id): JsonResponse
+    public function pin(string $id, Request $request): JsonResponse
     {
-        $document = Document::find($id);
-
-        if ($document === null) {
-            return response()->json(['message' => 'Document not found.'], 404);
-        }
-
-        $document->update(['is_pinned' => true]);
-
+        $this->documentAdmin->pin($id, $request->user());
         return response()->json(['message' => 'Document pinned.']);
     }
 
@@ -979,16 +780,9 @@ class DocumentController extends Controller
      *      @OA\Response(response=403, description="Apenas administradores")
      * )
      */
-    public function unpin(string $id): JsonResponse
+    public function unpin(string $id, Request $request): JsonResponse
     {
-        $document = Document::find($id);
-
-        if ($document === null) {
-            return response()->json(['message' => 'Document not found.'], 404);
-        }
-
-        $document->update(['is_pinned' => false]);
-
+        $this->documentAdmin->unpin($id, $request->user());
         return response()->json(['message' => 'Document unpinned.']);
     }
 
