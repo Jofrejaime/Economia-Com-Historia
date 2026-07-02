@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { AdminApiService, AdminUser } from '../../../../../services/admin-api.service';
+import { ProvinceAdminService } from '../../../../../services/province-admin.service';
 
 type UserRole = 'admin' | 'professor' | 'investigador' | 'estudante' | '';
 type UserStatusFilter = 'todos' | 'active' | 'pending' | 'blocked' | 'inactive';
@@ -85,10 +86,22 @@ export class UsersPageComponent implements OnInit {
 
   userForm: UserFormState = this.createEmptyForm();
 
-  constructor(private adminApi: AdminApiService) {}
+  constructor(private adminApi: AdminApiService, private provinceAdmin: ProvinceAdminService) {}
 
   ngOnInit(): void {
     void this.loadUsers();
+    void this.loadProvinces();
+  }
+
+  async loadProvinces(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.provinceAdmin.getPublicProvinces());
+      if (result.ok && result.data) {
+        this.provinces = result.data.map(p => p.name).sort();
+      }
+    } catch (e) {
+      // Fallback is the hardcoded list
+    }
   }
 
   get filteredUsers(): AdminUserView[] {

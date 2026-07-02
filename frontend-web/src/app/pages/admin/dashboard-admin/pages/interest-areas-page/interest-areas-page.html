@@ -1,0 +1,182 @@
+<div class="areas-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">Áreas de Interesse (Pesquisa)</h1>
+      <p class="page-subtitle">Faça a gestão das áreas de investigação que agrupam utilizadores, documentos e tópicos.</p>
+    </div>
+    <button class="btn btn-primary" (click)="openAddAreaModal()">
+      <i class="fas fa-plus"></i> Nova Área
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Main Layout -->
+  <div class="main-layout">
+    <!-- List Column -->
+    <div class="list-column">
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (input)="loadData()"
+          placeholder="Pesquisar áreas..."
+          class="search-input"
+        />
+      </div>
+
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>A carregar áreas...</p>
+      </div>
+
+      <div *ngIf="!loading" class="areas-list">
+        <div
+          *ngFor="let area of areas"
+          class="area-item"
+          [class.active]="selectedAreaId === area.id"
+          [class.inactive]="!area.is_active"
+          (click)="viewMetadataDetails(area)"
+        >
+          <div class="area-item-info">
+            <h3 class="area-item-name">{{ area.name }}</h3>
+            <p class="area-item-slug">/{{ area.slug }}</p>
+          </div>
+          <div class="area-item-meta">
+            <span class="meta-tag">{{ getAreaMetadata(area.id).users_count }} users</span>
+            <i class="fas fa-chevron-right chevron"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Sidebar -->
+    <div class="details-column">
+      <div *ngIf="!selectedAreaId" class="details-empty">
+        <i class="fas fa-mouse-pointer empty-icon"></i>
+        <h3>Nenhuma área seleccionada</h3>
+        <p>Seleccione uma área de interesse na lista para visualizar estatísticas detalhadas e vínculos.</p>
+      </div>
+
+      <div *ngIf="selectedAreaId" class="details-card">
+        <div class="details-header">
+          <h2>{{ editingArea?.name || areas[0]?.name }}</h2>
+          <div class="actions">
+            <button class="btn btn-secondary btn-sm" (click)="openEditAreaModal(editingArea || areas[0]!)">
+              <i class="fas fa-edit"></i> Editar
+            </button>
+            <button class="btn btn-danger btn-sm" (click)="deleteArea(editingArea || areas[0]!)">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </div>
+
+        <p class="details-desc">{{ (editingArea || areas[0]!)?.description || 'Sem descrição.' }}</p>
+
+        <div class="stats-grid">
+          <div class="details-stat-card card-blue">
+            <i class="fas fa-users icon"></i>
+            <div class="num">{{ selectedAreaMetadata?.users_count || 0 }}</div>
+            <div class="label">Utilizadores Associados</div>
+          </div>
+          <div class="details-stat-card card-purple">
+            <i class="fas fa-file-alt icon"></i>
+            <div class="num">{{ selectedAreaMetadata?.documents_count || 0 }}</div>
+            <div class="label">Documentos Vinculados</div>
+          </div>
+          <div class="details-stat-card card-pink">
+            <i class="fas fa-comments icon"></i>
+            <div class="num">{{ selectedAreaMetadata?.topics_count || 0 }}</div>
+            <div class="label">Tópicos Relacionados</div>
+          </div>
+        </div>
+
+        <div class="forum-categories-section">
+          <h3>Categorias de Fórum Disponíveis</h3>
+          <ul class="categories-list">
+            <li *ngFor="let cat of categories">
+              <i class="fas fa-folder folder-icon"></i>
+              <span class="cat-name">{{ cat.name }}</span>
+              <span class="cat-slug">/{{ cat.slug }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showAreaModal" class="modal-backdrop" (click)="closeAreaModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingArea ? 'Editar Área de Interesse' : 'Nova Área de Interesse' }}</h2>
+        <button class="close-btn" (click)="closeAreaModal()">&times;</button>
+      </div>
+      <form (submit)="saveArea()">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="name">Nome da Área</label>
+            <input
+              type="text"
+              id="name"
+              [(ngModel)]="areaForm.name"
+              name="name"
+              placeholder="Ex: Economia Colonial"
+              required
+              class="form-control"
+            />
+          </div>
+          <div class="form-group">
+            <label for="slug">Slug (URL amigável)</label>
+            <input
+              type="text"
+              id="slug"
+              [(ngModel)]="areaForm.slug"
+              name="slug"
+              placeholder="Ex: economia-colonial (opcional)"
+              class="form-control"
+            />
+            <small class="form-help">Deixe em branco para gerar automaticamente com base no nome.</small>
+          </div>
+          <div class="form-group">
+            <label for="description">Descrição</label>
+            <textarea
+              id="description"
+              [(ngModel)]="areaForm.description"
+              name="description"
+              placeholder="Descreva o propósito ou tópicos cobertos por esta área..."
+              class="form-control text-area"
+              rows="4"
+            ></textarea>
+          </div>
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="areaForm.is_active"
+                name="is_active"
+              />
+              Área de interesse activa
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeAreaModal()" [disabled]="saving">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            {{ saving ? 'A salvar...' : 'Salvar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

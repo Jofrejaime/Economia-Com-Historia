@@ -32,6 +32,8 @@ use App\Http\Controllers\Api\AccessRequestAdminController;
 use App\Http\Controllers\Api\AccessGrantAdminController;
 use App\Http\Controllers\Api\ReportAdminController;
 use App\Http\Controllers\Api\GamificationAdminController;
+use App\Http\Controllers\Api\ProvinceController;
+use App\Http\Controllers\Api\InterestAreaController;
 
 Route::get('/health', HealthController::class);
 
@@ -64,6 +66,10 @@ Route::middleware(OptionalAuthenticateApiSession::class)->group(function (): voi
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);
     Route::get('/quizzes/{id}/questions', [QuizController::class, 'questions']);
     Route::get('/quizzes/{id}/documents', [QuizController::class, 'relatedDocuments']);
+
+    // Províncias e Áreas de Interesse públicas
+    Route::get('/provinces', [ProvinceController::class, 'publicList']);
+    Route::get('/interest-areas', [InterestAreaController::class, 'publicList']);
 });
 
 // ─── Authenticated routes (any logged-in user) ─────────────────────────────
@@ -210,6 +216,23 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::get('/point-transactions/{id}', [GamificationAdminController::class, 'showPointTransaction']);
         Route::get('/quiz-attempts', [GamificationAdminController::class, 'quizAttempts']);
         Route::get('/quiz-attempts/{id}', [GamificationAdminController::class, 'showQuizAttempt']);
+
+        // Provinces Management (Admin)
+        Route::get('/provinces/statistics', [ProvinceController::class, 'stats']);
+        Route::get('/provinces', [ProvinceController::class, 'index']);
+        Route::get('/provinces/{id}', [ProvinceController::class, 'show']);
+        Route::post('/provinces', [ProvinceController::class, 'store']);
+        Route::patch('/provinces/{id}', [ProvinceController::class, 'update']);
+        Route::delete('/provinces/{id}', [ProvinceController::class, 'destroy']);
+
+        // Interest Areas Management (Admin)
+        Route::get('/interest-areas/categories', [InterestAreaController::class, 'categories']);
+        Route::get('/interest-areas/{id}/metadata', [InterestAreaController::class, 'metadata']);
+        Route::get('/interest-areas', [InterestAreaController::class, 'index']);
+        Route::get('/interest-areas/{id}', [InterestAreaController::class, 'show']);
+        Route::post('/interest-areas', [InterestAreaController::class, 'store']);
+        Route::patch('/interest-areas/{id}', [InterestAreaController::class, 'update']);
+        Route::delete('/interest-areas/{id}', [InterestAreaController::class, 'destroy']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);

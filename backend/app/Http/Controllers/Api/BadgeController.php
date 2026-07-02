@@ -15,6 +15,34 @@ use Illuminate\Http\Request;
  *     name="Badges",
  *     description="Gerenciamento de Badges de Gamificação"
  * )
+ *
+ * @OA\Schema(
+ *     schema="Badge",
+ *     type="object",
+ *     @OA\Property(property="id", type="string", format="uuid"),
+ *     @OA\Property(property="name", type="string"),
+ *     @OA\Property(property="description", type="string"),
+ *     @OA\Property(property="icon_url", type="string", nullable=true),
+ *     @OA\Property(property="color_hex", type="string", nullable=true),
+ *     @OA\Property(property="category", type="string", nullable=true),
+ *     @OA\Property(property="criteria_type", type="string", enum={"points", "quizzes", "documents"}),
+ *     @OA\Property(property="criteria_value", type="integer"),
+ *     @OA\Property(property="is_active", type="boolean")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BadgeInput",
+ *     type="object",
+ *     required={"name", "description", "criteria_type", "criteria_value"},
+ *     @OA\Property(property="name", type="string"),
+ *     @OA\Property(property="description", type="string"),
+ *     @OA\Property(property="icon_url", type="string", nullable=true),
+ *     @OA\Property(property="color_hex", type="string", nullable=true),
+ *     @OA\Property(property="category", type="string", nullable=true),
+ *     @OA\Property(property="criteria_type", type="string", enum={"points", "quizzes", "documents"}),
+ *     @OA\Property(property="criteria_value", type="integer"),
+ *     @OA\Property(property="is_active", type="boolean", default=true)
+ * )
  */
 class BadgeController extends Controller
 {

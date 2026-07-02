@@ -1,11 +1,13 @@
 import { Component, OnInit, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { Router, RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { ProfileService } from '../../../services/profile.service';
 import { ToastService } from '../../../services/toast.service';
+import { ProvinceAdminService } from '../../../services/province-admin.service';
 
 interface Merit {
   iconPath: string;
@@ -123,7 +125,8 @@ export class PerfilComponent implements OnInit {
     private profileService: ProfileService,
     private cdr: ChangeDetectorRef,
     private fb: FormBuilder,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private provinceAdmin: ProvinceAdminService
   ) {
     // Inicializar formulário vazio
     this.editForm = this.fb.group({
@@ -136,7 +139,19 @@ export class PerfilComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadProfile();
+    void this.loadProfile();
+    void this.loadProvinces();
+  }
+
+  private async loadProvinces(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.provinceAdmin.getPublicProvinces());
+      if (result.ok && result.data) {
+        this.angolasProvinces = result.data.map((p: any) => p.name).sort();
+      }
+    } catch (e) {
+      // Fallback is the hardcoded list
+    }
   }
 
   private async loadProfile(): Promise<void> {

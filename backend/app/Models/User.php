@@ -76,6 +76,11 @@ class User extends Authenticatable
             ->withPivot(['id', 'role', 'invited_by', 'accepted_at', 'created_at', 'updated_at']);
     }
 
+    public function interestAreas(): BelongsToMany
+    {
+        return $this->belongsToMany(InterestArea::class, 'user_interest_areas', 'user_id', 'interest_area_id');
+    }
+
     public function getDisplayNameAttribute(): ?string
     {
         return $this->profile?->display_name ?? $this->email;

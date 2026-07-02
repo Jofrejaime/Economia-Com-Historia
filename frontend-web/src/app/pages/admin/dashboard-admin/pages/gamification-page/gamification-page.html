@@ -18,12 +18,12 @@
         <p>{{ badgeStats.total }}</p>
       </div>
       <div class="card">
-        <h3>Transações Hoje</h3>
-        <p>{{ dashboardData.transactions_today ?? 0 }}</p>
+        <h3>Total de Pontos</h3>
+        <p>{{ dashboardData.total_points }}</p>
       </div>
       <div class="card">
         <h3>Ranking Nacional</h3>
-        <p>{{ dashboardData.leaderboard_top?.[0]?.score ?? '-' }}</p>
+        <p>{{ dashboardData.top_users?.[0]?.score ?? '-' }}</p>
       </div>
     </div>
   </section>
@@ -86,10 +86,10 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let entry of leaderboardData.entries; let i = index">
+        <tr *ngFor="let entry of leaderboardData?.entries; let i = index">
           <td>{{ i + 1 }}</td>
-          <td>{{ entry.user_name }}</td>
-          <td>{{ entry.points }}</td>
+          <td>{{ entry.name }}</td>
+          <td>{{ entry.score }}</td>
         </tr>
       </tbody>
     </table>
@@ -98,7 +98,7 @@
       <h3>Snapshots recentes</h3>
       <ul>
         <li *ngFor="let snap of snapshots">
-          {{ snap.created_at | date:'short' }} – {{ snap.description }}
+          {{ snap.snapshot_date | date:'short' }} – Posição: {{ snap.rank }} – Pontos: {{ snap.score }}
         </li>
       </ul>
     </div>
@@ -134,7 +134,7 @@
           <td>{{ tx.id }}</td>
           <td>{{ tx.user_name }}</td>
           <td>{{ tx.type }}</td>
-          <td>{{ tx.amount }}</td>
+          <td>{{ tx.points }}</td>
           <td>{{ tx.created_at | date:'short' }}</td>
           <td><button class="secondary" (click)="viewTxDetails(tx)">Detalhes</button></td>
         </tr>
@@ -178,7 +178,7 @@
           <td>{{ attempt.quiz_title }}</td>
           <td>{{ attempt.status }}</td>
           <td>{{ attempt.score }}</td>
-          <td>{{ attempt.created_at | date:'short' }}</td>
+          <td>{{ attempt.completed_at | date:'short' }}</td>
           <td><button class="secondary" (click)="viewAttemptDetails(attempt)">Detalhes</button></td>
         </tr>
       </tbody>
@@ -191,9 +191,106 @@
   </section>
 
   <!-- Modals (Badge, Assign, Details) -->
-  <app-badge-modal *ngIf="showBadgeModal" [badgeForm]="badgeForm" [editingBadge]="editingBadge" (close)="closeBadgeModal()" (save)="saveBadge()"></app-badge-modal>
-  <app-assign-modal *ngIf="showAssignModal" [badge]="selectedBadgeForAssign" [action]="assignAction" [(userId)]="assignUserId" (close)="closeAssignModal()" (submit)="submitAssignment()"></app-assign-modal>
-  <app-tx-detail-modal *ngIf="selectedTx" [tx]="selectedTx" (close)="closeTxDetails()"></app-tx-detail-modal>
-  <app-attempt-detail-modal *ngIf="selectedAttempt" [attempt]="selectedAttempt" (close)="closeAttemptDetails()"></app-attempt-detail-modal>
+  <div *ngIf="showBadgeModal" class="modal-backdrop" (click)="closeBadgeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingBadge ? 'Editar Badge' : 'Novo Badge' }}</h2>
+        <button class="close-btn" (click)="closeBadgeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" [(ngModel)]="badgeForm.name" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <input type="text" [(ngModel)]="badgeForm.description" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Ícone URL</label>
+          <input type="text" [(ngModel)]="badgeForm.icon_url" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Cor Hex</label>
+          <input type="text" [(ngModel)]="badgeForm.color_hex" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Critério</label>
+          <select [(ngModel)]="badgeForm.criteria_type" class="form-control">
+            <option value="points">Pontos</option>
+            <option value="quizzes">Quizzes</option>
+            <option value="documents">Documentos</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valor do Critério</label>
+          <input type="number" [(ngModel)]="badgeForm.criteria_value" class="form-control" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeBadgeModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveBadge()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showAssignModal" class="modal-backdrop" (click)="closeAssignModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ assignAction === 'assign' ? 'Atribuir Badge' : 'Remover Badge' }}</h2>
+        <button class="close-btn" (click)="closeAssignModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Badge: <strong>{{ selectedBadgeForAssign?.name }}</strong></p>
+        <div class="form-group">
+          <label>ID do Utilizador (UUID)</label>
+          <input type="text" [(ngModel)]="assignUserId" class="form-control" placeholder="Introduza o UUID do utilizador" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeAssignModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="submitAssignment()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="selectedTx" class="modal-backdrop" (click)="closeTxDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalhes da Transação</h2>
+        <button class="close-btn" (click)="closeTxDetails()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ID:</strong> {{ selectedTx.id }}</p>
+        <p><strong>Utilizador:</strong> {{ selectedTx.user_name }}</p>
+        <p><strong>Tipo:</strong> {{ selectedTx.type }}</p>
+        <p><strong>Pontos:</strong> {{ selectedTx.points }}</p>
+        <p><strong>Motivo:</strong> {{ selectedTx.reason }}</p>
+        <p><strong>Data:</strong> {{ selectedTx.created_at | date:'medium' }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeTxDetails()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="selectedAttempt" class="modal-backdrop" (click)="closeAttemptDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalhes da Tentativa de Quiz</h2>
+        <button class="close-btn" (click)="closeAttemptDetails()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Utilizador:</strong> {{ selectedAttempt.user_name }}</p>
+        <p><strong>Quiz:</strong> {{ selectedAttempt.quiz_title }}</p>
+        <p><strong>Status:</strong> {{ selectedAttempt.status }}</p>
+        <p><strong>Score:</strong> {{ selectedAttempt.score }}%</p>
+        <p><strong>Data:</strong> {{ selectedAttempt.completed_at | date:'medium' }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeAttemptDetails()">Fechar</button>
+      </div>
+    </div>
+  </div>
 
 </div>

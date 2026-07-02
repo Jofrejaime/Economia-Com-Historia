@@ -7,20 +7,8 @@ use App\Models\DiscussionTopicMember;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
-/**
- * CommunityAuthorizationService
- *
- * Sprint 13 — Domain Simplification (Categories ≠ Authorization)
- *
- * PRINCÍPIO ARQUITETURAL:
- * A autorização dos tópicos baseia-se exclusivamente na propriedade
- * `visibility` do próprio tópico. As categorias são apenas organização.
- *
- * Valores oficiais de visibility:
- *   PUBLIC      — qualquer utilizador autenticado pode ver e responder
- *   CATEGORY    — apenas membros da categoria (category_members) podem ver e responder
- *   INVITE_ONLY — apenas owner, moderadores e membros convidados (discussion_topic_members)
- */
+
+//ATT já não existe membros por categoria, o topico é apenas public ou only_member
 class CommunityAuthorizationService
 {
     public function canViewTopic(?User $user, DiscussionTopic $topic): bool
@@ -193,11 +181,7 @@ class CommunityAuthorizationService
         return in_array($this->memberRole($user, $topic), ['owner', 'moderator'], true);
     }
 
-    /**
-     * Verifica se o utilizador é membro da categoria do tópico.
-     * Usado para tópicos com visibility = CATEGORY.
-     * Não consulta access_level_id — apenas a tabela category_members.
-     */
+
     private function isCategoryMember(User $user, DiscussionTopic $topic): bool
     {
         $topic->loadMissing('category');

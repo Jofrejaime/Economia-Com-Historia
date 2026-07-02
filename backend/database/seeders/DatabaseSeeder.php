@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SettingsSeeder::class,
             LevelDefinitionsSeeder::class,
+            ProvinceSeeder::class,
+            InterestAreaSeeder::class,
             AdminSeeder::class,
             UserSeeder::class,
             BadgesSeeder::class,

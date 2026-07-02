@@ -128,4 +128,9 @@ class Document extends Model
     {
         return $this->hasMany(DiscussionTopic::class, 'document_id');
     }
+
+    public function interestAreas(): BelongsToMany
+    {
+        return $this->belongsToMany(InterestArea::class, 'document_interest_areas', 'document_id', 'interest_area_id');
+    }
 }

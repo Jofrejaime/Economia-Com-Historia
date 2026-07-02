@@ -19,6 +19,19 @@ use Illuminate\Support\Facades\DB;
  *     name="Gamification Admin",
  *     description="Operações de Administração do Módulo de Gamificação (Somente Leitura para Logs/Logs Históricos)"
  * )
+ *
+ * @OA\Schema(
+ *     schema="GamificationDashboard",
+ *     type="object",
+ *     @OA\Property(property="total_users", type="integer"),
+ *     @OA\Property(property="total_badges", type="integer"),
+ *     @OA\Property(property="total_points", type="integer"),
+ *     @OA\Property(property="recent_earned_badges", type="array", @OA\Items(type="object")),
+ *     @OA\Property(property="top_users", type="array", @OA\Items(type="object")),
+ *     @OA\Property(property="quizzes_count", type="integer"),
+ *     @OA\Property(property="total_attempts", type="integer"),
+ *     @OA\Property(property="snapshots", type="array", @OA\Items(type="object"))
+ * )
  */
 class GamificationAdminController extends Controller
 {

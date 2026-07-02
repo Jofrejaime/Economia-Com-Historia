@@ -37,6 +37,8 @@ import { BadgesPageComponent } from './pages/admin/dashboard-admin/pages/badges-
 import { NotificationsPageComponent } from './pages/admin/dashboard-admin/pages/notifications-page/notifications-page';
 import { UserNotificationsComponent } from './pages/user-notifications/user-notifications';
 import { RankingComponent } from './pages/quizzes/quiz-ranking/quiz-ranking';
+import { ProvincesPageComponent } from './pages/admin/dashboard-admin/pages/provinces-page/provinces-page';
+import { InterestAreasPageComponent } from './pages/admin/dashboard-admin/pages/interest-areas-page/interest-areas-page';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -83,6 +85,8 @@ export const routes: Routes = [
       { path: 'badges', component: BadgesPageComponent },
       { path: 'notificacoes', component: NotificationsPageComponent },
       { path: 'niveis-acesso', component: AccessLevelsPageComponent },
+      { path: 'provincias', component: ProvincesPageComponent },
+      { path: 'areas-interesse', component: InterestAreasPageComponent },
     ]
   },
   { path: 'notificacoes', canActivate: [authGuard], component: UserNotificationsComponent },

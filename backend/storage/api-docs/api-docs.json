@@ -462,6 +462,132 @@
                 ]
             }
         },
+        "/admin/access-grants": {
+            "get": {
+                "tags": [
+                    "Access Grant Admin"
+                ],
+                "summary": "Listar todas as concessões de acesso (Admin)",
+                "operationId": "adminAccessGrantsList",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "access_level_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista obtida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/access-grants/{id}/revoke": {
+            "post": {
+                "tags": [
+                    "Access Grant Admin"
+                ],
+                "summary": "Revogar concessão de acesso",
+                "operationId": "adminAccessGrantRevoke",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Revogado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/admin/access-levels": {
             "get": {
                 "tags": [
@@ -793,6 +919,287 @@
                     },
                     "422": {
                         "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/access-requests": {
+            "get": {
+                "tags": [
+                    "Access Request Admin"
+                ],
+                "summary": "Listar todas as solicitações de acesso (Admin)",
+                "operationId": "adminAccessRequestsList",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista obtida com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Access Request Admin"
+                ],
+                "summary": "Criar solicitação de acesso por um administrador",
+                "operationId": "adminAccessRequestStore",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "access_level_id",
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "string"
+                                    },
+                                    "access_level_id": {
+                                        "type": "string"
+                                    },
+                                    "justification": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Solicitação criada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflito de solicitação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/access-requests/{id}": {
+            "get": {
+                "tags": [
+                    "Access Request Admin"
+                ],
+                "summary": "Visualizar detalhes de uma solicitação (Admin)",
+                "operationId": "adminAccessRequestShow",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da solicitação",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Solicitação não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/access-requests/{id}/approve": {
+            "patch": {
+                "tags": [
+                    "Access Request Admin"
+                ],
+                "summary": "Aprovar solicitação de acesso",
+                "operationId": "adminAccessRequestApprove",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "review_notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Aprovado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/access-requests/{id}/reject": {
+            "patch": {
+                "tags": [
+                    "Access Request Admin"
+                ],
+                "summary": "Rejeitar solicitação de acesso",
+                "operationId": "adminAccessRequestReject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "review_notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rejeitado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -1914,6 +2321,536 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/badges": {
+            "get": {
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Listar todos os badges",
+                "operationId": "fabc4ce47a2d6dbb9bd8976d0b9a7cd8",
+                "responses": {
+                    "200": {
+                        "description": "Lista de badges e estatísticas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Badge"
+                                            }
+                                        },
+                                        "stats": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/badges": {
+            "post": {
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Criar um novo badge (Admin)",
+                "operationId": "951d3dbb0e9f8a7077086edd6f90cf74",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BadgeInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Badge criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Badge"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/badges/{id}": {
+            "get": {
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Ver detalhes de um badge",
+                "operationId": "a948e4155a3937732425bc32efec285b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes do badge",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Badge"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/badges/{id}": {
+            "delete": {
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Excluir um badge (Admin)",
+                "operationId": "100dca355aa233cf315530dc1178d126",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Badge excluído com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Atualizar um badge (Admin)",
+                "operationId": "da4af935ef121308c8e152263da5add6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BadgeInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Badge atualizado com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/badges/{id}/toggle-status": {
+            "post": {
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Alternar status ativo/inativo de um badge (Admin)",
+                "operationId": "d66fee28087d1155f388399da985b5aa",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status alternado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/badges/{id}/assign": {
+            "post": {
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Atribuir badge a um utilizador manualmente (Admin)",
+                "operationId": "b171d6c5bf9c50f4c6e707dfe561e43c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "user_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Badge atribuído com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/badges/{id}/remove": {
+            "post": {
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Remover badge de um utilizador manualmente (Admin)",
+                "operationId": "f5aefcea4bf0a3bbdc925ac3f3c0e188",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "user_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Badge removido com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/badges/{id}/recalculate": {
+            "post": {
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Recalcular utilizadores elegíveis para o badge (Admin)",
+                "operationId": "784c8a63b4e6092e0a84e82087e198b2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Elegibilidade recalculada com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/community/categories": {
+            "get": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Listar categorias (Admin)",
+                "operationId": "adminCommunityCategoriesList",
+                "responses": {
+                    "200": {
+                        "description": "Lista obtida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Criar categoria (Admin)",
+                "operationId": "adminCommunityCategoryCreate",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "color_bg": {
+                                        "type": "string"
+                                    },
+                                    "color_text": {
+                                        "type": "string"
+                                    },
+                                    "cover_image_url": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Categoria criada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/community/categories/{id}": {
+            "delete": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Excluir categoria (Admin)",
+                "operationId": "adminCommunityCategoryDelete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Categoria excluída",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflito (categoria com dependências)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Atualizar categoria (Admin)",
+                "operationId": "adminCommunityCategoryUpdate",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "color_bg": {
+                                        "type": "string"
+                                    },
+                                    "color_text": {
+                                        "type": "string"
+                                    },
+                                    "cover_image_url": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categoria atualizada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
             }
         },
         "/community/categories": {
@@ -4741,6 +5678,204 @@
                 ]
             }
         },
+        "/api/admin/gamification/dashboard": {
+            "get": {
+                "tags": [
+                    "Gamification Admin"
+                ],
+                "summary": "Dashboard geral de gamificação (Admin)",
+                "operationId": "485e1fb407a8400a256c5019b544eb3a",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard compilado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GamificationDashboard"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/leaderboard": {
+            "get": {
+                "tags": [
+                    "Gamification Admin"
+                ],
+                "summary": "Listar Leaderboard com filtros e paginação (Admin)",
+                "operationId": "cd591965a109d1905518ba8eb0da5964",
+                "responses": {
+                    "200": {
+                        "description": "Ranking de utilizadores"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/leaderboard/refresh": {
+            "post": {
+                "tags": [
+                    "Gamification Admin"
+                ],
+                "summary": "Forçar recalculamento do cache do Leaderboard (Admin)",
+                "operationId": "117d0cbff5bc9f6a099c942f96b015a8",
+                "responses": {
+                    "200": {
+                        "description": "Cache atualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/leaderboard/snapshots": {
+            "get": {
+                "tags": [
+                    "Gamification Admin"
+                ],
+                "summary": "Listar snapshots históricos (Admin)",
+                "operationId": "7f11421c8d703fe3ed5714f942fd81a6",
+                "responses": {
+                    "200": {
+                        "description": "Lista de snapshots"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/point-transactions": {
+            "get": {
+                "tags": [
+                    "Gamification Admin"
+                ],
+                "summary": "Listar transações de pontos com filtros e paginação (Admin)",
+                "operationId": "c9b360876ae129b9a3c4213a54acd161",
+                "responses": {
+                    "200": {
+                        "description": "Lista de transações"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/point-transactions/{id}": {
+            "get": {
+                "tags": [
+                    "Gamification Admin"
+                ],
+                "summary": "Ver detalhes de uma transação de pontos (Admin)",
+                "operationId": "a3783a179e3f54765f7a84f161824624",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da transação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/point-transactions/export": {
+            "get": {
+                "tags": [
+                    "Gamification Admin"
+                ],
+                "summary": "Exportar transações de pontos para CSV (Admin)",
+                "operationId": "f98f34e210ec4fd11f77ad4123b18172",
+                "responses": {
+                    "200": {
+                        "description": "Ficheiro CSV"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/quiz-attempts": {
+            "get": {
+                "tags": [
+                    "Gamification Admin"
+                ],
+                "summary": "Listar tentativas de quiz com filtros e paginação (Admin)",
+                "operationId": "a25929d817f52542fda3d129c81f12be",
+                "responses": {
+                    "200": {
+                        "description": "Lista de tentativas"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/quiz-attempts/{id}": {
+            "get": {
+                "tags": [
+                    "Gamification Admin"
+                ],
+                "summary": "Ver detalhes de uma tentativa de quiz (Admin)",
+                "operationId": "b6e856f6f5883db725fdfea76221b56b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da tentativa"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/me/point-transactions": {
             "get": {
                 "tags": [
@@ -4784,6 +5919,307 @@
                     },
                     "401": {
                         "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/interest-areas": {
+            "get": {
+                "tags": [
+                    "InterestAreas"
+                ],
+                "summary": "Listar áreas de interesse activas (Público)",
+                "description": "Lista todas as áreas de interesse activas para selecção em perfis.",
+                "operationId": "publicInterestAreasList",
+                "responses": {
+                    "200": {
+                        "description": "Áreas obtidas com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/InterestAreaResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/interest-areas": {
+            "get": {
+                "tags": [
+                    "InterestAreas"
+                ],
+                "summary": "Listar áreas de interesse (Admin)",
+                "description": "Lista áreas de interesse com paginação e filtros para administração.",
+                "operationId": "adminInterestAreasList",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "is_active",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operação bem sucedida"
+                    },
+                    "403": {
+                        "description": "Acesso negado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "InterestAreas"
+                ],
+                "summary": "Criar área de interesse",
+                "description": "Cria uma nova área de interesse na base de dados.",
+                "operationId": "adminInterestAreaStore",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Macroeconomia Aplicada"
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "example": "macroeconomia-aplicada"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Criada com sucesso"
+                    },
+                    "422": {
+                        "description": "Erros de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/interest-areas/{id}": {
+            "get": {
+                "tags": [
+                    "InterestAreas"
+                ],
+                "summary": "Visualizar área de interesse",
+                "description": "Obtém detalhes de uma área de interesse específica.",
+                "operationId": "adminInterestAreaShow",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operação bem sucedida"
+                    },
+                    "404": {
+                        "description": "Não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "InterestAreas"
+                ],
+                "summary": "Eliminar área de interesse",
+                "description": "Elimina uma área de interesse da base de dados.",
+                "operationId": "adminInterestAreaDestroy",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eliminada com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "InterestAreas"
+                ],
+                "summary": "Actualizar área de interesse",
+                "description": "Actualiza detalhes de uma área de interesse existente.",
+                "operationId": "adminInterestAreaUpdate",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Actualizada com sucesso"
+                    },
+                    "422": {
+                        "description": "Erros de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/interest-areas/categories": {
+            "get": {
+                "tags": [
+                    "InterestAreas"
+                ],
+                "summary": "Categorias da comunidade associadas",
+                "description": "Obtém todas as categorias do fórum associáveis.",
+                "operationId": "adminInterestAreasCategories",
+                "responses": {
+                    "200": {
+                        "description": "Operação bem sucedida"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/interest-areas/{id}/metadata": {
+            "get": {
+                "tags": [
+                    "InterestAreas"
+                ],
+                "summary": "Metadados da área de interesse",
+                "description": "Obtém estatísticas de adesão de utilizadores, documentos e tópicos associados a esta área de interesse.",
+                "operationId": "adminInterestAreaMetadata",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operação bem sucedida"
+                    },
+                    "404": {
+                        "description": "Não encontrada"
                     }
                 },
                 "security": [
@@ -6150,6 +7586,288 @@
                 ]
             }
         },
+        "/provinces": {
+            "get": {
+                "tags": [
+                    "Provinces"
+                ],
+                "summary": "Listar províncias activas (Público)",
+                "description": "Lista todas as províncias activas para selecção em formulários.",
+                "operationId": "publicProvincesList",
+                "responses": {
+                    "200": {
+                        "description": "Províncias obtidas com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProvinceResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/provinces": {
+            "get": {
+                "tags": [
+                    "Provinces"
+                ],
+                "summary": "Listar províncias (Admin)",
+                "description": "Lista províncias com paginação e filtros para administração.",
+                "operationId": "adminProvincesList",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "is_active",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operação bem sucedida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProvinceResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Provinces"
+                ],
+                "summary": "Criar província",
+                "description": "Cria uma nova província na base de dados.",
+                "operationId": "adminProvinceStore",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Bengo"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "AO-BGO"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Criada com sucesso"
+                    },
+                    "422": {
+                        "description": "Erros de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/provinces/{id}": {
+            "get": {
+                "tags": [
+                    "Provinces"
+                ],
+                "summary": "Visualizar província",
+                "description": "Obtém detalhes de uma província específica.",
+                "operationId": "adminProvinceShow",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operação bem sucedida"
+                    },
+                    "404": {
+                        "description": "Não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Provinces"
+                ],
+                "summary": "Eliminar província",
+                "description": "Elimina uma província da base de dados.",
+                "operationId": "adminProvinceDestroy",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eliminada com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Provinces"
+                ],
+                "summary": "Actualizar província",
+                "description": "Actualiza detalhes de uma província existente.",
+                "operationId": "adminProvinceUpdate",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Actualizada com sucesso"
+                    },
+                    "422": {
+                        "description": "Erros de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/provinces/statistics": {
+            "get": {
+                "tags": [
+                    "Provinces"
+                ],
+                "summary": "Estatísticas de províncias",
+                "description": "Obtém estatísticas de adesão de utilizadores por província.",
+                "operationId": "adminProvincesStats",
+                "responses": {
+                    "200": {
+                        "description": "Operação bem sucedida"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/admin/quizzes": {
             "get": {
                 "tags": [
@@ -6777,6 +8495,252 @@
                 "responses": {
                     "200": {
                         "description": "Sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/reports": {
+            "get": {
+                "tags": [
+                    "Report Admin"
+                ],
+                "summary": "Listar todas as denúncias (Admin)",
+                "operationId": "adminReportsList",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "content_type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista obtida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/reports/{id}": {
+            "get": {
+                "tags": [
+                    "Report Admin"
+                ],
+                "summary": "Detalhe de denúncia (Admin)",
+                "operationId": "adminReportShow",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Report Admin"
+                ],
+                "summary": "Atualizar / Rever denúncia (Admin)",
+                "operationId": "adminReportUpdate",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "action_taken": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Atualizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/reports/{id}/action": {
+            "post": {
+                "tags": [
+                    "Report Admin"
+                ],
+                "summary": "Executar ação de moderação em denúncia",
+                "operationId": "adminReportExecuteAction",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "action"
+                                ],
+                                "properties": {
+                                    "action": {
+                                        "type": "string",
+                                        "enum": [
+                                            "warn",
+                                            "delete",
+                                            "hide",
+                                            "restore",
+                                            "dismiss",
+                                            "flag"
+                                        ]
+                                    },
+                                    "reason": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ação executada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "action": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -7600,6 +9564,447 @@
                 ]
             }
         },
+        "/admin/topics": {
+            "get": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Listar todos os tópicos (Admin)",
+                "operationId": "adminTopicsList",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "locked",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "pinned",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista obtida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/topics/{id}": {
+            "get": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Obter detalhe de um tópico (Admin)",
+                "operationId": "adminTopicShow",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhe obtido",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Excluir tópico (Admin)",
+                "operationId": "adminTopicDelete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Excluído com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Atualizar tópico (Admin)",
+                "operationId": "adminTopicUpdate",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tópico atualizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/topics/{id}/pin": {
+            "patch": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Fixar tópico (Admin)",
+                "operationId": "adminTopicPin",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tópico fixado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/topics/{id}/unpin": {
+            "patch": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Desfixar tópico (Admin)",
+                "operationId": "adminTopicUnpin",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tópico desfixado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/topics/{id}/lock": {
+            "patch": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Bloquear tópico (Admin)",
+                "operationId": "adminTopicLock",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tópico bloqueado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/topics/{id}/unlock": {
+            "patch": {
+                "tags": [
+                    "Community Admin"
+                ],
+                "summary": "Desbloquear tópico (Admin)",
+                "operationId": "adminTopicUnlock",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tópico desbloqueado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/admin/users": {
             "get": {
                 "tags": [
@@ -8187,6 +10592,184 @@
                     }
                 },
                 "type": "object"
+            },
+            "Badge": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "color_hex": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "category": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "criteria_type": {
+                        "type": "string",
+                        "enum": [
+                            "points",
+                            "quizzes",
+                            "documents"
+                        ]
+                    },
+                    "criteria_value": {
+                        "type": "integer"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "BadgeInput": {
+                "required": [
+                    "name",
+                    "description",
+                    "criteria_type",
+                    "criteria_value"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "color_hex": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "category": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "criteria_type": {
+                        "type": "string",
+                        "enum": [
+                            "points",
+                            "quizzes",
+                            "documents"
+                        ]
+                    },
+                    "criteria_value": {
+                        "type": "integer"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "type": "object"
+            },
+            "GamificationDashboard": {
+                "properties": {
+                    "total_users": {
+                        "type": "integer"
+                    },
+                    "total_badges": {
+                        "type": "integer"
+                    },
+                    "total_points": {
+                        "type": "integer"
+                    },
+                    "recent_earned_badges": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "top_users": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "quizzes_count": {
+                        "type": "integer"
+                    },
+                    "total_attempts": {
+                        "type": "integer"
+                    },
+                    "snapshots": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "InterestAreaResource": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ProvinceResource": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -8238,6 +10821,22 @@
             "description": "Tabela de classificações e ranking"
         },
         {
+            "name": "Badges",
+            "description": "Gerenciamento de Badges de Gamificação"
+        },
+        {
+            "name": "Gamification Admin",
+            "description": "Operações de Administração do Módulo de Gamificação (Somente Leitura para Logs/Logs Históricos)"
+        },
+        {
+            "name": "InterestAreas",
+            "description": "Operações do domínio de Áreas de Interesse"
+        },
+        {
+            "name": "Provinces",
+            "description": "Operações do domínio de Províncias"
+        },
+        {
             "name": "Admin - Quizzes",
             "description": "Operações de administração de Quizzes"
         },
@@ -8246,12 +10845,24 @@
             "description": "Operações administrativas de utilizadores"
         },
         {
+            "name": "Access Grant Admin",
+            "description": "Access Grant Admin"
+        },
+        {
             "name": "AccessLevels",
             "description": "AccessLevels"
         },
         {
+            "name": "Access Request Admin",
+            "description": "Access Request Admin"
+        },
+        {
             "name": "Admin - Subscriptions",
             "description": "Admin - Subscriptions"
+        },
+        {
+            "name": "Community Admin",
+            "description": "Community Admin"
         },
         {
             "name": "Document Categories",
@@ -8264,6 +10875,10 @@
         {
             "name": "Media",
             "description": "Media"
+        },
+        {
+            "name": "Report Admin",
+            "description": "Report Admin"
         },
         {
             "name": "Settings",
