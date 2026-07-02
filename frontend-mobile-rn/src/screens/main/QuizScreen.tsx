@@ -15,7 +15,7 @@ import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { quizService } from "../../services/api/quizService";
-import type { QuizQuestion, QuizOption } from "../../types/api";
+import type { QuizQuestion, QuizOption, GamificationResult } from "../../types/api";
 import { MainStackParamList } from "../../types/navigation";
 
 type QuizRouteProp = RouteProp<MainStackParamList, "Quiz">;
@@ -83,10 +83,12 @@ export function QuizScreen() {
 
       if (isLast) {
         const totalSecs = Math.round((Date.now() - quizStartTimeRef.current) / 1000);
+        let gamification: GamificationResult | undefined;
         try {
-          await quizService.completeAttempt(attemptId, totalSecs);
+          const completion = await quizService.completeAttempt(attemptId, totalSecs);
+          gamification = completion.gamification ?? undefined;
         } catch {
-          // attempt may already be completed; proceed to result
+          // attempt may already be completed (409); proceed to result without gamification
         }
         navigation.navigate("QuizFeedback", {
           isCorrect: result.is_correct,
@@ -94,6 +96,7 @@ export function QuizScreen() {
           isLast: true,
           attemptId,
           quizId,
+          gamification,
         });
       } else {
         setCurrentIndex((i) => i + 1);
