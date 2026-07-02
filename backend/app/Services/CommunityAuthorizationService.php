@@ -24,24 +24,27 @@ use Illuminate\Database\Eloquent\Builder;
 class CommunityAuthorizationService
 {
     public function canViewTopic(?User $user, DiscussionTopic $topic): bool
-    {
-        if ($user !== null && ($this->bypassesChecks($user) || $this->isOwner($user, $topic))) {
-            return true;
-        }
-
-        if ($user === null) {
-            return false;
-        }
-
-        $visibility = $this->normalizedVisibility($topic->visibility ?? 'CATEGORY');
-
-        return match ($visibility) {
-            'PUBLIC'      => true,
-            'CATEGORY'    => $this->isCategoryMember($user, $topic),
-            'INVITE_ONLY' => $this->hasAnyMembership($user, $topic),
-            default       => false,
-        };
+{
+    if ($user !== null && ($this->bypassesChecks($user) || $this->isOwner($user, $topic))) {
+        return true;
     }
+
+    $visibility = $this->normalizedVisibility($topic->visibility ?? 'CATEGORY');
+
+    // CATEGORY = visível a qualquer pessoa, incluindo visitantes (RF57)
+    if ($visibility === 'CATEGORY') {
+        return true;
+    }
+
+    if ($user === null) {
+        return false;
+    }
+
+    return match ($visibility) {
+        'INVITE_ONLY' => $this->hasAnyMembership($user, $topic),
+        default       => false,
+    };
+}
 
     public function canReply(User $user, DiscussionTopic $topic): bool
     {
@@ -55,7 +58,7 @@ class CommunityAuthorizationService
 
         return match ($this->normalizedVisibility($topic->visibility ?? 'CATEGORY')) {
             'PUBLIC'      => true,
-            'CATEGORY'    => $this->isCategoryMember($user, $topic),
+            'CATEGORY'    => true,
             'INVITE_ONLY' => $this->hasAcceptedMembership($user, $topic),
             default       => false,
         };
@@ -122,40 +125,32 @@ class CommunityAuthorizationService
      *   INVITE_ONLY — visível apenas se o utilizador for membro do tópico
      */
     public function applyVisibleTopicsFilter(Builder $query, ?User $user): void
-    {
-        if ($user !== null && $this->bypassesChecks($user)) {
-            return;
-        }
+{
+    if ($user !== null && $this->bypassesChecks($user)) {
+        return;
+    }
 
         $table = $query->getModel()->getTable();
 
-        $query->where(function (Builder $builder) use ($user, $table): void {
-            if ($user !== null) {
-                $builder->where("{$table}.visibility", 'PUBLIC')
-                    ->orWhere("{$table}.author_id", $user->id)
-                    ->orWhere(function (Builder $cat) use ($user, $table): void {
-                        $cat->where("{$table}.visibility", 'CATEGORY')
-                            ->whereExists(function ($memberQuery) use ($user, $table): void {
-                                $memberQuery->selectRaw('1')
-                                    ->from('category_members as cm')
-                                    ->whereColumn('cm.category_id', "{$table}.category_id")
-                                    ->where('cm.user_id', $user->id);
-                            });
-                    })
-                    ->orWhere(function (Builder $invite) use ($user, $table): void {
-                        $invite->where("{$table}.visibility", 'INVITE_ONLY')
-                            ->whereExists(function ($memberQuery) use ($user, $table): void {
-                                $memberQuery->selectRaw('1')
-                                    ->from('discussion_topic_members as dtm')
-                                    ->whereColumn('dtm.topic_id', "{$table}.id")
-                                    ->where('dtm.user_id', $user->id);
-                            });
+    $query->where(function (Builder $builder) use ($user, $table): void {
+        // CATEGORY = visível a qualquer pessoa, incluindo visitantes
+        $builder->where("{$table}.visibility", 'CATEGORY');
+
+        if ($user !== null) {
+            $builder->orWhere("{$table}.author_id", $user->id);
+
+            $builder->orWhere(function (Builder $invite) use ($user, $table): void {
+                $invite->where("{$table}.visibility", 'INVITE_ONLY')
+                    ->whereExists(function ($memberQuery) use ($user, $table): void {
+                        $memberQuery->selectRaw('1')
+                            ->from('discussion_topic_members as dtm')
+                            ->whereColumn('dtm.topic_id', "{$table}.id")
+                            ->where('dtm.user_id', $user->id);
                     });
-            } else {
-                $builder->whereRaw('1 = 0');
-            }
-        });
-    }
+            });
+        }
+    });
+}
 
     public function memberRole(User $user, DiscussionTopic $topic): ?string
     {

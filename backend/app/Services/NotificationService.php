@@ -60,8 +60,8 @@ class NotificationService
         return $this->send(
             $user,
             'topic_joined',
-            'A topic member joined',
-            $topicTitle,
+            'Novo membro no teu fórum',
+            "Um utilizador aceitou o convite para participar em \"{$topicTitle}\".",
             $referenceId,
             'discussion_topic',
             ['topic_joined']
@@ -73,8 +73,8 @@ class NotificationService
         return $this->send(
             $user,
             'topic_removed',
-            'You were removed from a topic',
-            $topicTitle,
+            'Removido de um fórum privado',
+            "Perdeste o acesso ao fórum \"{$topicTitle}\".",
             $referenceId,
             'discussion_topic',
             ['topic_removed']
