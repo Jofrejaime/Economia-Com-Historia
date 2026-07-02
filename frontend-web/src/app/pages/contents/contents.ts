@@ -8,6 +8,7 @@ import { DocumentService, Document, DocumentCategory } from '../../services/docu
 import { AuthService } from '../../services/auth.service';
 
 type AccessCategory = 'all' | 'public' | 'jindungo' | 'restricted';
+type DropdownKey = 'access' | 'theme' | 'level' | 'format' | 'mediaType';
 interface AccessOption { id: AccessCategory; label: string; }
 interface SimpleOption { id: string; label: string; }
 
@@ -27,11 +28,9 @@ export class ContentsComponent implements OnInit, OnDestroy {
   selectedMediaType: string | null = null;
   selectedAccessCategory: AccessCategory = 'all';
 
-  showAccessDropdown = false;
-  showThemeDropdown = false;
-  showLevelDropdown = false;
-  showFormatDropdown = false;
-  showMediaTypeDropdown = false;
+  // Único dropdown aberto de cada vez — abrir um fecha automaticamente
+  // qualquer outro que estivesse aberto, em vez de 5 booleanos independentes.
+  openDropdown: DropdownKey | null = null;
 
   displayedDocuments: Document[] = [];
   hasMore = false;
@@ -62,8 +61,12 @@ export class ContentsComponent implements OnInit, OnDestroy {
 
   // Extraídos dinamicamente dos documentos carregados — nunca listas fixas,
   // já que o backend não expõe um endpoint de metadados/enums dedicado.
+  // Construídos de forma incremental a partir de QUALQUER lista de documentos
+  // que chegue com sucesso (facets dedicados OU listagem normal) — nunca
+  // dependem de uma única chamada sem filtros, que pode falhar isoladamente.
   formats: SimpleOption[] = [];
   mediaTypes: SimpleOption[] = [];
+  facetsLoadFailed = false;
 
   levels = [
     { id: 'intro',     label: 'Introdutório' },
@@ -82,9 +85,8 @@ export class ContentsComponent implements OnInit, OnDestroy {
   // guarda o category_id vindo da query param
   private preselectedCategoryId: string | null = null;
 
-  // Guarda o conjunto completo de documentos vindos do backend (sem filtros
-  // de formato/tipo aplicados), usado só para descobrir que formatos existem.
-  private allDocumentsForFacets: Document[] = [];
+  private seenFormatIds = new Set<string>();
+  private seenMediaTypeIds = new Set<string>();
 
   constructor(
     private router: Router,
@@ -101,8 +103,14 @@ export class ContentsComponent implements OnInit, OnDestroy {
     this.preselectedCategoryId = this.route.snapshot.queryParamMap.get('category_id');
 
     await this.loadCategories();
-    await this.loadFacets();
+
+    // A listagem principal é o caminho garantido — carrega-se primeiro e já
+    // popula os facets a partir de dados reais. loadFacets() é só um
+    // "melhor esforço" complementar para descobrir tipos que não apareçam
+    // na primeira página; se falhar, a página continua perfeitamente
+    // funcional com o que loadDocuments() já trouxe.
     await this.loadDocuments();
+    await this.loadFacets();
   }
 
   ngOnDestroy(): void {
@@ -130,36 +138,36 @@ export class ContentsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carrega uma amostra sem filtros para descobrir dinamicamente que
-   * document_type e media_type existem de facto nos dados — evita listas
-   * fixas no frontend que ficam dessincronizadas do backend.
+   * Melhor esforço: tenta obter uma amostra sem filtros para descobrir tipos
+   * que possam não estar presentes nos documentos já exibidos. Se falhar
+   * (ex: erro 500 no endpoint sem filtros), não é crítico — os facets já
+   * mostram os tipos vindos de loadDocuments(), e apenas assinalamos
+   * facetsLoadFailed para uma indicação discreta na interface, sem quebrar
+   * a experiência do utilizador.
    */
   private async loadFacets(): Promise<void> {
     try {
-      this.allDocumentsForFacets = await this.documentService.getDocuments();
-const seenTypes = new Set<string>();
-this.formats = this.allDocumentsForFacets
-  .map(d => d.document_type)
-  .filter((t): t is string => {
-    if (!t || seenTypes.has(t)) return false;
-    seenTypes.add(t);
-    return true;
-  })
-  .map(t => ({ id: t, label: this.documentTypeLabels[t] ?? t }));
-
-const seenMedia = new Set<string>();
-this.mediaTypes = this.allDocumentsForFacets
-  .map(d => d.media_type)
-  .filter((t): t is string => {
-    if (!t || seenMedia.has(t)) return false;
-    seenMedia.add(t);
-    return true;
-  })
-  .map(t => ({ id: t, label: this.mediaTypeLabels[t] ?? t }));} catch {
-      this.formats = [];
-      this.mediaTypes = [];
+      const sample = await this.documentService.getDocuments();
+      this.mergeFacetsFromDocuments(sample);
+      this.facetsLoadFailed = false;
+    } catch {
+      this.facetsLoadFailed = true;
     } finally {
       this.cdr.detectChanges();
+    }
+  }
+
+  /** Acrescenta, sem duplicar, os document_type/media_type encontrados numa lista de documentos. */
+  private mergeFacetsFromDocuments(docs: Document[]): void {
+    for (const d of docs) {
+      if (d.document_type && !this.seenFormatIds.has(d.document_type)) {
+        this.seenFormatIds.add(d.document_type);
+        this.formats.push({ id: d.document_type, label: this.documentTypeLabels[d.document_type] ?? d.document_type });
+      }
+      if (d.media_type && !this.seenMediaTypeIds.has(d.media_type)) {
+        this.seenMediaTypeIds.add(d.media_type);
+        this.mediaTypes.push({ id: d.media_type, label: this.mediaTypeLabels[d.media_type] ?? d.media_type });
+      }
     }
   }
 
@@ -195,6 +203,8 @@ this.mediaTypes = this.allDocumentsForFacets
 
       this.totalDocuments = this.displayedDocuments.length;
       this.hasMore = false;
+
+      this.mergeFacetsFromDocuments(this.displayedDocuments);
     } catch {
       this.displayedDocuments = [];
       this.totalDocuments = 0;
@@ -209,27 +219,49 @@ this.mediaTypes = this.allDocumentsForFacets
     this.searchTimer = setTimeout(() => this.loadDocuments(), 400);
   }
 
+  // ─── Gestão centralizada dos dropdowns (mutuamente exclusivos) ───────────
+
+  /** Alterna um dropdown: se já estiver aberto, fecha; se outro estiver aberto, fecha-o e abre este. */
+  private toggleDropdown(key: DropdownKey): void {
+    this.openDropdown = this.openDropdown === key ? null : key;
+  }
+
+  isDropdownOpen(key: DropdownKey): boolean {
+    return this.openDropdown === key;
+  }
+
+  toggleAccessDropdown(): void { this.toggleDropdown('access'); }
+  toggleThemeDropdown(): void { this.toggleDropdown('theme'); }
+  toggleLevelDropdown(): void { this.toggleDropdown('level'); }
+  toggleFormatDropdown(): void { this.toggleDropdown('format'); }
+  toggleMediaTypeDropdown(): void { this.toggleDropdown('mediaType'); }
+
+  // Getters mantidos por compatibilidade com o template actual (usam o
+  // estado único openDropdown por baixo, mas preservam os mesmos nomes).
+  get showAccessDropdown(): boolean { return this.isDropdownOpen('access'); }
+  get showThemeDropdown(): boolean { return this.isDropdownOpen('theme'); }
+  get showLevelDropdown(): boolean { return this.isDropdownOpen('level'); }
+  get showFormatDropdown(): boolean { return this.isDropdownOpen('format'); }
+  get showMediaTypeDropdown(): boolean { return this.isDropdownOpen('mediaType'); }
+
   getAccessCategoryLabel(): string {
     return this.accessOptions.find(o => o.id === this.selectedAccessCategory)?.label ?? 'Todos os Documentos';
   }
 
   selectAccessCategory(cat: AccessCategory): void {
     this.selectedAccessCategory = cat;
-    this.showAccessDropdown = false;
+    this.openDropdown = null;
     this.loadDocuments();
   }
-
-  toggleAccessDropdown(): void { this.showAccessDropdown = !this.showAccessDropdown; }
 
   getSelectedThemeLabel(): string { return this.selectedTheme ?? 'Todos os Temas'; }
 
   selectTheme(theme: string): void {
     this.selectedTheme = this.selectedTheme === theme ? null : theme;
-    this.showThemeDropdown = false;
+    this.openDropdown = null;
     this.loadDocuments();
   }
 
-  toggleThemeDropdown(): void { this.showThemeDropdown = !this.showThemeDropdown; }
   isThemeSelected(theme: string): boolean { return this.selectedTheme === theme; }
 
   getSelectedLevelLabel(): string {
@@ -238,11 +270,9 @@ this.mediaTypes = this.allDocumentsForFacets
 
   selectLevel(level: string): void {
     this.selectedLevel = this.selectedLevel === level ? null : level;
-    this.showLevelDropdown = false;
+    this.openDropdown = null;
     this.loadDocuments();
   }
-
-  toggleLevelDropdown(): void { this.showLevelDropdown = !this.showLevelDropdown; }
 
   getSelectedFormatLabel(): string {
     return this.formats.find(f => f.id === this.selectedFormat)?.label ?? 'Todos os Tipos';
@@ -250,11 +280,10 @@ this.mediaTypes = this.allDocumentsForFacets
 
   selectFormat(format: string): void {
     this.selectedFormat = this.selectedFormat === format ? null : format;
-    this.showFormatDropdown = false;
+    this.openDropdown = null;
     this.loadDocuments();
   }
 
-  toggleFormatDropdown(): void { this.showFormatDropdown = !this.showFormatDropdown; }
   isFormatSelected(format: string): boolean { return this.selectedFormat === format; }
 
   getSelectedMediaTypeLabel(): string {
@@ -263,11 +292,10 @@ this.mediaTypes = this.allDocumentsForFacets
 
   selectMediaType(mediaType: string): void {
     this.selectedMediaType = this.selectedMediaType === mediaType ? null : mediaType;
-    this.showMediaTypeDropdown = false;
+    this.openDropdown = null;
     this.loadDocuments();
   }
 
-  toggleMediaTypeDropdown(): void { this.showMediaTypeDropdown = !this.showMediaTypeDropdown; }
   isMediaTypeSelected(mediaType: string): boolean { return this.selectedMediaType === mediaType; }
 
   clearFilters(): void {
@@ -277,6 +305,7 @@ this.mediaTypes = this.allDocumentsForFacets
     this.selectedMediaType = null;
     this.selectedAccessCategory = 'all';
     this.searchQuery = '';
+    this.openDropdown = null;
     this.loadDocuments();
   }
 
@@ -359,11 +388,7 @@ this.mediaTypes = this.allDocumentsForFacets
   handleClickOutside(event: Event): void {
     const target = event.target as HTMLElement;
     if (!target.closest('.contents-filter-dropdown')) {
-      this.showAccessDropdown = false;
-      this.showThemeDropdown = false;
-      this.showLevelDropdown = false;
-      this.showFormatDropdown = false;
-      this.showMediaTypeDropdown = false;
+      this.openDropdown = null;
     }
   }
 }
