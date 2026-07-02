@@ -46,6 +46,8 @@ export class DiscussionThreadComponent implements OnInit {
   reportReplyDescription = '';
   selectedReplyIndex: number | null = null;
   selectedReply: TopicReply | null = null;
+  reportSubmitting = false;
+  reportSubmitError: string | null = null;
 
   showDiscussionMenu = false;
   showReplyMenuIndex: number | null = null;
@@ -143,17 +145,17 @@ export class DiscussionThreadComponent implements OnInit {
   get discussionIsPinned(): boolean { return this.topic?.is_pinned ?? false; }
 
   // ===== AGRUPAMENTO DE RESPOSTAS (nested dentro do mesmo cartão) =====
-get topLevelReplies(): TopicReply[] {
-  return this.replies.filter(r => r.parent_reply_id === null);
-}
+  get topLevelReplies(): TopicReply[] {
+    return this.replies.filter(r => r.parent_reply_id === null);
+  }
 
-childRepliesOf(parentId: string): TopicReply[] {
-  return this.replies.filter(r => r.parent_reply_id === parentId);
-}
+  childRepliesOf(parentId: string): TopicReply[] {
+    return this.replies.filter(r => r.parent_reply_id === parentId);
+  }
 
-getReplyIndex(reply: TopicReply): number {
-  return this.replies.indexOf(reply);
-}
+  getReplyIndex(reply: TopicReply): number {
+    return this.replies.indexOf(reply);
+  }
 
   // ===== PERMISSÕES =====
   get isTopicOwner(): boolean {
@@ -185,7 +187,6 @@ getReplyIndex(reply: TopicReply): number {
     this.editError = null;
     this.showDiscussionMenu = false;
     this.isEditingDiscussion = true;
-
     if (this.editVisibility === 'INVITE_ONLY') {
       await this.loadTopicMembers();
     }
@@ -566,14 +567,45 @@ getReplyIndex(reply: TopicReply): number {
     this.showReportDiscussionModal = true;
     this.reportDiscussionReason = '';
     this.reportDiscussionDescription = '';
+    this.reportSubmitError = null;
   }
 
-  closeReportDiscussionModal(): void { this.showReportDiscussionModal = false; }
+  closeReportDiscussionModal(): void {
+    this.showReportDiscussionModal = false;
+    this.reportSubmitError = null;
+  }
 
-  submitReportDiscussion(): void {
-    if (!this.reportDiscussionReason) return;
-    alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
-    this.closeReportDiscussionModal();
+  async submitReportDiscussion(): Promise<void> {
+    if (!this.reportDiscussionReason || !this.topic) return;
+
+    this.reportSubmitting = true;
+    this.reportSubmitError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const result = await firstValueFrom(
+        this.communityService.reportContent({
+          content_type: 'topic',
+          content_id: this.topic.id,
+          reason: this.reportDiscussionReason as any,
+          description: this.reportDiscussionDescription || undefined,
+        })
+      );
+
+      if (result.ok) {
+        this.closeReportDiscussionModal();
+        alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
+      } else {
+        this.reportSubmitError = result.status === 409
+          ? 'Já tem uma denúncia pendente para este conteúdo.'
+          : (result.message ?? 'Erro ao enviar denúncia.');
+      }
+    } catch {
+      this.reportSubmitError = 'Erro ao enviar denúncia.';
+    } finally {
+      this.reportSubmitting = false;
+      this.cdr.detectChanges();
+    }
   }
 
   openReportReplyModal(index: number): void {
@@ -582,18 +614,47 @@ getReplyIndex(reply: TopicReply): number {
     this.showReportReplyModal = true;
     this.reportReplyReason = '';
     this.reportReplyDescription = '';
+    this.reportSubmitError = null;
   }
 
   closeReportReplyModal(): void {
     this.showReportReplyModal = false;
     this.selectedReplyIndex = null;
     this.selectedReply = null;
+    this.reportSubmitError = null;
   }
 
-  submitReportReply(): void {
-    if (!this.reportReplyReason) return;
-    alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
-    this.closeReportReplyModal();
+  async submitReportReply(): Promise<void> {
+    if (!this.reportReplyReason || !this.selectedReply) return;
+
+    this.reportSubmitting = true;
+    this.reportSubmitError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const result = await firstValueFrom(
+        this.communityService.reportContent({
+          content_type: 'reply',
+          content_id: this.selectedReply.id,
+          reason: this.reportReplyReason as any,
+          description: this.reportReplyDescription || undefined,
+        })
+      );
+
+      if (result.ok) {
+        this.closeReportReplyModal();
+        alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
+      } else {
+        this.reportSubmitError = result.status === 409
+          ? 'Já tem uma denúncia pendente para este conteúdo.'
+          : (result.message ?? 'Erro ao enviar denúncia.');
+      }
+    } catch {
+      this.reportSubmitError = 'Erro ao enviar denúncia.';
+    } finally {
+      this.reportSubmitting = false;
+      this.cdr.detectChanges();
+    }
   }
 
   shareDiscussion(): void {

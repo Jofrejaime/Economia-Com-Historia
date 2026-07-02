@@ -43,6 +43,7 @@
                      (click)="navigateTo('/forum/categoria/' + topic.category_id)">
                   <span class="discussion-category-text" [style.color]="discussionCategoryText">{{ discussionCategoryName }}</span>
                 </div>
+
                 <div *ngIf="discussionIsPinned" class="discussion-pinned">
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="#8B1E2D"><path d="M9 2L10 5L13 6L10 9L11 13L8 11L5 13L6 9L3 6L6 5L7 2H9Z"/></svg>
                   <span class="discussion-pinned-text">Fixado</span>
@@ -168,7 +169,7 @@
                   </svg>
                   <span class="discussion-action-text">Responder</span>
                 </button>
-                
+
                 <button class="discussion-action-btn" (click)="shareDiscussion()">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
                     <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v15"/>
@@ -215,150 +216,150 @@
             </div>
 
             <!-- Replies Section -->
-<div>
-  <div class="replies-header">
-    <h2 class="replies-title">{{ replies.length }} Respostas</h2>
-    <div class="replies-divider"></div>
-  </div>
+            <div>
+              <div class="replies-header">
+                <h2 class="replies-title">{{ replies.length }} Respostas</h2>
+                <div class="replies-divider"></div>
+              </div>
 
-  <div>
-    <ng-container *ngFor="let reply of topLevelReplies">
-      <ng-container *ngTemplateOutlet="replyTpl; context: { $implicit: reply, depth: 0 }"></ng-container>
-    </ng-container>
-  </div>
+              <div>
+                <ng-container *ngFor="let reply of topLevelReplies">
+                  <ng-container *ngTemplateOutlet="replyTpl; context: { $implicit: reply, depth: 0 }"></ng-container>
+                </ng-container>
+              </div>
 
-  <!-- Empty replies -->
-  <div *ngIf="replies.length === 0" style="padding:40px;text-align:center;color:#9CA3AF;font-size:14px">
-    Ainda não há respostas. Seja o primeiro a responder!
-  </div>
-</div>
+              <!-- Empty replies -->
+              <div *ngIf="replies.length === 0" style="padding:40px;text-align:center;color:#9CA3AF;font-size:14px">
+                Ainda não há respostas. Seja o primeiro a responder!
+              </div>
+            </div>
 
-<!-- Template recursivo: renderiza uma resposta e, dentro do mesmo cartão, as suas respostas filhas -->
-<ng-template #replyTpl let-reply let-depth="depth">
-  <div [class]="depth === 0 ? 'reply-card' : 'reply-child'">
+            <!-- Template recursivo: renderiza uma resposta e, dentro do mesmo cartão, as suas respostas filhas -->
+            <ng-template #replyTpl let-reply let-depth="depth">
+              <div [class]="depth === 0 ? 'reply-card' : 'reply-child'">
 
-    <!-- Menu resposta -->
-    <div class="reply-menu-wrapper" *ngIf="canEditReply(reply) || canDeleteReply(reply)">
-      <button class="reply-menu-btn" (click)="toggleReplyMenu(getReplyIndex(reply), $event)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
-          <circle cx="12" cy="5" r="1.5"/>
-          <circle cx="12" cy="12" r="1.5"/>
-          <circle cx="12" cy="19" r="1.5"/>
-        </svg>
-      </button>
-      <div class="reply-menu-dropdown" [class.reply-menu-open]="showReplyMenuIndex === getReplyIndex(reply)">
-        <button *ngIf="canEditReply(reply)" (click)="startEditReply(getReplyIndex(reply))" class="reply-menu-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
-          Editar
-        </button>
-        <button *ngIf="canDeleteReply(reply)" (click)="openDeleteReplyModal(getReplyIndex(reply))" class="reply-menu-item reply-menu-item-danger">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-          </svg>
-          Excluir
-        </button>
-      </div>
-    </div>
+                <!-- Menu resposta -->
+                <div class="reply-menu-wrapper" *ngIf="canEditReply(reply) || canDeleteReply(reply)">
+                  <button class="reply-menu-btn" (click)="toggleReplyMenu(getReplyIndex(reply), $event)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                      <circle cx="12" cy="5" r="1.5"/>
+                      <circle cx="12" cy="12" r="1.5"/>
+                      <circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                  <div class="reply-menu-dropdown" [class.reply-menu-open]="showReplyMenuIndex === getReplyIndex(reply)">
+                    <button *ngIf="canEditReply(reply)" (click)="startEditReply(getReplyIndex(reply))" class="reply-menu-item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                      Editar
+                    </button>
+                    <button *ngIf="canDeleteReply(reply)" (click)="openDeleteReplyModal(getReplyIndex(reply))" class="reply-menu-item reply-menu-item-danger">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                      Excluir
+                    </button>
+                  </div>
+                </div>
 
-    <!-- Indicador nested -->
-    <div *ngIf="reply.parent_reply_id !== null" class="reply-nested-indicator">
-      <span class="reply-nested-indicator-text">
-        Resposta a <strong>{{ getParentAuthor(reply.parent_reply_id) }}</strong>
-      </span>
-    </div>
+                <!-- Indicador nested -->
+                <div *ngIf="reply.parent_reply_id !== null" class="reply-nested-indicator">
+                  <span class="reply-nested-indicator-text">
+                    Resposta a <strong>{{ getParentAuthor(reply.parent_reply_id) }}</strong>
+                  </span>
+                </div>
 
-    <!-- Autor -->
-    <div class="reply-author">
-      <div class="reply-avatar" [style.backgroundColor]="getReplyAvatarColor(reply)">
-        <span class="reply-avatar-text">{{ getReplyAuthorInitials(reply) }}</span>
-      </div>
-      <div>
-        <div class="reply-author-name">{{ reply.author?.display_name ?? '—' }}</div>
-        <div class="reply-author-meta">{{ formatTimeAgo(reply.created_at) }}</div>
-      </div>
-    </div>
+                <!-- Autor -->
+                <div class="reply-author">
+                  <div class="reply-avatar" [style.backgroundColor]="getReplyAvatarColor(reply)">
+                    <span class="reply-avatar-text">{{ getReplyAuthorInitials(reply) }}</span>
+                  </div>
+                  <div>
+                    <div class="reply-author-name">{{ reply.author?.display_name ?? '—' }}</div>
+                    <div class="reply-author-meta">{{ formatTimeAgo(reply.created_at) }}</div>
+                  </div>
+                </div>
 
-    <!-- Conteúdo (vista normal) -->
-    <div class="reply-content" *ngIf="editingReplyIndex !== getReplyIndex(reply)" [innerHTML]="reply.content | markdown"></div>
+                <!-- Conteúdo (vista normal) -->
+                <div class="reply-content" *ngIf="editingReplyIndex !== getReplyIndex(reply)" [innerHTML]="reply.content | markdown"></div>
 
-    <!-- Conteúdo (edição) -->
-    <div class="edit-reply-form" *ngIf="editingReplyIndex === getReplyIndex(reply)">
-      <textarea [(ngModel)]="editReplyText" rows="4" class="edit-textarea edit-reply-textarea"></textarea>
-      <div class="edit-actions">
-        <button type="button" class="btn-primary btn-small" (click)="saveEditReply(getReplyIndex(reply))">Guardar</button>
-        <button type="button" class="btn-secondary btn-small" (click)="cancelEditReply()">Cancelar</button>
-      </div>
-    </div>
+                <!-- Conteúdo (edição) -->
+                <div class="edit-reply-form" *ngIf="editingReplyIndex === getReplyIndex(reply)">
+                  <textarea [(ngModel)]="editReplyText" rows="4" class="edit-textarea edit-reply-textarea"></textarea>
+                  <div class="edit-actions">
+                    <button type="button" class="btn-primary btn-small" (click)="saveEditReply(getReplyIndex(reply))">Guardar</button>
+                    <button type="button" class="btn-secondary btn-small" (click)="cancelEditReply()">Cancelar</button>
+                  </div>
+                </div>
 
-    <!-- Acções -->
-    <div class="reply-actions" *ngIf="editingReplyIndex !== getReplyIndex(reply)">
-      <button class="reply-action-btn" (click)="toggleLikeReply(getReplyIndex(reply))">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-             [attr.stroke]="reply.is_liked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-        <span class="reply-action-text"
-              [class.liked]="reply.is_liked"
-              [class.unliked]="!reply.is_liked">{{ reply.likes_count }}</span>
-      </button>
+                <!-- Acções -->
+                <div class="reply-actions" *ngIf="editingReplyIndex !== getReplyIndex(reply)">
+                  <button class="reply-action-btn" (click)="toggleLikeReply(getReplyIndex(reply))">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                         [attr.stroke]="reply.is_liked ? '#8B1E2D' : '#9CA3AF'" stroke-width="1.8">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <span class="reply-action-text"
+                          [class.liked]="reply.is_liked"
+                          [class.unliked]="!reply.is_liked">{{ reply.likes_count }}</span>
+                  </button>
 
-      <button class="reply-action-btn-secondary" (click)="toggleReplyForm(getReplyIndex(reply))">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        Responder
-      </button>
+                  <button class="reply-action-btn-secondary" (click)="toggleReplyForm(getReplyIndex(reply))">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Responder
+                  </button>
 
-      <button class="reply-action-btn-secondary" (click)="openReportReplyModal(getReplyIndex(reply))">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
-          <path d="M12 2L1 21h22L12 2z"/>
-          <circle cx="12" cy="16" r="1.5"/>
-          <path d="M12 9v4"/>
-        </svg>
-      </button>
-    </div>
+                  <button class="reply-action-btn-secondary" (click)="openReportReplyModal(getReplyIndex(reply))">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
+                      <path d="M12 2L1 21h22L12 2z"/>
+                      <circle cx="12" cy="16" r="1.5"/>
+                      <path d="M12 9v4"/>
+                    </svg>
+                  </button>
+                </div>
 
-    <!-- Form resposta a esta resposta -->
-    <div *ngIf="showReplyFormForReply[getReplyIndex(reply)]" class="reply-form nested-reply-form">
-      <form (ngSubmit)="handleReplyToReply(getReplyIndex(reply), replyReplyText[getReplyIndex(reply)])">
-        <div class="nested-reply-to">
-          <span class="nested-reply-to-label">Respondendo a </span>
-          <span class="nested-reply-to-name">{{ reply.author?.display_name ?? '—' }}</span>
-        </div>
-        <textarea [(ngModel)]="replyReplyText[getReplyIndex(reply)]" name="replyReplyText" rows="3"
-                  placeholder="Escreva a sua resposta..."
-                  class="reply-textarea nested-textarea"></textarea>
-        <div class="reply-form-actions nested-actions">
-          <button type="submit" class="btn-primary btn-small">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-            </svg>
-            Responder
-          </button>
-          <button type="button" class="btn-secondary btn-small" (click)="toggleReplyForm(getReplyIndex(reply))">Cancelar</button>
-        </div>
-      </form>
-    </div>
+                <!-- Form resposta a esta resposta -->
+                <div *ngIf="showReplyFormForReply[getReplyIndex(reply)]" class="reply-form nested-reply-form">
+                  <form (ngSubmit)="handleReplyToReply(getReplyIndex(reply), replyReplyText[getReplyIndex(reply)])">
+                    <div class="nested-reply-to">
+                      <span class="nested-reply-to-label">Respondendo a </span>
+                      <span class="nested-reply-to-name">{{ reply.author?.display_name ?? '—' }}</span>
+                    </div>
+                    <textarea [(ngModel)]="replyReplyText[getReplyIndex(reply)]" name="replyReplyText" rows="3"
+                              placeholder="Escreva a sua resposta..."
+                              class="reply-textarea nested-textarea"></textarea>
+                    <div class="reply-form-actions nested-actions">
+                      <button type="submit" class="btn-primary btn-small">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
+                        Responder
+                      </button>
+                      <button type="button" class="btn-secondary btn-small" (click)="toggleReplyForm(getReplyIndex(reply))">Cancelar</button>
+                    </div>
+                  </form>
+                </div>
 
-    <!-- Respostas filhas — renderizadas dentro do mesmo cartão -->
-    <div class="reply-children" *ngIf="childRepliesOf(reply.id).length > 0">
-      <ng-container *ngFor="let child of childRepliesOf(reply.id)">
-        <ng-container *ngTemplateOutlet="replyTpl; context: { $implicit: child, depth: depth + 1 }"></ng-container>
-      </ng-container>
-    </div>
+                <!-- Respostas filhas — renderizadas dentro do mesmo cartão -->
+                <div class="reply-children" *ngIf="childRepliesOf(reply.id).length > 0">
+                  <ng-container *ngFor="let child of childRepliesOf(reply.id)">
+                    <ng-container *ngTemplateOutlet="replyTpl; context: { $implicit: child, depth: depth + 1 }"></ng-container>
+                  </ng-container>
+                </div>
 
-  </div>
-</ng-template>
+              </div>
+            </ng-template>
           </div>
 
           <!-- Sidebar -->
           <aside>
             <div class="discussion-sidebar">
-              
+
               <!-- Author Card -->
               <div class="sidebar-card">
                 <h3 class="sidebar-title">SOBRE O AUTOR</h3>
@@ -548,11 +549,10 @@
             <select [(ngModel)]="reportReplyReason" class="form-input">
               <option value="">Selecione um motivo...</option>
               <option value="spam">Conteúdo de Spam</option>
-              <option value="offensive">Linguagem Ofensiva</option>
-              <option value="harassment">Assédio ou Intimidação</option>
+              <option value="inappropriate">Conteúdo Inapropriado</option>
               <option value="misinformation">Desinformação</option>
               <option value="copyright">Violação de Direitos de Autor</option>
-              <option value="inappropriate">Conteúdo Inapropriado</option>
+              <option value="off_topic">Fora do Tema</option>
               <option value="other">Outro Motivo</option>
             </select>
             <div class="select-arrow">
@@ -564,13 +564,16 @@
         </div>
         <div class="form-group">
           <label class="form-label">Descrição Detalhada</label>
-          <textarea [(ngModel)]="reportReplyDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo..."></textarea>
-          <span class="form-hint">{{ reportReplyDescription.length || 0 }}/500 caracteres</span>
+          <textarea [(ngModel)]="reportReplyDescription" rows="4" maxlength="1000" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo..."></textarea>
+          <span class="form-hint">{{ reportReplyDescription.length || 0 }}/1000 caracteres</span>
         </div>
+        <p *ngIf="reportSubmitError" style="color:#DC2626;font-size:13px;margin:0">{{ reportSubmitError }}</p>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeReportReplyModal()">Cancelar</button>
-        <button class="btn-report" (click)="submitReportReply()" [disabled]="!reportReplyReason">Enviar Denúncia</button>
+        <button class="btn-cancel" (click)="closeReportReplyModal()" [disabled]="reportSubmitting">Cancelar</button>
+        <button class="btn-report" (click)="submitReportReply()" [disabled]="!reportReplyReason || reportSubmitting">
+          {{ reportSubmitting ? 'A enviar...' : 'Enviar Denúncia' }}
+        </button>
       </div>
     </div>
   </div>
@@ -629,11 +632,10 @@
             <select [(ngModel)]="reportDiscussionReason" class="form-input">
               <option value="">Selecione um motivo...</option>
               <option value="spam">Conteúdo de Spam</option>
-              <option value="offensive">Linguagem Ofensiva</option>
-              <option value="harassment">Assédio ou Intimidação</option>
+              <option value="inappropriate">Conteúdo Inapropriado</option>
               <option value="misinformation">Desinformação</option>
               <option value="copyright">Violação de Direitos de Autor</option>
-              <option value="inappropriate">Conteúdo Inapropriado</option>
+              <option value="off_topic">Fora do Tema</option>
               <option value="other">Outro Motivo</option>
             </select>
             <div class="select-arrow">
@@ -645,13 +647,16 @@
         </div>
         <div class="form-group">
           <label class="form-label">Descrição Detalhada</label>
-          <textarea [(ngModel)]="reportDiscussionDescription" rows="4" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo..."></textarea>
-          <span class="form-hint">{{ reportDiscussionDescription.length || 0 }}/500 caracteres</span>
+          <textarea [(ngModel)]="reportDiscussionDescription" rows="4" maxlength="1000" class="form-input form-textarea" placeholder="Descreva detalhadamente o motivo..."></textarea>
+          <span class="form-hint">{{ reportDiscussionDescription.length || 0 }}/1000 caracteres</span>
         </div>
+        <p *ngIf="reportSubmitError" style="color:#DC2626;font-size:13px;margin:0">{{ reportSubmitError }}</p>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeReportDiscussionModal()">Cancelar</button>
-        <button class="btn-report" (click)="submitReportDiscussion()" [disabled]="!reportDiscussionReason">Enviar Denúncia</button>
+        <button class="btn-cancel" (click)="closeReportDiscussionModal()" [disabled]="reportSubmitting">Cancelar</button>
+        <button class="btn-report" (click)="submitReportDiscussion()" [disabled]="!reportDiscussionReason || reportSubmitting">
+          {{ reportSubmitting ? 'A enviar...' : 'Enviar Denúncia' }}
+        </button>
       </div>
     </div>
   </div>
