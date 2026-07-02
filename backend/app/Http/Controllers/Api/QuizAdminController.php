@@ -60,32 +60,7 @@ class QuizAdminController extends Controller
         $perPage = min((int) $request->input('per_page', 20), 100);
         $paginator = $this->quizService->listAdminQuizzes($filters, $perPage);
 
-        $mappedItems = collect($paginator->items())->map(function ($quiz) {
-            return [
-                'id'                 => $quiz->id,
-                'title'              => $quiz->title,
-                'description'        => $quiz->description,
-                'module'             => $quiz->module,
-                'difficulty'         => $quiz->difficulty,
-                'status'             => $quiz->status->value ?? $quiz->status,
-                'category_id'        => $quiz->category_id,
-                'category_name'      => $quiz->category?->name,
-                'creator_id'         => $quiz->created_by,
-                'creator_name'       => $quiz->creator?->display_name,
-                'published_at'       => $quiz->published_at?->toIso8601String(),
-                'created_at'         => $quiz->created_at->toIso8601String(),
-                'updated_at'         => $quiz->updated_at->toIso8601String(),
-                'attempts_count'     => (int) $quiz->attempts_count,
-                'completed_attempts' => (int) $quiz->completed_attempts,
-                'completion_rate'    => $quiz->attempts_count > 0 ? round(($quiz->completed_attempts / $quiz->attempts_count) * 100, 2) : 0.0,
-                'avg_score'          => (float) $quiz->avg_score,
-                'questions_count'    => (int) $quiz->questions_count,
-                'documents_count'    => (int) $quiz->documents_count,
-                'is_featured'        => (bool) $quiz->is_featured,
-                'is_standalone'      => $quiz->documents_count === 0,
-                'has_documents'      => $quiz->documents_count > 0,
-            ];
-        });
+        $mappedItems = collect($paginator->items())->map(fn ($quiz) => $this->mapQuizForAdmin($quiz));
 
         return response()->json([
             'data' => $mappedItems,
@@ -133,7 +108,7 @@ class QuizAdminController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $this->validateQuiz($request);
+        $validated = $this->validateQuiz($request, allowStatus: true);
         $quiz = $this->quizService->store($validated, $request->user());
 
         return response()->json([
@@ -161,7 +136,7 @@ class QuizAdminController extends Controller
             return response()->json(['message' => 'Quiz not found.'], 404);
         }
 
-        $validated = $this->validateQuiz($request);
+        $validated = $this->validateQuiz($request, allowStatus: false);
         $updated = $this->quizService->update($quiz, $validated);
 
         return response()->json([
@@ -336,6 +311,34 @@ class QuizAdminController extends Controller
         return response()->json(['data' => $mapped]);
     }
 
+    /**
+     * @OA\Post(
+     *      path="/admin/quizzes/{id}/documents",
+     *      operationId="adminSyncQuizDocuments",
+     *      tags={"Admin - Quizzes"},
+     *      summary="Sincronizar documentos associados ao Quiz",
+     *      description="Substitui completamente a lista de documentos associados ao quiz pela lista enviada (sync N:N). Enviar um array vazio remove todas as associações existentes.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string", format="uuid")),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"documents"},
+     *              @OA\Property(property="documents", type="array", @OA\Items(type="string", format="uuid"), example={"doc-uuid-1", "doc-uuid-2"})
+     *          )
+     *      ),
+     *      @OA\Response(response=200, description="Sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Documents synced successfully."),
+     *              @OA\Property(property="count", type="integer", example=2)
+     *          )
+     *      ),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Apenas Admin"),
+     *      @OA\Response(response=404, description="Quiz não encontrado"),
+     *      @OA\Response(response=422, description="Erros de validação")
+     * )
+     */
     public function syncDocuments(string $id, Request $request): JsonResponse
     {
         $quiz = Quiz::find($id);
@@ -356,6 +359,24 @@ class QuizAdminController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Delete(
+     *      path="/admin/quizzes/{id}/documents/{documentId}",
+     *      operationId="adminDetachQuizDocument",
+     *      tags={"Admin - Quizzes"},
+     *      summary="Remover associação entre Quiz e Documento",
+     *      description="Remove apenas a linha de quiz_documents correspondente — nunca elimina o Quiz nem o Documento.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, description="ID do quiz", @OA\Schema(type="string", format="uuid")),
+     *      @OA\Parameter(name="documentId", in="path", required=true, description="ID do documento a desassociar", @OA\Schema(type="string", format="uuid")),
+     *      @OA\Response(response=200, description="Sucesso",
+     *          @OA\JsonContent(@OA\Property(property="message", type="string", example="Document removed from quiz."))
+     *      ),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Apenas Admin"),
+     *      @OA\Response(response=404, description="Quiz não encontrado ou documento não associado")
+     * )
+     */
     public function detachDocument(string $id, string $documentId): JsonResponse
     {
         $quiz = Quiz::find($id);
@@ -401,32 +422,7 @@ class QuizAdminController extends Controller
             }])
             ->paginate($perPage);
 
-        $mappedItems = collect($paginator->items())->map(function ($quiz) {
-            return [
-                'id'                 => $quiz->id,
-                'title'              => $quiz->title,
-                'description'        => $quiz->description,
-                'module'             => $quiz->module,
-                'difficulty'         => $quiz->difficulty,
-                'status'             => $quiz->status->value ?? $quiz->status,
-                'category_id'        => $quiz->category_id,
-                'category_name'      => $quiz->category?->name,
-                'creator_id'         => $quiz->created_by,
-                'creator_name'       => $quiz->creator?->display_name,
-                'published_at'       => $quiz->published_at?->toIso8601String(),
-                'created_at'         => $quiz->created_at->toIso8601String(),
-                'updated_at'         => $quiz->updated_at->toIso8601String(),
-                'attempts_count'     => (int) $quiz->attempts_count,
-                'completed_attempts' => (int) $quiz->completed_attempts,
-                'completion_rate'    => $quiz->attempts_count > 0 ? round(($quiz->completed_attempts / $quiz->attempts_count) * 100, 2) : 0.0,
-                'avg_score'          => (float) $quiz->avg_score,
-                'questions_count'    => (int) $quiz->questions_count,
-                'documents_count'    => (int) $quiz->documents_count,
-                'is_featured'        => (bool) $quiz->is_featured,
-                'is_standalone'      => $quiz->documents_count === 0,
-                'has_documents'      => $quiz->documents_count > 0,
-            ];
-        });
+        $mappedItems = collect($paginator->items())->map(fn ($quiz) => $this->mapQuizForAdmin($quiz));
 
         return response()->json([
             'data' => $mappedItems,
@@ -439,9 +435,52 @@ class QuizAdminController extends Controller
         ]);
     }
 
-    private function validateQuiz(Request $request): array
+    /**
+     * Serialização partilhada de um Quiz para as listagens administrativas
+     * (index() e documentQuizzes()). Ambas carregam as mesmas relações/counts
+     * (category, creator.profile, questions/documents/attempts counts), pelo
+     * que o mapeamento é idêntico — extraído aqui para eliminar a duplicação.
+     */
+    private function mapQuizForAdmin(Quiz $quiz): array
     {
-        return $request->validate([
+        return [
+            'id'                 => $quiz->id,
+            'title'              => $quiz->title,
+            'description'        => $quiz->description,
+            'module'             => $quiz->module,
+            'difficulty'         => $quiz->difficulty,
+            'status'             => $quiz->status->value ?? $quiz->status,
+            'category_id'        => $quiz->category_id,
+            'category_name'      => $quiz->category?->name,
+            'creator_id'         => $quiz->created_by,
+            'creator_name'       => $quiz->creator?->display_name,
+            'published_at'       => $quiz->published_at?->toIso8601String(),
+            'created_at'         => $quiz->created_at->toIso8601String(),
+            'updated_at'         => $quiz->updated_at->toIso8601String(),
+            'attempts_count'     => (int) $quiz->attempts_count,
+            'completed_attempts' => (int) $quiz->completed_attempts,
+            'completion_rate'    => $quiz->attempts_count > 0 ? round(($quiz->completed_attempts / $quiz->attempts_count) * 100, 2) : 0.0,
+            'avg_score'          => (float) $quiz->avg_score,
+            'questions_count'    => (int) $quiz->questions_count,
+            'documents_count'    => (int) $quiz->documents_count,
+            'is_featured'        => (bool) $quiz->is_featured,
+            'is_standalone'      => $quiz->documents_count === 0,
+            'has_documents'      => $quiz->documents_count > 0,
+        ];
+    }
+
+    /**
+     * Regras de validação partilhadas por store()/update().
+     *
+     * `status` só é aceite na criação (allowStatus: true). A transição de
+     * estado de um quiz já existente é feita exclusivamente pelos endpoints
+     * publish()/review()/archive() — nunca por este update genérico — para
+     * que published_at/published_by/reviewed_by/archived_by só sejam
+     * preenchidos pela própria máquina de estados.
+     */
+    private function validateQuiz(Request $request, bool $allowStatus): array
+    {
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
             'module' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -451,7 +490,6 @@ class QuizAdminController extends Controller
             'time_limit_secs' => ['nullable', 'integer', 'min:0'],
             'access_level_id' => ['nullable', 'string', 'exists:access_levels,id'],
             'is_featured' => ['nullable', 'boolean'],
-            'status' => ['nullable', Rule::enum(QuizStatus::class)],
             'category_id' => ['nullable', 'uuid', 'exists:document_categories,id'],
             'questions' => ['nullable', 'array'],
             'questions.*.id' => ['nullable', 'uuid'],
@@ -475,6 +513,12 @@ class QuizAdminController extends Controller
             'questions.*.options.*.explanation' => ['nullable', 'string'],
             'documents'   => ['nullable', 'array'],
             'documents.*' => ['nullable', 'uuid', 'exists:documents,id'],
-        ]);
+        ];
+
+        if ($allowStatus) {
+            $rules['status'] = ['nullable', Rule::enum(QuizStatus::class)];
+        }
+
+        return $request->validate($rules);
     }
 }

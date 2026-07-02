@@ -118,4 +118,14 @@ class Document extends Model
             ->withPivot('sort_order')
             ->withTimestamps();
     }
+
+    /**
+     * Discussões da comunidade contextualizadas a este documento (Sprint 17.3).
+     * Relação simples 1:N — sem pivot. Um documento pode ter várias
+     * discussões; cada discussão pertence, no máximo, a um documento.
+     */
+    public function topics(): HasMany
+    {
+        return $this->hasMany(DiscussionTopic::class, 'document_id');
+    }
 }

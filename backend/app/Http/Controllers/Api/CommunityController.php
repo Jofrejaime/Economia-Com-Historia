@@ -249,10 +249,15 @@ class CommunityController extends Controller
      *      )
      * )
      */
-    public function storeTopic(Request $request): JsonResponse
+    /**
+     * Regras de validação partilhadas por storeTopic() e storeTopicForDocument()
+     * (Sprint 17.3) — a criação de tópicos existe apenas uma vez, em createTopic().
+     */
+    private function topicValidationRules(): array
     {
-        $validated = $request->validate([
+        return [
             'category_id'      => ['required', 'uuid', 'exists:community_categories,id'],
+            'document_id'      => ['sometimes', 'nullable', 'uuid', 'exists:documents,id'],
             'title'            => ['required', 'string', 'max:255'],
             'content'          => ['required', 'string', 'max:5000'],
             'visibility'       => ['sometimes', 'string', 'in:PUBLIC,CATEGORY,INVITE_ONLY'],
@@ -261,8 +266,130 @@ class CommunityController extends Controller
             'members'          => ['sometimes', 'array'],
             'members.*.user_id' => ['required', 'uuid', 'exists:users,id'],
             'members.*.role'   => ['sometimes', 'string', 'in:member,moderator'],
+        ];
+    }
+
+    public function storeTopic(Request $request): JsonResponse
+    {
+        $validated = $request->validate($this->topicValidationRules());
+
+        $topic = $this->createTopic($validated, $request);
+
+        return response()->json([
+            'message' => 'Topic created successfully.',
+            'data' => $topic,
+        ], 201);
+    }
+
+    /**
+     * @OA\Post(
+     *      path="/documents/{id}/topics",
+     *      operationId="storeTopicForDocument",
+     *      tags={"Community"},
+     *      summary="Criar tópico contextualizado a um documento",
+     *      description="Cria um tópico de discussão associado a um documento específico (Sprint 17.3). Reutiliza exatamente a mesma lógica de POST /topics — o document_id é preenchido a partir do URL, nunca do corpo do pedido.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, description="ID do documento", @OA\Schema(type="string", format="uuid")),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"category_id", "title", "content"},
+     *              @OA\Property(property="category_id", type="string", format="uuid"),
+     *              @OA\Property(property="title", type="string", maxLength=255),
+     *              @OA\Property(property="content", type="string", maxLength=5000)
+     *          )
+     *      ),
+     *      @OA\Response(response=201, description="Tópico criado com sucesso",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Topic created successfully."),
+     *              @OA\Property(property="data", type="object")
+     *          )
+     *      ),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=403, description="Acesso proibido à categoria"),
+     *      @OA\Response(response=404, description="Documento não encontrado"),
+     *      @OA\Response(response=422, description="Erro de validação")
+     * )
+     */
+    public function storeTopicForDocument(string $documentId, Request $request): JsonResponse
+    {
+        $document = Document::find($documentId);
+        if ($document === null) {
+            return response()->json(['message' => 'Document not found.'], 404);
+        }
+
+        $validated = $request->validate($this->topicValidationRules());
+        $validated['document_id'] = $documentId;
+
+        $topic = $this->createTopic($validated, $request);
+
+        return response()->json([
+            'message' => 'Topic created successfully.',
+            'data' => $topic,
+        ], 201);
+    }
+
+    /**
+     * @OA\Get(
+     *      path="/documents/{id}/topics",
+     *      operationId="documentTopics",
+     *      tags={"Community"},
+     *      summary="Listar discussões associadas a um documento",
+     *      description="Lista os tópicos de discussão contextualizados a este documento (Sprint 17.3), ordenados por fixados primeiro e depois mais recentes. Não inclui as respostas.",
+     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      @OA\Parameter(name="id", in="path", required=true, description="ID do documento", @OA\Schema(type="string", format="uuid")),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Discussões obtidas com sucesso",
+     *          @OA\JsonContent(@OA\Property(property="data", type="array", @OA\Items(type="object")))
+     *      ),
+     *      @OA\Response(response=401, description="Não autenticado"),
+     *      @OA\Response(response=404, description="Documento não encontrado")
+     * )
+     */
+    public function documentTopics(string $id, Request $request): JsonResponse
+    {
+        $document = Document::find($id);
+        if ($document === null) {
+            return response()->json(['message' => 'Document not found.'], 404);
+        }
+
+        $query = DiscussionTopic::where('document_id', $id)
+            ->with('author.profile')
+            ->orderByDesc('is_pinned')
+            ->orderByDesc('created_at');
+
+        $this->communityAuthorization->applyVisibleTopicsFilter($query, $request->user());
+
+        $topics = $query->get();
+
+        $data = $topics->map(fn (DiscussionTopic $topic) => [
+            'id'               => $topic->id,
+            'title'            => $topic->title,
+            'author'           => [
+                'id'           => $topic->author?->id,
+                'display_name' => $topic->author?->profile?->display_name,
+                'avatar_url'   => $topic->author?->profile?->avatar_url,
+            ],
+            'replies_count'    => (int) $topic->replies_count,
+            'views_count'      => (int) $topic->views_count,
+            'likes_count'      => (int) $topic->likes_count,
+            'created_at'       => $topic->created_at,
+            'last_activity_at' => $topic->last_reply_at,
+            'is_locked'        => $topic->status === 'locked',
+            'is_pinned'        => (bool) $topic->is_pinned,
         ]);
 
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Criação de tópico partilhada por storeTopic() (geral) e
+     * storeTopicForDocument() (contextual) — Sprint 17.3, Módulo 7:
+     * "a criação deverá existir apenas uma vez".
+     */
+    private function createTopic(array $validated, Request $request): DiscussionTopic
+    {
         $category = CommunityCategory::findOrFail($validated['category_id']);
         $visibility = $validated['visibility'] ?? 'CATEGORY';
 
@@ -270,10 +397,11 @@ class CommunityController extends Controller
         // na autorização — categorias são só organização; quem controla acesso ao
         // tópico é discussion_topics.visibility (ver CommunityAuthorizationService).
 
-        $topic = DB::transaction(function () use ($validated, $request, $category, $visibility) {
+        return DB::transaction(function () use ($validated, $request, $category, $visibility) {
             $topic = DiscussionTopic::create([
                 'id' => (string) Str::uuid(),
                 'category_id' => $validated['category_id'],
+                'document_id' => $validated['document_id'] ?? null,
                 'author_id' => $request->user()->id,
                 'title' => $validated['title'],
                 'content' => $validated['content'],

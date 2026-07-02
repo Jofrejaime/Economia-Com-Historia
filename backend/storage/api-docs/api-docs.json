@@ -1746,14 +1746,80 @@
                         "session_token": []
                     }
                 ]
+            }
+        },
+        "/documents/{id}/topics": {
+            "get": {
+                "tags": [
+                    "Community"
+                ],
+                "summary": "Listar discussões associadas a um documento",
+                "description": "Lista os tópicos de discussão contextualizados a este documento (Sprint 17.3), ordenados por fixados primeiro e depois mais recentes. Não inclui as respostas.",
+                "operationId": "documentTopics",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do documento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Discussões obtidas com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "404": {
+                        "description": "Documento não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
             },
             "post": {
                 "tags": [
                     "Community"
                 ],
-                "summary": "Criar novo tópico",
-                "description": "Cria um novo tópico numa categoria de comunidade se o utilizador tiver permissões.",
-                "operationId": "storeTopic",
+                "summary": "Criar tópico contextualizado a um documento",
+                "description": "Cria um tópico de discussão associado a um documento específico (Sprint 17.3). Reutiliza exatamente a mesma lógica de POST /topics — o document_id é preenchido a partir do URL, nunca do corpo do pedido.",
+                "operationId": "storeTopicForDocument",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do documento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1767,17 +1833,14 @@
                                 "properties": {
                                     "category_id": {
                                         "type": "string",
-                                        "format": "uuid",
-                                        "example": "category-uuid"
+                                        "format": "uuid"
                                     },
                                     "title": {
                                         "type": "string",
-                                        "example": "Dúvida sobre o comércio colonial",
                                         "maxLength": 255
                                     },
                                     "content": {
                                         "type": "string",
-                                        "example": "Gostaria de saber quais eram os principais portos...",
                                         "maxLength": 5000
                                     }
                                 },
@@ -1811,6 +1874,9 @@
                     },
                     "403": {
                         "description": "Acesso proibido à categoria"
+                    },
+                    "404": {
+                        "description": "Documento não encontrado"
                     },
                     "422": {
                         "description": "Erro de validação"
@@ -5544,6 +5610,157 @@
                 "responses": {
                     "200": {
                         "description": "Sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin - Quizzes"
+                ],
+                "summary": "Sincronizar documentos associados ao Quiz",
+                "description": "Substitui completamente a lista de documentos associados ao quiz pela lista enviada (sync N:N). Enviar um array vazio remove todas as associações existentes.",
+                "operationId": "adminSyncQuizDocuments",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do quiz",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "documents"
+                                ],
+                                "properties": {
+                                    "documents": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "example": [
+                                            "doc-uuid-1",
+                                            "doc-uuid-2"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Documents synced successfully."
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas Admin"
+                    },
+                    "404": {
+                        "description": "Quiz não encontrado"
+                    },
+                    "422": {
+                        "description": "Erros de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/quizzes/{id}/documents/{documentId}": {
+            "delete": {
+                "tags": [
+                    "Admin - Quizzes"
+                ],
+                "summary": "Remover associação entre Quiz e Documento",
+                "description": "Remove apenas a linha de quiz_documents correspondente — nunca elimina o Quiz nem o Documento.",
+                "operationId": "adminDetachQuizDocument",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do quiz",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "documentId",
+                        "in": "path",
+                        "description": "ID do documento a desassociar",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Document removed from quiz."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas Admin"
+                    },
+                    "404": {
+                        "description": "Quiz não encontrado ou documento não associado"
                     }
                 },
                 "security": [

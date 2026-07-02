@@ -59,6 +59,7 @@ class DocumentResource extends JsonResource
             'views_count'      => (int) $this->views_count,
             'likes_count'      => (int) $this->likes_count,
             'downloads_count'  => (int) $this->downloads_count,
+            'topics_count'     => (int) ($this->topics_count ?? 0),
 
             // Category joined fields
             'category_name'     => $isModel ? optional($this->resource->category)->name     : ($this->resource->category_name ?? null),

@@ -157,6 +157,8 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::delete('/documents/{id}/favorite', [DocumentController::class, 'unfavorite']);
     Route::post('/documents/{id}/citations', [DocumentController::class, 'createCitation']);
     Route::get('/documents/{id}/quizzes', [DocumentController::class, 'relatedQuizzes']);
+    Route::get('/documents/{id}/topics', [CommunityController::class, 'documentTopics']);
+    Route::post('/documents/{id}/topics', [CommunityController::class, 'storeTopicForDocument']);
 
     // Documents — subscription management
     Route::get('/documents/{id}/subscription', [DocumentController::class, 'subscriptionStatus']);

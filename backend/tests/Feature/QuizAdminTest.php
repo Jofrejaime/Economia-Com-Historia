@@ -210,7 +210,6 @@ class QuizAdminTest extends TestCase
             'title' => 'Quiz Atualizado Pelo Admin',
             'description' => 'Nova Descrição',
             'difficulty' => 'Avançado',
-            'status' => 'review',
         ];
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
@@ -220,7 +219,40 @@ class QuizAdminTest extends TestCase
         $this->assertDatabaseHas('quizzes', [
             'id' => $quizId,
             'title' => 'Quiz Atualizado Pelo Admin',
-            'status' => 'review'
+            'description' => 'Nova Descrição',
+            'difficulty' => 'Avançado',
+        ]);
+    }
+
+    /**
+     * Sprint 17.2.1 — hardening da máquina de estados: o update genérico
+     * nunca pode alterar o status do quiz, mesmo que o campo seja enviado
+     * no payload. A transição de estado só pode acontecer através dos
+     * endpoints dedicados (publish/review/archive).
+     */
+    public function test_admin_update_quiz_ignores_status_field(): void
+    {
+        $this->seedAccessLevel();
+        $admin = User::factory()->create(['role' => 'admin']);
+        $token = $this->issueToken($admin);
+        $categoryId = $this->seedCategory();
+        $quizId = $this->seedQuiz($categoryId, $admin, status: 'published');
+
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->patchJson("/api/admin/quizzes/{$quizId}", [
+                'title'  => 'Tentativa de Bypass',
+                'status' => 'review',
+            ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('quizzes', [
+            'id'     => $quizId,
+            'title'  => 'Tentativa de Bypass',
+            'status' => 'published',
+        ]);
+        $this->assertDatabaseMissing('quizzes', [
+            'id'     => $quizId,
+            'status' => 'review',
         ]);
     }
 
