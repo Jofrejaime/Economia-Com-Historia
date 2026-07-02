@@ -11,6 +11,7 @@ use App\Models\TopicLike;
 use App\Models\ReplyLike;
 use App\Models\TopicFollower;
 use App\Models\CategoryMember;
+use App\Models\Document;
 use App\Services\CommunityAuthorizationService;
 use App\Services\GamificationService;
 use App\Services\NotificationService;
@@ -544,14 +545,20 @@ class CommunityController extends Controller
      *      )
      * )
      */
-    public function showTopic(string $id): JsonResponse
+    public function showTopic(string $id, Request $request): JsonResponse
     {
-        $topic = $this->resolveTopicForUserOrFail($id, request(), ['author.profile', 'category', 'members.user.profile']);
+        $topic = $this->resolveTopicForUserOrFail($id, $request, ['author.profile', 'category', 'members.user.profile']);
 
-        // Increment views
         $topic->increment('views_count');
 
-        return response()->json(['data' => $topic]);
+        $isLiked = TopicLike::where('topic_id', $id)
+            ->where('user_id', $request->user()->id)
+            ->exists();
+
+        $data = $topic->toArray();
+        $data['is_liked'] = $isLiked;
+
+        return response()->json(['data' => $data]);
     }
 
     /**
@@ -608,11 +615,21 @@ class CommunityController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string', 'max:5000'],
-            'status' => ['nullable', 'string', 'in:open,closed,locked,archived,published,draft'],
+            'title'      => ['sometimes', 'string', 'max:255'],
+            'content'    => ['sometimes', 'string', 'max:5000'],
+            'status'     => ['sometimes', 'string', 'in:open,closed,locked,archived,published,draft'],
             'visibility' => ['sometimes', 'string', 'in:PUBLIC,CATEGORY,INVITE_ONLY'],
         ]);
+
+        // Fórum encerrado é irreversível — apenas admin pode reabrir
+        if (
+            $topic->status === 'closed'
+            && isset($validated['status'])
+            && $validated['status'] !== 'closed'
+            && $request->user()->role !== 'admin'
+        ) {
+            abort(403, 'Um fórum encerrado não pode ser reaberto.');
+        }
 
         $topic->update([
             'title'      => $validated['title']      ?? $topic->title,

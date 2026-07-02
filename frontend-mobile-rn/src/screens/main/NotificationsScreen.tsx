@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,7 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -57,7 +57,13 @@ function relativeTime(dateStr: string): string {
 
 export function NotificationsScreen() {
   const navigation = useNavigation<any>();
-  const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, loading, unreadCount, markAsRead, markAllAsRead, fetchNotifications } = useNotifications();
+
+  useFocusEffect(
+    useCallback(() => {
+      void fetchNotifications();
+    }, [fetchNotifications])
+  );
 
   const handlePress = (item: Notification) => {
     if (!item.is_read) {
@@ -65,6 +71,10 @@ export function NotificationsScreen() {
     }
     if (item.type === "topic_invitation" && item.reference_id) {
       navigation.navigate("TopicDiscussion", { id: item.reference_id });
+    } else if (item.type === "topic_joined" && item.reference_id) {
+      navigation.navigate("TopicDiscussion", { id: item.reference_id });
+    } else if (item.type === "topic_removed") {
+      navigation.navigate("MainTabs", { screen: "Community" });
     }
   };
 

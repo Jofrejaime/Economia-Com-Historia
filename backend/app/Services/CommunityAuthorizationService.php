@@ -24,27 +24,22 @@ use Illuminate\Database\Eloquent\Builder;
 class CommunityAuthorizationService
 {
     public function canViewTopic(?User $user, DiscussionTopic $topic): bool
-{
-    if ($user !== null && ($this->bypassesChecks($user) || $this->isOwner($user, $topic))) {
-        return true;
+    {
+        if ($user === null) {
+            return false;
+        }
+
+        if ($this->bypassesChecks($user) || $this->isOwner($user, $topic)) {
+            return true;
+        }
+
+        return match ($this->normalizedVisibility($topic->visibility ?? 'CATEGORY')) {
+            'PUBLIC'      => true,
+            'CATEGORY'    => true,
+            'INVITE_ONLY' => $this->hasAnyMembership($user, $topic),
+            default       => false,
+        };
     }
-
-    $visibility = $this->normalizedVisibility($topic->visibility ?? 'CATEGORY');
-
-    // CATEGORY = visível a qualquer pessoa, incluindo visitantes (RF57)
-    if ($visibility === 'CATEGORY') {
-        return true;
-    }
-
-    if ($user === null) {
-        return false;
-    }
-
-    return match ($visibility) {
-        'INVITE_ONLY' => $this->hasAnyMembership($user, $topic),
-        default       => false,
-    };
-}
 
     public function canReply(User $user, DiscussionTopic $topic): bool
     {
@@ -58,7 +53,7 @@ class CommunityAuthorizationService
 
         return match ($this->normalizedVisibility($topic->visibility ?? 'CATEGORY')) {
             'PUBLIC'      => true,
-            'CATEGORY'    => $this->isCategoryMember($user, $topic),
+            'CATEGORY'    => true,
             'INVITE_ONLY' => $this->hasAcceptedMembership($user, $topic),
             default       => false,
         };
@@ -125,18 +120,20 @@ class CommunityAuthorizationService
      *   INVITE_ONLY — visível apenas se o utilizador for membro do tópico
      */
     public function applyVisibleTopicsFilter(Builder $query, ?User $user): void
-{
-    if ($user !== null && $this->bypassesChecks($user)) {
-        return;
-    }
+    {
+        if ($user === null) {
+            $query->whereRaw('1 = 0');
+            return;
+        }
 
-    $table = $query->getModel()->getTable();
+        if ($this->bypassesChecks($user)) {
+            return;
+        }
 
-    $query->where(function (Builder $builder) use ($user, $table): void {
-        // CATEGORY = visível a qualquer pessoa, incluindo visitantes
-        $builder->where("{$table}.visibility", 'CATEGORY');
+        $table = $query->getModel()->getTable();
 
-        if ($user !== null) {
+        $query->where(function (Builder $builder) use ($user, $table): void {
+            $builder->whereIn("{$table}.visibility", ['PUBLIC', 'CATEGORY']);
             $builder->orWhere("{$table}.author_id", $user->id);
 
             $builder->orWhere(function (Builder $invite) use ($user, $table): void {
@@ -148,9 +145,8 @@ class CommunityAuthorizationService
                             ->where('dtm.user_id', $user->id);
                     });
             });
-        }
-    });
-}
+        });
+    }
 
     public function memberRole(User $user, DiscussionTopic $topic): ?string
     {
