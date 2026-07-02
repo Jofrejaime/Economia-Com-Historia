@@ -14,19 +14,63 @@ class Sprint173Test extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
+    private function createAuthenticatedUser(string $role = 'estudante', string $name = 'Test User'): User
     {
-        parent::setUp();
-        // Database is seeded by default in this project's TestCase if $seed = true
-        // But we'll create our specific test data here.
+        $user = User::factory()->create([
+            'role' => $role,
+            'email_verified' => true,
+            'is_active' => true,
+        ]);
+
+        \DB::table('user_profiles')->insert([
+            'id' => (string) Str::uuid(),
+            'user_id' => $user->id,
+            'display_name' => $name,
+            'full_name' => $name . ' Full',
+            'institution' => 'ISPTEC',
+            'province' => 'Luanda',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        \DB::table('user_levels')->insert([
+            'id' => (string) Str::uuid(),
+            'user_id' => $user->id,
+            'current_level' => 1,
+            'total_points' => 0,
+            'weekly_points' => 0,
+            'monthly_points' => 0,
+            'updated_at' => now(),
+        ]);
+
+        \DB::table('user_sessions')->insert([
+            'id' => (string) Str::uuid(),
+            'user_id' => $user->id,
+            'refresh_token' => Str::random(80),
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PHPUnit',
+            'expires_at' => now()->addDay(),
+            'created_at' => now(),
+        ]);
+
+        return $user;
+    }
+
+    private function auth(User $user)
+    {
+        $token = \DB::table('user_sessions')
+            ->where('user_id', $user->id)
+            ->value('refresh_token');
+
+        return $this->withHeader('Authorization', "Bearer {$token}");
     }
 
     public function test_document_without_discussions_has_zero_topics_count()
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = $this->createAuthenticatedUser('admin');
         $document = Document::factory()->create(['status' => 'published']);
 
-        $response = $this->actingAs($admin)->getJson("/api/documents/{$document->id}");
+        $response = $this->auth($admin)->getJson("/api/documents/{$document->id}");
 
         $response->assertStatus(200)
                  ->assertJsonPath('data.topics_count', 0);
@@ -34,51 +78,67 @@ class Sprint173Test extends TestCase
 
     public function test_document_with_discussions_returns_only_its_discussions()
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = $this->createAuthenticatedUser('admin');
         $document = Document::factory()->create(['status' => 'published']);
         $category = CommunityCategory::factory()->create();
 
         $topic1 = DiscussionTopic::factory()->create([
             'document_id' => $document->id,
             'category_id' => $category->id,
-            'status' => 'open'
+            'author_id' => $admin->id,
+            'status' => 'open',
+            'created_at' => now()->subMinutes(5)
         ]);
         
         $topic2 = DiscussionTopic::factory()->create([
             'document_id' => $document->id,
             'category_id' => $category->id,
-            'status' => 'open'
+            'author_id' => $admin->id,
+            'status' => 'open',
+            'created_at' => now()
         ]);
 
         $otherDocument = Document::factory()->create(['status' => 'published']);
-        $topic3 = DiscussionTopic::factory()->create([
+        DiscussionTopic::factory()->create([
             'document_id' => $otherDocument->id,
             'category_id' => $category->id,
+            'author_id' => $admin->id,
             'status' => 'open'
         ]);
 
-        $response = $this->actingAs($admin)->getJson("/api/documents/{$document->id}/topics");
+        $response = $this->auth($admin)->getJson("/api/documents/{$document->id}/topics");
 
         $response->assertStatus(200);
         
         $data = $response->json('data');
         $this->assertCount(2, $data);
-        $this->assertEquals($topic1->id, $data[1]['id']); // Ordered by created_at DESC, so topic2 is first
+        // Ordered by created_at DESC (default in documentTopics)
         $this->assertEquals($topic2->id, $data[0]['id']);
+        $this->assertEquals($topic1->id, $data[1]['id']);
     }
 
     public function test_general_discussion_with_null_document_id_remains_functional()
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = $this->createAuthenticatedUser('admin');
         $category = CommunityCategory::factory()->create();
         
         $topic = DiscussionTopic::factory()->create([
             'document_id' => null,
             'category_id' => $category->id,
-            'status' => 'open'
+            'author_id' => $admin->id,
+            'status' => 'open',
+            'visibility' => 'CATEGORY'
         ]);
 
-        $response = $this->actingAs($admin)->getJson("/api/community/topics?category_id={$category->id}");
+        // Join category to be visible for CATEGORY topic
+        \DB::table('category_members')->insert([
+            'id' => (string) Str::uuid(),
+            'category_id' => $category->id,
+            'user_id' => $admin->id,
+            'joined_at' => now(),
+        ]);
+
+        $response = $this->auth($admin)->getJson("/api/topics?category_id={$category->id}");
         
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data'));
@@ -87,10 +147,10 @@ class Sprint173Test extends TestCase
 
     public function test_create_contextual_topic()
     {
-        $user = User::factory()->create(['role' => 'estudante']);
+        $user = $this->createAuthenticatedUser('estudante');
         $document = Document::factory()->create(['status' => 'published']);
         $category = CommunityCategory::factory()->create();
-        // Assuming category has no visibility restrictions or user is a member
+        
         \DB::table('category_members')->insert([
             'id' => (string) Str::uuid(),
             'category_id' => $category->id,
@@ -104,7 +164,7 @@ class Sprint173Test extends TestCase
             'content' => 'Contextual topic content',
         ];
 
-        $response = $this->actingAs($user)->postJson("/api/documents/{$document->id}/topics", $payload);
+        $response = $this->auth($user)->postJson("/api/documents/{$document->id}/topics", $payload);
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('discussion_topics', [
@@ -115,7 +175,7 @@ class Sprint173Test extends TestCase
 
     public function test_create_general_topic()
     {
-        $user = User::factory()->create(['role' => 'estudante']);
+        $user = $this->createAuthenticatedUser('estudante');
         $category = CommunityCategory::factory()->create();
         \DB::table('category_members')->insert([
             'id' => (string) Str::uuid(),
@@ -130,7 +190,7 @@ class Sprint173Test extends TestCase
             'content' => 'General topic content',
         ];
 
-        $response = $this->actingAs($user)->postJson("/api/community/topics", $payload);
+        $response = $this->auth($user)->postJson("/api/topics", $payload);
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('discussion_topics', [
@@ -141,13 +201,14 @@ class Sprint173Test extends TestCase
 
     public function test_deleting_document_preserves_topic_with_null_document_id()
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = $this->createAuthenticatedUser('admin');
         $document = Document::factory()->create(['status' => 'published']);
         $category = CommunityCategory::factory()->create();
 
         $topic = DiscussionTopic::factory()->create([
             'document_id' => $document->id,
             'category_id' => $category->id,
+            'author_id' => $admin->id,
             'status' => 'open'
         ]);
 

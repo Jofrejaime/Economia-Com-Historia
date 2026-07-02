@@ -462,6 +462,347 @@
                 ]
             }
         },
+        "/admin/access-levels": {
+            "get": {
+                "tags": [
+                    "AccessLevels"
+                ],
+                "summary": "Listar todos os níveis de acesso (Apenas Admin)",
+                "operationId": "adminIndexAccessLevels",
+                "responses": {
+                    "200": {
+                        "description": "Níveis de acesso obtidos com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AccessLevel"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "AccessLevels"
+                ],
+                "summary": "Criar um novo nível de acesso (Apenas Admin)",
+                "operationId": "adminStoreAccessLevel",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string",
+                                        "example": "gold"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ouro"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Acesso super premium"
+                                    },
+                                    "icon": {
+                                        "type": "string",
+                                        "example": "🏆"
+                                    },
+                                    "color_bg": {
+                                        "type": "string",
+                                        "example": "#fef08a"
+                                    },
+                                    "color_text": {
+                                        "type": "string",
+                                        "example": "#854d0e"
+                                    },
+                                    "requires_approval": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "auto_grant": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Nível de acesso criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Access level created successfully."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/AccessLevel"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/access-levels/{id}": {
+            "get": {
+                "tags": [
+                    "AccessLevels"
+                ],
+                "summary": "Visualizar um nível de acesso específico (Apenas Admin)",
+                "operationId": "adminShowAccessLevel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do nível de acesso",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Nível de acesso obtido com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AccessLevel"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Nível de acesso não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "AccessLevels"
+                ],
+                "summary": "Eliminar um nível de acesso (Apenas Admin)",
+                "operationId": "adminDeleteAccessLevel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do nível de acesso",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Nível de acesso eliminado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Access level deleted successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao eliminar"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Nível de acesso não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "AccessLevels"
+                ],
+                "summary": "Atualizar um nível de acesso existente (Apenas Admin)",
+                "operationId": "adminUpdateAccessLevel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do nível de acesso",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ouro Premium"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Acesso a todos os conteúdos do site"
+                                    },
+                                    "icon": {
+                                        "type": "string",
+                                        "example": "🌟"
+                                    },
+                                    "color_bg": {
+                                        "type": "string",
+                                        "example": "#fef08a"
+                                    },
+                                    "color_text": {
+                                        "type": "string",
+                                        "example": "#854d0e"
+                                    },
+                                    "requires_approval": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "auto_grant": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Nível de acesso atualizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Access level updated successfully."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/AccessLevel"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Nível de acesso não encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/admin/document-subscriptions": {
             "get": {
                 "tags": [
@@ -4569,6 +4910,352 @@
                 ]
             }
         },
+        "/admin/level-definitions": {
+            "get": {
+                "tags": [
+                    "LevelDefinitions"
+                ],
+                "summary": "Listar todas as definições de níveis (Apenas Admin)",
+                "operationId": "indexLevelDefinitions",
+                "responses": {
+                    "200": {
+                        "description": "Definições obtidas com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/LevelDefinition"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "LevelDefinitions"
+                ],
+                "summary": "Criar uma nova definição de nível (Apenas Admin)",
+                "operationId": "storeLevelDefinition",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "level",
+                                    "name",
+                                    "min_points"
+                                ],
+                                "properties": {
+                                    "level": {
+                                        "type": "integer",
+                                        "example": 7
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Doutor"
+                                    },
+                                    "min_points": {
+                                        "type": "integer",
+                                        "example": 2000
+                                    },
+                                    "max_points": {
+                                        "type": "integer",
+                                        "example": 3000,
+                                        "nullable": true
+                                    },
+                                    "color_hex": {
+                                        "type": "string",
+                                        "example": "#4ade80"
+                                    },
+                                    "icon_url": {
+                                        "type": "string",
+                                        "example": "http://example.com/icons/level7.png"
+                                    },
+                                    "perks": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "Acesso ilimitado"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Definição criada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Level definition created successfully."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LevelDefinition"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/level-definitions/{level}": {
+            "get": {
+                "tags": [
+                    "LevelDefinitions"
+                ],
+                "summary": "Visualizar uma definição de nível específica (Apenas Admin)",
+                "operationId": "showLevelDefinition",
+                "parameters": [
+                    {
+                        "name": "level",
+                        "in": "path",
+                        "description": "Nível (número inteiro)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Definição obtida com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/LevelDefinition"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Definição não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "LevelDefinitions"
+                ],
+                "summary": "Eliminar uma definição de nível (Apenas Admin)",
+                "operationId": "deleteLevelDefinition",
+                "parameters": [
+                    {
+                        "name": "level",
+                        "in": "path",
+                        "description": "Nível (número inteiro)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Definição eliminada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Level definition deleted successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao eliminar"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Definição não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "LevelDefinitions"
+                ],
+                "summary": "Atualizar uma definição de nível existente (Apenas Admin)",
+                "operationId": "updateLevelDefinition",
+                "parameters": [
+                    {
+                        "name": "level",
+                        "in": "path",
+                        "description": "Nível (número inteiro)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Iniciante Renovado"
+                                    },
+                                    "min_points": {
+                                        "type": "integer",
+                                        "example": 0
+                                    },
+                                    "max_points": {
+                                        "type": "integer",
+                                        "example": 150,
+                                        "nullable": true
+                                    },
+                                    "color_hex": {
+                                        "type": "string",
+                                        "example": "#cbd5e1"
+                                    },
+                                    "icon_url": {
+                                        "type": "string",
+                                        "example": "http://example.com/icons/level1-v2.png"
+                                    },
+                                    "perks": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "Pode visualizar ranking"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Definição atualizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Level definition updated successfully."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LevelDefinition"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Definição não encontrada"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/notifications": {
             "get": {
                 "tags": [
@@ -6264,6 +6951,178 @@
                 ]
             }
         },
+        "/admin/settings": {
+            "get": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Listar todas as configurações da plataforma (Apenas Admin)",
+                "operationId": "indexSettings",
+                "responses": {
+                    "200": {
+                        "description": "Configurações obtidas com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Setting"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
+        "/admin/settings/{key}": {
+            "get": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Visualizar uma configuração específica (Apenas Admin)",
+                "operationId": "showSetting",
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "description": "Chave da configuração",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Configuração obtida com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Setting"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Configuração não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Atualizar o valor de uma configuração (Apenas Admin)",
+                "operationId": "updateSetting",
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "description": "Chave da configuração",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "value"
+                                ],
+                                "properties": {
+                                    "value": {
+                                        "type": "string",
+                                        "example": "Novo Nome do Site"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Configuração atualizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Setting updated successfully."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Setting"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Acesso proibido"
+                    },
+                    "404": {
+                        "description": "Configuração não encontrada"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": [],
+                        "session_token": []
+                    }
+                ]
+            }
+        },
         "/users/search": {
             "get": {
                 "tags": [
@@ -6346,6 +7205,165 @@
         }
     },
     "components": {
+        "schemas": {
+            "Setting": {
+                "title": "Setting",
+                "description": "Configuração global da plataforma",
+                "required": [
+                    "id",
+                    "key",
+                    "value",
+                    "type",
+                    "group",
+                    "is_public"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "019f21a6-c469-70fd-8cff-bef624fdcf28"
+                    },
+                    "key": {
+                        "type": "string",
+                        "example": "site_name"
+                    },
+                    "value": {
+                        "type": "string",
+                        "example": "Economia com História"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "string",
+                        "enum": [
+                            "string",
+                            "integer",
+                            "boolean",
+                            "json",
+                            "float"
+                        ]
+                    },
+                    "group": {
+                        "type": "string",
+                        "example": "general"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Nome oficial da plataforma"
+                    },
+                    "is_public": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "LevelDefinition": {
+                "title": "Level Definition",
+                "description": "Definição de nível para gamificação",
+                "required": [
+                    "level",
+                    "name",
+                    "min_points"
+                ],
+                "properties": {
+                    "level": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Iniciante"
+                    },
+                    "min_points": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "max_points": {
+                        "type": "integer",
+                        "example": 100,
+                        "nullable": true
+                    },
+                    "color_hex": {
+                        "type": "string",
+                        "example": "#94a3b8",
+                        "nullable": true
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "example": "http://example.com/icons/level1.png",
+                        "nullable": true
+                    },
+                    "perks": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "Pode criar tópicos"
+                        ],
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "AccessLevel": {
+                "title": "Access Level",
+                "description": "Nível de acesso/privilégios de documentos/categorias",
+                "required": [
+                    "id",
+                    "name",
+                    "requires_approval",
+                    "auto_grant"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "restricted"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Restrito"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Requer validação manual",
+                        "nullable": true
+                    },
+                    "icon": {
+                        "type": "string",
+                        "example": "🔒",
+                        "nullable": true
+                    },
+                    "color_bg": {
+                        "type": "string",
+                        "example": "#ffb3ba",
+                        "nullable": true
+                    },
+                    "color_text": {
+                        "type": "string",
+                        "example": "#5c0011",
+                        "nullable": true
+                    },
+                    "requires_approval": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "auto_grant": {
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "bearer_token": {
                 "type": "http",
@@ -6399,8 +7417,20 @@
             "description": "Operações de administração de Quizzes"
         },
         {
+            "name": "AccessLevels",
+            "description": "AccessLevels"
+        },
+        {
             "name": "Admin - Subscriptions",
             "description": "Admin - Subscriptions"
+        },
+        {
+            "name": "LevelDefinitions",
+            "description": "LevelDefinitions"
+        },
+        {
+            "name": "Settings",
+            "description": "Settings"
         },
         {
             "name": "Users",

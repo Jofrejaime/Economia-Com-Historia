@@ -122,8 +122,6 @@ Ou é totalmente administrável (Categoria A completa) ou permanece interna.
 | Documentação API | L5-Swagger (OpenAPI 3) |
 | Testes | PHPUnit 12 via `php artisan test` |
 
----
-
 ## Regras de Implementação para Agentes
 
 1. **Sempre verificar** `routes/api.php` antes de adicionar qualquer rota — usar exclusivamente o grupo `prefix('admin')` para operações administrativas.
@@ -132,6 +130,14 @@ Ou é totalmente administrável (Categoria A completa) ou permanece interna.
 4. **Sempre executar** `php artisan test` antes de reportar tarefa como concluída.
 5. **Nunca** usar `Route::prefix('v1/admin')` — este prefix foi eliminado e é proibido.
 6. **Verbos PATCH** são o padrão para transições de estado (publish, review, archive). Verbos POST redundantes para as mesmas acções não devem ser adicionados.
+7. **Sempre declarar a regra de confirmação de senha** no array de validação como `'confirmed'` e nunca encadear `->confirmed()` no objeto `Password` do Laravel (isso evita erros fatais de método inexistente).
+8. **Respeitar rigorosamente a visibilidade dos tópicos** (`PUBLIC`, `CATEGORY`, `INVITE_ONLY`):
+   - `PUBLIC`: qualquer utilizador autenticado pode ver e responder.
+   - `CATEGORY`: apenas membros da categoria (`category_members`) podem ver e responder.
+   - `INVITE_ONLY`: apenas dono (owner), moderadores e convidados (`discussion_topic_members`) podem ver e responder.
+   Garantir que a filtragem em `applyVisibleTopicsFilter` e no `CommunityAuthorizationService` siga esta matriz de acesso de forma correta.
+9. **Sempre criar Factories Eloquent** para todas as entidades persistidas que sejam utilizadas nos testes (ex.: `DocumentFactory`, `QuizFactory`) em `database/factories/` para evitar erros de factory não encontrada.
+10. **Alinhar rigorosamente chaves em Resources e Testes:** Atributos como contagens ou sub-arrays estruturados (ex.: `documents_in_category` vs `category_documents`, `related_quizzes` vs `quizzes`, `related_topics` vs `discussions`) devem manter nomes e tipos consistentes entre os Laravel Resources e as asserções da suite de testes.
 
 ---
 

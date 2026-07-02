@@ -15,6 +15,9 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\QuizController;
 use App\Http\Controllers\Api\QuizAdminController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\Api\LevelDefinitionController;
+use App\Http\Controllers\Api\AccessLevelController;
 use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\OptionalAuthenticateApiSession;
 use Illuminate\Support\Facades\Route;
@@ -23,10 +26,10 @@ use App\Http\Controllers\Api\BadgeController;
 Route::get('/health', HealthController::class);
 
 Route::prefix('auth')->group(function (): void {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth');
     Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth');
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
@@ -97,6 +100,25 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::delete('/quizzes/{id}', [QuizAdminController::class, 'destroy']);
         Route::post('/quizzes/{id}/documents', [QuizAdminController::class, 'syncDocuments']);
         Route::delete('/quizzes/{id}/documents/{documentId}', [QuizAdminController::class, 'detachDocument']);
+
+        // Settings management
+        Route::get('/settings', [SettingsController::class, 'index']);
+        Route::get('/settings/{key}', [SettingsController::class, 'show']);
+        Route::patch('/settings/{key}', [SettingsController::class, 'update']);
+
+        // Level Definitions management
+        Route::get('/level-definitions', [LevelDefinitionController::class, 'index']);
+        Route::get('/level-definitions/{level}', [LevelDefinitionController::class, 'show']);
+        Route::post('/level-definitions', [LevelDefinitionController::class, 'store']);
+        Route::patch('/level-definitions/{level}', [LevelDefinitionController::class, 'update']);
+        Route::delete('/level-definitions/{level}', [LevelDefinitionController::class, 'destroy']);
+
+        // Access Levels management
+        Route::get('/access-levels', [AccessLevelController::class, 'index']);
+        Route::get('/access-levels/{id}', [AccessLevelController::class, 'show']);
+        Route::post('/access-levels', [AccessLevelController::class, 'store']);
+        Route::patch('/access-levels/{id}', [AccessLevelController::class, 'update']);
+        Route::delete('/access-levels/{id}', [AccessLevelController::class, 'destroy']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);

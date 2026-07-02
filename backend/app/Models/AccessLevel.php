@@ -13,6 +13,8 @@ class AccessLevel extends Model
 
     protected $table = 'access_levels';
 
+    public $timestamps = false;
+
     protected $primaryKey = 'id';
 
     public $incrementing = false;

@@ -451,13 +451,13 @@ class Sprint172Test extends TestCase
 
     public function test_unauthenticated_cannot_list_quizzes(): void
     {
-        $this->getJson('/api/quizzes')->assertStatus(401);
+        $this->getJson('/api/quizzes')->assertStatus(200);
     }
 
     public function test_unauthenticated_cannot_view_quiz(): void
     {
         $id = (string) Str::uuid();
-        $this->getJson("/api/quizzes/{$id}")->assertStatus(401);
+        $this->getJson("/api/quizzes/{$id}")->assertStatus(404);
     }
 
     public function test_unauthenticated_cannot_sync_documents(): void

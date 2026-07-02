@@ -97,9 +97,9 @@ class DocumentResource extends JsonResource
                     return null;
                 }
                 return [
-                    'category_documents' => (int) ($this->resource->category->documents_count ?? 0),
-                    'quizzes'            => (int) ($this->quizzes_count ?? 0),
-                    'discussions'        => (int) ($this->topics_count ?? 0),
+                    'documents_in_category' => (int) ($this->resource->category->documents_count ?? 0),
+                    'related_quizzes'       => (int) ($this->quizzes_count ?? 0),
+                    'related_topics'        => (int) ($this->topics_count ?? 0),
                 ];
             }) : null,
 

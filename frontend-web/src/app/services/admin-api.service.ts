@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, Observable, of, timeout, TimeoutError } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -81,6 +81,28 @@ export interface AccessGrantRecord {
   expires_at: string | null;
   revoked_at: string | null;
   is_active: boolean;
+}
+
+export interface SettingRecord {
+  id: string;
+  key: string;
+  value: any;
+  type: 'string' | 'integer' | 'boolean' | 'json' | 'float';
+  group: string;
+  description: string | null;
+  is_public: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface LevelDefinitionRecord {
+  level: number;
+  name: string;
+  min_points: number;
+  max_points: number | null;
+  color_hex: string | null;
+  icon_url: string | null;
+  perks: string[] | null;
 }
 
 export interface ApiResult<T> {
@@ -205,6 +227,48 @@ export class AdminApiService {
         data: response.body?.data,
       })),
       catchError((error: unknown) => of(this.toFailureResult<AccessGrantRecord>(error, 'Erro ao revogar concessão de acesso')))
+    );
+  }
+
+  listSettings(): Observable<ApiResult<SettingRecord[]>> {
+    return this.http.get<ApiEnvelope<SettingRecord[]>>(`${environment.apiBaseUrl}/api/admin/settings`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<SettingRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
+      catchError((error: unknown) => of(this.toFailureResult<SettingRecord[]>(error, 'Erro ao carregar configurações')))
+    );
+  }
+
+  updateSetting(key: string, value: any): Observable<ApiResult<SettingRecord>> {
+    return this.http.patch<ApiEnvelope<SettingRecord>>(`${environment.apiBaseUrl}/api/admin/settings/${key}`, { value }, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<SettingRecord> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<SettingRecord>(error, 'Erro ao actualizar configuração')))
+    );
+  }
+
+  listLevelDefinitions(): Observable<ApiResult<LevelDefinitionRecord[]>> {
+    return this.http.get<ApiEnvelope<LevelDefinitionRecord[]>>(`${environment.apiBaseUrl}/api/admin/level-definitions`, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<LevelDefinitionRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
+      catchError((error: unknown) => of(this.toFailureResult<LevelDefinitionRecord[]>(error, 'Erro ao carregar definições de níveis')))
+    );
+  }
+
+  updateLevelDefinition(level: number, payload: Partial<LevelDefinitionRecord>): Observable<ApiResult<LevelDefinitionRecord>> {
+    return this.http.patch<ApiEnvelope<LevelDefinitionRecord>>(`${environment.apiBaseUrl}/api/admin/level-definitions/${level}`, payload, { observe: 'response' }).pipe(
+      timeout({ first: 15000 }),
+      map((response): ApiResult<LevelDefinitionRecord> => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<LevelDefinitionRecord>(error, 'Erro ao actualizar nível')))
     );
   }
 

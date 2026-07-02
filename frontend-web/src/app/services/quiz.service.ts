@@ -180,7 +180,7 @@ export class QuizService {
   async createQuiz(payload: QuizPayload): Promise<Quiz> {
     const res = await firstValueFrom(
       this.http.post<{ message: string; data: Quiz }>(
-        `${this.base}/quizzes`,
+        `${this.base}/admin/quizzes`,
         payload,
         { headers: this.headers }
       )
@@ -191,7 +191,7 @@ export class QuizService {
   async updateQuiz(id: string, payload: QuizPayload): Promise<Quiz> {
     const res = await firstValueFrom(
       this.http.patch<{ message: string; data: Quiz }>(
-        `${this.base}/quizzes/${id}`,
+        `${this.base}/admin/quizzes/${id}`,
         payload,
         { headers: this.headers }
       )
@@ -201,7 +201,7 @@ export class QuizService {
 
   async deleteQuiz(id: string): Promise<void> {
     await firstValueFrom(
-      this.http.delete(`${this.base}/quizzes/${id}`, { headers: this.headers })
+      this.http.delete(`${this.base}/admin/quizzes/${id}`, { headers: this.headers })
     );
   }
 

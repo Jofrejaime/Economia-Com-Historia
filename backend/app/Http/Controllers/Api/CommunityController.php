@@ -11,6 +11,7 @@ use App\Models\TopicLike;
 use App\Models\ReplyLike;
 use App\Models\TopicFollower;
 use App\Models\CategoryMember;
+use App\Models\Document;
 use App\Services\CommunityAuthorizationService;
 use App\Services\GamificationService;
 use App\Services\NotificationService;
@@ -500,11 +501,6 @@ class CommunityController extends Controller
 
             return $topic->load(['author.profile', 'category', 'members.user.profile']);
         });
-
-        return response()->json([
-            'message' => 'Topic created successfully.',
-            'data' => $topic,
-        ], 201);
     }
 
     /**
