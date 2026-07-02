@@ -7,45 +7,40 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AccessRequest extends Model
+class Report extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'user_access_requests';
+    protected $table = 'content_reports';
 
-    public $timestamps = false;
+    public $timestamps = false; // We use created_at manually or it defaults
 
     protected $fillable = [
         'id',
-        'user_id',
-        'access_level_id',
+        'reporter_id',
+        'content_type',
+        'content_id',
+        'reason',
+        'description',
         'status',
-        'justification',
         'reviewed_by',
         'reviewed_at',
-        'review_notes',
-        'expires_at',
+        'action_taken',
         'created_at',
     ];
 
     protected $casts = [
         'reviewed_at' => 'datetime',
-        'expires_at' => 'datetime',
         'created_at' => 'datetime',
     ];
 
-    public function user(): BelongsTo
+    public function reporter(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'reporter_id');
     }
 
     public function reviewedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
-    }
-
-    public function accessLevel(): BelongsTo
-    {
-        return $this->belongsTo(AccessLevel::class, 'access_level_id');
     }
 }

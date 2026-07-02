@@ -8,6 +8,7 @@ use App\Models\QuizAttempt;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
 
 class QuizAttemptService
 {
@@ -15,6 +16,10 @@ class QuizAttemptService
         private readonly AccessGateService $accessGate,
         private readonly GamificationService $gamification,
     ) {}
+
+    // ──────────────────────────────────────────────
+    // Operações do Utilizador (Existentes)
+    // ──────────────────────────────────────────────
 
     public function startAttempt(string $quizId, User $user): string
     {
@@ -201,10 +206,8 @@ class QuizAttemptService
 
     private function updateStatistics(Quiz $quiz, QuizAttempt $attempt): void
     {
-        // Increment completions_count
         $quiz->increment('completions_count');
 
-        // Calculate and update avg_score
         $avgScore = QuizAttempt::where('quiz_id', $attempt->quiz_id)
             ->completed()
             ->avg('score');
@@ -222,5 +225,123 @@ class QuizAttemptService
             $scorePercent >= 50 => 'fair',
             default             => 'needs_improvement',
         };
+    }
+
+    // ──────────────────────────────────────────────
+    // Métodos Administrativos / Leitura (Novos)
+    // ──────────────────────────────────────────────
+
+    public function list(array $filters = []): array
+    {
+        $query = QuizAttempt::query()->with(['user.profile', 'quiz']);
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user.profile', function ($uq) use ($search) {
+                    $uq->where('display_name', 'like', '%' . $search . '%')
+                       ->orWhere('full_name', 'like', '%' . $search . '%');
+                })->orWhereHas('quiz', function ($qq) use ($search) {
+                    $qq->where('title', 'like', '%' . $search . '%');
+                });
+            });
+        }
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (!empty($filters['quiz_id'])) {
+            $query->where('quiz_id', $filters['quiz_id']);
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (isset($filters['min_score'])) {
+            $query->where('score', '>=', (int) $filters['min_score']);
+        }
+
+        if (isset($filters['max_score'])) {
+            $query->where('score', '<=', (int) $filters['max_score']);
+        }
+
+        $query->orderByDesc('started_at');
+
+        $perPage = min((int) ($filters['per_page'] ?? 15), 100);
+        $paginated = $query->paginate($perPage);
+
+        return [
+            'data' => collect($paginated->items()),
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page'    => $paginated->lastPage(),
+                'per_page'     => $paginated->perPage(),
+                'total'        => $paginated->total(),
+            ]
+        ];
+    }
+
+    public function find(string $id): ?QuizAttempt
+    {
+        $attempt = QuizAttempt::with(['user.profile', 'quiz'])->find($id);
+        if ($attempt !== null) {
+            // Load responses
+            $answers = DB::table('quiz_attempt_answers as qaa')
+                ->join('quiz_questions as qq', 'qq.id', '=', 'qaa.question_id')
+                ->leftJoin('quiz_options as qo', 'qo.id', '=', 'qaa.selected_option_id')
+                ->where('qaa.attempt_id', $id)
+                ->select([
+                    'qaa.id',
+                    'qaa.question_id',
+                    'qq.title as question_title',
+                    'qaa.selected_option_id',
+                    'qo.text as option_text',
+                    'qo.option_key',
+                    'qaa.is_correct',
+                    'qo.explanation',
+                    'qaa.time_spent_secs',
+                ])
+                ->get();
+            $attempt->answers = $answers;
+        }
+        return $attempt;
+    }
+
+    public function userAttempts(string $userId): Collection
+    {
+        return QuizAttempt::where('user_id', $userId)
+            ->with('quiz')
+            ->orderByDesc('started_at')
+            ->get();
+    }
+
+    public function quizAttempts(string $quizId): Collection
+    {
+        return QuizAttempt::where('quiz_id', $quizId)
+            ->with('user.profile')
+            ->orderByDesc('started_at')
+            ->get();
+    }
+
+    public function statistics(): array
+    {
+        $total = QuizAttempt::count();
+        $completed = QuizAttempt::completed()->count();
+        $inProgress = QuizAttempt::inProgress()->count();
+
+        $avgScore = QuizAttempt::completed()->avg('score') ?? 0;
+        $successRate = $completed > 0
+            ? (QuizAttempt::completed()->where('score', '>=', 50)->count() / $completed) * 100
+            : 0;
+
+        return [
+            'total'           => $total,
+            'completed'       => $completed,
+            'in_progress'     => $inProgress,
+            'avg_score'       => round($avgScore, 2),
+            'success_rate'    => round($successRate, 2),
+        ];
     }
 }

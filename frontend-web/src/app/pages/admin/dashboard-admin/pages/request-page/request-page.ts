@@ -2,7 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { AccessRequestRecord, AdminApiService } from '../../../../../services/admin-api.service';
+import { ModerationAdminService } from '../../../../../services/moderation-admin.service';
+import { AccessRequest as ApiAccessRequest } from '../../../../../models/moderation-admin.models';
 
 interface AccessRequest {
   id: string;
@@ -16,7 +17,7 @@ interface AccessRequest {
   avatarInitials: string;
   avatarColor: string;
   accessLevelId: string;
-  status: 'pending' | 'approved' | 'rejected' | 'revoked';
+  status: 'pending' | 'approved' | 'rejected' | 'revoked' | 'cancelled';
   reviewNotes?: string | null;
   reviewedBy?: string | null;
   reviewedAt?: string | null;
@@ -61,7 +62,7 @@ export class RequestsPageComponent implements OnInit {
   confirmActionStates: Record<string, 'approved' | 'rejected' | null> = {};
   historyNoteOpenStates: Record<string, boolean> = {};
 
-  constructor(private adminApi: AdminApiService) {}
+  constructor(private moderationService: ModerationAdminService) {}
 
   ngOnInit(): void {
     void this.loadRequests();
@@ -97,7 +98,7 @@ export class RequestsPageComponent implements OnInit {
     this.loading = true;
     this.errorMessage = null;
 
-    const result = await firstValueFrom(this.adminApi.listAccessRequests({ scope: 'all' }));
+    const result = await firstValueFrom(this.moderationService.getAccessRequests());
 
     if (!result.ok || !result.data) {
       this.pending = [];
@@ -161,10 +162,7 @@ export class RequestsPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const result = await firstValueFrom(this.adminApi.reviewAccessRequest(id, {
-      status: 'approved',
-      review_notes: note || undefined,
-    }));
+    const result = await firstValueFrom(this.moderationService.approveAccessRequest(id, note || undefined));
 
     if (!result.ok) {
       this.errorMessage = result.message || 'Não foi possível aprovar o pedido.';
@@ -189,10 +187,7 @@ export class RequestsPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const result = await firstValueFrom(this.adminApi.reviewAccessRequest(id, {
-      status: 'rejected',
-      review_notes: this.noteTexts[id]?.trim() || undefined,
-    }));
+    const result = await firstValueFrom(this.moderationService.rejectAccessRequest(id, this.noteTexts[id]?.trim() || undefined));
 
     if (!result.ok) {
       this.errorMessage = result.message || 'Não foi possível rejeitar o pedido.';
@@ -263,7 +258,7 @@ export class RequestsPageComponent implements OnInit {
     URL.revokeObjectURL(url);
   }
 
-  private toViewRequest(item: AccessRequestRecord): AccessRequest {
+  private toViewRequest(item: ApiAccessRequest): AccessRequest {
     const accessLevelName = (item.access_level_name || item.access_level_id || '').toLowerCase();
     const isRestrito = accessLevelName.includes('restricted') || accessLevelName.includes('restrit');
     const name = item.user_display_name || 'Utilizador';

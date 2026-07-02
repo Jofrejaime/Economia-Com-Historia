@@ -3,121 +3,254 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Badge;
+use App\Http\Requests\StoreBadgeRequest;
+use App\Http\Requests\UpdateBadgeRequest;
+use App\Http\Resources\BadgeResource;
+use App\Services\BadgeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
+/**
+ * @OA\Tag(
+ *     name="Badges",
+ *     description="Gerenciamento de Badges de Gamificação"
+ * )
+ */
 class BadgeController extends Controller
 {
-    public function index(): JsonResponse
-    {
-        $badges = Badge::query()
-            ->withCount('userBadges')
-            ->orderBy('name')
-            ->get()
-            ->map(fn (Badge $badge) => $this->presentBadge($badge));
+    public function __construct(
+        private readonly BadgeService $badgeService
+    ) {}
 
-        $totalEarned = DB::table('user_badges')->count();
+    /**
+     * @OA\Get(
+     *     path="/api/badges",
+     *     summary="Listar todos os badges",
+     *     tags={"Badges"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de badges e estatísticas",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Badge")),
+     *             @OA\Property(property="stats", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $filters = $request->only(['search', 'is_active', 'category', 'per_page', 'page']);
+        $result = $this->badgeService->list($filters);
 
         return response()->json([
-            'data' => $badges,
-            'stats' => [
-                'total' => $badges->count(),
-                'active' => $badges->where('is_active', true)->count(),
-                'earned' => $totalEarned,
-            ],
+            'data'  => BadgeResource::collection($result['data']),
+            'stats' => $result['stats'],
+            'meta'  => $result['meta'],
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    /**
+     * @OA\Post(
+     *     path="/api/admin/badges",
+     *     summary="Criar um novo badge (Admin)",
+     *     tags={"Badges"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/BadgeInput")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Badge criado com sucesso",
+     *         @OA\JsonContent(ref="#/components/schemas/Badge")
+     *     )
+     * )
+     */
+    public function store(StoreBadgeRequest $request): JsonResponse
     {
-        $validated = $this->validatePayload($request);
-
-        $badge = Badge::create([
-            ...$validated,
-            'created_at' => now(),
-        ]);
+        $badge = $this->badgeService->create($request->validated(), $request->user());
 
         return response()->json([
             'message' => 'Badge criado com sucesso.',
-            'data' => $this->presentBadge($badge->loadCount('userBadges')),
+            'data'    => new BadgeResource($badge),
         ], 201);
     }
 
-    public function update(Request $request, string $id): JsonResponse
+    /**
+     * @OA\Get(
+     *     path="/api/badges/{id}",
+     *     summary="Ver detalhes de um badge",
+     *     tags={"Badges"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Detalhes do badge",
+     *         @OA\JsonContent(ref="#/components/schemas/Badge")
+     *     )
+     * )
+     */
+    public function show(string $id): JsonResponse
     {
-        $badge = Badge::query()->find($id);
+        $badge = $this->badgeService->find($id);
 
         if ($badge === null) {
             return response()->json(['message' => 'Badge não encontrado.'], 404);
         }
 
-        $validated = $this->validatePayload($request, $id);
-        $badge->update($validated);
+        return response()->json([
+            'data' => new BadgeResource($badge),
+        ]);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/admin/badges/{id}",
+     *     summary="Atualizar um badge (Admin)",
+     *     tags={"Badges"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/BadgeInput")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Badge atualizado com sucesso"
+     *     )
+     * )
+     */
+    public function update(UpdateBadgeRequest $request, string $id): JsonResponse
+    {
+        $badge = $this->badgeService->update($id, $request->validated(), $request->user());
 
         return response()->json([
             'message' => 'Badge atualizado com sucesso.',
-            'data' => $this->presentBadge($badge->loadCount('userBadges')),
+            'data'    => new BadgeResource($badge),
         ]);
     }
 
-    public function toggleStatus(string $id): JsonResponse
+    /**
+     * @OA\Post(
+     *     path="/api/admin/badges/{id}/toggle-status",
+     *     summary="Alternar status ativo/inativo de um badge (Admin)",
+     *     tags={"Badges"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Status alternado"
+     *     )
+     * )
+     */
+    public function toggleStatus(Request $request, string $id): JsonResponse
     {
-        $badge = Badge::query()->find($id);
-
-        if ($badge === null) {
-            return response()->json(['message' => 'Badge não encontrado.'], 404);
-        }
-
-        $badge->update(['is_active' => ! $badge->is_active]);
+        $badge = $this->badgeService->toggleStatus($id, $request->user());
 
         return response()->json([
             'message' => 'Estado do badge alterado.',
-            'data' => $this->presentBadge($badge->loadCount('userBadges')),
+            'data'    => new BadgeResource($badge),
         ]);
     }
 
-    public function destroy(string $id): JsonResponse
+    /**
+     * @OA\Delete(
+     *     path="/api/admin/badges/{id}",
+     *     summary="Excluir um badge (Admin)",
+     *     tags={"Badges"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Badge excluído com sucesso"
+     *     )
+     * )
+     */
+    public function destroy(Request $request, string $id): JsonResponse
     {
-        $badge = Badge::query()->find($id);
+        $this->badgeService->delete($id, $request->user());
 
-        if ($badge === null) {
-            return response()->json(['message' => 'Badge não encontrado.'], 404);
-        }
-
-        $badge->delete();
-
-        return response()->json(['message' => 'Badge eliminado com sucesso.']);
-    }
-
-    private function validatePayload(Request $request, ?string $ignoreId = null): array
-    {
-        return $request->validate([
-            'name' => ['required', 'string', 'max:100', 'unique:badges,name' . ($ignoreId ? ",$ignoreId" : '')],
-            'description' => ['required', 'string'],
-            'icon_url' => ['nullable', 'string', 'max:500'],
-            'color_hex' => ['nullable', 'string', 'max:7'],
-            'category' => ['nullable', 'string', 'max:50'],
-            'criteria_type' => ['required', 'in:points,quizzes,documents'],
-            'criteria_value' => ['required', 'integer', 'min:1'],
-            'is_active' => ['boolean'],
+        return response()->json([
+            'message' => 'Badge eliminado com sucesso.',
         ]);
     }
 
-    private function presentBadge(Badge $badge): array
+    /**
+     * @OA\Post(
+     *     path="/api/admin/badges/{id}/assign",
+     *     summary="Atribuir badge a um utilizador manualmente (Admin)",
+     *     tags={"Badges"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="user_id", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Badge atribuído com sucesso"
+     *     )
+     * )
+     */
+    public function assign(Request $request, string $id): JsonResponse
     {
-        return [
-            'id' => $badge->id,
-            'name' => $badge->name,
-            'description' => $badge->description,
-            'icon_url' => $badge->icon_url,
-            'color_hex' => $badge->color_hex,
-            'category' => $badge->category,
-            'criteria_type' => $badge->criteria_type,
-            'criteria_value' => $badge->criteria_value,
-            'is_active' => $badge->is_active,
-            'earned_count' => $badge->user_badges_count ?? 0,
-        ];
+        $request->validate(['user_id' => 'required|uuid']);
+        $this->badgeService->assign($id, $request->input('user_id'), $request->user());
+
+        return response()->json([
+            'message' => 'Badge atribuído com sucesso.',
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/admin/badges/{id}/remove",
+     *     summary="Remover badge de um utilizador manualmente (Admin)",
+     *     tags={"Badges"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="user_id", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Badge removido com sucesso"
+     *     )
+     * )
+     */
+    public function remove(Request $request, string $id): JsonResponse
+    {
+        $request->validate(['user_id' => 'required|uuid']);
+        $this->badgeService->remove($id, $request->input('user_id'), $request->user());
+
+        return response()->json([
+            'message' => 'Badge removido com sucesso.',
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/admin/badges/{id}/recalculate",
+     *     summary="Recalcular utilizadores elegíveis para o badge (Admin)",
+     *     tags={"Badges"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Elegibilidade recalculada com sucesso"
+     *     )
+     * )
+     */
+    public function recalculate(Request $request, string $id): JsonResponse
+    {
+        $this->badgeService->recalculateEligibleUsers($id, $request->user());
+
+        return response()->json([
+            'message' => 'Recálculo de elegibilidade concluído.',
+        ]);
     }
 }

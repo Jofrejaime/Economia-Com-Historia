@@ -2,25 +2,20 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { AdminApiService, AdminUser } from '../../../../../services/admin-api.service';
+import { ModerationAdminService } from '../../../../../services/moderation-admin.service';
 import { CommunityAdminService } from '../../../../../services/community-admin.service';
 import { DocumentAdminService } from '../../../../../services/document-admin.service';
-import { ReportAdminService } from '../../../../../services/report-admin.service';
-import {
-  ModerationStats,
-  Report,
-  ReportAction,
-  ReportContentPreview,
-} from '../../../../../models/report-admin.models';
+import { AdminApiService, AdminUser } from '../../../../../services/admin-api.service';
+import { Report as ApiReport, ReportStatus, ReportReason, ContentType } from '../../../../../models/moderation-admin.models';
 import { Document } from '../../../../../models/document-admin.models';
 import { DiscussionTopic } from '../../../../../models/community-admin.models';
 
-type ReportStatusFilter = 'todos' | 'pending' | 'reviewed' | 'dismissed' | 'actioned';
-type ReportContentTypeFilter = 'todos' | 'document' | 'topic' | 'reply' | 'user';
+type ReportStatusFilter = 'todos' | ReportStatus;
+type ReportContentTypeFilter = 'todos' | ContentType;
 type ReportSortBy = 'created_at' | 'status' | 'reason' | 'content_type';
 type ReportSortDir = 'desc' | 'asc';
 
-interface ReportView extends Report {
+interface ReportView extends ApiReport {
   reporter_name: string;
   content_label: string;
   content_title: string;
@@ -30,12 +25,22 @@ interface ReportView extends Report {
 }
 
 interface ReportFormState {
-  status: 'pending' | 'reviewed' | 'dismissed' | 'actioned';
+  status: ReportStatus;
   action_taken: string;
 }
 
 interface TopicPreview extends DiscussionTopic {
   author_name?: string;
+}
+
+interface ReportContentPreview {
+  id: string;
+  title: string;
+  author: string;
+  summary: string | null;
+  status: string;
+  updated_at?: string;
+  extra?: Record<string, any>;
 }
 
 @Component({
@@ -67,12 +72,11 @@ export class ReportsPageComponent implements OnInit {
 
   reports: ReportView[] = [];
   reportForm: ReportFormState = this.createEmptyForm();
-  stats: ModerationStats = {
+  stats = {
     total: 0,
     pending: 0,
-    reviewed: 0,
+    resolved: 0,
     dismissed: 0,
-    actioned: 0,
   };
 
   users: AdminUser[] = [];
@@ -84,7 +88,7 @@ export class ReportsPageComponent implements OnInit {
 
   constructor(
     private adminApi: AdminApiService,
-    private reportAdmin: ReportAdminService,
+    private moderationService: ModerationAdminService,
     private documentAdmin: DocumentAdminService,
     private communityAdmin: CommunityAdminService
   ) {}
@@ -143,18 +147,13 @@ export class ReportsPageComponent implements OnInit {
     this.loading = true;
     this.errorMessage = null;
 
-    const [summaryResult, reportsResult, usersResult] = await Promise.allSettled([
-      firstValueFrom(this.adminApi.getSummary()),
-      firstValueFrom(this.reportAdmin.getReports()),
+    const [reportsResult, usersResult] = await Promise.allSettled([
+      firstValueFrom(this.moderationService.getReports()),
       firstValueFrom(this.adminApi.listUsers({ status: 'all' })),
     ]);
 
     if (usersResult.status === 'fulfilled' && usersResult.value.ok && usersResult.value.data) {
       this.users = usersResult.value.data;
-    }
-
-    if (summaryResult.status === 'fulfilled' && summaryResult.value.ok && summaryResult.value.data) {
-      this.stats = this.mapSummaryToStats(summaryResult.value.data);
     }
 
     if (reportsResult.status !== 'fulfilled' || !reportsResult.value.ok || !reportsResult.value.data) {
@@ -166,9 +165,9 @@ export class ReportsPageComponent implements OnInit {
       return;
     }
 
-    this.reports = reportsResult.value.data.data.map((report) => this.toViewReport(report));
+    this.reports = reportsResult.value.data.map((report) => this.toViewReport(report));
     this.currentPage = 1;
-    this.recalculateStatsFallback();
+    this.recalculateStats();
     this.loading = false;
   }
 
@@ -196,7 +195,7 @@ export class ReportsPageComponent implements OnInit {
     this.previewError = null;
     this.selectedPreview = null;
 
-    const result = await firstValueFrom(this.reportAdmin.getReport(report.id));
+    const result = await firstValueFrom(this.moderationService.getReport(report.id));
 
     if (!result.ok || !result.data) {
       this.errorMessage = result.message || 'Não foi possível carregar a denúncia.';
@@ -207,13 +206,7 @@ export class ReportsPageComponent implements OnInit {
     this.selectedReportDetail = this.toViewReport(result.data);
     this.selectedReport = { ...this.selectedReportDetail };
     this.reportForm = {
-      status: this.selectedReportDetail.status === 'pending'
-        ? 'pending'
-        : this.selectedReportDetail.status === 'reviewed'
-          ? 'reviewed'
-          : this.selectedReportDetail.status === 'dismissed'
-            ? 'dismissed'
-            : 'actioned',
+      status: this.selectedReportDetail.status,
       action_taken: this.selectedReportDetail.action_taken || '',
     };
     this.showReportModal = true;
@@ -241,11 +234,9 @@ export class ReportsPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const result = await firstValueFrom(this.reportAdmin.updateReport(this.selectedReportDetail.id, {
+    const result = await firstValueFrom(this.moderationService.reviewReport(this.selectedReportDetail.id, {
       status: this.reportForm.status,
-      reviewed_by: this.selectedReportDetail.reviewed_by,
-      reviewed_at: new Date().toISOString(),
-      action_taken: this.reportForm.action_taken.trim() || null,
+      action_taken: this.reportForm.action_taken.trim() || undefined,
     }));
 
     if (!result.ok || !result.data) {
@@ -260,9 +251,17 @@ export class ReportsPageComponent implements OnInit {
     await this.loadInitialData();
   }
 
-  async applyAction(action: ReportAction): Promise<void> {
+  async applyAction(action: 'warn' | 'delete' | 'hide' | 'restore' | 'dismiss' | 'flag'): Promise<void> {
     if (!this.selectedReportDetail) {
       this.errorMessage = 'Selecione uma denúncia para moderar.';
+      return;
+    }
+
+    const confirmMsg = action === 'delete'
+      ? 'Tem a certeza que deseja eliminar permanentemente este conteúdo?'
+      : `Deseja aplicar a acção "${this.getActionLabel(action)}" a esta denúncia?`;
+
+    if (!confirm(confirmMsg)) {
       return;
     }
 
@@ -270,10 +269,8 @@ export class ReportsPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const result = await firstValueFrom(this.reportAdmin.executeAction(this.selectedReportDetail.id, {
-      action,
-      reason: this.reportForm.action_taken.trim() || this.getFallbackActionReason(action),
-    }));
+    const reason = this.reportForm.action_taken.trim() || this.getFallbackActionReason(action);
+    const result = await firstValueFrom(this.moderationService.executeAction(this.selectedReportDetail.id, action, reason));
 
     if (!result.ok) {
       this.errorMessage = result.message || 'Não foi possível executar a acção de moderação.';
@@ -292,6 +289,7 @@ export class ReportsPageComponent implements OnInit {
       pending: 'Pendente',
       reviewed: 'Revisado',
       dismissed: 'Arquivado',
+      resolved: 'Resolvido',
       actioned: 'Actionado',
     };
     return labels[status] || status;
@@ -319,47 +317,33 @@ export class ReportsPageComponent implements OnInit {
     return labels[reason] || reason;
   }
 
+  getActionLabel(action: string): string {
+    const labels: Record<string, string> = {
+      warn: 'Aviso',
+      delete: 'Eliminar',
+      hide: 'Ocultar',
+      restore: 'Restaurar',
+      dismiss: 'Arquivar',
+      flag: 'Sinalizar',
+    };
+    return labels[action] || action;
+  }
+
   getReporterOptions(): AdminUser[] {
     const reporterIds = new Set(this.reports.map((report) => report.reporter_id));
     return this.users.filter((user) => reporterIds.has(user.id));
   }
 
-  getStats(): ModerationStats {
+  getStats() {
     return this.stats;
   }
 
-  private mapSummaryToStats(summary: {
-    moderation?: {
-      reports_pending?: number;
-      reviewed?: number;
-      reports_dismissed?: number;
-      actioned?: number;
-    };
-  }): ModerationStats {
-    const pending = summary.moderation?.reports_pending ?? 0;
-    const reviewed = summary.moderation?.reviewed ?? 0;
-    const dismissed = summary.moderation?.reports_dismissed ?? 0;
-
-    return {
-      total: pending + reviewed + dismissed,
-      pending,
-      reviewed,
-      dismissed,
-      actioned: summary.moderation?.actioned ?? 0,
-    };
-  }
-
-  private recalculateStatsFallback(): void {
-    if (this.stats.total > 0) {
-      return;
-    }
-
+  private recalculateStats(): void {
     this.stats = {
       total: this.reports.length,
       pending: this.reports.filter((report) => report.status === 'pending').length,
-      reviewed: this.reports.filter((report) => report.status === 'reviewed').length,
+      resolved: this.reports.filter((report) => report.status === 'resolved').length,
       dismissed: this.reports.filter((report) => report.status === 'dismissed').length,
-      actioned: this.reports.filter((report) => report.status === 'actioned').length,
     };
   }
 
@@ -437,7 +421,7 @@ export class ReportsPageComponent implements OnInit {
     }
   }
 
-  private toViewReport(report: Report): ReportView {
+  private toViewReport(report: ApiReport): ReportView {
     return {
       ...report,
       reporter_name: this.resolveUserName(report.reporter_id),
@@ -454,19 +438,17 @@ export class ReportsPageComponent implements OnInit {
     return user?.display_name || user?.full_name || user?.email || userId;
   }
 
-  private buildContentTitle(report: Report): string {
+  private buildContentTitle(report: ApiReport): string {
     if (report.content_type === 'user') {
       return this.resolveUserName(report.content_id);
     }
-
     return report.content_id;
   }
 
-  private buildContentAuthor(report: Report): string {
+  private buildContentAuthor(report: ApiReport): string {
     if (report.content_type === 'user') {
       return 'Conta denunciada';
     }
-
     return report.content_id;
   }
 
@@ -501,15 +483,16 @@ export class ReportsPageComponent implements OnInit {
     };
   }
 
-  private getFallbackActionReason(action: ReportAction): string {
-    const reasons: Record<ReportAction, string> = {
+  private getFallbackActionReason(action: string): string {
+    const reasons: Record<string, string> = {
       flag: 'Conteúdo sinalizado pela moderação.',
       delete: 'Conteúdo removido pela moderação.',
       warn: 'Utilizador notificado pela moderação.',
       dismiss: 'Denúncia arquivada sem acção adicional.',
+      hide: 'Conteúdo ocultado temporariamente.',
+      restore: 'Conteúdo restaurado com sucesso.',
     };
-
-    return reasons[action];
+    return reasons[action] || 'Acção de moderação executada.';
   }
 
   private createEmptyForm(): ReportFormState {

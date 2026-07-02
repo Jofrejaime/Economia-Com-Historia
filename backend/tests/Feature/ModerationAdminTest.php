@@ -47,14 +47,13 @@ class ModerationAdminTest extends TestCase
 
     private function createAccessLevel(array $overrides = []): object
     {
-        $id = Str::uuid();
+        $id = substr((string) Str::uuid(), 0, 20);
         DB::table('access_levels')->insert(array_merge([
-            'id'          => $id,
-            'name'        => 'Test Level ' . Str::random(4),
-            'slug'        => 'test-' . Str::random(4),
-            'description' => 'Test level',
-            'auto_grant'  => false,
-            'created_at'  => now(),
+            'id'                => $id,
+            'name'              => 'Test Level ' . Str::random(4),
+            'description'       => 'Test level description.',
+            'requires_approval' => false,
+            'auto_grant'        => false,
         ], $overrides));
         return DB::table('access_levels')->where('id', $id)->first();
     }

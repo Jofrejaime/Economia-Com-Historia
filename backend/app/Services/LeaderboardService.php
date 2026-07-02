@@ -5,57 +5,40 @@ namespace App\Services;
 use App\Models\LeaderboardCache;
 use App\Models\LeaderboardSnapshot;
 use App\Models\ProvinceStat;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-/**
- * LeaderboardService
- *
- * Centraliza a lógica de leitura dos rankings nacional e provincial,
- * histórico de snapshots e estatísticas por província.
- *
- * Todos os métodos são read-only. A escrita no cache é feita pelo
- * event scheduler MySQL (evt_refresh_leaderboard + sp_refresh_leaderboard_nacional).
- */
 class LeaderboardService
 {
-    /** TTL padrão do cache provincial (segundos). */
-    private const PROVINCIAL_CACHE_TTL = 300;
+    private const CACHE_TTL = 30; // 30 seconds as requested
 
     // ──────────────────────────────────────────────
     // Ranking Nacional
     // ──────────────────────────────────────────────
 
-    /**
-     * Retorna todos os utilizadores do ranking nacional ordenados por posição.
-     */
     public function national(): Collection
     {
-        return LeaderboardCache::orderBy('rank_position')->get();
+        return Cache::remember('leaderboard-national', self::CACHE_TTL, function () {
+            return LeaderboardCache::orderBy('rank_position')->get();
+        });
     }
 
     // ──────────────────────────────────────────────
     // Ranking Provincial
     // ──────────────────────────────────────────────
 
-    /**
-     * Retorna o ranking provincial filtrado por província, com paginação.
-     *
-     * @param  string $province  Nome da província (ex: 'Luanda')
-     * @param  int    $page      Página actual (≥ 1)
-     * @param  int    $perPage   Itens por página (1–100)
-     * @return array{data: Collection, province: string, pagination: array}
-     */
     public function provincial(string $province, int $page = 1, int $perPage = 20): array
     {
         $page    = max(1, $page);
         $perPage = max(1, min(100, $perPage));
         $offset  = ($page - 1) * $perPage;
 
-        $cacheKey = 'leaderboard.provincial.' . md5($province) . '.p' . $page . '.pp' . $perPage;
+        $cacheKey = 'leaderboard-provincial.' . md5($province) . '.p' . $page . '.pp' . $perPage;
 
-        return Cache::remember($cacheKey, self::PROVINCIAL_CACHE_TTL, function () use ($province, $perPage, $offset, $page) {
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($province, $perPage, $offset, $page) {
             $base = DB::table('user_profiles as up')
                 ->join('users as u', 'u.id', '=', 'up.user_id')
                 ->join('user_levels as ul', 'ul.user_id', '=', 'u.id')
@@ -81,7 +64,6 @@ class LeaderboardService
                 ->offset($offset)
                 ->get();
 
-            // rank_position calculado em PHP (portável entre MySQL e SQLite)
             $data = $rows->map(fn ($row, int $i) => array_merge(
                 (array) $row,
                 ['rank_position' => $offset + $i + 1],
@@ -101,35 +83,171 @@ class LeaderboardService
     }
 
     // ──────────────────────────────────────────────
-    // Snapshots
+    // Ranking por Instituição
     // ──────────────────────────────────────────────
 
-    /**
-     * Retorna os últimos N snapshots do ranking, ordenados por data descendente.
-     */
-    public function snapshots(int $limit = 30): Collection
+    public function institution(string $institution, int $page = 1, int $perPage = 20): array
     {
-        return LeaderboardSnapshot::orderByDesc('snapshot_date')
-            ->limit($limit)
-            ->get();
+        $page    = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+        $offset  = ($page - 1) * $perPage;
+
+        $cacheKey = 'leaderboard-institution.' . md5($institution) . '.p' . $page . '.pp' . $perPage;
+
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($institution, $perPage, $offset, $page) {
+            $base = DB::table('user_profiles as up')
+                ->join('users as u', 'u.id', '=', 'up.user_id')
+                ->join('user_levels as ul', 'ul.user_id', '=', 'u.id')
+                ->where('u.is_active', 1)
+                ->where('up.institution', $institution);
+
+            $total = (clone $base)->count();
+
+            $rows = (clone $base)
+                ->select([
+                    'u.id as user_id',
+                    'up.display_name',
+                    'up.institution',
+                    'up.province',
+                    'up.avatar_url',
+                    'ul.total_points',
+                    'ul.quizzes_completed',
+                    'ul.weekly_points',
+                    'ul.current_level',
+                ])
+                ->orderByDesc('ul.total_points')
+                ->orderByDesc('ul.quizzes_completed')
+                ->limit($perPage)
+                ->offset($offset)
+                ->get();
+
+            $data = $rows->map(fn ($row, int $i) => array_merge(
+                (array) $row,
+                ['rank_position' => $offset + $i + 1],
+            ))->values();
+
+            return [
+                'data'       => $data,
+                'institution' => $institution,
+                'pagination' => [
+                    'total'        => $total,
+                    'per_page'     => $perPage,
+                    'current_page' => $page,
+                    'last_page'    => max(1, (int) ceil($total / $perPage)),
+                ],
+            ];
+        });
     }
 
     // ──────────────────────────────────────────────
-    // Province Stats
+    // Ranking Geral / Filtros
     // ──────────────────────────────────────────────
 
-    /**
-     * Retorna as estatísticas agregadas de todas as províncias.
-     */
+    public function ranking(array $filters = []): array
+    {
+        $scope = $filters['scope'] ?? 'national';
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $perPage = min(max(1, (int) ($filters['per_page'] ?? 20)), 100);
+
+        if ($scope === 'provincial' && !empty($filters['province'])) {
+            return $this->provincial($filters['province'], $page, $perPage);
+        }
+
+        if ($scope === 'institution' && !empty($filters['institution'])) {
+            return $this->institution($filters['institution'], $page, $perPage);
+        }
+
+        // National Scope (default)
+        $cacheKey = "leaderboard-national.p{$page}.pp{$perPage}";
+
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($page, $perPage) {
+            $query = LeaderboardCache::orderBy('rank_position');
+            $total = $query->count();
+            $items = $query->forPage($page, $perPage)->get();
+
+            return [
+                'data' => $items,
+                'pagination' => [
+                    'total'        => $total,
+                    'per_page'     => $perPage,
+                    'current_page' => $page,
+                    'last_page'    => max(1, (int) ceil($total / $perPage)),
+                ]
+            ];
+        });
+    }
+
+    public function topUsers(int $limit = 10): Collection
+    {
+        return Cache::remember("leaderboard-top-{$limit}", self::CACHE_TTL, function () use ($limit) {
+            return LeaderboardCache::orderBy('rank_position')->limit($limit)->get();
+        });
+    }
+
+    // ──────────────────────────────────────────────
+    // Snapshots
+    // ──────────────────────────────────────────────
+
+    public function snapshots(int $limit = 30): Collection
+    {
+        return Cache::remember('leaderboard-snapshots', self::CACHE_TTL, function () use ($limit) {
+            return LeaderboardSnapshot::orderByDesc('snapshot_date')
+                ->limit($limit)
+                ->get();
+        });
+    }
+
     public function provinceStats(): Collection
     {
         return ProvinceStat::all();
     }
 
-    /**
-     * Recalcula e atualiza síncronamente a tabela leaderboard_nacional_cache.
-     * Funciona em SQLite (para testes/dev local) e em MySQL.
-     */
+    public function userPosition(string $userId): array
+    {
+        $cached = LeaderboardCache::where('user_id', $userId)->first();
+        if ($cached !== null) {
+            return [
+                'rank_position' => $cached->rank_position,
+                'total_points'  => $cached->total_points,
+                'current_level' => $cached->current_level,
+            ];
+        }
+
+        $points = DB::table('user_levels')->where('user_id', $userId)->value('total_points') ?? 0;
+        $level = DB::table('user_levels')->where('user_id', $userId)->value('current_level') ?? 1;
+
+        $rank = DB::table('user_levels')
+            ->where('total_points', '>', $points)
+            ->count() + 1;
+
+        return [
+            'rank_position' => $rank,
+            'total_points'  => $points,
+            'current_level' => $level,
+        ];
+    }
+
+    public function history(string $userId): Collection
+    {
+        return LeaderboardSnapshot::where('user_id', $userId)
+            ->orderBy('snapshot_date')
+            ->get();
+    }
+
+    // ──────────────────────────────────────────────
+    // Cache e Sincronização
+    // ──────────────────────────────────────────────
+
+    public function refresh(?User $actor = null): void
+    {
+        $this->refreshNationalCache();
+
+        Log::info('Leaderboard refreshed', [
+            'admin_id' => $actor?->id,
+            'time'     => now()->toDateTimeString(),
+        ]);
+    }
+
     public function refreshNationalCache(): void
     {
         $users = DB::table('users as u')
@@ -185,14 +303,11 @@ class LeaderboardService
             }
         });
 
-        // Limpa o cache de rankings provinciais
+        // Limpa o cache
         Cache::flush();
     }
 
-    /**
-     * Regista o snapshot diário do leaderboard nacional.
-     */
-    public function takeDailySnapshot(): void
+    public function takeDailySnapshot(?User $actor = null): void
     {
         $today = now()->toDateString();
 
@@ -233,6 +348,12 @@ class LeaderboardService
                 }
             }
         });
+
+        Log::info('Leaderboard snapshot taken', [
+            'admin_id'      => $actor?->id,
+            'snapshot_date' => $today,
+        ]);
+
+        Cache::flush();
     }
 }
-
