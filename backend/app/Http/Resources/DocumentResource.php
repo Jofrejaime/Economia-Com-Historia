@@ -59,7 +59,45 @@ class DocumentResource extends JsonResource
             'views_count'      => (int) $this->views_count,
             'likes_count'      => (int) $this->likes_count,
             'downloads_count'  => (int) $this->downloads_count,
-            'topics_count'     => (int) ($this->topics_count ?? 0),
+            'topics_count'     => $this->whenCounted('topics', fn() => (int) $this->topics_count, (int) ($this->topics_count ?? 0)),
+            'quizzes_count'    => $this->whenCounted('quizzes'),
+
+            'topics_preview'   => $this->whenLoaded('topics', function () {
+                return $this->resource->topics->map(fn($t) => [
+                    'id'            => $t->id,
+                    'title'         => $t->title,
+                    'author'        => [
+                        'id'           => $t->author?->id,
+                        'display_name' => $t->author?->profile?->display_name,
+                        'avatar_url'   => $t->author?->profile?->avatar_url,
+                    ],
+                    'replies_count' => (int) $t->replies_count,
+                    'created_at'    => $t->created_at,
+                ]);
+            }),
+
+            'quizzes'          => $this->whenLoaded('quizzes', function () {
+                return $this->resource->quizzes->map(fn($q) => [
+                    'id'                => $q->id,
+                    'title'             => $q->title,
+                    'difficulty'        => $q->difficulty,
+                    'questions_count'   => (int) $q->questions_count,
+                    'estimated_minutes' => (int) ($q->time_limit_secs ? ceil($q->time_limit_secs / 60) : 0),
+                    'attempts_count'    => (int) $q->attempts_count,
+                    'avg_score'         => (float) $q->avg_score,
+                    'status'            => $q->status,
+                ]);
+            }),
+
+            'learning'         => $this->whenLoaded('category', function () use ($isModel) {
+                return $this->when($isModel && $this->resource->relationLoaded('topics') && $this->resource->relationLoaded('quizzes'), function () {
+                    return [
+                        'documents_in_category' => (int) ($this->resource->category->documents_count ?? 0),
+                        'related_quizzes'       => (int) ($this->quizzes_count ?? 0),
+                        'related_topics'        => (int) ($this->topics_count ?? 0),
+                    ];
+                });
+            }),
 
             // Category joined fields
             'category_name'     => $isModel ? optional($this->resource->category)->name     : ($this->resource->category_name ?? null),
