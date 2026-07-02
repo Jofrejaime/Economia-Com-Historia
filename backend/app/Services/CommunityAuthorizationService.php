@@ -45,6 +45,10 @@ class CommunityAuthorizationService
 
     public function canReply(User $user, DiscussionTopic $topic): bool
     {
+        if (in_array(strtolower($topic->status ?? 'open'), ['closed', 'locked', 'archived'], true)) {
+            return false;
+        }
+
         if ($this->bypassesChecks($user) || $this->isOwner($user, $topic)) {
             return true;
         }

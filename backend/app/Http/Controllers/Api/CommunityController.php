@@ -478,7 +478,12 @@ class CommunityController extends Controller
                     $member = \App\Models\User::find($memberId);
 
                     if ($member) {
-                        $this->notificationService->sendTopicInvitation($member, $topic->title, $topic->id);
+                        $this->notificationService->sendTopicInvitation(
+                            $member,
+                            $topic->title,
+                            $request->user()->display_name,
+                            $topic->id
+                        );
                     }
                 }
             }
@@ -601,7 +606,7 @@ class CommunityController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:5000'],
-            'status' => ['nullable', 'string', 'in:published,draft,archived'],
+            'status' => ['nullable', 'string', 'in:open,closed,locked,archived,published,draft'],
             'visibility' => ['sometimes', 'string', 'in:PUBLIC,CATEGORY,INVITE_ONLY'],
         ]);
 

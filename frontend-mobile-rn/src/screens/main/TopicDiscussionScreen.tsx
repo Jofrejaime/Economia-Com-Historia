@@ -90,16 +90,32 @@ export function TopicDiscussionScreen() {
   const isAuthor = !!user && !!topic && user.id === topic.author_id;
   const isPrivateTopic = topic?.visibility === "INVITE_ONLY";
 
-  const handleToggleStatus = async () => {
+  const handleToggleStatus = () => {
     if (!topic) return;
     setMenuVisible(false);
-    const newStatus = isTerminated ? "open" : "closed";
-    try {
-      await communityService.updateTopic(topicId, { status: newStatus });
-      setTopic((prev) => prev ? { ...prev, status: newStatus } : prev);
-    } catch (error) {
-      console.warn("Erro ao atualizar estado da discussão", error);
-    }
+
+    if (isTerminated) return;
+
+    Alert.alert(
+      "Encerrar Discussão",
+      "Tem a certeza que deseja encerrar esta discussão? Esta ação é definitiva e não tem retorno. O fórum passará a funcionar apenas em modo de leitura.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Confirmar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await communityService.updateTopic(topicId, { status: "closed" });
+              setTopic((prev) => prev ? { ...prev, status: "closed" } : prev);
+            } catch (error) {
+              console.warn("Erro ao encerrar discussão", error);
+              Alert.alert("Erro", "Não foi possível encerrar a discussão. Tente novamente.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleLeaveTopic = () => {
@@ -289,7 +305,7 @@ export function TopicDiscussionScreen() {
           title="Discussão do Fórum"
           onBackPress={() => navigation.navigate("MainTabs", { screen: "Community" })}
           rightElement={
-            isAuthor ? (
+            isAuthor && !isTerminated ? (
               <TouchableOpacity
                 onPress={() => setMenuVisible(true)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

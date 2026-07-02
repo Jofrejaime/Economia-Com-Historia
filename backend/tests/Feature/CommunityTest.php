@@ -458,4 +458,78 @@ class CommunityTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    public function test_cannot_reply_to_closed_topic(): void
+    {
+        $topic = DiscussionTopic::factory()->create([
+            'category_id' => $this->category->id,
+            'status' => 'closed',
+            'visibility' => 'CATEGORY',
+        ]);
+
+        $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
+            ->postJson("/api/topics/{$topic->id}/replies", [
+                'content' => 'Tentativa de comentário em tópico fechado',
+            ]);
+
+        $response->assertForbidden();
+    }
+
+    public function test_can_update_topic_status_to_closed(): void
+    {
+        $topic = DiscussionTopic::factory()->create([
+            'category_id' => $this->category->id,
+            'author_id' => $this->user->id,
+            'status' => 'open',
+        ]);
+
+        $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
+            ->patchJson("/api/topics/{$topic->id}", [
+                'title' => $topic->title,
+                'content' => $topic->content,
+                'status' => 'closed',
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.status', 'closed');
+
+        $this->assertEquals('closed', $topic->fresh()->status);
+    }
+
+    public function test_create_private_topic_sends_correct_notification_with_reference_id(): void
+    {
+        $invitedUser = User::factory()->create();
+
+        $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
+            ->postJson('/api/topics', [
+                'category_id' => $this->category->id,
+                'title' => 'Private Debate',
+                'content' => 'Content for private debate',
+                'visibility' => 'INVITE_ONLY',
+                'member_ids' => [$invitedUser->id],
+            ]);
+
+        $response->assertCreated();
+        $topicId = $response->json('data.id');
+
+        $this->assertDatabaseHas('discussion_topic_members', [
+            'topic_id' => $topicId,
+            'user_id' => $invitedUser->id,
+        ]);
+
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $invitedUser->id,
+            'type' => 'topic_invitation',
+            'reference_id' => $topicId,
+            'reference_type' => 'discussion_topic',
+        ]);
+
+        $notification = \Illuminate\Support\Facades\DB::table('notifications')
+            ->where('user_id', $invitedUser->id)
+            ->where('type', 'topic_invitation')
+            ->first();
+
+        $this->assertStringContainsString($this->user->display_name, $notification->message);
+        $this->assertStringNotContainsString($topicId, $notification->message);
+    }
 }
