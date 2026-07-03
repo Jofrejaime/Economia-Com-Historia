@@ -90,6 +90,10 @@ export class InterestAreasPageComponent implements OnInit {
     return this.metadataMap[id] || { users_count: 0, documents_count: 0, topics_count: 0 };
   }
 
+  get selectedArea(): InterestArea | null {
+    return this.areas.find(area => area.id === this.selectedAreaId) ?? null;
+  }
+
   openAddAreaModal(): void {
     this.editingArea = null;
     this.areaForm = {

@@ -158,7 +158,7 @@
                   <span class="discussion-action-text" [style.color]="discussionIsLiked ? '#8B1E2D' : '#9CA3AF'">{{ discussionLikes }}</span>
                 </button>
                 
-                <button (click)="showReplyForm = !showReplyForm" class="discussion-action-btn">
+                <button (click)="openReplyForm()" class="discussion-action-btn">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                   </svg>

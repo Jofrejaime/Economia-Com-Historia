@@ -35,8 +35,8 @@ class CommunityController extends Controller
      *      operationId="communityCategories",
      *      tags={"Community"},
      *      summary="Listar categorias da comunidade",
-     *      description="Lista todas as categorias do fórum da comunidade.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      description="Lista todas as categorias do fórum da comunidade. Acessível a visitantes (autenticação opcional).",
+     *      security={{"bearer_token": {}, "session_token": {}}, {}},
      *      @OA\Response(
      *          response=200,
      *          description="Categorias obtidas com sucesso",
@@ -73,8 +73,8 @@ class CommunityController extends Controller
      *      operationId="indexTopics",
      *      tags={"Community"},
      *      summary="Listar tópicos recentes",
-     *      description="Lista os tópicos de discussão publicados recentemente.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      description="Lista os tópicos de discussão publicados recentemente. Visitantes (sem sessão) veem apenas tópicos PUBLIC; utilizadores autenticados veem também os privados de que são autores ou membros.",
+     *      security={{"bearer_token": {}, "session_token": {}}, {}},
      *      @OA\Response(
      *          response=200,
      *          description="Tópicos obtidos com sucesso",
@@ -411,8 +411,8 @@ class CommunityController extends Controller
      *      operationId="showTopic",
      *      tags={"Community"},
      *      summary="Visualizar detalhes de um tópico",
-     *      description="Obtém detalhes do tópico e incrementa a contagem de visualizações.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      description="Obtém detalhes do tópico e incrementa a contagem de visualizações. Tópicos PUBLIC são acessíveis a visitantes; INVITE_ONLY exige ser autor, admin ou membro.",
+     *      security={{"bearer_token": {}, "session_token": {}}, {}},
      *      @OA\Parameter(
      *          name="id",
      *          in="path",
@@ -443,7 +443,8 @@ class CommunityController extends Controller
 
         $topic->increment('views_count');
 
-        $isLiked = TopicLike::where('topic_id', $id)
+        // Visitantes podem ver tópicos públicos — o estado de "like" só existe com sessão.
+        $isLiked = $request->user() !== null && TopicLike::where('topic_id', $id)
             ->where('user_id', $request->user()->id)
             ->exists();
 
@@ -1056,8 +1057,8 @@ class CommunityController extends Controller
      *      operationId="topicReplies",
      *      tags={"Community"},
      *      summary="Listar respostas de um tópico",
-     *      description="Lista as respostas dadas no tópico em ordem cronológica.",
-     *      security={{"bearer_token": {}, "session_token": {}}},
+     *      description="Lista as respostas dadas no tópico em ordem cronológica. Acessível a visitantes em tópicos PUBLIC.",
+     *      security={{"bearer_token": {}, "session_token": {}}, {}},
      *      @OA\Parameter(
      *          name="id",
      *          in="path",

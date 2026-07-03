@@ -1,109 +1,124 @@
 <div class="areas-container">
-  <!-- Header -->
-  <div class="header-section">
+  <div *ngIf="loading" class="banner banner-info">
+    <p>A carregar áreas de interesse...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="banner banner-error">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="successMessage" class="banner banner-success">
+    <p>{{ successMessage }}</p>
+  </div>
+
+  <div class="page-header">
     <div>
       <h1 class="page-title">Áreas de Interesse (Pesquisa)</h1>
-      <p class="page-subtitle">Faça a gestão das áreas de investigação que agrupam utilizadores, documentos e tópicos.</p>
+      <p class="page-subtitle">Gestão das áreas de investigação que agrupam utilizadores, documentos e tópicos.</p>
     </div>
-    <button class="btn btn-primary" (click)="openAddAreaModal()">
-      <i class="fas fa-plus"></i> Nova Área
+
+    <button class="btn-primary" type="button" (click)="openAddAreaModal()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round" />
+      </svg>
+      Nova Área
     </button>
   </div>
 
-  <!-- Messages -->
-  <div *ngIf="successMessage" class="alert alert-success">
-    <i class="fas fa-check-circle"></i> {{ successMessage }}
-  </div>
-  <div *ngIf="errorMessage" class="alert alert-danger">
-    <i class="fas fa-exclamation-triangle"></i> {{ errorMessage }}
-  </div>
-
-  <!-- Main Layout -->
   <div class="main-layout">
-    <!-- List Column -->
+    <!-- Coluna da lista -->
     <div class="list-column">
-      <div class="search-box">
-        <i class="fas fa-search search-icon"></i>
-        <input
-          type="text"
-          [(ngModel)]="searchQuery"
-          (input)="loadData()"
-          placeholder="Pesquisar áreas..."
-          class="search-input"
-        />
+      <div class="filters-bar">
+        <div class="search-wrapper">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="loadData()"
+            placeholder="Pesquisar áreas..."
+            class="search-input"
+          />
+        </div>
       </div>
 
-      <div *ngIf="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>A carregar áreas...</p>
-      </div>
+      <div class="areas-list">
+        <p *ngIf="!loading && areas.length === 0" class="empty-list">Nenhuma área de interesse encontrada.</p>
 
-      <div *ngIf="!loading" class="areas-list">
-        <div
+        <button
           *ngFor="let area of areas"
+          type="button"
           class="area-item"
-          [class.active]="selectedAreaId === area.id"
-          [class.inactive]="!area.is_active"
+          [class.selected]="selectedAreaId === area.id"
           (click)="viewMetadataDetails(area)"
         >
           <div class="area-item-info">
-            <h3 class="area-item-name">{{ area.name }}</h3>
-            <p class="area-item-slug">/{{ area.slug }}</p>
+            <span class="area-item-name">
+              {{ area.name }}
+              <span class="status-badge" *ngIf="!area.is_active">
+                <span class="status-dot"></span>
+                Inactiva
+              </span>
+            </span>
+            <span class="area-item-slug">/{{ area.slug }}</span>
           </div>
-          <div class="area-item-meta">
-            <span class="meta-tag">{{ getAreaMetadata(area.id).users_count }} users</span>
-            <i class="fas fa-chevron-right chevron"></i>
-          </div>
-        </div>
+          <span class="area-item-count">{{ getAreaMetadata(area.id).users_count }} utilizadores</span>
+        </button>
       </div>
     </div>
 
-    <!-- Details Sidebar -->
+    <!-- Coluna de detalhes -->
     <div class="details-column">
-      <div *ngIf="!selectedAreaId" class="details-empty">
-        <i class="fas fa-mouse-pointer empty-icon"></i>
+      <div *ngIf="!selectedArea" class="details-empty">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 15 13 5l6 6-10 10H3z"></path>
+          <path d="m13 5 6 6"></path>
+        </svg>
         <h3>Nenhuma área seleccionada</h3>
         <p>Seleccione uma área de interesse na lista para visualizar estatísticas detalhadas e vínculos.</p>
       </div>
 
-      <div *ngIf="selectedAreaId" class="details-card">
+      <div *ngIf="selectedArea" class="details-card">
         <div class="details-header">
-          <h2>{{ editingArea?.name || areas[0]?.name }}</h2>
-          <div class="actions">
-            <button class="btn btn-secondary btn-sm" (click)="openEditAreaModal(editingArea || areas[0]!)">
-              <i class="fas fa-edit"></i> Editar
-            </button>
-            <button class="btn btn-danger btn-sm" (click)="deleteArea(editingArea || areas[0]!)">
-              <i class="fas fa-trash-alt"></i>
-            </button>
+          <div>
+            <h2>{{ selectedArea.name }}</h2>
+            <span class="status-badge">
+              <span class="status-dot" [class.active]="selectedArea.is_active"></span>
+              {{ selectedArea.is_active ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+          <div class="details-actions">
+            <button class="action-btn" type="button" (click)="openEditAreaModal(selectedArea)">Editar</button>
+            <button class="action-btn action-btn-danger" type="button" (click)="deleteArea(selectedArea)">Eliminar</button>
           </div>
         </div>
 
-        <p class="details-desc">{{ (editingArea || areas[0]!)?.description || 'Sem descrição.' }}</p>
+        <p class="details-desc">{{ selectedArea.description || 'Sem descrição.' }}</p>
 
         <div class="stats-grid">
-          <div class="details-stat-card card-blue">
-            <i class="fas fa-users icon"></i>
-            <div class="num">{{ selectedAreaMetadata?.users_count || 0 }}</div>
-            <div class="label">Utilizadores Associados</div>
+          <div class="stat-tile">
+            <span class="stat-num">{{ selectedAreaMetadata?.users_count || 0 }}</span>
+            <span class="stat-label">Utilizadores associados</span>
           </div>
-          <div class="details-stat-card card-purple">
-            <i class="fas fa-file-alt icon"></i>
-            <div class="num">{{ selectedAreaMetadata?.documents_count || 0 }}</div>
-            <div class="label">Documentos Vinculados</div>
+          <div class="stat-tile">
+            <span class="stat-num">{{ selectedAreaMetadata?.documents_count || 0 }}</span>
+            <span class="stat-label">Documentos vinculados</span>
           </div>
-          <div class="details-stat-card card-pink">
-            <i class="fas fa-comments icon"></i>
-            <div class="num">{{ selectedAreaMetadata?.topics_count || 0 }}</div>
-            <div class="label">Tópicos Relacionados</div>
+          <div class="stat-tile">
+            <span class="stat-num">{{ selectedAreaMetadata?.topics_count || 0 }}</span>
+            <span class="stat-label">Tópicos relacionados</span>
           </div>
         </div>
 
-        <div class="forum-categories-section">
+        <div class="categories-section">
           <h3>Categorias de Fórum Disponíveis</h3>
           <ul class="categories-list">
             <li *ngFor="let cat of categories">
-              <i class="fas fa-folder folder-icon"></i>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+              </svg>
               <span class="cat-name">{{ cat.name }}</span>
               <span class="cat-slug">/{{ cat.slug }}</span>
             </li>
@@ -114,69 +129,66 @@
   </div>
 
   <!-- Modal -->
-  <div *ngIf="showAreaModal" class="modal-backdrop" (click)="closeAreaModal()">
+  <div class="modal-overlay" *ngIf="showAreaModal" (click)="closeAreaModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>{{ editingArea ? 'Editar Área de Interesse' : 'Nova Área de Interesse' }}</h2>
-        <button class="close-btn" (click)="closeAreaModal()">&times;</button>
+        <button class="modal-close" type="button" (click)="closeAreaModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 6 12 12M18 6 6 18"></path>
+          </svg>
+        </button>
       </div>
-      <form (submit)="saveArea()">
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="name">Nome da Área</label>
-            <input
-              type="text"
-              id="name"
-              [(ngModel)]="areaForm.name"
-              name="name"
-              placeholder="Ex: Economia Colonial"
-              required
-              class="form-control"
-            />
-          </div>
-          <div class="form-group">
-            <label for="slug">Slug (URL amigável)</label>
-            <input
-              type="text"
-              id="slug"
-              [(ngModel)]="areaForm.slug"
-              name="slug"
-              placeholder="Ex: economia-colonial (opcional)"
-              class="form-control"
-            />
-            <small class="form-help">Deixe em branco para gerar automaticamente com base no nome.</small>
-          </div>
-          <div class="form-group">
-            <label for="description">Descrição</label>
-            <textarea
-              id="description"
-              [(ngModel)]="areaForm.description"
-              name="description"
-              placeholder="Descreva o propósito ou tópicos cobertos por esta área..."
-              class="form-control text-area"
-              rows="4"
-            ></textarea>
-          </div>
-          <div class="form-group checkbox-group">
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                [(ngModel)]="areaForm.is_active"
-                name="is_active"
-              />
-              Área de interesse activa
-            </label>
-          </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="name">Nome da Área <span class="required">*</span></label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            [(ngModel)]="areaForm.name"
+            placeholder="Ex: Economia Colonial"
+            class="form-input"
+          />
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeAreaModal()" [disabled]="saving">
-            Cancelar
-          </button>
-          <button type="submit" class="btn btn-primary" [disabled]="saving">
-            {{ saving ? 'A salvar...' : 'Salvar' }}
-          </button>
+        <div class="form-group">
+          <label for="slug">Slug (URL amigável)</label>
+          <input
+            type="text"
+            id="slug"
+            name="slug"
+            [(ngModel)]="areaForm.slug"
+            placeholder="Ex: economia-colonial (opcional)"
+            class="form-input"
+          />
+          <small class="form-help">Deixe em branco para gerar automaticamente com base no nome.</small>
         </div>
-      </form>
+        <div class="form-group">
+          <label for="description">Descrição</label>
+          <textarea
+            id="description"
+            name="description"
+            [(ngModel)]="areaForm.description"
+            placeholder="Descreva o propósito ou tópicos cobertos por esta área..."
+            class="form-input form-textarea"
+            rows="4"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="is_active" [(ngModel)]="areaForm.is_active" />
+            Área de interesse activa
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeAreaModal()" [disabled]="saving">Cancelar</button>
+        <button class="btn-save" type="button" (click)="saveArea()" [disabled]="saving">
+          {{ saving ? 'A guardar...' : 'Guardar Área' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

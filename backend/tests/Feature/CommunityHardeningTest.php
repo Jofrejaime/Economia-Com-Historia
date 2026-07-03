@@ -259,6 +259,56 @@ class CommunityHardeningTest extends TestCase
         $join->assertForbidden();
     }
 
+    // ── Visitantes (sem sessão) ──────────────────────────────────────────────
+
+    public function test_guest_can_list_only_public_topics(): void
+    {
+        $author  = $this->createAuthenticatedUser('Guest Author');
+        $public  = $this->createTopic($author, ['visibility' => 'PUBLIC']);
+        $private = $this->createTopic($author, ['visibility' => 'INVITE_ONLY']);
+
+        $list = $this->getJson('/api/topics');
+        $list->assertOk();
+
+        $ids = collect($list->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($public->id));
+        $this->assertFalse($ids->contains($private->id));
+    }
+
+    public function test_guest_can_view_public_topic_and_replies(): void
+    {
+        $author = $this->createAuthenticatedUser('Guest Author');
+        $topic  = $this->createTopic($author, ['visibility' => 'PUBLIC']);
+
+        $show = $this->getJson("/api/topics/{$topic->id}");
+        $show->assertOk()
+            ->assertJsonPath('data.id', $topic->id);
+
+        $replies = $this->getJson("/api/topics/{$topic->id}/replies");
+        $replies->assertOk();
+    }
+
+    public function test_guest_cannot_view_private_topic(): void
+    {
+        $author = $this->createAuthenticatedUser('Guest Author');
+        $topic  = $this->createTopic($author, ['visibility' => 'INVITE_ONLY']);
+
+        $show = $this->getJson("/api/topics/{$topic->id}");
+        $show->assertNotFound();
+    }
+
+    public function test_guest_cannot_reply_or_react(): void
+    {
+        $author = $this->createAuthenticatedUser('Guest Author');
+        $topic  = $this->createTopic($author, ['visibility' => 'PUBLIC']);
+
+        $this->postJson("/api/topics/{$topic->id}/replies", ['content' => 'Tentativa de visitante'])
+            ->assertUnauthorized();
+
+        $this->postJson("/api/topics/{$topic->id}/like")->assertUnauthorized();
+        $this->postJson("/api/topics/{$topic->id}/follow")->assertUnauthorized();
+    }
+
     // ── Categories ───────────────────────────────────────────────────────────
 
     public function test_category_has_no_authorization_logic(): void

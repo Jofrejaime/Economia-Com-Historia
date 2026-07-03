@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Builder;
  *
  * A autorização depende exclusivamente da visibilidade do tópico:
  *
- *   PUBLIC      — qualquer utilizador autenticado pode ver e responder
+ *   PUBLIC      — visível para todos (incluindo visitantes); responder e
+ *                 reagir exige autenticação
  *   INVITE_ONLY — apenas autor, admin e membros do tópico
  *
  * Categorias organizam conteúdo; nunca participam na autorização.
@@ -21,17 +22,13 @@ class CommunityAuthorizationService
 {
     public function canViewTopic(?User $user, DiscussionTopic $topic): bool
     {
-        if ($user === null) {
-            return false;
-        }
-
-        if ($this->bypassesChecks($user) || $this->isAuthor($user, $topic)) {
+        if ($user !== null && ($this->bypassesChecks($user) || $this->isAuthor($user, $topic))) {
             return true;
         }
 
         return match ($this->normalizedVisibility($topic->visibility ?? 'PUBLIC')) {
             'PUBLIC'      => true,
-            'INVITE_ONLY' => $this->isMember($user, $topic),
+            'INVITE_ONLY' => $user !== null && $this->isMember($user, $topic),
             default       => false,
         };
     }
@@ -79,6 +76,7 @@ class CommunityAuthorizationService
      * Aplica o filtro de visibilidade à query de tópicos.
      *
      * Exactamente três condições: público, autor ou membro.
+     * Visitantes (sem sessão) veem apenas os tópicos públicos.
      */
     public function applyVisibleTopicsFilter(Builder $query, ?User $user): void
     {
@@ -89,7 +87,7 @@ class CommunityAuthorizationService
         $table = $query->getModel()->getTable();
 
         if ($user === null) {
-            $query->whereRaw('1 = 0');
+            $query->where("{$table}.visibility", 'PUBLIC');
             return;
         }
 

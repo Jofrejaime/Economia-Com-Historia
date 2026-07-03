@@ -411,8 +411,22 @@ export class DiscussionThreadComponent implements OnInit {
   }
 
   // ===== RESPOSTAS =====
+
+  /** Visitantes podem ler, mas qualquer interação leva à página de login. */
+  private requireLogin(): boolean {
+    if (this.isAuthenticated) return true;
+    this.router.navigate(['/auth/login']);
+    return false;
+  }
+
+  openReplyForm(): void {
+    if (!this.requireLogin()) return;
+    this.showReplyForm = !this.showReplyForm;
+  }
+
   async handleSubmitReply(event: Event): Promise<void> {
     event.preventDefault();
+    if (!this.requireLogin()) return;
     if (!this.replyText.trim() || !this.topic) return;
     try {
       const result = await firstValueFrom(
@@ -431,6 +445,7 @@ export class DiscussionThreadComponent implements OnInit {
   }
 
   async handleReplyToReply(index: number, text: string): Promise<void> {
+    if (!this.requireLogin()) return;
     if (!text?.trim() || !this.topic) return;
     const parentReply = this.replies[index];
     try {
@@ -453,13 +468,15 @@ export class DiscussionThreadComponent implements OnInit {
   }
 
   toggleReplyForm(index: number): void {
+    if (!this.requireLogin()) return;
     this.showReplyFormForReply[index] = !this.showReplyFormForReply[index];
     if (this.showReplyFormForReply[index]) this.replyReplyText[index] = '';
   }
 
   // ===== LIKES =====
   async toggleLikeDiscussion(): Promise<void> {
-    if (!this.topic || !this.isAuthenticated) return;
+    if (!this.requireLogin()) return;
+    if (!this.topic) return;
     try {
       if (this.topic.is_liked) {
         await firstValueFrom(this.communityService.unlikeTopic(this.topic.id));
@@ -475,7 +492,7 @@ export class DiscussionThreadComponent implements OnInit {
   }
 
   async toggleLikeReply(index: number): Promise<void> {
-    if (!this.isAuthenticated) return;
+    if (!this.requireLogin()) return;
     const reply = this.replies[index];
     try {
       if (reply.is_liked) {

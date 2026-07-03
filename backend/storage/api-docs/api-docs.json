@@ -2859,7 +2859,7 @@
                     "Community"
                 ],
                 "summary": "Listar categorias da comunidade",
-                "description": "Lista todas as categorias do fórum da comunidade.",
+                "description": "Lista todas as categorias do fórum da comunidade. Acessível a visitantes (autenticação opcional).",
                 "operationId": "communityCategories",
                 "responses": {
                     "200": {
@@ -2888,7 +2888,8 @@
                     {
                         "bearer_token": [],
                         "session_token": []
-                    }
+                    },
+                    {}
                 ]
             }
         },
@@ -2898,7 +2899,7 @@
                     "Community"
                 ],
                 "summary": "Listar tópicos recentes",
-                "description": "Lista os tópicos de discussão publicados recentemente.",
+                "description": "Lista os tópicos de discussão publicados recentemente. Visitantes (sem sessão) veem apenas tópicos PUBLIC; utilizadores autenticados veem também os privados de que são autores ou membros.",
                 "operationId": "indexTopics",
                 "responses": {
                     "200": {
@@ -2927,7 +2928,8 @@
                     {
                         "bearer_token": [],
                         "session_token": []
-                    }
+                    },
+                    {}
                 ]
             }
         },
@@ -3079,7 +3081,7 @@
                     "Community"
                 ],
                 "summary": "Visualizar detalhes de um tópico",
-                "description": "Obtém detalhes do tópico e incrementa a contagem de visualizações.",
+                "description": "Obtém detalhes do tópico e incrementa a contagem de visualizações. Tópicos PUBLIC são acessíveis a visitantes; INVITE_ONLY exige ser autor, admin ou membro.",
                 "operationId": "showTopic",
                 "parameters": [
                     {
@@ -3119,7 +3121,8 @@
                     {
                         "bearer_token": [],
                         "session_token": []
-                    }
+                    },
+                    {}
                 ]
             },
             "delete": {
@@ -3729,7 +3732,7 @@
                     "Community"
                 ],
                 "summary": "Listar respostas de um tópico",
-                "description": "Lista as respostas dadas no tópico em ordem cronológica.",
+                "description": "Lista as respostas dadas no tópico em ordem cronológica. Acessível a visitantes em tópicos PUBLIC.",
                 "operationId": "topicReplies",
                 "parameters": [
                     {
@@ -3772,7 +3775,8 @@
                     {
                         "bearer_token": [],
                         "session_token": []
-                    }
+                    },
+                    {}
                 ]
             },
             "post": {
