@@ -108,9 +108,4 @@ class DiscussionTopic extends Model
     {
         return $this->hasMany(DiscussionTopicMember::class, 'topic_id');
     }
-
-    public function interestAreas(): BelongsToMany
-    {
-        return $this->belongsToMany(InterestArea::class, 'topic_interest_areas', 'topic_id', 'interest_area_id');
-    }
 }

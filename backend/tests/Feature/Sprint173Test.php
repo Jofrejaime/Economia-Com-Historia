@@ -127,16 +127,9 @@ class Sprint173Test extends TestCase
             'category_id' => $category->id,
             'author_id' => $admin->id,
             'status' => 'open',
-            'visibility' => 'CATEGORY'
+            'visibility' => 'PUBLIC'
         ]);
 
-        // Join category to be visible for CATEGORY topic
-        \DB::table('category_members')->insert([
-            'id' => (string) Str::uuid(),
-            'category_id' => $category->id,
-            'user_id' => $admin->id,
-            'joined_at' => now(),
-        ]);
 
         $response = $this->auth($admin)->getJson("/api/topics?category_id={$category->id}");
         
@@ -150,13 +143,6 @@ class Sprint173Test extends TestCase
         $user = $this->createAuthenticatedUser('estudante');
         $document = Document::factory()->create(['status' => 'published']);
         $category = CommunityCategory::factory()->create();
-        
-        \DB::table('category_members')->insert([
-            'id' => (string) Str::uuid(),
-            'category_id' => $category->id,
-            'user_id' => $user->id,
-            'joined_at' => now(),
-        ]);
 
         $payload = [
             'category_id' => $category->id,
@@ -177,12 +163,6 @@ class Sprint173Test extends TestCase
     {
         $user = $this->createAuthenticatedUser('estudante');
         $category = CommunityCategory::factory()->create();
-        \DB::table('category_members')->insert([
-            'id' => (string) Str::uuid(),
-            'category_id' => $category->id,
-            'user_id' => $user->id,
-            'joined_at' => now(),
-        ]);
 
         $payload = [
             'category_id' => $category->id,

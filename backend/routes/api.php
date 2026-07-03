@@ -293,7 +293,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::delete('/topics/{id}', [CommunityController::class, 'destroyTopic']);
     Route::get('/topics/{id}/members', [CommunityController::class, 'topicMembers']);
     Route::post('/topics/{id}/members', [CommunityController::class, 'storeTopicMember']);
-    Route::patch('/topics/{id}/members/{user}', [CommunityController::class, 'updateTopicMember']);
     Route::delete('/topics/{id}/members/{user}', [CommunityController::class, 'destroyTopicMember']);
     Route::post('/topics/{id}/join', [CommunityController::class, 'joinTopic']);
     Route::post('/topics/{id}/leave', [CommunityController::class, 'leaveTopic']);
@@ -342,9 +341,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         // Access management
         Route::patch('/access-requests/{id}', [AccessController::class, 'reviewRequest']);
         Route::post('/access-grants/{id}/revoke', [AccessController::class, 'revokeGrant']);
-
-        // Community management
-        Route::post('/community/categories', [CommunityController::class, 'storeCategory']);
 
         // Notifications — send to others
         Route::post('/notifications/send', [NotificationController::class, 'send']);

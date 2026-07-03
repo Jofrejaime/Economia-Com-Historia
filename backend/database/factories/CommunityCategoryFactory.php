@@ -20,7 +20,6 @@ class CommunityCategoryFactory extends Factory
             'cover_image_url' => null,
             'sort_order'      => 0,
             'is_active'       => true,
-            'members_count'   => 0,
             'topics_count'    => 0,
             'created_at'      => now(),
         ];

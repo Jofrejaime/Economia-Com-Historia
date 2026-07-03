@@ -26,13 +26,6 @@ class CommunityTest extends TestCase
             'is_active' => true,
         ]);
 
-        \Illuminate\Support\Facades\DB::table('category_members')->insert([
-            'id' => (string) \Illuminate\Support\Str::uuid(),
-            'category_id' => $this->category->id,
-            'user_id' => $this->user->id,
-            'joined_at' => now(),
-        ]);
-
         // Login para obter token
         $response = $this->postJson('/api/auth/login', [
             'email' => $this->user->email,
@@ -65,7 +58,7 @@ class CommunityTest extends TestCase
         $adminToken = $loginResponse->json('token');
 
         $response = $this->withHeaders(['Authorization' => "Bearer {$adminToken}"])
-            ->postJson('/api/community/categories', [
+            ->postJson('/api/admin/community/categories', [
                 'slug' => 'test-category',
                 'name' => 'Test Category',
                 'description' => 'A test category',
@@ -464,7 +457,7 @@ class CommunityTest extends TestCase
         $topic = DiscussionTopic::factory()->create([
             'category_id' => $this->category->id,
             'status' => 'closed',
-            'visibility' => 'CATEGORY',
+            'visibility' => 'PUBLIC',
         ]);
 
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])

@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Membro de um tópico de discussão (Sprint 18.5.1).
+ *
+ * Pertencer a esta tabela é ser membro — não existem papéis nem convites
+ * pendentes. A autoridade máxima do tópico é sempre o autor (author_id).
+ */
 class DiscussionTopicMember extends Model
 {
     use HasFactory, HasUuids;
@@ -16,15 +22,13 @@ class DiscussionTopicMember extends Model
     protected $fillable = [
         'topic_id',
         'user_id',
-        'role',
-        'invited_by',
-        'accepted_at',
+        'joined_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'accepted_at' => 'datetime',
+            'joined_at' => 'datetime',
         ];
     }
 
@@ -36,10 +40,5 @@ class DiscussionTopicMember extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function inviter(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'invited_by');
     }
 }

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TopicResource;
-use App\Http\Resources\TopicSummaryResource;
 use App\Services\TopicService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -116,7 +115,7 @@ class TopicAdminController extends Controller
             'title' => ['sometimes', 'string', 'max:255'],
             'content' => ['sometimes', 'string', 'max:5000'],
             'status' => ['sometimes', 'string', 'in:draft,published,closed,locked,archived'],
-            'visibility' => ['sometimes', 'string', 'in:PUBLIC,CATEGORY,INVITE_ONLY'],
+            'visibility' => ['sometimes', 'string', 'in:PUBLIC,INVITE_ONLY'],
             'pinned' => ['sometimes', 'boolean'],
             'is_pinned' => ['sometimes', 'boolean'],
             'featured' => ['sometimes', 'boolean'],

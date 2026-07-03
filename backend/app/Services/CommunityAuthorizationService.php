@@ -7,26 +7,31 @@ use App\Models\DiscussionTopicMember;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
-
-//ATT já não existe membros por categoria, o topico é apenas public ou only_member
+/**
+ * Autoridade única de autorização do domínio Community (Sprint 18.5.1).
+ *
+ * A autorização depende exclusivamente da visibilidade do tópico:
+ *
+ *   PUBLIC      — qualquer utilizador autenticado pode ver e responder
+ *   INVITE_ONLY — apenas autor, admin e membros do tópico
+ *
+ * Categorias organizam conteúdo; nunca participam na autorização.
+ */
 class CommunityAuthorizationService
 {
     public function canViewTopic(?User $user, DiscussionTopic $topic): bool
     {
-        if ($user !== null && ($this->bypassesChecks($user) || $this->isOwner($user, $topic))) {
-            return true;
-        }
-
-        $visibility = $this->normalizedVisibility($topic->visibility ?? 'CATEGORY');
-
         if ($user === null) {
             return false;
         }
 
-        return match ($visibility) {
+        if ($this->bypassesChecks($user) || $this->isAuthor($user, $topic)) {
+            return true;
+        }
+
+        return match ($this->normalizedVisibility($topic->visibility ?? 'PUBLIC')) {
             'PUBLIC'      => true,
-            'CATEGORY'    => $this->isCategoryMember($user, $topic),
-            'INVITE_ONLY' => $this->hasAnyMembership($user, $topic),
+            'INVITE_ONLY' => $this->isMember($user, $topic),
             default       => false,
         };
     }
@@ -37,77 +42,43 @@ class CommunityAuthorizationService
             return false;
         }
 
-        if ($this->bypassesChecks($user) || $this->isOwner($user, $topic)) {
-            return true;
-        }
-
-        return match ($this->normalizedVisibility($topic->visibility ?? 'CATEGORY')) {
-            'PUBLIC'      => true,
-            'CATEGORY'    => $this->isCategoryMember($user, $topic),
-            'INVITE_ONLY' => $this->hasAcceptedMembership($user, $topic),
-            default       => false,
-        };
-    }
-
-    public function canInviteMembers(User $user, DiscussionTopic $topic): bool
-    {
-        if ($this->bypassesChecks($user) || $this->isOwner($user, $topic)) {
-            return true;
-        }
-
-        return $this->isModerator($user, $topic);
-    }
-
-    public function canRemoveMembers(User $user, DiscussionTopic $topic): bool
-    {
-        if ($this->bypassesChecks($user) || $this->isOwner($user, $topic)) {
-            return true;
-        }
-
-        return $this->isModerator($user, $topic);
-    }
-
-    public function canPromoteMember(User $user, DiscussionTopic $topic): bool
-    {
-        return $this->bypassesChecks($user) || $this->isOwner($user, $topic);
-    }
-
-    public function canDeleteTopic(User $user, DiscussionTopic $topic): bool
-    {
-        return $this->bypassesChecks($user) || $this->isOwner($user, $topic);
+        return $this->canViewTopic($user, $topic);
     }
 
     public function canUpdateTopic(User $user, DiscussionTopic $topic): bool
     {
-        return $this->canDeleteTopic($user, $topic);
+        return $this->bypassesChecks($user) || $this->isAuthor($user, $topic);
+    }
+
+    public function canDeleteTopic(User $user, DiscussionTopic $topic): bool
+    {
+        return $this->canUpdateTopic($user, $topic);
+    }
+
+    public function canManageMembers(User $user, DiscussionTopic $topic): bool
+    {
+        return $this->bypassesChecks($user) || $this->isAuthor($user, $topic);
     }
 
     public function canJoinTopic(User $user, DiscussionTopic $topic): bool
     {
-        if ($this->bypassesChecks($user) || $this->isOwner($user, $topic)) {
+        if ($this->isAuthor($user, $topic)) {
             return false;
         }
 
-        return $this->normalizedVisibility($topic->visibility ?? 'CATEGORY') === 'INVITE_ONLY'
-            && $this->hasAnyMembership($user, $topic);
+        return $this->normalizedVisibility($topic->visibility ?? 'PUBLIC') === 'INVITE_ONLY'
+            && $this->isMember($user, $topic);
     }
 
     public function canLeaveTopic(User $user, DiscussionTopic $topic): bool
     {
-        if ($this->bypassesChecks($user) || $this->isOwner($user, $topic)) {
-            return false;
-        }
-
-        return $this->hasAnyMembership($user, $topic);
+        return ! $this->isAuthor($user, $topic) && $this->isMember($user, $topic);
     }
 
     /**
-     * Aplica filtro de visibilidade à query de tópicos.
+     * Aplica o filtro de visibilidade à query de tópicos.
      *
-     * Regras:
-     *   PUBLIC      — visível para utilizadores autenticados
-     *   CATEGORY    — visível se o utilizador for membro da categoria
-     *   INVITE_ONLY — visível apenas se o utilizador for membro do tópico
+     * Exactamente três condições: público, autor ou membro.
      */
     public function applyVisibleTopicsFilter(Builder $query, ?User $user): void
     {
@@ -123,47 +94,18 @@ class CommunityAuthorizationService
         }
 
         $query->where(function (Builder $builder) use ($user, $table): void {
-            $builder->where("{$table}.author_id", $user->id)
-                ->orWhere("{$table}.visibility", 'PUBLIC')
-                ->orWhere(function (Builder $sub) use ($user, $table): void {
-                    $sub->where("{$table}.visibility", 'CATEGORY')
-                        ->whereExists(function ($memberQuery) use ($user, $table): void {
-                            $memberQuery->selectRaw('1')
-                                ->from('category_members as cm')
-                                ->whereColumn('cm.category_id', "{$table}.category_id")
-                                ->where('cm.user_id', $user->id);
-                        });
-                })
-                ->orWhere(function (Builder $invite) use ($user, $table): void {
-                    $invite->where("{$table}.visibility", 'INVITE_ONLY')
-                        ->whereExists(function ($memberQuery) use ($user, $table): void {
-                            $memberQuery->selectRaw('1')
-                                ->from('discussion_topic_members as dtm')
-                                ->whereColumn('dtm.topic_id', "{$table}.id")
-                                ->where('dtm.user_id', $user->id);
-                        });
+            $builder->where("{$table}.visibility", 'PUBLIC')
+                ->orWhere("{$table}.author_id", $user->id)
+                ->orWhereExists(function ($memberQuery) use ($user, $table): void {
+                    $memberQuery->selectRaw('1')
+                        ->from('discussion_topic_members as dtm')
+                        ->whereColumn('dtm.topic_id', "{$table}.id")
+                        ->where('dtm.user_id', $user->id);
                 });
         });
     }
 
-    public function memberRole(User $user, DiscussionTopic $topic): ?string
-    {
-        return DiscussionTopicMember::query()
-            ->where('topic_id', $topic->id)
-            ->where('user_id', $user->id)
-            ->value('role');
-    }
-
-    public function hasAcceptedMembership(User $user, DiscussionTopic $topic): bool
-    {
-        return DiscussionTopicMember::query()
-            ->where('topic_id', $topic->id)
-            ->where('user_id', $user->id)
-            ->whereNotNull('accepted_at')
-            ->exists();
-    }
-
-    public function hasAnyMembership(User $user, DiscussionTopic $topic): bool
+    public function isMember(User $user, DiscussionTopic $topic): bool
     {
         return DiscussionTopicMember::query()
             ->where('topic_id', $topic->id)
@@ -171,31 +113,9 @@ class CommunityAuthorizationService
             ->exists();
     }
 
-    public function isOwner(User $user, DiscussionTopic $topic): bool
+    public function isAuthor(User $user, DiscussionTopic $topic): bool
     {
-        return $topic->author_id === $user->id || $this->memberRole($user, $topic) === 'owner';
-    }
-
-    public function isModerator(User $user, DiscussionTopic $topic): bool
-    {
-        return in_array($this->memberRole($user, $topic), ['owner', 'moderator'], true);
-    }
-
-
-    private function isCategoryMember(User $user, DiscussionTopic $topic): bool
-    {
-        $topic->loadMissing('category');
-
-        $category = $topic->category;
-
-        if ($category === null) {
-            return false;
-        }
-
-        return \Illuminate\Support\Facades\DB::table('category_members')
-            ->where('category_id', $category->id)
-            ->where('user_id', $user->id)
-            ->exists();
+        return $topic->author_id === $user->id;
     }
 
     private function bypassesChecks(User $user): bool

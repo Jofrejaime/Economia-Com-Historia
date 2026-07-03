@@ -52,13 +52,12 @@ class CommunityAdminTest extends TestCase
             'visibility' => 'INVITE_ONLY',
         ]);
 
-        // Add member so they have pending invitation/membership
+        // Convite = membro imediato (Sprint 18.5.1); join confirma a participação.
         DiscussionTopicMember::create([
             'id' => (string) \Illuminate\Support\Str::uuid(),
             'topic_id' => $topic->id,
             'user_id' => $this->student->id,
-            'role' => 'member',
-            'accepted_at' => null,
+            'joined_at' => now(),
         ]);
 
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->studentToken}"])
@@ -70,7 +69,6 @@ class CommunityAdminTest extends TestCase
         $this->assertDatabaseHas('discussion_topic_members', [
             'topic_id' => $topic->id,
             'user_id' => $this->student->id,
-            'accepted_at' => now()->toDateTimeString(), // wait, we assert it's set
         ]);
     }
 
@@ -86,8 +84,7 @@ class CommunityAdminTest extends TestCase
             'id' => (string) \Illuminate\Support\Str::uuid(),
             'topic_id' => $topic->id,
             'user_id' => $this->student->id,
-            'role' => 'member',
-            'accepted_at' => now(),
+            'joined_at' => now(),
         ]);
 
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->studentToken}"])

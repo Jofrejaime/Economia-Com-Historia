@@ -34,7 +34,6 @@ class CommunityCategoryService
         }
         $data['is_active'] = $data['is_active'] ?? true;
         $data['sort_order'] = $data['sort_order'] ?? 0;
-        $data['members_count'] = $data['members_count'] ?? 0;
         $data['topics_count'] = $data['topics_count'] ?? 0;
 
         $category = CommunityCategory::create($data);
