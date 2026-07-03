@@ -18,6 +18,10 @@ export class DashboardAdminComponent implements OnInit {
   pendingCount = 12;
   pendingReportsCount = 0;
   unreadNotificationsCount = 0;
+
+  // Perfil do admin autenticado (mostrado no rodapé da sidebar)
+  adminName = 'Administrador';
+  adminRole = 'Administrador';
   
   // Propriedade para sidebar
   isSidebarCollapsed: boolean = false;
@@ -35,7 +39,40 @@ export class DashboardAdminComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadCurrentUser();
     void this.loadSummaryCounts();
+  }
+
+  private loadCurrentUser(): void {
+    // Valores imediatos a partir da sessão local...
+    const cached = this.authService.getUser() as
+      | { display_name?: string; full_name?: string; email?: string; role?: string }
+      | null;
+    if (cached) {
+      this.adminName = cached.display_name || cached.full_name || cached.email || 'Administrador';
+      this.adminRole = this.roleLabel(cached.role);
+    }
+
+    // ...e refrescados a partir do servidor (também renova a sessão).
+    void this.authService.me()
+      .then((data: any) => {
+        const user = data?.user;
+        const profile = data?.profile;
+        const name = profile?.display_name || user?.display_name || user?.full_name || user?.email;
+        if (name) this.adminName = name;
+        if (user?.role) this.adminRole = this.roleLabel(user.role);
+      })
+      .catch(() => { /* mantém os valores da sessão local */ });
+  }
+
+  private roleLabel(role?: string): string {
+    switch (role) {
+      case 'admin': return 'Administrador';
+      case 'professor': return 'Professor';
+      case 'investigador': return 'Investigador';
+      case 'estudante': return 'Estudante';
+      default: return 'Administrador';
+    }
   }
 
   isActive(route: string): boolean {

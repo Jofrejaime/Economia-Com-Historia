@@ -931,3 +931,40 @@ p, span, div, button, input {
     transform: scale(1);
   }
 }
+/* ============================================
+   COVER DOS QUIZZES EM BACKGROUND (subtil)
+   ============================================ */
+
+.quizzes-featured-card,
+.quizzes-all-card {
+  position: relative;
+}
+
+.quizzes-all-card {
+  overflow: hidden;
+}
+
+.quiz-cover-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px) saturate(1.1);
+  transform: scale(1.15);
+  opacity: 0.16;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.quiz-cover-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.9) 100%);
+}
+
+.quizzes-featured-card > *:not(.quiz-cover-bg),
+.quizzes-all-card > *:not(.quiz-cover-bg) {
+  position: relative;
+  z-index: 1;
+}

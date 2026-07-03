@@ -75,8 +75,8 @@ class UserAdminService
                 'email' => $data['email'],
                 'password_hash' => Hash::make($data['password']),
                 'role' => $data['role'],
-                'is_active' => true,
-                'email_verified' => true,
+                'is_active' => $data['is_active'] ?? true,
+                'email_verified' => $data['email_verified'] ?? true,
             ]);
 
             UserProfile::create([

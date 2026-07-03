@@ -188,6 +188,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::patch('/access-requests/{id}/reject', [AccessRequestAdminController::class, 'reject']);
 
         // Access Grant Admin (Sprint 18.6)
+        Route::get('/access-grants', [AccessGrantAdminController::class, 'index']);
         Route::post('/access-grants/{id}/revoke', [AccessGrantAdminController::class, 'revoke']);
 
         // Reports Admin (Sprint 18.6)

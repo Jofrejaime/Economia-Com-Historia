@@ -45,6 +45,8 @@
           </div>
           <div class="quizzes-featured-grid">
             <div *ngFor="let quiz of featuredQuizzes" (click)="startQuiz(quiz.id)" class="quizzes-featured-card">
+              <div class="quiz-cover-bg" *ngIf="quiz.cover_image_url"
+                   [style.background-image]="'url(' + quiz.cover_image_url + ')'"></div>
               <div class="quizzes-featured-body">
                 <div class="quizzes-featured-top">
                   <span class="quizzes-featured-module">{{ quiz.module }}</span>
@@ -219,6 +221,8 @@
           <!-- Cards -->
           <div class="quizzes-all-grid" *ngIf="filteredQuizzes.length > 0">
             <div *ngFor="let quiz of filteredQuizzes" (click)="startQuiz(quiz.id)" class="quizzes-all-card">
+              <div class="quiz-cover-bg" *ngIf="quiz.cover_image_url"
+                   [style.background-image]="'url(' + quiz.cover_image_url + ')'"></div>
               <p class="quizzes-all-module">{{ quiz.module }}</p>
               <h3 class="quizzes-all-title-text">{{ quiz.title }}</h3>
               <div class="quizzes-all-meta">

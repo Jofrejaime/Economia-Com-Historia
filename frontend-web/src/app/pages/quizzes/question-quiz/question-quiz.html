@@ -4,6 +4,10 @@
 
   <main class="quiz-main">
 
+    <!-- Cover do quiz em backdrop suave -->
+    <div class="quiz-page-cover" *ngIf="quiz?.cover_image_url"
+         [style.background-image]="'url(' + quiz!.cover_image_url + ')'"></div>
+
     <!-- Erro -->
     <div *ngIf="error" style="text-align:center;padding:80px;color:#991B1B">
       {{ error }}

@@ -20,16 +20,14 @@ class DocumentSearchService
      */
     public function search(array $params, ?User $user)
     {
-        $cacheKey = 'docs-search:' . md5(serialize($params) . '_' . ($user?->id ?? 'guest') . '_' . ($user?->role ?? 'guest'));
+        // Nunca cachear o LengthAwarePaginator: serializá-lo na tabela cache
+        // (driver database) rebenta ao desserializar (__PHP_Incomplete_Class).
+        $query = $this->baseQuery();
 
-        return Cache::remember($cacheKey, 30, function () use ($params, $user) {
-            $query = $this->baseQuery();
+        $query = $this->buildFilters($query, $params, $user);
+        $query = $this->buildSorting($query, $params);
 
-            $query = $this->buildFilters($query, $params, $user);
-            $query = $this->buildSorting($query, $params);
-
-            return $this->paginate($query, $params);
-        });
+        return $this->paginate($query, $params);
     }
 
     /**
@@ -222,11 +220,7 @@ class DocumentSearchService
      */
     public function clearCache(): void
     {
-        Cache::tags(['documents'])->flush(); // If tags are supported
-        // Fallback for simple cache driver (like array/database without tags support)
-        // Since we dynamic key using prefix, we can flush all cache if needed or just count on TTL
-        // But to be completely compliant, we can flush the whole application cache or clear document keys.
-        // In Laravel, flush() is safe for testing since it uses in-memory/array.
+        // O driver database não suporta Cache::tags() — usar apenas flush().
         Cache::flush();
     }
 }

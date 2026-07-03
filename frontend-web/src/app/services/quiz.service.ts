@@ -130,6 +130,8 @@ export interface QuizPayload {
   status?: string;
   category_id?: string | null;
   questions?: QuizQuestionInput[];
+  /** IDs de documentos a associar (pivot quiz_documents). */
+  documents?: string[];
 }
 
 @Injectable({ providedIn: 'root' })
