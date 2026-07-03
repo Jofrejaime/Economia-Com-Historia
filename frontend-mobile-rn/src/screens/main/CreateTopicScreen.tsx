@@ -103,13 +103,11 @@ export function CreateTopicScreen() {
         content: content.trim(),
         category_id: resolvedCategoryId,
         visibility: accessLevel === "restricted" ? "INVITE_ONLY" : "PUBLIC",
+        member_ids: accessLevel === "restricted" && selectedMembers.length > 0
+          ? selectedMembers.map((m) => m.id)
+          : undefined,
       });
       addTopicOptimistic(newTopic);
-      if (accessLevel === "restricted" && selectedMembers.length > 0) {
-        selectedMembers.forEach((m) => {
-          void communityService.inviteMember(newTopic.id, { user_id: m.id, role: "member" }).catch(() => null);
-        });
-      }
       navigation.navigate("TopicDiscussion", { id: newTopic.id });
     } catch (error) {
       console.warn("Erro ao criar tópico", error);

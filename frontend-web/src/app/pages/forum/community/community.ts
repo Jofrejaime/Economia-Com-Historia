@@ -77,20 +77,11 @@ export class CommunityComponent implements OnInit {
     return [...this.discussions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
-  get totalMembers(): number { return this.categories.reduce((t, c) => t + (c.members_count ?? 0), 0); }
   get totalTopics(): number { return this.categories.reduce((t, c) => t + (c.topics_count ?? 0), 0); }
 
   setActiveTab(tab: TabType): void {
     this.activeTab = tab;
     this.cdr.detectChanges();
-  }
-
-  getAccessBadge(accessLevelId: string): { label: string; bg: string; text: string } {
-    switch (accessLevelId) {
-      case 'jindungo':   return { label: 'Jindungo', bg: '#ffd6a5', text: '#4a2c00' };
-      case 'restricted': return { label: 'Restrito', bg: '#ffb3ba', text: '#5c0011' };
-      default:           return { label: 'Público',  bg: '#d1fae5', text: '#065f46' };
-    }
   }
 
   getTopicVisibilityBadge(discussion: DiscussionTopic): { show: boolean; label: string } | null {

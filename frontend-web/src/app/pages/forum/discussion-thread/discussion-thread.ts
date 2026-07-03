@@ -15,7 +15,6 @@ import { TopicVisibility } from '../../../services/community.service';
 interface TopicMemberRow {
   user_id: string;
   display_name: string;
-  role: 'member' | 'moderator';
 }
 
 @Component({
@@ -212,11 +211,10 @@ export class DiscussionThreadComponent implements OnInit {
     try {
       const result = await firstValueFrom(this.communityService.getTopicMembers(this.topic.id));
       const rows: TopicMemberRow[] = (result.ok && result.data ? result.data : [])
-        .filter((m: any) => m.role !== 'owner')
+        .filter((m: any) => (m.user_id ?? m.user?.id) !== this.topic?.author_id)
         .map((m: any) => ({
           user_id: m.user_id ?? m.user?.id,
           display_name: m.user?.display_name ?? m.display_name ?? 'Utilizador',
-          role: m.role ?? 'member',
         }));
       this.topicMembers = rows;
       this.originalTopicMembers = rows.map(r => ({ ...r }));
@@ -261,7 +259,7 @@ export class DiscussionThreadComponent implements OnInit {
   addTopicMember(user: { id: string; display_name: string | null; full_name: string | null }): void {
     this.topicMembers = [
       ...this.topicMembers,
-      { user_id: user.id, display_name: user.display_name || user.full_name || 'Utilizador', role: 'member' },
+      { user_id: user.id, display_name: user.display_name || user.full_name || 'Utilizador' },
     ];
     this.memberSearchResults = this.memberSearchResults.filter(u => u.id !== user.id);
   }
@@ -275,21 +273,20 @@ export class DiscussionThreadComponent implements OnInit {
     return token ? this.authService.getAuthHeaders(token) : { Accept: 'application/json' };
   }
 
-  // Sincroniza this.topicMembers com o backend: adiciona novos, remove excluídos, atualiza roles alterados
+  // Sincroniza this.topicMembers com o backend: adiciona novos e remove excluídos
   private async syncTopicMembers(topicId: string): Promise<void> {
-    const before = new Map(this.originalTopicMembers.map(m => [m.user_id, m.role]));
-    const after = new Map(this.topicMembers.map(m => [m.user_id, m.role]));
+    const before = new Set(this.originalTopicMembers.map(m => m.user_id));
+    const after = new Set(this.topicMembers.map(m => m.user_id));
 
     const toAdd = this.topicMembers.filter(m => !before.has(m.user_id));
     const toRemove = this.originalTopicMembers.filter(m => !after.has(m.user_id));
-    const toUpdate = this.topicMembers.filter(m => before.has(m.user_id) && before.get(m.user_id) !== m.role);
 
     const requests: Promise<any>[] = [];
 
     for (const m of toAdd) {
       requests.push(firstValueFrom(
         this.http.post(`${environment.apiBaseUrl}/api/topics/${topicId}/members`,
-          { user_id: m.user_id, role: m.role },
+          { user_id: m.user_id },
           { headers: this.memberHeaders }
         )
       ));
@@ -298,15 +295,6 @@ export class DiscussionThreadComponent implements OnInit {
     for (const m of toRemove) {
       requests.push(firstValueFrom(
         this.http.delete(`${environment.apiBaseUrl}/api/topics/${topicId}/members/${m.user_id}`,
-          { headers: this.memberHeaders }
-        )
-      ));
-    }
-
-    for (const m of toUpdate) {
-      requests.push(firstValueFrom(
-        this.http.patch(`${environment.apiBaseUrl}/api/topics/${topicId}/members/${m.user_id}`,
-          { role: m.role },
           { headers: this.memberHeaders }
         )
       ));

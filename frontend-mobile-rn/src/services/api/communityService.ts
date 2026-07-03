@@ -26,12 +26,12 @@ export const communityService = {
     return data.data ?? data;
   },
 
-  async createTopic(payload: { category_id: string; title: string; content: string; visibility?: 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY' }): Promise<DiscussionTopic> {
+  async createTopic(payload: { category_id: string; title: string; content: string; visibility?: 'PUBLIC' | 'INVITE_ONLY'; member_ids?: string[] }): Promise<DiscussionTopic> {
     const { data } = await httpClient.post(API_ENDPOINTS.COMMUNITY.TOPICS, payload);
     return data.data ?? data;
   },
 
-  async updateTopic(id: string, payload: Partial<{ title: string; content: string; status: string; visibility: 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY' }>): Promise<DiscussionTopic> {
+  async updateTopic(id: string, payload: Partial<{ title: string; content: string; status: string; visibility: 'PUBLIC' | 'INVITE_ONLY' }>): Promise<DiscussionTopic> {
     const { data } = await httpClient.patch(API_ENDPOINTS.COMMUNITY.TOPIC_DETAIL(id), payload);
     return data.data ?? data;
   },
@@ -83,13 +83,8 @@ export const communityService = {
     return data.data ?? data;
   },
 
-  async inviteMember(topicId: string, payload: { user_id: string; role?: 'member' | 'moderator' }): Promise<DiscussionTopicMember> {
+  async inviteMember(topicId: string, payload: { user_id: string }): Promise<DiscussionTopicMember> {
     const { data } = await httpClient.post(API_ENDPOINTS.COMMUNITY.TOPIC_MEMBERS(topicId), payload);
-    return data.data ?? data;
-  },
-
-  async updateMember(topicId: string, userId: string, role: 'member' | 'moderator'): Promise<DiscussionTopicMember> {
-    const { data } = await httpClient.patch(API_ENDPOINTS.COMMUNITY.TOPIC_MEMBER(topicId, userId), { role });
     return data.data ?? data;
   },
 

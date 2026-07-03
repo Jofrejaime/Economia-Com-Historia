@@ -180,7 +180,6 @@ export class CommunityService {
   title?: string;
   content?: string;
   visibility?: TopicVisibility;
-  members?: { user_id: string; role: string }[];
 }): Observable<ApiResult<DiscussionTopic>> {
   return this.http.patch<ApiEnvelope<DiscussionTopic>>(`${this.base}/topics/${id}`, payload, {
     observe: 'response',
@@ -213,8 +212,8 @@ updateReply(id: string, payload: { content: string }): Observable<ApiResult<Topi
   );
 }
 
-getTopicMembers(topicId: string): Observable<ApiResult<{ user_id: string; role: string; user?: { id: string; display_name: string | null } }[]>> {
-  return this.http.get<ApiEnvelope<{ user_id: string; role: string; user?: { id: string; display_name: string | null } }[]>>(
+getTopicMembers(topicId: string): Observable<ApiResult<{ user_id: string; user?: { id: string; display_name: string | null } }[]>> {
+  return this.http.get<ApiEnvelope<{ user_id: string; user?: { id: string; display_name: string | null } }[]>>(
     `${this.base}/topics/${topicId}/members`,
     { observe: 'response', headers: this.headers }
   ).pipe(
@@ -224,7 +223,7 @@ getTopicMembers(topicId: string): Observable<ApiResult<{ user_id: string; role: 
       status: response.status,
       data: response.body?.data ?? [],
     })),
-    catchError((error: unknown) => of(this.toFailureResult<{ user_id: string; role: string; user?: { id: string; display_name: string | null } }[]>(error, 'Erro ao carregar membros')))
+    catchError((error: unknown) => of(this.toFailureResult<{ user_id: string; user?: { id: string; display_name: string | null } }[]>(error, 'Erro ao carregar membros')))
   );
 }
 
@@ -270,15 +269,12 @@ getTopicMembers(topicId: string): Observable<ApiResult<{ user_id: string; role: 
 
   private normalizeVisibility(value: string | null | undefined): TopicVisibility {
     switch ((value ?? '').toUpperCase()) {
-      case 'PUBLIC':
-        return 'PUBLIC';
       case 'INVITE_ONLY':
       case 'PRIVATE':
         return 'INVITE_ONLY';
-      case 'CATEGORY':
-      case 'RESTRICTED':
+      case 'PUBLIC':
       default:
-        return 'CATEGORY';
+        return 'PUBLIC';
     }
   }
 

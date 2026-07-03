@@ -10,8 +10,6 @@ import { CommunityCategory, CommunityService, TopicVisibility } from '../../../.
 import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../../../services/auth.service';
 
-type MemberRole = 'member' | 'moderator';
-
 interface SelectedMember {
   user: {
     id: string;
@@ -19,7 +17,6 @@ interface SelectedMember {
     full_name: string | null;
     institution: string | null;
   };
-  role: MemberRole;
 }
 
 interface UserSearchResult {
@@ -97,7 +94,7 @@ export class CreateTopicComponent implements OnInit {
   get visibilityLabel(): string {
     switch (this.visibility) {
       case 'PUBLIC':      return 'Público: qualquer utilizador pode ver o tópico';
-      case 'INVITE_ONLY': return 'Por convite: apenas owner, moderadores e membros convidados';
+      case 'INVITE_ONLY': return 'Por convite: apenas o autor e os membros convidados';
       default:            return this.visibility;
     }
   }
@@ -175,7 +172,6 @@ export class CreateTopicComponent implements OnInit {
           full_name: user.full_name,
           institution: user.institution,
         },
-        role: 'member',
       },
     ];
     this.memberSearchResults = this.memberSearchResults.filter(u => u.id !== user.id);
@@ -185,11 +181,6 @@ export class CreateTopicComponent implements OnInit {
   removeMember(userId: string): void {
     this.selectedMembers = this.selectedMembers.filter(m => m.user.id !== userId);
     this.cdr.detectChanges();
-  }
-
-  updateMemberRole(userId: string, role: MemberRole): void {
-    const member = this.selectedMembers.find(m => m.user.id === userId);
-    if (member) member.role = role;
   }
 
   togglePreview(): void {
@@ -251,8 +242,8 @@ export class CreateTopicComponent implements OnInit {
           title: this.title,
           content: this.content,
           visibility: this.visibility,
-          members: this.visibility === 'INVITE_ONLY'
-            ? this.selectedMembers.map(m => ({ user_id: m.user.id, role: m.role }))
+          member_ids: this.visibility === 'INVITE_ONLY'
+            ? this.selectedMembers.map(m => m.user.id)
             : undefined,
         },
         { headers }

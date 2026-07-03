@@ -109,7 +109,6 @@
                   <label class="edit-label">Visibilidade</label>
                   <div class="edit-visibility-row">
                     <button type="button" class="edit-visibility-btn" [class.selected]="editVisibility === 'PUBLIC'" (click)="setEditVisibility('PUBLIC')">Público</button>
-                    <button type="button" class="edit-visibility-btn" [class.selected]="editVisibility === 'CATEGORY'" (click)="setEditVisibility('CATEGORY')">Por Categoria</button>
                     <button type="button" class="edit-visibility-btn" [class.selected]="editVisibility === 'INVITE_ONLY'" (click)="setEditVisibility('INVITE_ONLY')">Por Convite</button>
                   </div>
                 </div>
@@ -133,10 +132,6 @@
                   <div class="edit-members-list">
                     <div *ngFor="let member of topicMembers" class="edit-member-chip">
                       <span>{{ member.display_name }}</span>
-                      <select [(ngModel)]="member.role" class="edit-member-role">
-                        <option value="member">Membro</option>
-                        <option value="moderator">Moderador</option>
-                      </select>
                       <button type="button" class="edit-member-remove" (click)="removeTopicMember(member.user_id)">Remover</button>
                     </div>
                     <p *ngIf="topicMembers.length === 0" class="edit-members-empty">Nenhum membro adicionado.</p>
