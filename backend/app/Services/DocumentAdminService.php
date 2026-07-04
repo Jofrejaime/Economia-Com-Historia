@@ -17,6 +17,7 @@ class DocumentAdminService
     public function __construct(
         private readonly MediaService $media,
         private readonly GamificationService $gamification,
+        private readonly NotificationService $notifications,
     ) {}
 
     /**
@@ -94,7 +95,11 @@ class DocumentAdminService
             $data['slug'] = Str::slug($data['title']) . '-' . Str::lower(Str::random(6));
         }
 
-        if (isset($data['status']) && $data['status'] === DocumentStatus::PUBLISHED->value && $document->published_at === null) {
+        $justPublished = isset($data['status'])
+            && $data['status'] === DocumentStatus::PUBLISHED->value
+            && $document->published_at === null;
+
+        if ($justPublished) {
             $data['published_at'] = now();
             $data['reviewed_by']  = $updater->id;
         }
@@ -111,6 +116,22 @@ class DocumentAdminService
 
         $this->logAudit($updater->id, $id, 'update', $oldValues, $data);
         $this->clearCache();
+
+        // Avisar o autor de que o seu documento foi publicado (exceto quando o
+        // próprio autor é quem publica).
+        if ($justPublished && $document->created_by !== null && $document->created_by !== $updater->id) {
+            $creator = User::find($document->created_by);
+            if ($creator !== null) {
+                $this->notifications->send(
+                    $creator,
+                    'document_published',
+                    'Documento publicado',
+                    "O seu documento \"{$document->title}\" foi publicado.",
+                    $id,
+                    'document'
+                );
+            }
+        }
 
         return $document->refresh()->load(['category', 'accessLevel', 'createdBy.profile']);
     }

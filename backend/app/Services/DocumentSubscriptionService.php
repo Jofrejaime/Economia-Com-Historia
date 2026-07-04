@@ -6,6 +6,7 @@ use App\Enums\SubscriptionReason;
 use App\Enums\SubscriptionStatus;
 use App\Exceptions\InvalidSubscriptionTransitionException;
 use App\Exceptions\SubscriptionNotFoundException;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -21,6 +22,10 @@ use Illuminate\Support\Str;
  */
 class DocumentSubscriptionService
 {
+    public function __construct(
+        private readonly NotificationService $notifications,
+    ) {}
+
     // ─── Read helpers ─────────────────────────────────────────────────────────
 
     public function findById(string $id): ?object
@@ -152,6 +157,8 @@ class DocumentSubscriptionService
                 'approved_by' => $adminId,
                 'updated_at'  => now(),
             ]);
+
+        $this->notifyDecision($sub, true);
     }
 
     /**
@@ -181,6 +188,43 @@ class DocumentSubscriptionService
                 'rejected_by' => $adminId,
                 'updated_at'  => now(),
             ]);
+
+        $this->notifyDecision($sub, false);
+    }
+
+    /**
+     * Notifica o subscritor da decisão (aprovação/rejeição) do seu pedido de
+     * acesso a um documento. Antes desta correção, o utilizador ficava a
+     * aguardar sem nunca ser avisado do desfecho.
+     */
+    private function notifyDecision(object $sub, bool $approved): void
+    {
+        $user = User::find($sub->user_id);
+        if ($user === null) {
+            return;
+        }
+
+        $docTitle = DB::table('documents')->where('id', $sub->document_id)->value('title') ?? 'documento';
+
+        if ($approved) {
+            $this->notifications->send(
+                $user,
+                'subscription_approved',
+                'Subscrição aprovada',
+                "O seu acesso ao documento \"{$docTitle}\" foi aprovado.",
+                $sub->document_id,
+                'document'
+            );
+        } else {
+            $this->notifications->send(
+                $user,
+                'subscription_rejected',
+                'Subscrição rejeitada',
+                "O seu pedido de acesso ao documento \"{$docTitle}\" foi rejeitado.",
+                $sub->document_id,
+                'document'
+            );
+        }
     }
 
     /**

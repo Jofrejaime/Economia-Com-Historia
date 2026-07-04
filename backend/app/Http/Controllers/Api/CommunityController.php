@@ -1195,6 +1195,28 @@ class CommunityController extends Controller
                 );
             }
 
+            // Notify the author of the parent reply when someone answers it
+            // (skip self and skip the topic author who was already notified).
+            $parentReplyId = $validated['parent_reply_id'] ?? null;
+            if ($parentReplyId !== null) {
+                $parentAuthorId = TopicReply::where('id', $parentReplyId)->value('author_id');
+                if ($parentAuthorId !== null
+                    && $parentAuthorId !== $request->user()->id
+                    && $parentAuthorId !== $topic->author_id) {
+                    $parentAuthor = \App\Models\User::find($parentAuthorId);
+                    if ($parentAuthor !== null) {
+                        $this->notificationService->send(
+                            $parentAuthor,
+                            'reply_reply',
+                            'Nova resposta à sua mensagem',
+                            "Alguém respondeu à sua mensagem no tópico: {$topic->title}",
+                            $reply->id,
+                            'topic_reply'
+                        );
+                    }
+                }
+            }
+
             return $reply->load(['author.profile']);
         });
 
