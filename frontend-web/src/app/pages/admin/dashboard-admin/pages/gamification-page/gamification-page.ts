@@ -66,6 +66,12 @@ export class GamificationPageComponent implements OnInit {
   txStats: any = null;
   selectedTx: PointTransaction | null = null;
 
+  // Ajuste manual de pontos
+  adjustUserId = '';
+  adjustPoints: number | null = null;
+  adjustDescription = '';
+  adjusting = false;
+
   // Tab 5: Quiz Attempts
   attempts: QuizAttempt[] = [];
   attemptTotalCount = 0;
@@ -399,6 +405,35 @@ export class GamificationPageComponent implements OnInit {
         alert(result.message ?? 'Erro ao exportar CSV.');
       }
     });
+  }
+
+  submitAdjustPoints(): void {
+    const points = Number(this.adjustPoints);
+    if (!this.adjustUserId.trim()) {
+      alert('Introduza o ID do utilizador (UUID).');
+      return;
+    }
+    if (!Number.isInteger(points) || points === 0) {
+      alert('Introduza um número inteiro diferente de zero (positivo credita, negativo debita).');
+      return;
+    }
+
+    this.adjusting = true;
+    this.gamificationAdminService
+      .adjustPoints(this.adjustUserId.trim(), points, this.adjustDescription.trim() || undefined)
+      .subscribe(result => {
+        this.adjusting = false;
+        if (result.ok) {
+          alert(result.message ?? 'Pontos ajustados com sucesso.');
+          this.adjustUserId = '';
+          this.adjustPoints = null;
+          this.adjustDescription = '';
+          this.txCurrentPage = 1;
+          this.loadTransactions();
+        } else {
+          alert(result.message ?? 'Erro ao ajustar pontos.');
+        }
+      });
   }
 
   viewTxDetails(tx: PointTransaction): void {

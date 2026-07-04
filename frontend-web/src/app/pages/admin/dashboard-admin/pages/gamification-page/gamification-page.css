@@ -2,3 +2,44 @@
 .gamification-container {
   padding: 1.5rem;
 }
+
+/* Ajuste manual de pontos */
+.adjust-points-card {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.adjust-points-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #8B1E2D;
+  margin: 0 0 4px 0;
+}
+
+.adjust-points-hint {
+  font-size: 12px;
+  color: #6B7280;
+  margin: 0 0 12px 0;
+}
+
+.adjust-points-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.adjust-points-form input {
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.adjust-points-form input:first-child {
+  flex: 1;
+  min-width: 240px;
+}

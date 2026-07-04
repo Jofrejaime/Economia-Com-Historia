@@ -209,6 +209,7 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
 
         // Gamification Admin (Sprint 18.7)
         Route::get('/gamification/dashboard', [GamificationAdminController::class, 'dashboard']);
+        Route::post('/gamification/adjust-points', [GamificationAdminController::class, 'adjustPoints']);
         Route::get('/leaderboard', [GamificationAdminController::class, 'leaderboard']);
         Route::post('/leaderboard/refresh', [GamificationAdminController::class, 'refreshLeaderboard']);
         Route::get('/leaderboard/snapshots', [GamificationAdminController::class, 'snapshots']);

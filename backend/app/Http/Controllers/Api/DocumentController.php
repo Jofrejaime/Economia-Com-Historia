@@ -294,6 +294,13 @@ class DocumentController extends Controller
 
     $userId = $user?->id;
 
+    // Primeira leitura deste documento por este utilizador? (cada documento
+    // conta uma única vez para a gamificação — como os quizzes).
+    $firstRead = $userId !== null && ! DB::table('document_views')
+        ->where('document_id', $id)
+        ->where('user_id', $userId)
+        ->exists();
+
     DB::table('document_views')->insert([
         'id'          => (string) Str::uuid(),
         'document_id' => $id,
@@ -303,6 +310,21 @@ class DocumentController extends Controller
     ]);
 
     $document->increment('views_count');
+
+    // Gamificação: contar o documento como lido e atribuir pontos, apenas na
+    // primeira leitura. incrementCounters corre antes de awardPoints para que
+    // a avaliação de badges (documents_read) já veja o contador atualizado.
+    if ($firstRead && $user !== null) {
+        $this->gamification->incrementCounters($user, ['documents_read' => 1]);
+        $this->gamification->awardPoints(
+            $user,
+            2,
+            PointTransactionReason::DOCUMENT_READ,
+            $id,
+            'document',
+            "Documento lido: {$document->title}"
+        );
+    }
 
     $isLiked = $userId !== null && DB::table('document_likes')
         ->where('document_id', $id)

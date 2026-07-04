@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\DocumentStatus;
 use App\Models\Document;
 use App\Models\User;
+use App\Support\PointTransactionReason;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,10 @@ use Illuminate\Support\Str;
 
 class DocumentAdminService
 {
-    public function __construct(private readonly MediaService $media) {}
+    public function __construct(
+        private readonly MediaService $media,
+        private readonly GamificationService $gamification,
+    ) {}
 
     /**
      * Create a new document.
@@ -48,6 +52,16 @@ class DocumentAdminService
         });
 
         $this->applyMedia($id, $files, $creator);
+
+        // Gamificação: recompensar o autor por contribuir com um documento.
+        $this->gamification->awardPoints(
+            $creator,
+            10,
+            PointTransactionReason::DOCUMENT_UPLOAD,
+            $id,
+            'document',
+            "Documento carregado: {$data['title']}"
+        );
 
         $this->logAudit($creator->id, $id, 'create', null, $data);
         $this->clearCache();
