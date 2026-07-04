@@ -12,11 +12,12 @@ class DocumentCategoryService
 {
     public function list()
     {
-        return Cache::remember('document-categories', 30, function () {
-            return DocumentCategory::orderBy('sort_order')
-                ->orderBy('name')
-                ->get();
-        });
+        // Não cachear a Collection Eloquent: serializá-la na tabela cache
+        // (driver database) rebenta ao desserializar (__PHP_Incomplete_Class)
+        // após refactors de classes.
+        return DocumentCategory::orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
     }
 
     public function find(string $id): DocumentCategory

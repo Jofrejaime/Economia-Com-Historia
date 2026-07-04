@@ -24,18 +24,23 @@
           <span class="category-detail-breadcrumb-current">{{ categoryName }}</span>
         </nav>
 
+        <!-- Capa da categoria (cover no topo; fallback para a cor da categoria) -->
+        <div class="category-cover"
+             [class.category-cover--image]="category.cover_image_url"
+             [style.background-image]="category.cover_image_url ? 'url(' + category.cover_image_url + ')' : null"
+             [style.background-color]="!category.cover_image_url ? (category.color_bg || '#8B1E2D') : null">
+          <div class="category-cover-inner">
+            <span class="category-cover-badge">CATEGORIA</span>
+            <h1 class="category-cover-title">{{ categoryName }}</h1>
+            <p class="category-cover-desc" *ngIf="categoryDescription">{{ categoryDescription }}</p>
+          </div>
+        </div>
+
         <!-- Main Grid -->
         <div class="category-detail-grid">
-          
+
           <!-- Left Column -->
           <div>
-            
-            <!-- Category Header -->
-            <div class="category-detail-header">
-              <div class="category-detail-header-badge">CATEGORIA</div>
-              <h1 class="category-detail-header-title">{{ categoryName }}</h1>
-              <p class="category-detail-header-description">{{ categoryDescription }}</p>
-            </div>
 
             <!-- New Discussion Button -->
             <div class="category-detail-new-discussion">

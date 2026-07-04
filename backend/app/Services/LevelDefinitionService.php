@@ -17,9 +17,13 @@ class LevelDefinitionService
 
     public function getAll(): Collection
     {
-        return Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
-            return LevelDefinition::orderBy('level')->get();
+        // Cachear apenas arrays simples (nunca objetos Eloquent) e re-hidratar,
+        // para o driver database não rebentar ao desserializar após refactors.
+        $rows = Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
+            return LevelDefinition::orderBy('level')->get()->toArray();
         });
+
+        return LevelDefinition::hydrate($rows);
     }
 
     public function getByLevel(int $level): LevelDefinition

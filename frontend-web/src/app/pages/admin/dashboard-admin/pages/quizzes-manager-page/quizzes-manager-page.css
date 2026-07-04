@@ -1197,9 +1197,9 @@ textarea.form-input {
   inset: 0;
   background-size: cover;
   background-position: center;
-  filter: blur(14px) saturate(1.1);
-  transform: scale(1.15);
-  opacity: 0.15;
+  filter: blur(5px) saturate(1.05);
+  transform: scale(1.08);
+  opacity: 0.13;
   pointer-events: none;
   z-index: 0;
 }
@@ -1212,8 +1212,8 @@ textarea.form-input {
 }
 
 .quiz-cover-bg--modal {
-  filter: blur(18px) saturate(1.1);
-  opacity: 0.22;
+  filter: blur(8px) saturate(1.05);
+  opacity: 0.18;
 }
 
 .quiz-cover-bg--modal::after {
