@@ -270,6 +270,21 @@ export class QuizService {
     return res.data;
   }
 
+  /**
+   * Pré-visualização pública do ranking (top 3) — GET /leaderboard/top não
+   * exige sessão, ao contrário de getNationalLeaderboard(). Usado nos ecrãs
+   * acessíveis a visitantes (landing, lista de quizzes).
+   */
+  async getNationalLeaderboardTop(): Promise<LeaderboardEntry[]> {
+    const res = await firstValueFrom(
+      this.http.get<{ data: LeaderboardEntry[] }>(
+        `${this.base}/leaderboard/top`,
+        { headers: this.headers }
+      )
+    );
+    return res.data;
+  }
+
   async getProvincialLeaderboard(province: string): Promise<LeaderboardEntry[]> {
   const res = await firstValueFrom(
     this.http.get<{ data: LeaderboardEntry[] }>(

@@ -1,13 +1,10 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { DocumentService, Document } from '../../../services/document.service';
 import { AuthService } from '../../../services/auth.service';
-import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-saved-contents',
@@ -24,7 +21,6 @@ export class SavedContentsComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private http: HttpClient,
     private documentService: DocumentService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef
@@ -44,15 +40,7 @@ export class SavedContentsComponent implements OnInit {
     this.error = null;
 
     try {
-      const token = this.authService.getToken();
-      const headers = token ? this.authService.getAuthHeaders(token) : {};
-
-      const res = await firstValueFrom(
-        this.http.get<any>(`${environment.apiBaseUrl}/api/me/favorites`, { headers })
-      );
-
-      // aceita tanto { data: [...] } como array directo
-      this.favorites = Array.isArray(res) ? res : (res?.data ?? []);
+      this.favorites = await this.documentService.getFavorites();
     } catch (err: any) {
       this.error = err?.error?.message ?? 'Erro ao carregar os conteúdos guardados.';
     } finally {

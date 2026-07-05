@@ -157,10 +157,10 @@
               <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
               <p class="contents-doc-item-description">{{ doc.summary }}</p>
               <div class="contents-doc-item-footer">
-                <span class="contents-doc-item-access" 
-                      [style.background]="getAccessBadgeStyle(doc.access_level_id).bg"
-                      [style.color]="getAccessBadgeStyle(doc.access_level_id).text">
-                  {{ getAccessLabel(doc.access_level_id) }}
+                <span class="contents-doc-item-access"
+                      [style.background]="getDocBadge(doc).bg"
+                      [style.color]="getDocBadge(doc).text">
+                  {{ getDocBadge(doc).label }}
                 </span>
                 <span class="contents-doc-item-date" *ngIf="doc.period_start">
                   {{ doc.period_start }}{{ doc.period_end ? ' – ' + doc.period_end : '' }}
@@ -238,7 +238,7 @@
           </svg>
         </div>
         <div>
-          <h2 class="access-modal-title">Conteúdo {{ getAccessLabel(accessModalDoc.access_level_id) }}</h2>
+          <h2 class="access-modal-title">Conteúdo {{ getDocBadge(accessModalDoc).label }}</h2>
           <p class="access-modal-subtitle">
             {{ accessMode === 'subscription'
                 ? 'Este documento requer subscrição de acesso'
@@ -255,9 +255,9 @@
           <span class="access-modal-doc-type">{{ accessModalDoc.document_type | uppercase }}</span>
           <h3 class="access-modal-doc-title">{{ accessModalDoc.title }}</h3>
           <span class="access-modal-doc-badge"
-                [style.background]="getAccessBadgeStyle(accessModalDoc.access_level_id).bg"
-                [style.color]="getAccessBadgeStyle(accessModalDoc.access_level_id).text">
-            {{ getAccessLabel(accessModalDoc.access_level_id) }}
+                [style.background]="getDocBadge(accessModalDoc).bg"
+                [style.color]="getDocBadge(accessModalDoc).text">
+            {{ getDocBadge(accessModalDoc).label }}
           </span>
         </div>
 

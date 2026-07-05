@@ -19,10 +19,63 @@ export interface ApiProfile {
   updated_at?: string;
 }
 
+export interface AccessGrant {
+  id: string;
+  user_id: string;
+  access_level_id: string;
+  granted_at: string;
+  access_level_name: string;
+  access_level_description: string | null;
+}
+
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon_url: string | null;
+  color_hex: string | null;
+  category: string | null;
+  earned_at: string;
+}
+
+export interface UserLevel {
+  id: string;
+  user_id: string;
+  current_level: number;
+  total_points: number;
+  weekly_points: number;
+  monthly_points: number;
+  quizzes_completed: number;
+  documents_read: number;
+  topics_created: number;
+  replies_posted: number;
+  updated_at: string;
+}
+
+export interface LevelDefinition {
+  level: number;
+  name: string;
+  min_points: number;
+  max_points: number | null;
+  color_hex: string | null;
+  icon_url: string | null;
+  perks: unknown;
+}
+
+export interface InterestAreaRef {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export interface MeResponse {
   user?: unknown;
   profile?: ApiProfile | null;
-  access_grants?: unknown[];
+  access_grants?: AccessGrant[];
+  user_level?: UserLevel | null;
+  level_definition?: LevelDefinition | null;
+  badges?: Badge[];
+  interest_areas?: InterestAreaRef[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -123,7 +176,8 @@ export class ProfileService {
     bio?: string | null;
     website_url?: string | null;
     research_areas?: string[] | null;
-  }): Promise<{ message?: string; profile?: ApiProfile }> {
+    interest_area_ids?: string[] | null;
+  }): Promise<{ message?: string; profile?: ApiProfile; interest_areas?: InterestAreaRef[] }> {
     const token = this.auth.getToken();
 
     if (!token) {
@@ -132,7 +186,7 @@ export class ProfileService {
 
     try {
       const response = await firstValueFrom(
-        this.http.put<{ message?: string; profile?: ApiProfile }>(
+        this.http.put<{ message?: string; profile?: ApiProfile; interest_areas?: InterestAreaRef[] }>(
           `${environment.apiBaseUrl}/api/profile`,
           payload,
           { headers: this.auth.getAuthHeaders(token) }
@@ -212,7 +266,14 @@ export class ProfileService {
 
   private normalizeError(error: unknown, fallback: string): Error {
     if (error instanceof HttpErrorResponse) {
-      return new Error(error.error?.message || error.message || `HTTP ${error.status}`);
+      const normalized = new Error(error.error?.message || error.message || `HTTP ${error.status}`);
+      // Preserva status e erros de validação por campo — sem isto, quem apanha
+      // este Error perde por completo a distinção entre 401/404/422/500 e as
+      // mensagens específicas que o Laravel devolve em error.error.errors.
+      return Object.assign(normalized, {
+        status: error.status,
+        errors: error.error?.errors as Record<string, string[]> | undefined,
+      });
     }
 
     if (error instanceof Error) {

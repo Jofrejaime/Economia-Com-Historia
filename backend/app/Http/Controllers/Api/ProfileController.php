@@ -79,12 +79,29 @@ class ProfileController extends Controller
             ->orderByDesc('ub.earned_at')
             ->get();
 
+        $interestAreas = $this->userInterestAreas($user->id);
+
         return response()->json([
             'profile' => ProfilePresenter::presentProfile($profile),
             'user_level' => $userLevel,
             'level_definition' => $levelDefinition,
             'badges' => $badges,
+            'interest_areas' => $interestAreas,
         ]);
+    }
+
+    /**
+     * Áreas de interesse seleccionadas pelo utilizador (tabela pivot
+     * user_interest_areas), ordenadas por nome.
+     */
+    private function userInterestAreas(string $userId): \Illuminate\Support\Collection
+    {
+        return DB::table('user_interest_areas as uia')
+            ->join('interest_areas as ia', 'uia.interest_area_id', '=', 'ia.id')
+            ->where('uia.user_id', $userId)
+            ->select('ia.id', 'ia.name', 'ia.slug')
+            ->orderBy('ia.name')
+            ->get();
     }
 
     /**
@@ -136,6 +153,8 @@ class ProfileController extends Controller
             'website_url' => ['sometimes', 'nullable', 'string', 'max:500', 'url'],
             'research_areas' => ['sometimes', 'nullable', 'array', 'max:10'],
             'research_areas.*' => ['string', 'max:100'],
+            'interest_area_ids' => ['sometimes', 'nullable', 'array', 'max:10'],
+            'interest_area_ids.*' => ['uuid', 'exists:interest_areas,id'],
         ]);
 
         $userId = $request->user()->id;
@@ -146,6 +165,9 @@ class ProfileController extends Controller
                 ? json_encode($payload['research_areas'])
                 : null;
         }
+
+        $interestAreaIds = $payload['interest_area_ids'] ?? null;
+        unset($payload['interest_area_ids']);
 
         $existing = DB::table('user_profiles')->where('user_id', $userId)->first();
 
@@ -164,6 +186,19 @@ class ProfileController extends Controller
         }
 
         $updated = DB::table('user_profiles')->where('user_id', $userId)->first();
+
+        if ($interestAreaIds !== null) {
+            DB::transaction(function () use ($userId, $interestAreaIds): void {
+                DB::table('user_interest_areas')->where('user_id', $userId)->delete();
+
+                if ($interestAreaIds !== []) {
+                    DB::table('user_interest_areas')->insert(array_map(
+                        fn (string $areaId) => ['user_id' => $userId, 'interest_area_id' => $areaId],
+                        $interestAreaIds
+                    ));
+                }
+            });
+        }
 
         $user = $request->user();
         $this->gamification->reconcileUserPoints($user);
@@ -197,6 +232,7 @@ class ProfileController extends Controller
             'user_level' => $userLevel,
             'level_definition' => $levelDefinition,
             'badges' => $badges,
+            'interest_areas' => $this->userInterestAreas($userId),
         ]);
     }
 

@@ -39,6 +39,27 @@ class LeaderboardController extends Controller
 
     /**
      * @OA\Get(
+     *      path="/leaderboard/top",
+     *      operationId="topLeaderboardPreview",
+     *      tags={"Leaderboard"},
+     *      summary="Pré-visualização pública do ranking (top 3)",
+     *      description="Endpoint público (visitantes incluídos) com os 3 primeiros lugares do ranking nacional. Para o ranking completo, ver /leaderboard/national (exige sessão).",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Top 3 do ranking nacional",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *          )
+     *      )
+     * )
+     */
+    public function top(): JsonResponse
+    {
+        return response()->json(['data' => $this->leaderboard->national()->take(3)->values()]);
+    }
+
+    /**
+     * @OA\Get(
      *      path="/leaderboard/provincial",
      *      operationId="provincialLeaderboard",
      *      tags={"Leaderboard"},
