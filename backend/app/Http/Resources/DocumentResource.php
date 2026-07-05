@@ -119,6 +119,7 @@ class DocumentResource extends JsonResource
                     'color_bg'   => $this->resource->category->color_bg,
                     'color_text' => $this->resource->category->color_text,
                     'icon'       => $this->resource->category->icon,
+                    'requires_subscription' => (bool) $this->resource->category->requires_subscription,
                 ] : null)
                 : ($this->resource->category_name ? [
                     'id'         => $this->resource->category_id,
@@ -127,6 +128,7 @@ class DocumentResource extends JsonResource
                     'color_bg'   => $this->resource->category_color_bg ?? null,
                     'color_text' => $this->resource->category_color_text ?? null,
                     'icon'       => $this->resource->category_icon ?? null,
+                    'requires_subscription' => (bool) ($this->resource->category_requires_subscription ?? false),
                 ] : null),
 
             // Access level joined fields

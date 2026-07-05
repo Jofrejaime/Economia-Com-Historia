@@ -4,19 +4,22 @@ namespace App\Policies;
 
 use App\Models\Document;
 use App\Models\User;
-use App\Services\AccessGateService;
+use App\Services\DocumentAccessService;
 
 class DocumentPolicy
 {
-    public function __construct(private readonly AccessGateService $accessGate) {}
+    public function __construct(private readonly DocumentAccessService $documentAccess) {}
 
     /**
      * Any authenticated user with the required access grant may view the document.
-     * Admins and document authors always have access.
+     * Admins and document authors always have access. Delegates to
+     * DocumentAccessService so this policy honours category-based subscription
+     * gating, not just access_level_id (it was previously wired to
+     * AccessGateService directly, which knows nothing about subscriptions).
      */
     public function view(User $user, Document $document): bool
     {
-        return $this->accessGate->canAccessDocument($user, $document);
+        return $this->documentAccess->canReadDocument($user, $document);
     }
 
     /**

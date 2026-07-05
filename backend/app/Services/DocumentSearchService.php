@@ -60,6 +60,7 @@ class DocumentSearchService
                 'dc.color_bg as category_color_bg',
                 'dc.color_text as category_color_text',
                 'dc.icon as category_icon',
+                'dc.requires_subscription as category_requires_subscription',
                 'al.name as access_level_name',
                 'al.icon as access_level_icon',
                 'al.color_bg as access_level_color_bg',

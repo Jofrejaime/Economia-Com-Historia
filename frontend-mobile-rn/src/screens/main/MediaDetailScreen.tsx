@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Image,
   Dimensions,
+  Alert,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Audio, AVPlaybackStatus } from "expo-av";
@@ -203,7 +204,9 @@ export function MediaDetailScreen() {
         setLikesCount((n) => n + 1);
       }
       setIsLiked((v) => !v);
-    } catch { /* ignorar */ }
+    } catch {
+      Alert.alert("Erro", "Não foi possível registar o gosto. Verifica a tua ligação e tenta novamente.");
+    }
   };
 
   const handleFavorite = async () => {
@@ -215,7 +218,9 @@ export function MediaDetailScreen() {
         await documentService.favorite(id);
       }
       setIsFavorited((v) => !v);
-    } catch { /* ignorar */ }
+    } catch {
+      Alert.alert("Erro", "Não foi possível actualizar os favoritos. Verifica a tua ligação e tenta novamente.");
+    }
   };
 
   const cycleSpeed = () => {
@@ -297,6 +302,7 @@ export function MediaDetailScreen() {
           visible={accessModalVisible}
           documentId={id}
           accessLevelId={requiredAccessLevel}
+          mode={errorType === "subscription_required" ? "subscription" : "access-level"}
           onClose={() => setAccessModalVisible(false)}
         />
       </ScreenContainer>

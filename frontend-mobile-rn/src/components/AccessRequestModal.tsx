@@ -14,13 +14,25 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { appTheme } from "../constants/theme";
 import { accessService } from "../services/api/accessService";
+import { documentService } from "../services/api/documentService";
 
 interface AccessRequestModalProps {
   visible: boolean;
-  documentId: string;
+  // Omitir quando o pedido não está associado a um documento (ex: quiz) —
+  // o backend usa então accessLevelId directamente.
+  documentId?: string;
   accessLevelId: string;
   documentTitle?: string;
   onClose: () => void;
+  /**
+   * "subscription": a categoria do documento tem requires_subscription=true —
+   * o pedido correcto é POST /documents/{id}/subscribe (DocumentSubscriptionService),
+   * não /access-requests (que trata do gate por access_level_id e nunca
+   * desbloqueia conteúdo com subscrição, já que canReadDocument() trata os
+   * dois mecanismos como mutuamente exclusivos). Requer documentId.
+   * "access-level" (default): fluxo actual via accessService.createRequest.
+   */
+  mode?: "subscription" | "access-level";
 }
 
 type ModalState = "idle" | "submitting" | "success" | "already_requested" | "error";
@@ -31,6 +43,7 @@ export function AccessRequestModal({
   accessLevelId,
   documentTitle,
   onClose,
+  mode = "access-level",
 }: AccessRequestModalProps) {
   const [justification, setJustification] = useState("");
   const [modalState, setModalState] = useState<ModalState>("idle");
@@ -44,10 +57,23 @@ export function AccessRequestModal({
   const handleSubmit = async () => {
     setModalState("submitting");
     try {
-      await accessService.createRequest({
-        document_id: documentId,
-        justification: justification.trim() || undefined,
-      });
+      if (mode === "subscription") {
+        if (!documentId) {
+          setModalState("error");
+          return;
+        }
+        // POST /documents/{id}/subscribe nunca devolve 409 — responde 200 com
+        // already_exists=true quando já há um pedido ACTIVE/PENDING.
+        const result = await documentService.subscribe(documentId);
+        setModalState(result.already_exists ? "already_requested" : "success");
+        return;
+      }
+
+      await accessService.createRequest(
+        documentId
+          ? { document_id: documentId, justification: justification.trim() || undefined }
+          : { access_level_id: accessLevelId, justification: justification.trim() || undefined }
+      );
       setModalState("success");
     } catch (err: any) {
       if (err?.response?.status === 409) {

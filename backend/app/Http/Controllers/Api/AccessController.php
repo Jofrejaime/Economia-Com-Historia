@@ -172,19 +172,26 @@ class AccessController extends Controller
     public function storeRequest(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'document_id'   => ['required', 'uuid', 'exists:documents,id'],
-            'justification' => ['nullable', 'string', 'max:1000'],
+            'document_id'     => ['sometimes', 'uuid', 'exists:documents,id'],
+            'access_level_id' => ['required_without:document_id', 'string', 'exists:access_levels,id'],
+            'justification'   => ['nullable', 'string', 'max:1000'],
         ]);
 
         $user = $request->user();
-        $documentId = $validated['document_id'];
+        $documentId = $validated['document_id'] ?? null;
 
-        $document = DB::table('documents')->where('id', $documentId)->first();
-        if ($document === null) {
-            return response()->json(['message' => 'Document not found.'], 404);
+        // O nível de acesso pode vir de um documento concreto (ex: 403 ao abrir
+        // um artigo restrito) ou directamente (ex: 403 num quiz, que não tem
+        // um endpoint próprio de pedido de acesso — usa este com access_level_id).
+        if ($documentId !== null) {
+            $document = DB::table('documents')->where('id', $documentId)->first();
+            if ($document === null) {
+                return response()->json(['message' => 'Document not found.'], 404);
+            }
+            $accessLevelId = $document->access_level_id;
+        } else {
+            $accessLevelId = $validated['access_level_id'];
         }
-
-        $accessLevelId = $document->access_level_id;
 
         if (in_array($accessLevelId, $this->accessGate->activeGrantLevelIds($user), true)) {
             return response()->json(['message' => 'You already have access to this content.'], 409);
@@ -192,7 +199,7 @@ class AccessController extends Controller
 
         $existingRequest = DB::table('user_access_requests')
             ->where('user_id', $user->id)
-            ->where('document_id', $documentId)
+            ->where('access_level_id', $accessLevelId)
             ->whereIn('status', ['pending', 'approved'])
             ->first();
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
@@ -7,14 +7,13 @@ import { Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 
 export function JindungoPermissionScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
+  // Só visitantes não autenticados chegam a este ecrã (ver onViewJindungo em
+  // MainNavigator/HomeScreen) — não podem submeter um pedido de acesso real,
+  // por isso encaminha para o login em vez de simular um pedido enviado.
   const handleRequestAccess = () => {
-    Alert.alert(
-      "Acesso Solicitado",
-      "O teu pedido de acesso ao conteúdo Jindungo foi registado e está em análise pela equipa editorial.",
-      [{ text: "OK", onPress: () => navigation.goBack() }]
-    );
+    navigation.navigate("LoginPrompt", { type: "jindungo" });
   };
 
   return (

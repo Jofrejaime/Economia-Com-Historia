@@ -57,7 +57,12 @@ class DocumentController extends Controller
         $categories = DB::table('document_categories')
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function (object $category) {
+                $category->requires_subscription = (bool) $category->requires_subscription;
+
+                return $category;
+            });
 
         return response()->json(['data' => $categories]);
     }
@@ -101,6 +106,7 @@ class DocumentController extends Controller
                 'dc.slug as category_slug',
                 'dc.color_bg as category_color_bg',
                 'dc.icon as category_icon',
+                'dc.requires_subscription as category_requires_subscription',
                 'al.name as access_level_name',
                 'al.icon as access_level_icon',
                 'al.color_bg as access_level_color_bg',
@@ -939,13 +945,13 @@ class DocumentController extends Controller
         $document = Document::find($id);
 
         if ($document === null) {
-            return response()->json(['message' => 'Document not found.'], 404);
+            return response()->json(['message' => 'Document not found.', 'error' => 'document_not_found'], 404);
         }
 
         $cancelled = $this->subscriptionService->cancelSubscription($request->user()->id, $id);
 
         if (!$cancelled) {
-            return response()->json(['message' => 'No active or pending subscription found.'], 404);
+            return response()->json(['message' => 'No active or pending subscription found.', 'error' => 'subscription_not_found'], 404);
         }
 
         return response()->json(['message' => 'Subscription cancelled.']);

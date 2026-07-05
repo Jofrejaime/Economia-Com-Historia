@@ -74,7 +74,13 @@ class DocumentSubscriptionService
     /**
      * Request a subscription — always creates PENDING, never ACTIVE.
      *
-     * Protected against race conditions via a transaction with a FOR UPDATE lock.
+     * Protected against race conditions by locking the user's own row first:
+     * `lockForUpdate()` on the `document_subscriptions` query alone only locks
+     * rows that already exist, so two concurrent requests with no prior row
+     * would both pass the "no existing subscription" check before either
+     * commits. Locking a stable row per user (there's no unique constraint on
+     * (user_id, document_id) to conflict on instead) serializes all of that
+     * user's concurrent requestSubscription() calls, closing the gap.
      *
      * Rules:
      *  - ACTIVE already exists  → ['id', created=false, status='ACTIVE']
@@ -87,12 +93,12 @@ class DocumentSubscriptionService
     public function requestSubscription(string $userId, string $documentId): array
     {
         return DB::transaction(function () use ($userId, $documentId) {
-            // lockForUpdate prevents concurrent INSERTs on MySQL/PostgreSQL.
+            DB::table('users')->where('id', $userId)->lockForUpdate()->first();
+
             $existing = DB::table('document_subscriptions')
                 ->where('user_id', $userId)
                 ->where('document_id', $documentId)
                 ->whereIn('status', [SubscriptionStatus::ACTIVE->value, SubscriptionStatus::PENDING->value])
-                ->lockForUpdate()
                 ->first();
 
             if ($existing !== null) {
@@ -204,7 +210,9 @@ class DocumentSubscriptionService
             return;
         }
 
-        $docTitle = DB::table('documents')->where('id', $sub->document_id)->value('title') ?? 'documento';
+        $doc = DB::table('documents')->where('id', $sub->document_id)->first(['title', 'media_type']);
+        $docTitle = $doc->title ?? 'documento';
+        $notifData = $doc !== null ? ['document_id' => $sub->document_id, 'media_type' => $doc->media_type] : [];
 
         if ($approved) {
             $this->notifications->send(
@@ -213,7 +221,9 @@ class DocumentSubscriptionService
                 'Subscrição aprovada',
                 "O seu acesso ao documento \"{$docTitle}\" foi aprovado.",
                 $sub->document_id,
-                'document'
+                'document',
+                [],
+                $notifData
             );
         } else {
             $this->notifications->send(
@@ -222,7 +232,9 @@ class DocumentSubscriptionService
                 'Subscrição rejeitada',
                 "O seu pedido de acesso ao documento \"{$docTitle}\" foi rejeitado.",
                 $sub->document_id,
-                'document'
+                'document',
+                [],
+                $notifData
             );
         }
     }
@@ -255,6 +267,36 @@ class DocumentSubscriptionService
                 'cancelled_by' => $adminId,
                 'updated_at'   => now(),
             ]);
+
+        $this->notifyCancelled($sub);
+    }
+
+    /**
+     * Notifica o utilizador de que o seu acesso a um documento foi revogado
+     * por um administrador. Sem isto, o utilizador só descobre a revogação
+     * ao levar um 403 na próxima vez que abrir o documento.
+     */
+    private function notifyCancelled(object $sub): void
+    {
+        $user = User::find($sub->user_id);
+        if ($user === null) {
+            return;
+        }
+
+        $doc = DB::table('documents')->where('id', $sub->document_id)->first(['title', 'media_type']);
+        $docTitle = $doc->title ?? 'documento';
+        $notifData = $doc !== null ? ['document_id' => $sub->document_id, 'media_type' => $doc->media_type] : [];
+
+        $this->notifications->send(
+            $user,
+            'subscription_cancelled',
+            'Subscrição cancelada',
+            "O seu acesso ao documento \"{$docTitle}\" foi cancelado por um administrador.",
+            $sub->document_id,
+            'document',
+            [],
+            $notifData
+        );
     }
 
     // ─── Status ───────────────────────────────────────────────────────────────

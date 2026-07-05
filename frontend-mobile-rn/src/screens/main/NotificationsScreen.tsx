@@ -28,8 +28,12 @@ function iconForType(type: string): { name: keyof typeof Feather.glyphMap; bg: s
     case "reply_liked":
       return { name: "message-circle", bg: appTheme.colors.debateHighlightBg, color: appTheme.colors.primary };
     case "access_request_approved":
+    case "subscription_approved":
       return { name: "unlock", bg: appTheme.colors.successLight, color: appTheme.colors.success };
     case "access_request_rejected":
+    case "subscription_rejected":
+      return { name: "lock", bg: appTheme.colors.dangerLight, color: appTheme.colors.danger };
+    case "subscription_cancelled":
       return { name: "lock", bg: appTheme.colors.dangerLight, color: appTheme.colors.danger };
     case "access_granted":
     case "access_requested":
@@ -69,11 +73,18 @@ export function NotificationsScreen() {
     }, [fetchNotifications])
   );
 
+  const DOCUMENT_NOTIFICATION_TYPES = [
+    "access_request_approved",
+    "subscription_approved",
+    "subscription_rejected",
+    "subscription_cancelled",
+  ];
+
   const handlePress = (item: Notification) => {
     if (!item.is_read) {
       void markAsRead(item.id);
     }
-    if (item.type === "access_request_approved" && item.data?.document_id) {
+    if (DOCUMENT_NOTIFICATION_TYPES.includes(item.type) && item.data?.document_id) {
       const isMedia = item.data.media_type != null && item.data.media_type !== "TEXT";
       const screen = isMedia ? "MediaDetail" : "Article";
       navigation.navigate(screen, { id: item.data.document_id });

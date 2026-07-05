@@ -79,4 +79,26 @@ export const documentService = {
     const { data } = await httpClient.get(API_ENDPOINTS.ME.FAVORITES);
     return data;
   },
+
+  // Subscrição de documentos cuja categoria tem requires_subscription=true —
+  // ver o comentário em constants/api.ts sobre a distinção com /access-requests.
+  async subscribe(id: string): Promise<{ status: string; already_exists: boolean }> {
+    const { data } = await httpClient.post(API_ENDPOINTS.DOCUMENTS.SUBSCRIBE(id));
+    return data;
+  },
+
+  async getSubscriptionStatus(id: string): Promise<{
+    required: boolean;
+    status: string | null;
+    reason: string | null;
+    has_subscription: boolean;
+    started_at: string | null;
+  }> {
+    const { data } = await httpClient.get(API_ENDPOINTS.DOCUMENTS.SUBSCRIPTION_STATUS(id));
+    return data;
+  },
+
+  async cancelSubscription(id: string): Promise<void> {
+    await httpClient.delete(API_ENDPOINTS.DOCUMENTS.CANCEL_SUBSCRIPTION(id));
+  },
 };

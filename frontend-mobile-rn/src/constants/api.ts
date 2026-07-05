@@ -40,6 +40,11 @@ export const API_ENDPOINTS = {
     DOWNLOAD: (id: string) => `/documents/${id}/download`,
     FAVORITE: (id: string) => `/documents/${id}/favorite`,
     CITE: (id: string) => `/documents/${id}/citations`,
+    // Subscrição por categoria (requires_subscription) — distinto de /access-requests,
+    // que trata do gate por access_level_id. Ver DocumentController::subscribe/subscriptionStatus/cancelSubscription.
+    SUBSCRIBE: (id: string) => `/documents/${id}/subscribe`,
+    SUBSCRIPTION_STATUS: (id: string) => `/documents/${id}/subscription`,
+    CANCEL_SUBSCRIPTION: (id: string) => `/documents/${id}/subscription`,
   },
 
   // /quizzes, /quiz-attempts
