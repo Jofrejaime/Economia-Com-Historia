@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
 import { ContentCard } from "../../components/ContentCard";
+import { SkeletonLoader } from "../../components/SkeletonLoader";
 import { DebateCard } from "../../components/DebateCard";
 import { appTheme } from "../../constants/theme";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -58,6 +59,7 @@ export function DashboardScreen() {
   const [searchText, setSearchText] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
 
+  const [featuredDoc, setFeaturedDoc] = useState<Document | null>(null);
   const [jindungoDocuments, setJindungoDocuments] = useState<Document[]>([]);
   const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   const [activeTopics, setActiveTopics] = useState<DiscussionTopic[]>([]);
@@ -68,13 +70,15 @@ export function DashboardScreen() {
   const loadData = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const [jindungoRes, recentRes, topicsRes, rankingRes] = await Promise.allSettled([
+      const [featuredRes, jindungoRes, recentRes, topicsRes, rankingRes] = await Promise.allSettled([
+        documentService.list({ sort: "popular", per_page: 1 }),
         documentService.list({ access_level_id: "jindungo", per_page: 3 }),
         documentService.list({ sort: "recent", per_page: 4 }),
         communityService.topics({ sort: "recent", per_page: 2, status: "published" }),
         leaderboardService.national({ per_page: 5 }),
       ]);
 
+      if (featuredRes.status === "fulfilled") setFeaturedDoc(featuredRes.value.data[0] ?? null);
       if (jindungoRes.status === "fulfilled") setJindungoDocuments(jindungoRes.value.data);
       if (recentRes.status === "fulfilled") setRecentDocuments(recentRes.value.data);
       if (topicsRes.status === "fulfilled") setActiveTopics(topicsRes.value.data);
@@ -109,17 +113,6 @@ export function DashboardScreen() {
   const handleOpenDiscussion = (id: string) => {
     navigation.navigate("TopicDiscussion", { id });
   };
-
-  if (loading) {
-    return (
-      <ScreenContainer style={{ paddingHorizontal: 0 }}>
-        <HeaderBar title="Economia com História" showBackButton={false} />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={appTheme.colors.primary} />
-        </View>
-      </ScreenContainer>
-    );
-  }
 
   return (
     <ScreenContainer style={{ paddingHorizontal: 0 }}>
@@ -180,6 +173,34 @@ export function DashboardScreen() {
           )}
         </View>
 
+        {/* Em Destaque */}
+        {(loading || featuredDoc) ? (
+          <View style={styles.section}>
+            <View style={styles.recentHeader}>
+              <View>
+                <Text style={styles.sectionTitle}>Em Destaque</Text>
+                <SectionAccentLine marginBottom={0} />
+              </View>
+            </View>
+            {loading && !featuredDoc ? (
+              <SkeletonLoader width="100%" height={200} borderRadius={appTheme.radius.lg} />
+            ) : featuredDoc ? (
+              <ContentCard
+                variant="hero"
+                title={featuredDoc.title}
+                author={featuredDoc.author}
+                image={featuredDoc.cover_image_url}
+                documentType={featuredDoc.document_type}
+                accessLevelId={featuredDoc.access_level_id}
+                categoryColorBg={featuredDoc.category?.color_bg}
+                viewsCount={featuredDoc.views_count}
+                likesCount={featuredDoc.likes_count}
+                onPress={() => handleOpenDocument(featuredDoc)}
+              />
+            ) : null}
+          </View>
+        ) : null}
+
         {/* Jindungo Section */}
         {jindungoDocuments.length > 0 && (
           <View style={styles.section}>
@@ -234,7 +255,7 @@ export function DashboardScreen() {
         )}
 
         {/* Documentos Recentes */}
-        {recentDocuments.length > 0 && (
+        {(loading || recentDocuments.length > 0) && (
           <View style={styles.section}>
             <View style={styles.recentHeader}>
               <View>
@@ -249,17 +270,33 @@ export function DashboardScreen() {
                 <Ionicons name="arrow-forward" size={14} color={appTheme.colors.primary} />
               </TouchableOpacity>
             </View>
-            {recentDocuments.map((doc) => (
-              <ContentCard
-                key={doc.id}
-                title={doc.title}
-                image={doc.cover_image_url ?? undefined}
-                duration={doc.author}
-                documentType={doc.document_type}
-                accessLevelId={doc.access_level_id}
-                onPress={() => handleOpenDocument(doc)}
-              />
-            ))}
+            {loading && recentDocuments.length === 0 ? (
+              [1, 2, 3].map((i) => (
+                <View key={i} style={styles.compactSkeleton}>
+                  <SkeletonLoader width={80} height={80} borderRadius={appTheme.radius.md} />
+                  <View style={styles.compactSkeletonContent}>
+                    <SkeletonLoader width={60} height={12} />
+                    <SkeletonLoader width="90%" height={14} />
+                    <SkeletonLoader width="55%" height={12} />
+                  </View>
+                </View>
+              ))
+            ) : (
+              recentDocuments.map((doc) => (
+                <ContentCard
+                  key={doc.id}
+                  title={doc.title}
+                  author={doc.author}
+                  image={doc.cover_image_url}
+                  documentType={doc.document_type}
+                  accessLevelId={doc.access_level_id}
+                  categoryColorBg={doc.category?.color_bg}
+                  viewsCount={doc.views_count}
+                  likesCount={doc.likes_count}
+                  onPress={() => handleOpenDocument(doc)}
+                />
+              ))
+            )}
           </View>
         )}
 
@@ -394,11 +431,6 @@ export function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   container: {
     paddingHorizontal: 16,
     paddingBottom: 16,
@@ -734,5 +766,20 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textSecondary,
     fontWeight: "600",
     fontSize: 14,
+  },
+  compactSkeleton: {
+    flexDirection: "row",
+    backgroundColor: appTheme.colors.surface,
+    borderRadius: appTheme.radius.md,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+    gap: 12,
+  },
+  compactSkeletonContent: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 8,
   },
 });
