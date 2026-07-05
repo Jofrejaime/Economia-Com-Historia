@@ -42,7 +42,7 @@ Route::prefix('auth')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth');
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth');
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:auth');
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
 });

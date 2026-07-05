@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
@@ -31,6 +32,7 @@ function relativeTime(dateStr: string): string {
 }
 
 export function CommunityScreen() {
+  const { user } = useAuth();
   const navigation = useNavigation<any>();
 
   const [topics, setTopics] = useState<DiscussionTopic[]>([]);
@@ -87,7 +89,13 @@ export function CommunityScreen() {
     return (
       <Pressable
         style={[styles.card, !isOpen && styles.cardTerminated]}
-        onPress={() => navigation?.navigate("TopicDiscussion", { id: item.id })}
+        onPress={() => {
+          if (!user) {
+            navigation.navigate("LoginPrompt", { type: "comment" });
+            return;
+          }
+          navigation?.navigate("TopicDiscussion", { id: item.id });
+        }}
       >
         <View style={styles.row}>
           <View style={[styles.avatar, item.is_pinned ? styles.avatarPinned : styles.avatarDefault]}>
@@ -158,7 +166,13 @@ export function CommunityScreen() {
             angolanas, do período pré-colonial às reformas contemporâneas.
           </Text>
           <View style={styles.createBtnWrap}>
-            <AppButton label="Criar Tópico" onPress={() => navigation?.navigate("CreateTopic")} />
+            <AppButton label="Criar Tópico" onPress={() => {
+              if (!user) {
+                navigation.navigate("LoginPrompt", { type: "create-topic" });
+                return;
+              }
+              navigation?.navigate("CreateTopic");
+            }} />
           </View>
         </View>
 

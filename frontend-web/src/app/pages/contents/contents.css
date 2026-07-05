@@ -766,9 +766,13 @@ p, span, div, button, input {
 }
 
 .contents-doc-placeholder {
-  background: linear-gradient(135deg, #E5E7EB, #F5F5F5);
+  background: linear-gradient(135deg, #8B1E2D, #6B0119);
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .contents-header {

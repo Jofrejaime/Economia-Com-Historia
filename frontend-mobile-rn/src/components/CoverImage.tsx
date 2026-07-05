@@ -1,6 +1,7 @@
 import React from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { appTheme } from "../constants/theme";
 
 const TYPE_ICON: Record<string, { icon: keyof typeof Feather.glyphMap; color: string }> = {
@@ -16,7 +17,7 @@ const TYPE_ICON: Record<string, { icon: keyof typeof Feather.glyphMap; color: st
 interface CoverImageProps {
   uri?: string | null;
   documentType?: string | null;
-  /** Cor de fundo da categoria para fallback colorido */
+  /** Cor de fundo da categoria para fallback colorido (ignorado para evitar muitas cores) */
   categoryColorBg?: string | null;
   width: number;
   height: number;
@@ -45,15 +46,20 @@ export function CoverImage({
   }
 
   const iconConfig = documentType ? (TYPE_ICON[documentType] ?? null) : null;
-  const fallbackBg = categoryColorBg ?? appTheme.colors.primaryDark;
   const resolvedIconSize = iconSize ?? Math.round(Math.min(width, height) * 0.38);
 
   return (
-    <View style={[styles.placeholder, { width, height, borderRadius, backgroundColor: fallbackBg }]}>
+    <View style={[styles.placeholder, { width, height, borderRadius }]}>
+      <LinearGradient
+        colors={[appTheme.colors.primary, appTheme.colors.primaryDark]}
+        style={[StyleSheet.absoluteFill, { borderRadius }]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
       <Feather
         name={iconConfig?.icon ?? "file"}
         size={resolvedIconSize}
-        color="rgba(255,255,255,0.72)"
+        color="rgba(255,255,255,0.85)"
       />
     </View>
   );

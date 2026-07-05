@@ -20,6 +20,7 @@ export class QuizListComponent implements OnInit {
   featuredQuizzes: Quiz[] = [];
   topPlayers: LeaderboardEntry[] = [];
   error: string | null = null;
+  isLoggedIn = false;
 
   // Filtros
   searchQuery = '';
@@ -44,6 +45,7 @@ export class QuizListComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.isLoggedIn = this.authService.isAuthenticated();
     this.loadUserLevel();
     this.loadQuizzes();
     this.loadLeaderboard();
@@ -210,5 +212,9 @@ export class QuizListComponent implements OnInit {
 
   goToRanking(): void {
     this.router.navigate(['/quiz/ranking']);
+  }
+
+  goToLogin(): void {
+    this.router.navigate(['/auth/login']);
   }
 }
