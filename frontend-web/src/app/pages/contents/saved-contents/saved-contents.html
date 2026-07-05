@@ -1,0 +1,84 @@
+<div class="saved-page">
+  <app-header></app-header>
+
+  <main class="saved-main">
+    <div class="saved-container">
+
+      <!-- Breadcrumb -->
+      <nav class="saved-breadcrumb">
+        <button (click)="navigateTo('/contents')" class="saved-breadcrumb-btn">Conteúdos</button>
+        <span class="saved-breadcrumb-separator">/</span>
+        <span class="saved-breadcrumb-current">Guardados</span>
+      </nav>
+
+      <!-- Header -->
+      <div class="saved-header">
+        <div style="margin-bottom: 16px;">
+          <span class="saved-header-badge">A MINHA BIBLIOTECA</span>
+        </div>
+        <h1 class="saved-header-title">Conteúdos Guardados</h1>
+        <p class="saved-header-description">
+          Os documentos que guardou para consultar mais tarde. Remova-os daqui ou a partir da página de cada conteúdo.
+        </p>
+        <p *ngIf="error" class="saved-error" style="margin-top: 12px;">{{ error }}</p>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="saved-empty">
+        A carregar conteúdos guardados...
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!loading && favorites.length === 0 && !error" class="saved-empty-card">
+        <div class="saved-empty-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/>
+          </svg>
+        </div>
+        <h2 class="saved-empty-title">Ainda não guardou nenhum conteúdo</h2>
+        <p class="saved-empty-text">
+          Ao explorar o arquivo, use o botão "Guardar" na página de um documento para o adicionar à sua biblioteca.
+        </p>
+        <button class="saved-btn-primary" (click)="navigateTo('/contents')">
+          Explorar Conteúdos
+        </button>
+      </div>
+
+      <!-- Grid de guardados -->
+      <div *ngIf="!loading && favorites.length > 0">
+        <div class="saved-count">{{ favorites.length }} conteúdo(s) guardado(s)</div>
+
+        <div class="saved-grid">
+          <div *ngFor="let item of favorites" class="saved-card" (click)="navigateToDocument(item.id)">
+            <div class="saved-card-image">
+              <img *ngIf="item.cover_image_url" [src]="item.cover_image_url" [alt]="item.title">
+              <div *ngIf="!item.cover_image_url" class="saved-card-placeholder"></div>
+
+              <button
+                type="button"
+                class="saved-card-remove"
+                title="Remover dos guardados"
+                [disabled]="removingId === item.id"
+                (click)="removeFavorite(item, $event)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#8B1E2D" stroke="#8B1E2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="saved-card-body">
+              <span class="saved-card-type">{{ item.document_type || 'Documento' }}</span>
+              <h4 class="saved-card-title">{{ item.title }}</h4>
+              <div class="saved-card-meta">
+                <span *ngIf="item.category_name">{{ item.category_name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

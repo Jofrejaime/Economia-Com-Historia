@@ -40,16 +40,19 @@ import { UserNotificationsComponent } from './pages/user-notifications/user-noti
 import { RankingComponent } from './pages/quizzes/quiz-ranking/quiz-ranking';
 import { ProvincesPageComponent } from './pages/admin/dashboard-admin/pages/provinces-page/provinces-page';
 import { InterestAreasPageComponent } from './pages/admin/dashboard-admin/pages/interest-areas-page/interest-areas-page';
+import { SavedContentsComponent } from './pages/contents/saved-contents/saved-contents';
+import { PrivacyPolicyComponent} from './pages/legal/privacy-policy/privacy-policy';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: 'home', canActivate: [authGuard], loadComponent: () => import('./pages/home/home-user/home-user').then(m => m.HomeUser) },
   { path: 'contents', component: ContentsComponent },
+  { path: 'contents/saved', canActivate: [authGuard], component: SavedContentsComponent },
   { path: 'forum/community', component: CommunityComponent },
   { path: 'quiz', component: QuizListComponent },
   { path: 'quiz/pergunta', canActivate: [authGuard], component: QuestionQuizComponent },
   { path: 'quiz/resultado', canActivate: [authGuard], component: QuizResultComponent },
-  { path: 'quiz/ranking', canActivate: [authGuard], component: RankingComponent },
+  { path: 'quiz/ranking', component: RankingComponent },
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/login', canActivate: [guestGuard], component: LoginComponent },
@@ -63,6 +66,7 @@ export const routes: Routes = [
   { path: 'landing', component: HomeVisitorComponent },
   { path: 'forum/categorias', component: CategoryViewComponent },
   { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },
+  { path: 'legal/privacy-policy', component: PrivacyPolicyComponent },
   {
     path: 'admin/dashboard',
     component: DashboardAdminComponent,
