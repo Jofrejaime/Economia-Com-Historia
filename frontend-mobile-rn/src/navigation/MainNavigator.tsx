@@ -52,7 +52,7 @@ function HomeTabScreen() {
       onLogin={() => navigation.navigate("Login")}
       onRegister={() => navigation.navigate("Register")}
       onViewJindungo={() => navigation.navigate("JindungoPermission")}
-      onViewArticle={() => navigation.navigate("Article", { type: "micro" })}
+      onViewArticle={() => navigation.navigate("Content", { document_type: "article" })}
       onViewPodcast={() => navigation.navigate("Podcast")}
       onViewCommunity={() => navigation.navigate("Community")}
       onViewContent={() => navigation.navigate("Content")}
@@ -101,7 +101,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         // Map route name to vector icons
         let iconName: any = "home";
         if (route.name === "Home") iconName = "home";
-        else if (route.name === "Content") iconName = "trending-up";
+        else if (route.name === "Content") iconName = "book-open";
         else if (route.name === "Community") iconName = "message-circle";
         else if (route.name === "QuizList") iconName = "award";
         else if (route.name === "Profile") iconName = "user";

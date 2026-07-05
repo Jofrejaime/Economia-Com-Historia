@@ -135,11 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
     paddingHorizontal: 18,
     paddingVertical: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 3,
+    ...appTheme.shadow.sm,
   },
   controlContent: {
     flexDirection: "row",
@@ -147,12 +143,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   controlLabel: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textMuted,
     fontSize: 13,
     marginBottom: 4,
     fontWeight: "600",
   },
   controlValue: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontSize: 16,
     fontWeight: "600",
@@ -167,29 +165,27 @@ const styles = StyleSheet.create({
   modalWrapper: {
     flex: 1,
     justifyContent: "flex-end",
-    padding: 20,
+    padding: appTheme.spacing.lg,
   },
   modalCard: {
     backgroundColor: appTheme.colors.surface,
     borderRadius: appTheme.radius.lg,
-    padding: 20,
+    padding: appTheme.spacing.lg,
     maxHeight: "78%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 8,
+    ...appTheme.shadow.lg,
   },
   modalHeader: {
     marginBottom: 20,
   },
   modalTitle: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textPrimary,
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 4,
   },
   modalSubtitle: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontSize: 14,
     lineHeight: 20,
@@ -198,9 +194,10 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   groupBlock: {
-    marginBottom: 22,
+    marginBottom: appTheme.spacing.lg,
   },
   groupTitle: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.primary,
     fontSize: 13,
     fontWeight: "700",
@@ -220,11 +217,13 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.border,
   },
   optionLabel: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textPrimary,
     fontSize: 15,
     fontWeight: "700",
   },
   optionDescription: {
+    fontFamily: "Source_Sans_3",
     marginTop: 4,
     color: appTheme.colors.textSecondary,
     fontSize: 13,

@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 96,
     height: 96,
-    borderRadius: 48,
+    borderRadius: appTheme.radius.pill,
     backgroundColor: appTheme.colors.debateHighlightBg,
     alignItems: "center",
     justifyContent: "center",
@@ -149,11 +149,7 @@ const styles = StyleSheet.create({
     padding: 24,
     marginBottom: 32,
     width: "100%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...appTheme.shadow.sm,
   },
   benefitsTitle: {
     fontFamily: "IBM_Plex_Sans",
@@ -173,7 +169,7 @@ const styles = StyleSheet.create({
   checkmarkIcon: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -196,11 +192,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    ...appTheme.shadow.sm,
   },
   btnIcon: {
     marginTop: 1,

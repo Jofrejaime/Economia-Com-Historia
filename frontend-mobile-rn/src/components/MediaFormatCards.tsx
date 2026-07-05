@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontWeight: "700",
     fontSize: 16,
-    color: "white",
+    color: appTheme.colors.surface,
     marginBottom: 4,
   },
   count: {

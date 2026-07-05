@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  StatusBar,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
@@ -140,7 +139,7 @@ export function ArticleScreen() {
         <HeaderBar title="Documento" />
         <View style={styles.loadingContainer}>
           <Feather
-            name={isAccessError ? "lock" : isNetworkError ? "wifi-off" : "file-x"}
+            name={isAccessError ? "lock" : isNetworkError ? "wifi-off" : "x-circle"}
             size={40}
             color={appTheme.colors.textMuted}
           />
@@ -184,7 +183,6 @@ export function ArticleScreen() {
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
       <HeaderBar title="Documento" />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -389,6 +387,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   errorText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
     color: appTheme.colors.textMuted,
   },
@@ -400,11 +399,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   errorButtonText: {
-    color: "#fff",
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.surface,
     fontSize: 14,
     fontWeight: "600",
   },
   errorLink: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textMuted,
     textDecorationLine: "underline",
@@ -420,19 +421,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingTop: 24,
     marginBottom: 16,
   },
   docTypeBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: appTheme.radius.button,
     backgroundColor: appTheme.colors.surface,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
   },
   docTypeBadgeText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontSize: 11,
     fontWeight: "700",
@@ -445,7 +447,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.danger,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: appTheme.radius.button,
   },
   badgeRestricted: {
     flexDirection: "row",
@@ -454,9 +456,10 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.rankingCardGray,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: appTheme.radius.button,
   },
   badgeText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.surface,
     fontSize: 11,
     fontWeight: "700",
@@ -468,13 +471,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     lineHeight: 32,
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     marginBottom: 16,
   },
   authorRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     gap: 12,
     marginBottom: 16,
   },
@@ -482,7 +485,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: appTheme.colors.primary + "22",
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -495,11 +498,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   authorName: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   authorMeta: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     color: appTheme.colors.textMuted,
     marginTop: 2,
@@ -508,27 +513,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: appTheme.spacing.lg,
+    marginBottom: appTheme.spacing.md,
   },
   metaChip: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: appTheme.radius.pill,
     backgroundColor: appTheme.colors.surface,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
   },
   metaChipText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     color: appTheme.colors.textSecondary,
     fontWeight: "500",
   },
   summaryBlock: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: appTheme.spacing.lg,
+    marginBottom: appTheme.spacing.md,
   },
   summaryLabel: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -536,16 +543,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   summaryText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 15,
     color: appTheme.colors.textSecondary,
     lineHeight: 22,
     fontStyle: "italic",
   },
   articleBody: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     marginBottom: 24,
   },
   paragraph: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
     color: appTheme.colors.textPrimary,
     lineHeight: 26,
@@ -554,7 +563,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: 16,
     borderTopWidth: 1,
     borderTopColor: appTheme.colors.border,
@@ -567,6 +576,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   statText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     fontWeight: "600",
@@ -587,10 +597,10 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
     letterSpacing: 1.2,
     marginBottom: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
   },
   horizontalList: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingBottom: 16,
     gap: 12,
   },
@@ -678,11 +688,12 @@ const styles = StyleSheet.create({
   },
   // Actions
   actionsBlock: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: 24,
     gap: 12,
   },
   actionsLabel: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -699,15 +710,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   actionBtnLabel: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.surface,
     fontSize: 15,
     fontWeight: "600",
   },
   periodBlock: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: 20,
   },
   periodLabel: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -715,6 +728,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   periodText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,

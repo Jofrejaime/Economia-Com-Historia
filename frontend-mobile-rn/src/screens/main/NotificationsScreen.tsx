@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primary,
   },
   listContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingTop: 16,
     paddingBottom: 40,
   },
@@ -195,11 +195,7 @@ const styles = StyleSheet.create({
   },
   cardUnread: {
     borderColor: appTheme.colors.primary,
-    shadowColor: appTheme.colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    ...appTheme.shadow.sm,
   },
   cardRead: {
     borderColor: appTheme.colors.border,

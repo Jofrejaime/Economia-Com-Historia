@@ -90,7 +90,7 @@ export function FormInput({
 
 const styles = StyleSheet.create({
   formGroup: {
-    marginBottom: 20,
+    marginBottom: appTheme.spacing.md,
   },
   label: {
     fontFamily: "IBM_Plex_Sans",
@@ -137,6 +137,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   errorText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.danger,
     fontSize: 13,
     fontWeight: "500",

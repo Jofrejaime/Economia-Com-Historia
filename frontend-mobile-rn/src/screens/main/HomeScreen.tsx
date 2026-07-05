@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     backgroundColor: appTheme.colors.primary,
-    padding: 20,
+    padding: appTheme.spacing.md,
     borderRadius: 12,
     marginTop: 12,
   },
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   logoWrap: {
     width: 44,
     height: 44,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     backgroundColor: "rgba(255,255,255,0.15)",
     alignItems: "center",
     justifyContent: "center",
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   appTitle: {
     fontFamily: "IBM_Plex_Sans",
-    color: "white",
+    color: appTheme.colors.surface,
     fontSize: 20,
     fontWeight: "700",
   },
@@ -327,11 +327,11 @@ const styles = StyleSheet.create({
 
   // Section
   section: {
-    marginTop: 20,
+    marginTop: appTheme.spacing.md,
     paddingHorizontal: 4,
   },
   sectionTitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textSecondary,
     fontSize: 12,
     fontWeight: "700",
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
 
   // Featured card
   featuredCard: {
-    borderRadius: 14,
+    borderRadius: appTheme.radius.lg,
     overflow: "hidden",
   },
   featuredImage: {
@@ -368,11 +368,11 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primaryDark,
   },
   featuredOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.38)",
+    ...StyleSheet.absoluteFill,
+    backgroundColor: appTheme.colors.textMuted,
   },
   featuredBody: {
-    padding: 14,
+    padding: appTheme.spacing.md,
   },
   featuredTag: {
     fontFamily: "Source_Sans_3",
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   },
   featuredEmpty: {
     height: 100,
-    borderRadius: 14,
+    borderRadius: appTheme.radius.lg,
     backgroundColor: appTheme.colors.background,
     alignItems: "center",
     justifyContent: "center",
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   cardImage: {
     width: 64,
     height: 64,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     marginRight: 12,
   },
   cardImagePlaceholder: {
@@ -471,15 +471,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
+    padding: appTheme.spacing.md,
+    marginBottom: appTheme.spacing.sm,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
   },
   formatIcon: {
     width: 48,
     height: 48,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,

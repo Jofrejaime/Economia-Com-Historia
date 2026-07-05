@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  StatusBar,
   Modal,
   FlatList,
   ActivityIndicator,
@@ -62,7 +61,6 @@ export function PersonalInfoScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
       <HeaderBar title="Informação Pessoal" />
 
       <ScrollView
@@ -177,11 +175,7 @@ const styles = StyleSheet.create({
     padding: 24,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...appTheme.shadow.sm,
     gap: 4,
   },
   readOnlyField: {

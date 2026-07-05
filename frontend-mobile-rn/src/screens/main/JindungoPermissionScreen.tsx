@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 96,
     height: 96,
-    borderRadius: 48,
+    borderRadius: appTheme.radius.pill,
     backgroundColor: appTheme.colors.debateHighlightBg,
     alignItems: "center",
     justifyContent: "center",
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   alertBox: {
     backgroundColor: appTheme.colors.dangerLight,
     borderWidth: 1,
-    borderColor: "#DEBFBF",
+    borderColor: appTheme.colors.border,
     borderRadius: 8,
     padding: 20,
     marginBottom: 24,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   clockIconWrap: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: appTheme.radius.pill,
     backgroundColor: appTheme.colors.debateHighlightBg,
     alignItems: "center",
     justifyContent: "center",
@@ -208,11 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    ...appTheme.shadow.sm,
   },
   primaryButtonText: {
     fontFamily: "IBM_Plex_Sans",

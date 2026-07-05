@@ -27,6 +27,7 @@ export type MainStackParamList = {
   MainTabs: { screen: keyof MainTabParamList; params?: ContentParams } | undefined;
   Login: undefined;
   Register: undefined;
+  Podcast: undefined;
   Article: { id: string };
   MediaDetail: { id: string };
   Quiz: { quizId: string; attemptId?: string };

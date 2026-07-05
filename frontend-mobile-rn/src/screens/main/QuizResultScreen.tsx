@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  StatusBar,
   ActivityIndicator,
   Pressable,
 } from "react-native";
@@ -111,7 +110,6 @@ export function QuizResultScreen() {
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
       <HeaderBar title="Resultado Final" onBackPress={() => navigation.navigate("MainTabs", { screen: "QuizList" })} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -268,7 +266,7 @@ export function QuizResultScreen() {
 const styles = StyleSheet.create({
   container: { backgroundColor: appTheme.colors.background },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingVertical: 24, paddingBottom: 48 },
+  scrollContent: { paddingHorizontal: appTheme.spacing.lg, paddingVertical: 24, paddingBottom: 48 },
 
   // States
   centerWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32 },
@@ -295,7 +293,7 @@ const styles = StyleSheet.create({
   },
   retryBtnText: {
     fontFamily: "IBM_Plex_Sans",
-    color: "white",
+    color: appTheme.colors.surface,
     fontWeight: "700",
     fontSize: 14,
   },
@@ -420,7 +418,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 3,
+    ...appTheme.shadow.sm,
   },
   scoreInnerCircle: { alignItems: "center" },
   scoreValue: {
@@ -475,7 +473,7 @@ const styles = StyleSheet.create({
   statDescLight: {
     fontFamily: "Source_Sans_3",
     fontSize: 11,
-    color: "rgba(255,255,255,0.75)",
+    color: appTheme.colors.progressBackground,
     textAlign: "center",
   },
   statBonus: {
@@ -489,7 +487,7 @@ const styles = StyleSheet.create({
   // Bonus breakdown
   breakdownCard: {
     backgroundColor: appTheme.colors.surface,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
     paddingHorizontal: 16,
@@ -584,12 +582,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: appTheme.colors.surface,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: appTheme.radius.md,
+    padding: appTheme.spacing.md,
     marginBottom: 10,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    elevation: 1,
+    ...appTheme.shadow.sm,
   },
   docCardLeft: { flex: 1 },
   docType: {

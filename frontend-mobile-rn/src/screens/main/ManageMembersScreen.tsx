@@ -212,7 +212,7 @@ export function ManageMembersScreen() {
           disabled={saving || loadingMembers}
         >
           {saving ? (
-            <ActivityIndicator size="small" color="white" />
+            <ActivityIndicator size="small" color={appTheme.colors.surface} />
           ) : (
             <Text style={styles.saveButtonText}>Salvar Alterações</Text>
           )}
@@ -256,17 +256,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    padding: 20,
+    padding: appTheme.spacing.lg,
     marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...appTheme.shadow.sm,
   },
   userListWrapper: {
     maxHeight: 250,
-    marginTop: 10,
+    marginTop: appTheme.spacing.sm,
   },
   sectionSubtitle: {
     fontFamily: "IBM_Plex_Sans",

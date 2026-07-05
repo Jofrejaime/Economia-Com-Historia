@@ -191,7 +191,7 @@ export function QuizListScreen() {
           ) : item.rank_position === 2 ? (
             <Ionicons name="medal" size={26} color={appTheme.colors.textMuted} />
           ) : item.rank_position === 3 ? (
-            <Ionicons name="medal" size={26} color="#CD7F32" />
+            <Ionicons name="medal" size={26} color={appTheme.colors.warning} />
           ) : (
             <Text style={[styles.rankNumber, isCurrentUser && { color: "white" }]}>
               #{item.rank_position}
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 4,
     backgroundColor: appTheme.colors.surface,
-    borderRadius: 12,
+    borderRadius: appTheme.radius.md,
     padding: 4,
   },
   tab: {
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
   },
   tabActive: {
     backgroundColor: appTheme.colors.primary,
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textSecondary,
   },
   tabTextActive: {
-    color: "white",
+    color: appTheme.colors.surface,
   },
   filterRow: {
     flexDirection: "row",
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   filterChip: {
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: appTheme.radius.pill,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
     backgroundColor: appTheme.colors.surface,
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    borderColor: appTheme.colors.success + "60",
+    borderColor: appTheme.colors.successLight,
   },
   filterChipCompletedActive: {
     backgroundColor: appTheme.colors.success,
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   filterChipTextActive: {
-    color: "white",
+    color: appTheme.colors.surface,
     fontWeight: "700",
   },
   completedBadge: {
@@ -450,16 +450,12 @@ const styles = StyleSheet.create({
   // Quiz cards
   quizCard: {
     backgroundColor: appTheme.colors.surface,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: appTheme.radius.md,
+    padding: appTheme.spacing.md,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
+    ...appTheme.shadow.sm,
   },
   quizCardHeader: {
     flexDirection: "row",
@@ -547,7 +543,7 @@ const styles = StyleSheet.create({
   },
   startBtnText: {
     fontFamily: "Source_Sans_3",
-    color: "white",
+    color: appTheme.colors.surface,
     fontWeight: "600",
     fontSize: 14,
     letterSpacing: 0.2,
@@ -675,7 +671,7 @@ const styles = StyleSheet.create({
   },
   retryBtnText: {
     fontFamily: "IBM_Plex_Sans",
-    color: "white",
+    color: appTheme.colors.surface,
     fontWeight: "700",
     fontSize: 14,
   },

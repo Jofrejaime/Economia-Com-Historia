@@ -33,6 +33,17 @@ export interface ContentCardProps {
   style?: ViewStyle;
 }
 
+// Mapa local de tipo → label PT + cor + ícone
+const TYPE_META: Record<string, { label: string; color: string; icon: keyof typeof Feather.glyphMap }> = {
+  video:      { label: "Vídeo",      color: appTheme.colors.videoColor,      icon: "play-circle" },
+  audio:      { label: "Áudio",      color: appTheme.colors.audioColor,      icon: "headphones"  },
+  article:    { label: "Artigo",     color: appTheme.colors.articleColor,    icon: "file-text"   },
+  thesis:     { label: "Tese",       color: appTheme.colors.warning,         icon: "book-open"   },
+  report:     { label: "Relatório",  color: appTheme.colors.secondary,       icon: "file"        },
+  manuscript: { label: "Manuscrito", color: appTheme.colors.rankingCardGray, icon: "edit-3"      },
+  archive:    { label: "Arquivo",    color: appTheme.colors.rankingCardGray, icon: "archive"     },
+};
+
 function relativeDate(dateStr?: string | null): string | null {
   if (!dateStr) return null;
   const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
@@ -51,11 +62,60 @@ function fmtCount(n?: number): string {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
 }
 
+// ─── MetaLine (tipo + categoria, inline, sem caixas de fundo) ───────────────
+
+interface MetaLineProps {
+  documentType?: string;
+  categoryName?: string;
+  categoryColorBg?: string | null;
+  categoryColorText?: string | null;
+  accessLevelId?: string;
+}
+
+function MetaLine({ documentType, categoryName, categoryColorText, accessLevelId }: MetaLineProps) {
+  const typeMeta = documentType ? TYPE_META[documentType] : null;
+  const isRestricted = accessLevelId === "restricted";
+  const isJindungo  = accessLevelId === "jindungo";
+
+  return (
+    <View style={styles.metaLine}>
+      {/* Ícone + label do tipo */}
+      {typeMeta && (
+        <>
+          <Feather name={typeMeta.icon} size={10} color={typeMeta.color} />
+          <Text style={[styles.metaTypeLabel, { color: typeMeta.color }]}>
+            {typeMeta.label.toUpperCase()}
+          </Text>
+        </>
+      )}
+
+      {/* Separador + categoria */}
+      {categoryName ? (
+        <>
+          {typeMeta && <Text style={styles.metaSep}>·</Text>}
+          <Text style={[styles.metaCategoryLabel, categoryColorText ? { color: categoryColorText } : null]} numberOfLines={1}>
+            {categoryName.toUpperCase()}
+          </Text>
+        </>
+      ) : null}
+
+      {/* Indicador de acesso (apenas para não-público) */}
+      {isJindungo && (
+        <Feather name="zap" size={10} color={appTheme.colors.badgeYellowText} style={styles.metaAccessIcon} />
+      )}
+      {isRestricted && (
+        <Feather name="lock" size={10} color={appTheme.colors.danger} style={styles.metaAccessIcon} />
+      )}
+    </View>
+  );
+}
+
 // ─── Compact ────────────────────────────────────────────────────────────────
 
 function CompactCard({
   title, author, image, documentType, accessLevelId,
-  categoryColorBg, viewsCount, likesCount, onPress, style,
+  categoryName, categoryColorBg, categoryColorText,
+  viewsCount, likesCount, onPress, style,
 }: ContentCardProps) {
   const showStats = viewsCount !== undefined || likesCount !== undefined;
 
@@ -70,12 +130,13 @@ function CompactCard({
         borderRadius={appTheme.radius.md}
       />
       <View style={styles.compactContent}>
-        <View style={styles.badgeRow}>
-          {documentType && <ContentBadge variant="type" value={documentType} />}
-          {accessLevelId && accessLevelId !== "public" && (
-            <ContentBadge variant="access" value={accessLevelId} />
-          )}
-        </View>
+        <MetaLine
+          documentType={documentType}
+          categoryName={categoryName}
+          categoryColorBg={categoryColorBg}
+          categoryColorText={categoryColorText}
+          accessLevelId={accessLevelId}
+        />
         <Text style={styles.compactTitle} numberOfLines={2}>{title}</Text>
         <Text style={styles.compactMeta} numberOfLines={1}>{author}</Text>
         {showStats && (
@@ -119,21 +180,13 @@ function ListCard({
         borderRadius={appTheme.radius.md}
       />
       <View style={styles.listContent}>
-        <View style={styles.badgeRow}>
-          {categoryName ? (
-            <ContentBadge
-              variant="category"
-              value={categoryName}
-              categoryBg={categoryColorBg}
-              categoryText={categoryColorText}
-            />
-          ) : documentType ? (
-            <ContentBadge variant="type" value={documentType} />
-          ) : null}
-          {accessLevelId && accessLevelId !== "public" && (
-            <ContentBadge variant="access" value={accessLevelId} />
-          )}
-        </View>
+        <MetaLine
+          documentType={documentType}
+          categoryName={categoryName}
+          categoryColorBg={categoryColorBg}
+          categoryColorText={categoryColorText}
+          accessLevelId={accessLevelId}
+        />
         <Text style={styles.listTitle} numberOfLines={2}>{title}</Text>
         {!!summary && (
           <Text style={styles.listSummary} numberOfLines={2}>{summary}</Text>
@@ -221,12 +274,44 @@ export function ContentCard({ variant = "compact", ...props }: ContentCardProps)
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  // Compact
+  // ── MetaLine ──────────────────────────────────────────────────────────────
+  metaLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "nowrap",
+    gap: 4,
+    marginBottom: 3,
+  },
+  metaTypeLabel: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  metaCategoryLabel: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 10,
+    fontWeight: "600",
+    letterSpacing: 0.4,
+    color: appTheme.colors.textMuted,
+    flexShrink: 1,
+  },
+  metaSep: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 10,
+    color: appTheme.colors.border,
+    lineHeight: 14,
+  },
+  metaAccessIcon: {
+    marginLeft: 2,
+  },
+
+  // ── Compact ───────────────────────────────────────────────────────────────
   compactCard: {
     flexDirection: "row",
     backgroundColor: appTheme.colors.surface,
     borderRadius: appTheme.radius.md,
-    padding: 12,
+    padding: appTheme.spacing.md,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
@@ -251,12 +336,12 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
   },
 
-  // List
+  // ── List ──────────────────────────────────────────────────────────────────
   listCard: {
     flexDirection: "row",
     backgroundColor: appTheme.colors.surface,
     borderRadius: appTheme.radius.md,
-    padding: 12,
+    padding: appTheme.spacing.md,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
@@ -298,7 +383,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
   },
 
-  // Hero
+  // ── Hero ──────────────────────────────────────────────────────────────────
   heroWrapper: {
     borderRadius: appTheme.radius.lg,
     overflow: "hidden",
@@ -314,17 +399,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    padding: 14,
+    padding: appTheme.spacing.md,
   },
   heroBottom: {
-    padding: 14,
+    padding: appTheme.spacing.md,
     gap: 8,
   },
   heroTitle: {
     fontFamily: "IBM_Plex_Sans",
     fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: appTheme.colors.surface,
     lineHeight: 24,
   },
   heroStatText: {
@@ -334,13 +419,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Shared
-  badgeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 5,
-    marginBottom: 2,
-  },
+  // ── Shared ────────────────────────────────────────────────────────────────
   statsRow: {
     flexDirection: "row",
     alignItems: "center",

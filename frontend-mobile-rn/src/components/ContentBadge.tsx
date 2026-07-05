@@ -27,18 +27,18 @@ const TYPE_CONFIG: Record<string, { label: string; color: string; icon: keyof ty
 };
 
 const ACCESS_CONFIG: Record<string, { label: string; bg: string; color: string; icon?: keyof typeof Feather.glyphMap }> = {
-  public:     { label: "Público",  bg: appTheme.colors.success + "20", color: appTheme.colors.success },
-  jindungo:   { label: "Jindungo", bg: appTheme.colors.warning + "22", color: appTheme.colors.badgeYellowText, icon: "zap" },
-  restricted: { label: "Restrito", bg: appTheme.colors.danger  + "20", color: appTheme.colors.danger, icon: "lock" },
+  public:     { label: "Público",  bg: appTheme.colors.successLight,   color: appTheme.colors.success },
+  jindungo:   { label: "Jindungo", bg: appTheme.colors.badgeYellowBg,  color: appTheme.colors.badgeYellowText, icon: "zap" },
+  restricted: { label: "Restrito", bg: appTheme.colors.dangerLight,    color: appTheme.colors.danger, icon: "lock" },
 };
 
 const STATE_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
-  new:         { label: "Novo",           bg: appTheme.colors.badgeLightBg,       color: appTheme.colors.badgeLightText },
-  popular:     { label: "Popular",        bg: appTheme.colors.warning + "22",     color: appTheme.colors.badgeYellowText },
-  recommended: { label: "Recomendado",    bg: appTheme.colors.primary + "18",     color: appTheme.colors.primary },
-  premium:     { label: "Premium",        bg: appTheme.colors.warning + "22",     color: appTheme.colors.badgeYellowText },
-  completed:   { label: "Concluído",      bg: appTheme.colors.success + "20",     color: appTheme.colors.success },
-  in_progress: { label: "Em progresso",   bg: appTheme.colors.videoColor + "20",  color: appTheme.colors.videoColor },
+  new:         { label: "Novo",         bg: appTheme.colors.badgeLightBg,      color: appTheme.colors.badgeLightText },
+  popular:     { label: "Popular",      bg: appTheme.colors.badgeYellowBg,     color: appTheme.colors.badgeYellowText },
+  recommended: { label: "Recomendado",  bg: appTheme.colors.debateHighlightBg, color: appTheme.colors.primary },
+  premium:     { label: "Premium",      bg: appTheme.colors.badgeYellowBg,     color: appTheme.colors.badgeYellowText },
+  completed:   { label: "Concluído",    bg: appTheme.colors.successLight,      color: appTheme.colors.success },
+  in_progress: { label: "Em progresso", bg: appTheme.colors.badgeLightBg,      color: appTheme.colors.videoColor },
 };
 
 export function ContentBadge({ variant, value, categoryBg, categoryText, size = "sm" }: ContentBadgeProps) {
@@ -79,7 +79,7 @@ export function ContentBadge({ variant, value, categoryBg, categoryText, size = 
   }
 
   if (variant === "category") {
-    const bg = categoryBg ?? appTheme.colors.primary + "18";
+    const bg = categoryBg ?? appTheme.colors.debateHighlightBg;
     const color = categoryText ?? appTheme.colors.primary;
     return (
       <View style={[styles.badge, { backgroundColor: bg, paddingHorizontal: px, paddingVertical: py }]}>

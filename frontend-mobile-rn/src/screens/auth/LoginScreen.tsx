@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 24,
-    paddingTop: 36,
+    paddingTop: appTheme.spacing.xl,
     paddingBottom: 48,
   },
   title: {
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
   },
   registerWrap: {
-    marginTop: 28,
+    marginTop: appTheme.spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    backgroundColor: appTheme.colors.overlay,
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
@@ -410,11 +410,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.lg,
     width: "100%",
     maxWidth: 400,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
+    ...appTheme.shadow.lg,
   },
   modalHeader: {
     flexDirection: "row",

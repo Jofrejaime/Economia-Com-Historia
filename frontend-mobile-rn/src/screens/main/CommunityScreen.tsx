@@ -114,7 +114,7 @@ export function CommunityScreen() {
                 </View>
               ) : (
                 <View style={[styles.badge, styles.badgePublic]}>
-                  <Feather name="globe" size={10} color="#065F46" style={{ marginRight: 3 }} />
+                  <Feather name="globe" size={10} color={appTheme.colors.success} style={{ marginRight: 3 }} />
                   <Text style={[styles.badgeText, styles.badgeTextPublic]}>PÚBLICO</Text>
                 </View>
               )}
@@ -294,10 +294,7 @@ const styles = StyleSheet.create({
     padding: appTheme.spacing.lg,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...appTheme.shadow.sm,
   },
   row: {
     flexDirection: "row",
@@ -374,7 +371,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.badgeYellowText,
   },
   badgeTextPublic: {
-    color: "#065F46",
+    color: appTheme.colors.success,
   },
   cardTerminated: {
     opacity: 0.6,
