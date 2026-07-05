@@ -349,7 +349,7 @@ export function DashboardScreen() {
                           styles.rankBadge,
                           {
                             backgroundColor: isFirst
-                              ? "rgba(255,255,255,0.2)"
+                              ? appTheme.colors.progressBackground
                               : item.rank_position <= 3
                               ? appTheme.colors.rankingCardSecondary
                               : appTheme.colors.background,
@@ -372,7 +372,7 @@ export function DashboardScreen() {
                       </View>
                     </View>
                     <View style={styles.userInfo}>
-                      <Text style={[styles.userNameText, { color: isFirst ? "white" : appTheme.colors.textPrimary }]}>
+                      <Text style={[styles.userNameText, { color: isFirst ? appTheme.colors.surface : appTheme.colors.textPrimary }]}>
                         {item.display_name}
                       </Text>
                       {item.province && (
@@ -382,7 +382,7 @@ export function DashboardScreen() {
                       )}
                     </View>
                     <View style={styles.pointsContainer}>
-                      <Text style={[styles.pointsNumberText, { color: isFirst ? "white" : appTheme.colors.textPrimary }]}>
+                      <Text style={[styles.pointsNumberText, { color: isFirst ? appTheme.colors.surface : appTheme.colors.textPrimary }]}>
                         {item.total_points}
                       </Text>
                       <Text style={[styles.pointsLabelText, { color: isFirst ? "rgba(255,255,255,0.7)" : appTheme.colors.textMuted }]}>
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 20,
+    marginBottom: appTheme.spacing.md,
     marginTop: 8,
   },
   greetingContainer: {
@@ -477,14 +477,14 @@ const styles = StyleSheet.create({
     right: -4,
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     backgroundColor: appTheme.colors.primary,
     justifyContent: "center",
     alignItems: "center",
   },
   badgeText: {
     fontFamily: "Source_Sans_3",
-    color: "white",
+    color: appTheme.colors.surface,
     fontSize: 11,
     fontWeight: "700",
   },
@@ -495,16 +495,14 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: appTheme.colors.surface,
     borderRadius: 12,
-    marginBottom: 20,
+    marginBottom: appTheme.spacing.md,
     borderWidth: 1.5,
     borderColor: appTheme.colors.border,
-    boxShadow: "0px 2px 6px rgba(0,0,0,0.05)",
-    elevation: 2,
+    ...appTheme.shadow.sm,
   },
   searchBarFocused: {
     borderColor: appTheme.colors.primary,
-    boxShadow: "0px 2px 10px rgba(0,0,0,0.08)",
-    elevation: 4,
+    ...appTheme.shadow.sm,
   },
   searchIcon: {
     marginRight: 10,
@@ -595,7 +593,7 @@ const styles = StyleSheet.create({
   },
   jindungoBadgeText: {
     fontFamily: "Source_Sans_3",
-    color: "white",
+    color: appTheme.colors.surface,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 0.5,
@@ -610,7 +608,7 @@ const styles = StyleSheet.create({
     fontFamily: "IBM_Plex_Sans",
     fontSize: 16,
     fontWeight: "700",
-    color: "white",
+    color: appTheme.colors.surface,
     lineHeight: 20,
     letterSpacing: -0.3,
     marginBottom: 6,
@@ -645,7 +643,7 @@ const styles = StyleSheet.create({
   },
   exploreButtonText: {
     fontFamily: "Source_Sans_3",
-    color: "white",
+    color: appTheme.colors.surface,
     fontWeight: "600",
     fontSize: 14,
     letterSpacing: 0.2,
@@ -692,7 +690,7 @@ const styles = StyleSheet.create({
   rankBadge: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -705,7 +703,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: appTheme.colors.progressBackground,
     justifyContent: "center",
     alignItems: "center",
   },

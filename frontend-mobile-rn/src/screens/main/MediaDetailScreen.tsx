@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  StatusBar,
   Image,
   Dimensions,
 } from "react-native";
@@ -137,6 +136,7 @@ export function MediaDetailScreen() {
 
   const [doc, setDoc] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errorType, setErrorType] = useState<"not_found" | "access_denied" | "subscription_required" | "network_error" | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
@@ -148,33 +148,42 @@ export function MediaDetailScreen() {
   const relatedQuizzes: DocumentQuizPreview[] = doc?.quizzes ?? [];
   const relatedTopics: DocumentTopicPreview[] = doc?.topics_preview ?? [];
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const data = await documentService.detail(id);
-        setDoc(data);
-        setIsLiked(data.is_liked ?? false);
-        setIsFavorited(data.is_favorited ?? false);
-        setLikesCount(data.likes_count);
+  const loadDocument = async () => {
+    setLoading(true);
+    setErrorType(null);
+    try {
+      const data = await documentService.detail(id);
+      setDoc(data);
+      setIsLiked(data.is_liked ?? false);
+      setIsFavorited(data.is_favorited ?? false);
+      setLikesCount(data.likes_count);
 
-        // Mais vídeos/áudios da mesma categoria (não bloqueante)
-        if (data.category_id) {
-          documentService.list({
-            category_id: data.category_id,
-            document_type: data.document_type,
-            per_page: 6,
-          })
-            .then((res) => setRelatedDocs(res.data.filter((d) => d.id !== id)))
-            .catch(() => {});
-        }
-      } catch {
-        // erro tratado no render
-      } finally {
-        setLoading(false);
+      if (data.category_id) {
+        documentService.list({
+          category_id: data.category_id,
+          document_type: data.document_type,
+          per_page: 6,
+        })
+          .then((res) => setRelatedDocs(res.data.filter((d) => d.id !== id)))
+          .catch(() => {});
       }
-    };
-    void load();
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 403) {
+        const subscriptionRequired = err.response?.data?.subscription_required;
+        setErrorType(subscriptionRequired ? "subscription_required" : "access_denied");
+      } else if (status === 404) {
+        setErrorType("not_found");
+      } else {
+        setErrorType("network_error");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadDocument();
   }, [id]);
 
   const handleLike = async () => {
@@ -222,17 +231,59 @@ export function MediaDetailScreen() {
     );
   }
 
-  if (!doc) {
+  if (errorType) {
+    const errorConfig = {
+      not_found: {
+        icon: "x-circle" as const,
+        title: "Conteúdo não encontrado",
+        message: "Este conteúdo pode ter sido removido ou o link está incorrecto.",
+      },
+      access_denied: {
+        icon: "lock" as const,
+        title: "Acesso restrito",
+        message: "Não tens permissão para aceder a este conteúdo.",
+      },
+      subscription_required: {
+        icon: "lock" as const,
+        title: "Conteúdo Jindungo",
+        message: "Este conteúdo requer uma subscrição Jindungo activa.",
+      },
+      network_error: {
+        icon: "wifi-off" as const,
+        title: "Falha de ligação",
+        message: "Não foi possível carregar o conteúdo. Verifica a tua ligação.",
+      },
+    }[errorType];
+
     return (
       <ScreenContainer style={styles.screen}>
         <HeaderBar title="" />
         <View style={styles.centered}>
-          <Feather name="alert-circle" size={40} color={appTheme.colors.textMuted} />
-          <Text style={styles.errorText}>Conteúdo não encontrado.</Text>
+          <Feather name={errorConfig.icon} size={40} color={appTheme.colors.textMuted} />
+          <Text style={styles.errorTitle}>{errorConfig.title}</Text>
+          <Text style={styles.errorText}>{errorConfig.message}</Text>
+          {errorType === "subscription_required" && (
+            <TouchableOpacity
+              style={styles.errorButton}
+              onPress={() => navigation.navigate("JindungoPermission")}
+            >
+              <Text style={styles.errorButtonText}>Ver planos Jindungo</Text>
+            </TouchableOpacity>
+          )}
+          {errorType === "network_error" && (
+            <TouchableOpacity style={styles.errorButton} onPress={() => void loadDocument()}>
+              <Text style={styles.errorButtonText}>Tentar novamente</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.errorLink}>
+            <Text style={styles.errorLinkText}>Voltar</Text>
+          </TouchableOpacity>
         </View>
       </ScreenContainer>
     );
   }
+
+  if (!doc) return null;
 
   const isVideo = doc.document_type === "video";
   const isAudio = doc.document_type === "audio";
@@ -243,8 +294,6 @@ export function MediaDetailScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
-
       {/* ── Área de vídeo (topo, fora do ScrollView) ── */}
       {isVideo && (
         <View style={styles.videoWrapper}>
@@ -288,10 +337,7 @@ export function MediaDetailScreen() {
         </View>
       )}
 
-      <HeaderBar
-        title={isVideo ? "" : isAudio ? "Áudio" : "Média"}
-        style={isVideo ? styles.headerOverVideo : undefined}
-      />
+      <HeaderBar title={isVideo ? "" : isAudio ? "Áudio" : "Média"} />
 
       <ScrollView
         style={styles.scroll}
@@ -634,11 +680,43 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 12,
   },
+  errorTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 18,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    textAlign: "center",
+    marginTop: 4,
+  },
   errorText: {
     fontFamily: "Source_Sans_3",
-    fontSize: 16,
+    fontSize: 15,
     color: appTheme.colors.textMuted,
-    marginTop: 8,
+    textAlign: "center",
+    paddingHorizontal: 32,
+    lineHeight: 22,
+  },
+  errorButton: {
+    backgroundColor: appTheme.colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: appTheme.radius.button,
+    marginTop: 4,
+  },
+  errorButtonText: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 15,
+    fontWeight: "700",
+    color: appTheme.colors.surface,
+  },
+  errorLink: {
+    marginTop: 4,
+    padding: 8,
+  },
+  errorLinkText: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 14,
+    color: appTheme.colors.primary,
   },
 
   // ── Vídeo ──
@@ -661,7 +739,7 @@ const styles = StyleSheet.create({
   videoThumbnailFallback: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#1a1a2e",
+    backgroundColor: appTheme.colors.jindungoCardBg,
   },
   videoPlayOverlay: {
     position: "absolute",
@@ -702,11 +780,6 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.5)",
     fontSize: 13,
   },
-  headerOverVideo: {
-    // Quando há vídeo, o header está por baixo da área de vídeo, sem sobreposição
-    backgroundColor: appTheme.colors.surface,
-  },
-
   // ── Áudio ──
   audioBlock: {
     backgroundColor: appTheme.colors.surface,
@@ -725,7 +798,7 @@ const styles = StyleSheet.create({
     ...appTheme.shadow.lg,
   },
   audioCoverFallback: {
-    backgroundColor: appTheme.colors.primary + "18",
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -734,7 +807,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    marginBottom: 20,
+    marginBottom: appTheme.spacing.md,
   },
   progressBar: {
     flex: 1,
@@ -760,7 +833,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 32,
-    marginBottom: 20,
+    marginBottom: appTheme.spacing.md,
   },
   skipBtn: {
     padding: 8,
@@ -814,7 +887,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   infoBlock: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingTop: 20,
     paddingBottom: 4,
   },
@@ -827,7 +900,7 @@ const styles = StyleSheet.create({
   typeBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: appTheme.radius.button,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
     backgroundColor: appTheme.colors.background,
@@ -842,8 +915,8 @@ const styles = StyleSheet.create({
   categoryBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: appTheme.colors.primary + "18",
+    borderRadius: appTheme.radius.button,
+    backgroundColor: appTheme.colors.userAvatarBg,
   },
   categoryBadgeText: {
     fontFamily: "Source_Sans_3",
@@ -869,7 +942,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: appTheme.colors.primary + "22",
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -940,7 +1013,7 @@ const styles = StyleSheet.create({
 
   // ── Descrição ──
   descBlock: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: 16,
   },
   sectionLabel: {
@@ -973,13 +1046,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingBottom: 8,
   },
   tag: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: appTheme.radius.pill,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
   },
@@ -991,7 +1064,7 @@ const styles = StyleSheet.create({
 
   // ── Relacionados ──
   relatedBlock: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: 16,
   },
   relatedCard: {
@@ -1109,7 +1182,7 @@ const styles = StyleSheet.create({
   topicCard: {
     width: 190,
     backgroundColor: appTheme.colors.background,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
     padding: 14,

@@ -73,7 +73,7 @@ class User extends Authenticatable
     public function topicMemberships(): BelongsToMany
     {
         return $this->belongsToMany(DiscussionTopic::class, 'discussion_topic_members', 'user_id', 'topic_id')
-            ->withPivot(['id', 'role', 'invited_by', 'accepted_at', 'created_at', 'updated_at']);
+            ->withPivot(['id', 'joined_at', 'created_at', 'updated_at']);
     }
 
     public function interestAreas(): BelongsToMany

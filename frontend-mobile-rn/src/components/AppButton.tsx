@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   label: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.surface,
     fontSize: appTheme.typography.body.fontSize,
     fontWeight: "600",

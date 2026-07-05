@@ -103,11 +103,31 @@ class DocumentResource extends JsonResource
                 ];
             }) : null,
 
-            // Category joined fields
-            'category_name'     => $isModel ? optional($this->resource->category)->name     : ($this->resource->category_name ?? null),
-            'category_slug'     => $isModel ? optional($this->resource->category)->slug     : ($this->resource->category_slug ?? null),
-            'category_color_bg' => $isModel ? optional($this->resource->category)->color_bg : ($this->resource->category_color_bg ?? null),
-            'category_icon'     => $isModel ? optional($this->resource->category)->icon     : ($this->resource->category_icon ?? null),
+            // Category joined fields (flat — kept for backwards compatibility)
+            'category_name'       => $isModel ? optional($this->resource->category)->name       : ($this->resource->category_name ?? null),
+            'category_slug'       => $isModel ? optional($this->resource->category)->slug       : ($this->resource->category_slug ?? null),
+            'category_color_bg'   => $isModel ? optional($this->resource->category)->color_bg   : ($this->resource->category_color_bg ?? null),
+            'category_color_text' => $isModel ? optional($this->resource->category)->color_text : ($this->resource->category_color_text ?? null),
+            'category_icon'       => $isModel ? optional($this->resource->category)->icon       : ($this->resource->category_icon ?? null),
+
+            // Category nested object — consumed by the mobile frontend
+            'category' => $isModel
+                ? (optional($this->resource->category)->id ? [
+                    'id'         => $this->resource->category->id,
+                    'name'       => $this->resource->category->name,
+                    'slug'       => $this->resource->category->slug,
+                    'color_bg'   => $this->resource->category->color_bg,
+                    'color_text' => $this->resource->category->color_text,
+                    'icon'       => $this->resource->category->icon,
+                ] : null)
+                : ($this->resource->category_name ? [
+                    'id'         => $this->resource->category_id,
+                    'name'       => $this->resource->category_name,
+                    'slug'       => $this->resource->category_slug ?? null,
+                    'color_bg'   => $this->resource->category_color_bg ?? null,
+                    'color_text' => $this->resource->category_color_text ?? null,
+                    'icon'       => $this->resource->category_icon ?? null,
+                ] : null),
 
             // Access level joined fields
             'access_level_name'      => $isModel ? optional($this->resource->accessLevel)->name      : ($this->resource->access_level_name ?? null),

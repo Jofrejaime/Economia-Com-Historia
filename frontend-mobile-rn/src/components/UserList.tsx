@@ -113,11 +113,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+    ...appTheme.shadow.sm,
   },
   profileSection: {
     flexDirection: "row",
@@ -128,7 +124,7 @@ const styles = StyleSheet.create({
   avatarWrapper: {
     width: 54,
     height: 54,
-    borderRadius: 18,
+    borderRadius: appTheme.radius.lg,
     backgroundColor: appTheme.colors.userAvatarBg,
     justifyContent: "center",
     alignItems: "center",
@@ -137,12 +133,12 @@ const styles = StyleSheet.create({
   avatar: {
     width: 54,
     height: 54,
-    borderRadius: 18,
+    borderRadius: appTheme.radius.lg,
   },
   avatarFallback: {
     width: 54,
     height: 54,
-    borderRadius: 18,
+    borderRadius: appTheme.radius.lg,
     backgroundColor: appTheme.colors.surface,
     justifyContent: "center",
     alignItems: "center",
@@ -150,6 +146,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.border,
   },
   avatarFallbackText: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.primary,
     fontWeight: "700",
     fontSize: 16,
@@ -158,12 +155,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.textPrimary,
     fontSize: 16,
     fontWeight: "700",
     marginBottom: 4,
   },
   profileUsername: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontSize: 14,
   },
@@ -196,12 +195,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyTitle: {
+    fontFamily: "IBM_Plex_Sans",
     marginTop: 14,
     fontSize: 17,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   emptySubtitle: {
+    fontFamily: "Source_Sans_3",
     marginTop: 8,
     color: appTheme.colors.textSecondary,
     fontSize: 14,

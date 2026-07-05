@@ -14,7 +14,7 @@ export function ErrorBanner({ message, onDismiss, style }: Props) {
 
   return (
     <View style={[styles.container, style]}>
-      <Feather name="alert-circle" size={16} color="#B91C1C" style={styles.icon} />
+      <Feather name="alert-circle" size={16} color={appTheme.colors.danger} style={styles.icon} />
       <Text style={styles.text}>{message}</Text>
       {onDismiss && (
         <Pressable
@@ -22,7 +22,7 @@ export function ErrorBanner({ message, onDismiss, style }: Props) {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={styles.dismiss}
         >
-          <Feather name="x" size={16} color="#B91C1C" />
+          <Feather name="x" size={16} color={appTheme.colors.danger} />
         </Pressable>
       )}
     </View>
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     backgroundColor: appTheme.colors.dangerLight,
     borderWidth: 1,
-    borderColor: "#FECACA",
+    borderColor: appTheme.colors.dangerLight,
     borderRadius: appTheme.radius.sm,
     padding: 12,
     marginBottom: 16,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: "Source_Sans_3",
     fontSize: 14,
-    color: "#B91C1C",
+    color: appTheme.colors.danger,
     lineHeight: 20,
   },
   dismiss: {

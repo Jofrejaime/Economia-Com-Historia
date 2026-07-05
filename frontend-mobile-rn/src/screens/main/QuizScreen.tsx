@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  StatusBar,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -148,7 +147,6 @@ export function QuizScreen() {
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
       <HeaderBar title="Quiz" />
 
       {/* Progress bar */}
@@ -229,7 +227,7 @@ export function QuizScreen() {
         <View style={styles.submitSection}>
           {currentQuestion.hint_quote && (
             <View style={styles.hintRow}>
-              <Feather name="help-circle" size={14} color="rgba(87,65,66,0.7)" style={{ marginTop: 2 }} />
+              <Feather name="help-circle" size={14} color={appTheme.colors.textMuted} style={{ marginTop: 2 }} />
               <Text style={styles.hintText}>{currentQuestion.hint_quote}</Text>
             </View>
           )}
@@ -304,7 +302,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 6,
     backgroundColor: appTheme.colors.border,
-    borderRadius: 3,
+    borderRadius: appTheme.radius.button,
     overflow: "hidden",
   },
   progressFill: {
@@ -359,11 +357,11 @@ const styles = StyleSheet.create({
   divider: {
     width: 64,
     height: 2,
-    backgroundColor: "rgba(139,30,45,0.2)",
+    backgroundColor: appTheme.colors.border,
   },
   readingBlock: {
     backgroundColor: appTheme.colors.badgeLightBg,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     padding: 16,
     marginBottom: 24,
   },
@@ -396,10 +394,7 @@ const styles = StyleSheet.create({
   optionBtnSelected: {
     backgroundColor: appTheme.colors.surface,
     borderColor: appTheme.colors.primary,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...appTheme.shadow.sm,
   },
   optionRow: {
     flexDirection: "row",
@@ -412,7 +407,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   optionLetterDefault: {
-    color: "rgba(107,1,25,0.4)",
+    color: appTheme.colors.primaryDark,
+    opacity: 0.4,
   },
   optionLetterSelected: {
     color: appTheme.colors.primaryDark,
@@ -448,7 +444,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontStyle: "italic",
     fontSize: 13,
-    color: "rgba(87,65,66,0.7)",
+    color: appTheme.colors.textMuted,
     lineHeight: 18,
   },
   submitBtn: {
@@ -459,10 +455,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
     paddingVertical: 16,
     borderRadius: appTheme.radius.button,
-    shadowColor: appTheme.colors.primary,
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 4,
+    ...appTheme.shadow.md,
   },
   submitBtnDisabled: {
     opacity: 0.4,

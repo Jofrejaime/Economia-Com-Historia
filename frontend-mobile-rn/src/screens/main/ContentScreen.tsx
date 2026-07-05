@@ -392,13 +392,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   filterButtonTextActive: {
-    color: "white",
+    color: appTheme.colors.surface,
   },
   filterBadge: {
     width: 20,
     height: 20,
-    borderRadius: 10,
-    backgroundColor: "white",
+    borderRadius: appTheme.radius.sm,
+    backgroundColor: appTheme.colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: appTheme.radius.pill,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
     backgroundColor: appTheme.colors.surface,
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   chipTextActive: {
-    color: "white",
+    color: appTheme.colors.surface,
     fontWeight: "600",
   },
   resultsCount: {
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: appTheme.radius.pill,
     borderWidth: 1,
     borderColor: appTheme.colors.primary,
   },

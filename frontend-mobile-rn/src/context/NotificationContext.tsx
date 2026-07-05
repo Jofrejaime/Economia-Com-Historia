@@ -2,7 +2,7 @@ import React, { createContext, useState, useCallback, useEffect, ReactNode, useC
 import { notificationService } from '../services/api/notificationService';
 import type { Notification } from '../types/api';
 
-interface NotificationContextType {
+export interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;

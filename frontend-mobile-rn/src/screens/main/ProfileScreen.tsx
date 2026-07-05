@@ -269,7 +269,7 @@ export function ProfileScreen() {
                 <Text style={styles.settingsItemDesc}>Gerir dados da conta e identificação</Text>
               </View>
             </View>
-            <Feather name="chevron-right" size={16} color="#DEBFBF" />
+            <Feather name="chevron-right" size={16} color={appTheme.colors.border} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -285,7 +285,7 @@ export function ProfileScreen() {
                 <Text style={styles.settingsItemDesc}>Alterar palavra-passe e acessos</Text>
               </View>
             </View>
-            <Feather name="chevron-right" size={16} color="#DEBFBF" />
+            <Feather name="chevron-right" size={16} color={appTheme.colors.border} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -301,13 +301,13 @@ export function ProfileScreen() {
                 <Text style={styles.settingsItemDesc}>Contactar a equipa editorial</Text>
               </View>
             </View>
-            <Feather name="chevron-right" size={16} color="#DEBFBF" />
+            <Feather name="chevron-right" size={16} color={appTheme.colors.border} />
           </TouchableOpacity>
 
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.logoutItem} onPress={() => void signOut()}>
-            <Feather name="log-out" size={18} color="#BA1A1A" style={styles.logoutIcon} />
+            <Feather name="log-out" size={18} color={appTheme.colors.danger} style={styles.logoutIcon} />
             <Text style={styles.logoutText}>Terminar Sessão</Text>
           </TouchableOpacity>
         </View>
@@ -341,8 +341,8 @@ const styles = StyleSheet.create({
   avatarWrap: {
     width: 120,
     height: 120,
-    borderRadius: 16,
-    backgroundColor: appTheme.colors.primary + "22",
+    borderRadius: appTheme.radius.lg,
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 4,
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: 120,
     height: 120,
-    borderRadius: 16,
+    borderRadius: appTheme.radius.lg,
     borderWidth: 4,
     borderColor: "rgba(107, 1, 25, 0.1)",
   },
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     right: 0,
     width: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: appTheme.radius.pill,
     backgroundColor: appTheme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -422,13 +422,9 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   bentoCard: {
-    borderRadius: 12,
+    borderRadius: appTheme.radius.md,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...appTheme.shadow.sm,
   },
   bentoCardLabel: {
     fontFamily: "Source_Sans_3",
@@ -468,7 +464,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: "white",
+    backgroundColor: appTheme.colors.surface,
   },
   rankCard: { backgroundColor: appTheme.colors.badgeLightBg },
   rankValue: {
@@ -484,7 +480,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textSecondary,
     marginTop: 4,
   },
-  textWhite: { color: "white" },
+  textWhite: { color: appTheme.colors.surface },
   meritsSection: {
     marginBottom: 40,
   },
@@ -516,8 +512,8 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
     flex: 1,
     minWidth: "45%",
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: appTheme.radius.md,
+    padding: appTheme.spacing.md,
     alignItems: "center",
     borderWidth: 1,
     borderColor: appTheme.colors.border,
@@ -525,7 +521,7 @@ const styles = StyleSheet.create({
   meritIconWrap: {
     width: 56,
     height: 56,
-    borderRadius: 12,
+    borderRadius: appTheme.radius.md,
     backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
@@ -541,15 +537,15 @@ const styles = StyleSheet.create({
   },
   settingsPanel: {
     backgroundColor: appTheme.colors.badgeLightBg,
-    borderRadius: 12,
+    borderRadius: appTheme.radius.md,
     padding: 8,
   },
   settingsItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
-    borderRadius: 8,
+    padding: appTheme.spacing.md,
+    borderRadius: appTheme.radius.sm,
   },
   settingsItemLeft: {
     flexDirection: "row",
@@ -579,7 +575,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(222, 191, 191, 0.2)",
+    backgroundColor: appTheme.colors.border,
     marginVertical: 8,
     marginHorizontal: 16,
   },
@@ -594,6 +590,6 @@ const styles = StyleSheet.create({
     fontFamily: "Source_Sans_3",
     fontSize: 14,
     fontWeight: "700",
-    color: "#BA1A1A",
+    color: appTheme.colors.danger,
   },
 });

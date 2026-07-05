@@ -58,6 +58,7 @@ class DocumentSearchService
                 'dc.name as category_name',
                 'dc.slug as category_slug',
                 'dc.color_bg as category_color_bg',
+                'dc.color_text as category_color_text',
                 'dc.icon as category_icon',
                 'al.name as access_level_name',
                 'al.icon as access_level_icon',
@@ -197,6 +198,7 @@ class DocumentSearchService
             case 'alphabetical':
                 $query->orderBy('d.title');
                 break;
+            case 'recent':
             case 'newest':
             default:
                 $query->orderByDesc('d.created_at');

@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   logoWrap: {
     width: 44,
     height: 44,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     fontFamily: 'IBM_Plex_Sans',
     fontSize: 22,
     fontWeight: '700',
-    color: 'white',
+    color: appTheme.colors.surface,
     lineHeight: 28,
   },
   appSubtitle: {
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   },
   featuredOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: appTheme.colors.overlay,
   },
   featuredTags: {
     position: 'absolute',
@@ -359,9 +359,10 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.badgeYellowBg,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: appTheme.radius.pill,
   },
   tagIntermédioText: {
+    fontFamily: 'IBM_Plex_Sans',
     fontSize: 11,
     fontWeight: '500',
     color: appTheme.colors.badgeYellowText,
@@ -373,12 +374,13 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: appTheme.radius.pill,
   },
   tagJindungoText: {
+    fontFamily: 'IBM_Plex_Sans',
     fontSize: 11,
     fontWeight: '500',
-    color: 'white',
+    color: appTheme.colors.surface,
   },
   featuredBottom: {
     position: 'absolute',
@@ -391,7 +393,7 @@ const styles = StyleSheet.create({
     fontFamily: 'IBM_Plex_Sans',
     fontSize: 18,
     fontWeight: '700',
-    color: 'white',
+    color: appTheme.colors.surface,
     marginBottom: 8,
   },
   featuredDesc: {
@@ -410,6 +412,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   metaText: {
+    fontFamily: 'Source_Sans_3',
     fontSize: 12,
     color: 'rgba(255,255,255,0.8)',
   },
@@ -423,7 +426,8 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
   },
   readButtonText: {
-    color: 'white',
+    fontFamily: 'IBM_Plex_Sans',
+    color: appTheme.colors.surface,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -456,6 +460,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   debateButtonText: {
+    fontFamily: 'IBM_Plex_Sans',
     color: appTheme.colors.textSecondary,
     fontWeight: '600',
     fontSize: 14,
@@ -490,30 +495,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rankNumberTextFirst: {
+    fontFamily: 'IBM_Plex_Sans',
     fontSize: 20,
     fontWeight: '700',
-    color: 'white',
+    color: appTheme.colors.surface,
   },
   avatarFirst: {
     width: 56,
     height: 56,
-    backgroundColor: 'white',
+    backgroundColor: appTheme.colors.surface,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarEmoji: {
+    fontFamily: 'Source_Sans_3',
     fontSize: 28,
   },
   rankInfo: {
     flex: 1,
   },
   rankNameFirst: {
+    fontFamily: 'IBM_Plex_Sans',
     fontWeight: '700',
     fontSize: 16,
-    color: 'white',
+    color: appTheme.colors.surface,
   },
   rankTitleFirst: {
+    fontFamily: 'Source_Sans_3',
     fontSize: 13,
     color: 'rgba(255,255,255,0.8)',
   },
@@ -521,11 +530,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   rankPointsValueFirst: {
+    fontFamily: 'IBM_Plex_Sans',
     fontSize: 20,
     fontWeight: '700',
-    color: 'white',
+    color: appTheme.colors.surface,
   },
   rankPointsLabelFirst: {
+    fontFamily: 'Source_Sans_3',
     fontSize: 11,
     color: 'rgba(255,255,255,0.7)',
   },
@@ -549,6 +560,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rankNumberText: {
+    fontFamily: 'IBM_Plex_Sans',
     fontSize: 18,
     fontWeight: '700',
     color: appTheme.colors.rankingCardGray,
@@ -562,16 +574,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarInitials: {
+    fontFamily: 'IBM_Plex_Sans',
     fontSize: 18,
     fontWeight: '700',
     color: appTheme.colors.primary,
   },
   rankName: {
+    fontFamily: 'IBM_Plex_Sans',
     fontWeight: '700',
     fontSize: 16,
     color: appTheme.colors.textPrimary,
   },
   rankTitle: {
+    fontFamily: 'Source_Sans_3',
     fontSize: 13,
     color: appTheme.colors.rankingCardGray,
   },
@@ -579,11 +594,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   rankPointsValue: {
+    fontFamily: 'IBM_Plex_Sans',
     fontSize: 20,
     fontWeight: '700',
     color: appTheme.colors.textSecondary,
   },
   rankPointsLabel: {
+    fontFamily: 'Source_Sans_3',
     fontSize: 11,
     color: appTheme.colors.textMuted,
   },
@@ -598,6 +615,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   rankingButtonText: {
+    fontFamily: 'IBM_Plex_Sans',
     fontSize: 15,
     fontWeight: '700',
     color: appTheme.colors.textSecondary,
@@ -609,13 +627,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaTitle: {
+    fontFamily: 'IBM_Plex_Sans',
     fontSize: 22,
     fontWeight: '700',
-    color: 'white',
+    color: appTheme.colors.surface,
     textAlign: 'center',
     marginBottom: 12,
   },
   ctaSubtitle: {
+    fontFamily: 'Source_Sans_3',
     fontSize: 16,
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
@@ -624,12 +644,13 @@ const styles = StyleSheet.create({
   },
   ctaRegisterButton: {
     width: '100%',
-    backgroundColor: 'white',
+    backgroundColor: appTheme.colors.surface,
     paddingVertical: 16,
     borderRadius: appTheme.radius.button,
     marginBottom: 12,
   },
   ctaRegisterText: {
+    fontFamily: 'IBM_Plex_Sans',
     color: appTheme.colors.primary,
     fontWeight: '700',
     fontSize: 16,
@@ -638,12 +659,13 @@ const styles = StyleSheet.create({
   ctaLoginButton: {
     width: '100%',
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: appTheme.colors.surface,
     paddingVertical: 16,
     borderRadius: appTheme.radius.button,
   },
   ctaLoginText: {
-    color: 'white',
+    fontFamily: 'IBM_Plex_Sans',
+    color: appTheme.colors.surface,
     fontWeight: '600',
     fontSize: 16,
     textAlign: 'center',
