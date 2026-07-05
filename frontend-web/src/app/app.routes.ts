@@ -20,6 +20,7 @@ import { AccessLevelsPageComponent } from './pages/admin/dashboard-admin/pages/a
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
 import { adminGuard } from './guards/admin.guard';
+import { homeGuard } from './guards/home.guard';
 import { DashboardAdminComponent } from './pages/admin/dashboard-admin/dashboard-admin';
 import { OverviewPageComponent } from './pages/admin/dashboard-admin/pages/overview-page/overview-page';
 import { RequestsPageComponent } from './pages/admin/dashboard-admin/pages/request-page/request-page';
@@ -45,7 +46,7 @@ import { PrivacyPolicyComponent} from './pages/legal/privacy-policy/privacy-poli
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', canActivate: [authGuard], loadComponent: () => import('./pages/home/home-user/home-user').then(m => m.HomeUser) },
+  { path: 'home', canActivate: [homeGuard], loadComponent: () => import('./pages/home/home-user/home-user').then(m => m.HomeUser) },
   { path: 'contents', component: ContentsComponent },
   { path: 'contents/saved', canActivate: [authGuard], component: SavedContentsComponent },
   { path: 'forum/community', component: CommunityComponent },

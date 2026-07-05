@@ -17,7 +17,7 @@
       <ng-container>
 
         <!-- User Level Card -->
-        <div class="quizzes-level-card">
+        <div class="quizzes-level-card" *ngIf="isLoggedIn">
           <div class="quizzes-level-decoration"></div>
           <div class="quizzes-level-grid">
             <div>
@@ -33,6 +33,21 @@
               <div class="quizzes-level-bar">
                 <div class="quizzes-level-bar-fill" [style.width]="userLevel.progress + '%'"></div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guest Level Card -->
+        <div class="quizzes-level-card guest" *ngIf="!isLoggedIn" (click)="goToLogin()" style="cursor: pointer;">
+          <div class="quizzes-level-decoration"></div>
+          <div class="quizzes-level-grid">
+            <div>
+              <p class="quizzes-level-label">ESTATUTO VISITANTE</p>
+              <h3 class="quizzes-level-name">Inicie Sessão para Acompanhar o seu Progresso</h3>
+              <p class="quizzes-level-info">Responda a quizzes, acumule pontos académicos e suba de nível para obter insígnias exclusivas e destacar-se na comunidade.</p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: flex-end;">
+              <button class="btn-primary small" style="background-color: #8B1E2D; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: 600; font-family: 'Source Sans 3', sans-serif;">Iniciar Sessão</button>
             </div>
           </div>
         </div>

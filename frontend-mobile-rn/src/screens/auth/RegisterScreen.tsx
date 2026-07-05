@@ -26,7 +26,7 @@ const academicLevels = ["Ensino Médio", "Licenciatura", "Mestrado", "Outro"];
 const interestsList = ["Economia", "História", "Política", "Desenvolvimento", "Outro"];
 
 export function RegisterScreen({ navigation }: Props) {
-  const { signUp } = useAuth();
+  const { signUp, refreshUser } = useAuth();
 
   const [step, setStep] = useState<1 | 2>(1);
 
@@ -112,6 +112,7 @@ export function RegisterScreen({ navigation }: Props) {
           // avatar upload failure is non-fatal
         }
       }
+      await refreshUser();
       navigation.navigate("MainTabs");
     } catch (err: unknown) {
       const message = parseApiError(err);

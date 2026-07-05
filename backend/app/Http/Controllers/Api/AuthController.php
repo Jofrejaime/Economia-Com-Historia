@@ -567,10 +567,12 @@ class AuthController extends Controller
             return response()->json(['message' => 'If this email exists, a reset link has been sent.']);
         }
 
+        $expireMinutes = (int) config('auth.passwords.users.expire', 30);
+
         $resetToken = $this->createVerificationToken(
             $user->id,
             VerificationTokenType::PASSWORD_RESET,
-            now()->addHour(),
+            now()->addMinutes($expireMinutes),
         );
         $profile = DB::table('user_profiles')->where('user_id', $user->id)->first();
         $recipientName = $profile->display_name ?? $user->email;
@@ -581,7 +583,7 @@ class AuthController extends Controller
             Mail::to($user->email)->send(new PasswordResetMail(
                 $recipientName,
                 $resetUrl,
-                60,
+                $expireMinutes,
             ));
         } catch (\Throwable $exception) {
             DB::table('verification_tokens')
@@ -664,11 +666,17 @@ class AuthController extends Controller
             $user = User::query()->findOrFail($verification->user_id);
             $user->forceFill(['password_hash' => $validated['password']])->save();
 
+            // Invalida todos os tokens de recuperação pendentes do utilizador
             DB::table('verification_tokens')
                 ->where('user_id', $user->id)
                 ->where('type', VerificationTokenType::PASSWORD_RESET)
                 ->whereNull('used_at')
                 ->update(['used_at' => now()]);
+
+            // Invalida todas as sessões ativas (tokens de sessão) do utilizador
+            DB::table('user_sessions')
+                ->where('user_id', $user->id)
+                ->delete();
         });
 
         return response()->json(['message' => 'Password reset successfully.']);
@@ -834,11 +842,12 @@ class AuthController extends Controller
             ->delete();
 
         $token = Str::random(80);
+        $hashedToken = hash('sha256', $token);
 
         DB::table('verification_tokens')->insert([
             'id' => (string) Str::uuid(),
             'user_id' => $userId,
-            'token' => $token,
+            'token' => $hashedToken,
             'type' => $type,
             'expires_at' => $expiresAt,
             'used_at' => null,
@@ -850,8 +859,10 @@ class AuthController extends Controller
 
     private function findActiveVerificationToken(string $token, string $type): ?object
     {
+        $hashedToken = hash('sha256', $token);
+
         return DB::table('verification_tokens')
-            ->where('token', $token)
+            ->where('token', $hashedToken)
             ->where('type', $type)
             ->whereNull('used_at')
             ->where('expires_at', '>', now())

@@ -342,10 +342,16 @@ class AuthenticationTest extends TestCase
 
         $forgot->assertStatus(200);
 
-        $resetToken = DB::table('verification_tokens')
-            ->where('type', 'password_reset')
-            ->whereNull('used_at')
-            ->value('token');
+        $resetToken = null;
+        Mail::assertSent(PasswordResetMail::class, function (PasswordResetMail $mail) use (&$resetToken): bool {
+            $url = $mail->resetUrl;
+            $parts = parse_url($url);
+            parse_str($parts['query'] ?? '', $query);
+            $resetToken = $query['token'] ?? null;
+            return $mail->hasTo('test@example.com');
+        });
+
+        $this->assertNotNull($resetToken);
 
         $response = $this->postJson('/api/auth/reset-password', [
             'token' => $resetToken,

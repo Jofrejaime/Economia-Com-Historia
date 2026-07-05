@@ -13,4 +13,5 @@ Schedule::command('leaderboard:refresh-national')->hourly();
 Schedule::command('gamification:reset-periodic-points weekly')->weekly();
 Schedule::command('gamification:reset-periodic-points monthly')->monthly();
 Schedule::command('leaderboard:snapshot-daily')->daily();
+Schedule::command('gamification:reconcile')->daily();
 

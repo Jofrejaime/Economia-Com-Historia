@@ -369,6 +369,8 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textPrimary,
     // @ts-ignore
     outlineWidth: 0,
+    // @ts-ignore
+    outlineStyle: "none" as any,
   },
   filterButton: {
     flexDirection: "row",

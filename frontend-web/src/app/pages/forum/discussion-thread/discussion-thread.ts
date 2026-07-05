@@ -569,6 +569,7 @@ export class DiscussionThreadComponent implements OnInit {
 
   // ===== DENÚNCIAS =====
   openReportDiscussionModal(): void {
+    if (!this.requireLogin()) return;
     this.showReportDiscussionModal = true;
     this.reportDiscussionReason = '';
     this.reportDiscussionDescription = '';
@@ -614,6 +615,7 @@ export class DiscussionThreadComponent implements OnInit {
   }
 
   openReportReplyModal(index: number): void {
+    if (!this.requireLogin()) return;
     this.selectedReplyIndex = index;
     this.selectedReply = this.replies[index];
     this.showReportReplyModal = true;

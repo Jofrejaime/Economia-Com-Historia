@@ -515,6 +515,8 @@ const styles = StyleSheet.create({
     fontFamily: "Source_Sans_3",
     // @ts-ignore — remove focus outline on web/new arch
     outlineWidth: 0,
+    // @ts-ignore
+    outlineStyle: "none" as any,
   },
   section: {
     marginBottom: 24,

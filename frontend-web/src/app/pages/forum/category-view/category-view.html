@@ -79,7 +79,13 @@
             
             <!-- Card Image -->
             <div class="category-view-category-image">
-              <img [src]="category.cover_image_url ?? 'assets/images/document-placeholder.jpg'" alt="">
+              <img *ngIf="category.cover_image_url" [src]="category.cover_image_url" alt="">
+              <div *ngIf="!category.cover_image_url" class="category-view-category-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                  <path d="M6 6h10M6 10h10"/>
+                </svg>
+              </div>
               <div class="category-view-category-image-overlay"></div>
             </div>
             

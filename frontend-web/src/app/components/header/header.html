@@ -1,7 +1,7 @@
 <header class="app-header">
   <div class="app-header-container">
     <div class="app-header-nav">
-      <div class="app-header-logo" routerLink="/goTohome">
+      <div class="app-header-logo" routerLink="/home" style="cursor: pointer;">
         <div class="app-header-logo-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
@@ -20,7 +20,7 @@
       </button>
 
       <nav class="app-header-links" [class.mobile-open]="mobileMenuOpen">
-        <a routerLink="/goTohome" routerLinkActive="active" (click)="closeMobileMenu()">Início</a>
+        <a routerLink="/home" routerLinkActive="active" (click)="closeMobileMenu()">Início</a>
         <a routerLink="/contents" routerLinkActive="active" (click)="closeMobileMenu()">Conteúdos</a>
         <a routerLink="/forum/community" routerLinkActive="active" (click)="closeMobileMenu()">Comunidade</a>
         <a routerLink="/quiz" routerLinkActive="active" (click)="closeMobileMenu()">Quiz</a>

@@ -15,6 +15,7 @@ import { MediaFormatCards } from "../../components/MediaFormatCards";
 import { appTheme } from "../../constants/theme";
 import { documentService } from "../../services/api/documentService";
 import type { Document } from "../../types/api";
+import { CoverImage } from "../../components/CoverImage";
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   article: "Artigo",
@@ -163,15 +164,15 @@ export function HomeScreen() {
                       navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: doc.id });
                     }}
                   >
-                    {doc.cover_image_url ? (
-                      <ImageBackground
-                        source={{ uri: doc.cover_image_url }}
-                        style={styles.cardImage}
-                        imageStyle={{ borderRadius: 10 }}
+                    <View style={{ marginRight: 12 }}>
+                      <CoverImage
+                        uri={doc.cover_image_url}
+                        documentType={doc.document_type}
+                        width={64}
+                        height={64}
+                        borderRadius={10}
                       />
-                    ) : (
-                      <View style={[styles.cardImage, styles.cardImagePlaceholder]} />
-                    )}
+                    </View>
                     <View style={styles.cardBody}>
                       <Text style={styles.cardTag}>
                         {doc.category?.name ?? DOCUMENT_TYPE_LABELS[doc.document_type] ?? doc.document_type}
@@ -369,7 +370,7 @@ const styles = StyleSheet.create({
   },
   featuredOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: appTheme.colors.textMuted,
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
   },
   featuredBody: {
     padding: appTheme.spacing.md,

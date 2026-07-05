@@ -228,7 +228,7 @@ function HeroCard({
         source={image ? { uri: image } : undefined}
         style={[
           styles.heroImage,
-          !image && { backgroundColor: categoryColorBg ?? appTheme.colors.primaryDark },
+          !image && { backgroundColor: appTheme.colors.primary },
         ]}
         imageStyle={{ borderRadius: appTheme.radius.lg }}
         resizeMode="cover"
