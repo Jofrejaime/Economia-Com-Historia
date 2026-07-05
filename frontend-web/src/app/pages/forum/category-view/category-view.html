@@ -22,43 +22,6 @@
         </p>
       </div>
 
-      <!-- Info Cards -->
-      <div class="category-view-info-grid">
-        
-        <!-- Public Card -->
-        <div class="category-view-info-card category-view-info-card-public">
-          <div class="category-view-info-icon category-view-info-icon-public">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003a32" stroke-width="2">
-              <path d="M20 12v8H4v-8M12 2v12m-4-4l4 4 4-4"/>
-            </svg>
-          </div>
-          <h3 class="category-view-info-title category-view-info-title-public">Públicas</h3>
-          <p class="category-view-info-text category-view-info-text-public">Acesso automático ao solicitar. Perfeitas para começar.</p>
-        </div>
-
-        <!-- Jindungo Card -->
-        <div class="category-view-info-card category-view-info-card-jindungo">
-          <div class="category-view-info-icon category-view-info-icon-jindungo">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4a2c00" stroke-width="2">
-              <path d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
-            </svg>
-          </div>
-          <h3 class="category-view-info-title category-view-info-title-jindungo">Jindungo</h3>
-          <p class="category-view-info-text category-view-info-text-jindungo">Conteúdo premium. Requer aprovação manual.</p>
-        </div>
-
-        <!-- Restricted Card -->
-        <div class="category-view-info-card category-view-info-card-restricted">
-          <div class="category-view-info-icon category-view-info-icon-restricted">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5c0011" stroke-width="2">
-              <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-          </div>
-          <h3 class="category-view-info-title category-view-info-title-restricted">Restritas</h3>
-          <p class="category-view-info-text category-view-info-text-restricted">Para investigadores. Validação necessária.</p>
-        </div>
-      </div>
-
       <!-- Loading -->
       <div *ngIf="categories.length === 0 && !error" style="text-align:center;padding:60px">
         A carregar categorias...
