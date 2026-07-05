@@ -13,8 +13,12 @@
 
   <div class="page-header">
     <div>
-      <h1 class="page-title">Categorias de Documentos</h1>
-      <p class="page-subtitle">Gestão das categorias organizacionais dos documentos da plataforma.</p>
+      <h1 class="page-title">{{ isForum ? 'Categorias do Fórum' : 'Categorias de Documentos' }}</h1>
+      <p class="page-subtitle">
+        {{ isForum
+            ? 'Gestão das categorias de discussão da comunidade.'
+            : 'Gestão das categorias organizacionais dos documentos da plataforma.' }}
+      </p>
     </div>
 
     <button class="btn-primary" type="button" (click)="openAddCategoryModal()">
@@ -22,6 +26,16 @@
         <path d="M8 3V13M3 8H13" stroke="white" stroke-width="1.5" stroke-linecap="round" />
       </svg>
       Nova Categoria
+    </button>
+  </div>
+
+  <!-- Alternador entre categorias de documentos e de fórum -->
+  <div class="type-tabs">
+    <button type="button" class="type-tab" [class.active]="!isForum" (click)="switchType('document')">
+      Documentos
+    </button>
+    <button type="button" class="type-tab" [class.active]="isForum" (click)="switchType('forum')">
+      Fórum
     </button>
   </div>
 
@@ -35,6 +49,18 @@
       <div>
         <p class="stat-label">TOTAL DE CATEGORIAS</p>
         <p class="stat-number">{{ getStats().total }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card" *ngIf="isForum">
+      <div class="stat-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"></path>
+        </svg>
+      </div>
+      <div>
+        <p class="stat-label">TÓPICOS NO TOTAL</p>
+        <p class="stat-number">{{ getStats().topics }}</p>
       </div>
     </div>
   </div>
@@ -56,6 +82,8 @@
 
   <div class="categories-grid">
     <div *ngFor="let cat of filteredCategories" class="category-card" [style.borderTopColor]="cat.color_bg || '#acf0e0'">
+      <div class="cat-cover-bg" *ngIf="isForum && cat.cover_image_url"
+           [style.background-image]="'url(' + cat.cover_image_url + ')'"></div>
       <div class="card-header">
         <div class="card-title-section">
           <div class="category-icon" [style.background]="(cat.color_bg || '#acf0e0') + '30'" [style.color]="cat.color_text || '#000000'">
@@ -76,6 +104,14 @@
       <div class="category-stats">
         <div class="stat-item">
           <span>Ordem: {{ cat.sort_order || 0 }}</span>
+        </div>
+        <div class="stat-item" *ngIf="isForum">
+          <span>{{ cat.topics_count || 0 }} tópicos</span>
+        </div>
+        <div class="stat-item" *ngIf="isForum">
+          <span [style.color]="cat.is_active ? '#0F766E' : '#DC2626'">
+            {{ cat.is_active ? 'Ativa' : 'Inativa' }}
+          </span>
         </div>
       </div>
 
@@ -134,10 +170,31 @@
             <input type="number" [(ngModel)]="categoryForm.sort_order" class="form-input" min="0" />
           </div>
 
-          <div class="form-group">
+          <!-- Documentos: ícone (emoji) -->
+          <div class="form-group" *ngIf="!isForum">
             <label>Ícone (Emoji)</label>
             <input type="text" [(ngModel)]="categoryForm.icon" class="form-input" placeholder="Ex: 📈" />
           </div>
+
+          <!-- Fórum: estado ativo -->
+          <div class="form-group" *ngIf="isForum">
+            <label>Estado</label>
+            <select [(ngModel)]="categoryForm.is_active" class="form-input">
+              <option [ngValue]="true">Ativa</option>
+              <option [ngValue]="false">Inativa</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Fórum: imagem de capa (upload via MediaService) -->
+        <div class="form-group" *ngIf="isForum">
+          <app-image-upload
+            label="Imagem de Capa"
+            hint="JPG, PNG, WEBP ou SVG — máx. 4 MB. Sem imagem, é usada a cor de fundo."
+            [autoUpload]="true"
+            [uploadOptions]="{ modelType: 'content', collection: 'cover', directory: 'categories/covers' }"
+            [existingUrl]="categoryForm.cover_image_url"
+            (mediaChange)="onCategoryCoverChange($event)" />
         </div>
 
         <div class="form-row">

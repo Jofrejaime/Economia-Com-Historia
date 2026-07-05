@@ -448,6 +448,7 @@ class QuizAdminController extends Controller
             'title'              => $quiz->title,
             'description'        => $quiz->description,
             'module'             => $quiz->module,
+            'cover_image_url'    => $quiz->cover_image_url,
             'difficulty'         => $quiz->difficulty,
             'status'             => $quiz->status->value ?? $quiz->status,
             'category_id'        => $quiz->category_id,

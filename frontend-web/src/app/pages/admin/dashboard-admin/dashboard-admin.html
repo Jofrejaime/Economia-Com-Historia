@@ -161,6 +161,18 @@
           </div>
         </div>
 
+        <!-- Gamificação -->
+        <div class="nav-item" [class.active]="isActive('/admin/dashboard/gamificacao')" (click)="navigateTo('/admin/dashboard/gamificacao')">
+          <div class="nav-link">
+            <div class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            </div>
+            <span class="nav-text">Gamificação</span>
+          </div>
+        </div>
+
         <!-- Níveis -->
         <div class="nav-item" [class.active]="isActive('/admin/dashboard/niveis')" (click)="navigateTo('/admin/dashboard/niveis')">
           <div class="nav-link">
@@ -264,8 +276,8 @@
             </svg>
           </div>
           <div class="profile-info">
-            <p class="profile-name">Dr. Manuel Costa</p>
-            <p class="profile-role">Curador Chefe</p>
+            <p class="profile-name">{{ adminName }}</p>
+            <p class="profile-role">{{ adminRole }}</p>
           </div>
         </div>
         

@@ -107,6 +107,21 @@
   <!-- Transactions tab -->
   <section *ngIf="activeTab === 'transactions'" class="tab-content">
     <h2 class="section-title">Transações de Pontos</h2>
+
+    <!-- Ajuste manual de pontos (crédito/débito) -->
+    <div class="adjust-points-card">
+      <h3 class="adjust-points-title">Ajuste manual de pontos</h3>
+      <p class="adjust-points-hint">Valor positivo credita, negativo debita. Fica registado como transação <strong>admin_adjustment</strong>.</p>
+      <div class="adjust-points-form">
+        <input [(ngModel)]="adjustUserId" placeholder="ID do utilizador (UUID)" />
+        <input type="number" [(ngModel)]="adjustPoints" placeholder="Pontos (ex: 50 ou -20)" />
+        <input [(ngModel)]="adjustDescription" placeholder="Motivo (opcional)" />
+        <button class="primary" [disabled]="adjusting" (click)="submitAdjustPoints()">
+          {{ adjusting ? 'A aplicar...' : 'Aplicar ajuste' }}
+        </button>
+      </div>
+    </div>
+
     <div class="filters">
       <input [(ngModel)]="txSearch" placeholder="Pesquisa" />
       <input [(ngModel)]="txReason" placeholder="Motivo" />

@@ -22,6 +22,10 @@ class TopicReply extends Model
         'content',
         'is_accepted',
         'is_flagged',
+        'hidden',
+        'best_answer',
+        'edited_at',
+        'edited_by',
         'likes_count',
     ];
 
@@ -30,6 +34,9 @@ class TopicReply extends Model
         return [
             'is_accepted' => 'boolean',
             'is_flagged' => 'boolean',
+            'hidden' => 'boolean',
+            'best_answer' => 'boolean',
+            'edited_at' => 'datetime',
             'likes_count' => 'integer',
         ];
     }

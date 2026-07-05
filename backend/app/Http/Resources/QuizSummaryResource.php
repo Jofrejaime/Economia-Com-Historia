@@ -18,6 +18,7 @@ class QuizSummaryResource extends JsonResource
             'title'             => $this->title,
             'module'            => $this->module,
             'description'       => $this->description,
+            'cover_image_url'   => $this->cover_image_url,
             'difficulty'        => $this->difficulty,
             'base_points'       => (int) ($this->base_points ?? 0),
             'time_limit_secs'   => $this->time_limit_secs,

@@ -36,7 +36,6 @@ class CommunitySeeder extends Seeder
                 'sort_order'      => 1,
                 'is_active'       => true,
                 'created_at'      => now(),
-                'members_count'   => 5,
                 'topics_count'    => 3,
             ],
             [
@@ -50,7 +49,6 @@ class CommunitySeeder extends Seeder
                 'sort_order'      => 2,
                 'is_active'       => true,
                 'created_at'      => now(),
-                'members_count'   => 3,
                 'topics_count'    => 2,
             ],
             [
@@ -64,7 +62,6 @@ class CommunitySeeder extends Seeder
                 'sort_order'      => 3,
                 'is_active'       => true,
                 'created_at'      => now(),
-                'members_count'   => 2,
                 'topics_count'    => 2,
             ],
             [
@@ -78,26 +75,12 @@ class CommunitySeeder extends Seeder
                 'sort_order'      => 4,
                 'is_active'       => true,
                 'created_at'      => now(),
-                'members_count'   => 4,
                 'topics_count'    => 1,
             ],
         ];
 
         foreach ($categories as $cat) {
             DB::table('community_categories')->insert($cat);
-        }
-
-        // Add members to categories
-        $allUsers = [$admin, $professor, $researcher, $student1, $student2];
-        foreach ($categories as $cat) {
-            foreach ($allUsers as $user) {
-                DB::table('category_members')->insert([
-                    'id' => (string) Str::uuid(),
-                    'category_id' => $cat['id'],
-                    'user_id' => $user->id,
-                    'joined_at' => now(),
-                ]);
-            }
         }
 
         // ──────────────────────────────────────────────────────────────

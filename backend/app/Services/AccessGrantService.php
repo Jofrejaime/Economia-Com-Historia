@@ -75,7 +75,7 @@ class AccessGrantService
         $requestId = $data['request_id'] ?? null;
         $expiresAt = $data['expires_at'] ?? null;
 
-        return DB::transaction(function () use ($userId, $accessLevelId, $grantedBy, $requestId, $expiresAt) {
+        $grant = DB::transaction(function () use ($userId, $accessLevelId, $grantedBy, $requestId, $expiresAt) {
             $existing = AccessGrant::where('user_id', $userId)
                 ->where('access_level_id', $accessLevelId)
                 ->first();
@@ -122,6 +122,22 @@ class AccessGrantService
 
             return $grant;
         });
+
+        // Notificar o utilizador da concessão (antes só a revogação avisava).
+        $user = User::find($userId);
+        if ($user !== null) {
+            $accessLevelName = DB::table('access_levels')->where('id', $accessLevelId)->value('name') ?? $accessLevelId;
+            $this->notificationService->send(
+                $user,
+                'access_granted',
+                'Acesso concedido',
+                "Foi-lhe concedido o acesso: {$accessLevelName}.",
+                $grant->id,
+                'access_grant'
+            );
+        }
+
+        return $grant;
     }
 
     public function revoke(string $id, ?User $revokedBy, ?string $reason = null): AccessGrant

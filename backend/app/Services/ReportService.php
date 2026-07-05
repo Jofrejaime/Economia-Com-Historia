@@ -102,6 +102,8 @@ class ReportService
             'action_taken' => $data['action_taken'] ?? null,
         ]);
 
+        $this->notifyReporter($report, ($data['status'] ?? '') !== 'dismissed', $moderator);
+
         Log::info('Revisão de denúncia', [
             'admin_id'    => $moderator->id,
             'report_id'   => $report->id,
@@ -109,6 +111,42 @@ class ReportService
         ]);
 
         return $report;
+    }
+
+    /**
+     * Notifica o autor da denúncia sobre o desfecho — antes só o dono do
+     * conteúdo era avisado das sanções; quem denunciou ficava sem retorno.
+     */
+    private function notifyReporter(Report $report, bool $actionTaken, User $moderator): void
+    {
+        if ($report->reporter_id === null || $report->reporter_id === $moderator->id) {
+            return;
+        }
+
+        $reporter = User::find($report->reporter_id);
+        if ($reporter === null) {
+            return;
+        }
+
+        if ($actionTaken) {
+            $this->notificationService->send(
+                $reporter,
+                'report_reviewed',
+                'Denúncia analisada',
+                'A sua denúncia foi analisada e foi tomada uma ação sobre o conteúdo.',
+                $report->id,
+                'report'
+            );
+        } else {
+            $this->notificationService->send(
+                $reporter,
+                'report_dismissed',
+                'Denúncia analisada',
+                'A sua denúncia foi analisada. Não foi necessária qualquer ação.',
+                $report->id,
+                'report'
+            );
+        }
     }
 
     public function dismiss(string $id, ?string $reason, User $moderator): Report
@@ -125,6 +163,8 @@ class ReportService
                 'reviewed_at'  => now(),
                 'action_taken' => 'Dismissed: ' . ($reason ?? 'No action taken.'),
             ]);
+
+            $this->notifyReporter($report, false, $moderator);
 
             Log::info('Denúncia arquivada (dismiss)', [
                 'admin_id'  => $moderator->id,
@@ -165,6 +205,8 @@ class ReportService
                     );
                 }
             }
+
+            $this->notifyReporter($report, true, $moderator);
 
             Log::info('Aviso de utilizador registado', [
                 'admin_id'    => $moderator->id,
@@ -212,6 +254,8 @@ class ReportService
                 'action_taken' => 'Content deleted: ' . ($reason ?? 'Deleted by admin.'),
             ]);
 
+            $this->notifyReporter($report, true, $moderator);
+
             Log::info('Remoção de conteúdo denunciado', [
                 'admin_id'    => $moderator->id,
                 'target_user' => $ownerId,
@@ -257,6 +301,8 @@ class ReportService
                     );
                 }
             }
+
+            $this->notifyReporter($report, true, $moderator);
 
             Log::info('Ocultação de conteúdo denunciado', [
                 'admin_id'    => $moderator->id,

@@ -34,6 +34,7 @@ import { ReportsPageComponent } from './pages/admin/dashboard-admin/pages/report
 import { QuizzesManagerPageComponent } from './pages/admin/dashboard-admin/pages/quizzes-manager-page/quizzes-manager-page';
 import { LevelsPageComponent } from './pages/admin/dashboard-admin/pages/levels-page/levels-page';
 import { BadgesPageComponent } from './pages/admin/dashboard-admin/pages/badges-page/badges-page';
+import { GamificationPageComponent } from './pages/admin/dashboard-admin/pages/gamification-page/gamification-page';
 import { NotificationsPageComponent } from './pages/admin/dashboard-admin/pages/notifications-page/notifications-page';
 import { UserNotificationsComponent } from './pages/user-notifications/user-notifications';
 import { RankingComponent } from './pages/quizzes/quiz-ranking/quiz-ranking';
@@ -81,6 +82,7 @@ export const routes: Routes = [
       { path: 'denuncias', component: ReportsPageComponent },
       { path: 'quizzes', component: QuizzesManagerPageComponent },
       // ===== NOVAS ROTAS =====
+      { path: 'gamificacao', component: GamificationPageComponent },
       { path: 'niveis', component: LevelsPageComponent },
       { path: 'badges', component: BadgesPageComponent },
       { path: 'notificacoes', component: NotificationsPageComponent },

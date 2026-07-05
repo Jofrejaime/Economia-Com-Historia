@@ -12,25 +12,23 @@ class TagService
 {
     public function list(array $params = [])
     {
-        $cacheKey = 'tags-list:' . md5(serialize($params));
+        // Nunca cachear o LengthAwarePaginator: serializá-lo na tabela cache
+        // (driver database) rebenta ao desserializar (__PHP_Incomplete_Class).
+        $query = Tag::query();
 
-        return Cache::remember($cacheKey, 30, function () use ($params) {
-            $query = Tag::query();
+        if (!empty($params['q'])) {
+            $query->where('name', 'like', "%{$params['q']}%");
+        }
 
-            if (!empty($params['q'])) {
-                $query->where('name', 'like', "%{$params['q']}%");
-            }
+        if (!empty($params['sort_by'])) {
+            $direction = $params['sort_direction'] ?? 'asc';
+            $query->orderBy($params['sort_by'], $direction);
+        } else {
+            $query->orderBy('name');
+        }
 
-            if (!empty($params['sort_by'])) {
-                $direction = $params['sort_direction'] ?? 'asc';
-                $query->orderBy($params['sort_by'], $direction);
-            } else {
-                $query->orderBy('name');
-            }
-
-            $perPage = min((int) ($params['per_page'] ?? 15), 100);
-            return $query->paginate($perPage);
-        });
+        $perPage = min((int) ($params['per_page'] ?? 15), 100);
+        return $query->paginate($perPage);
     }
 
     public function find(string $id): Tag

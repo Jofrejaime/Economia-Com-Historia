@@ -170,15 +170,6 @@
                         <span class="create-topic-participant-name">{{ member.user.display_name || member.user.full_name || 'Utilizador' }}</span>
                         <span class="create-topic-participant-email">{{ member.user.institution || 'Sem instituição indicada' }}</span>
                       </div>
-                      <select
-                        class="create-topic-input"
-                        style="max-width: 150px; padding: 8px 12px; font-size: 13px;"
-                        [(ngModel)]="member.role"
-                        [name]="'member-role-' + member.user.id"
-                      >
-                        <option value="member">Membro</option>
-                        <option value="moderator">Moderador</option>
-                      </select>
                       <button type="button" class="btn-ghost" (click)="removeMember(member.user.id)">Remover</button>
                     </div>
                   </div>

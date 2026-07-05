@@ -12,11 +12,12 @@ class CommunityCategoryService
 {
     public function list()
     {
-        return Cache::remember('community-categories', 30, function () {
-            return CommunityCategory::orderBy('sort_order')
-                ->orderBy('name')
-                ->get();
-        });
+        // Não cachear a Collection Eloquent: serializá-la na tabela cache
+        // (driver database) rebenta ao desserializar (__PHP_Incomplete_Class)
+        // após refactors de classes.
+        return CommunityCategory::orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
     }
 
     public function find(string $id): CommunityCategory
@@ -34,7 +35,6 @@ class CommunityCategoryService
         }
         $data['is_active'] = $data['is_active'] ?? true;
         $data['sort_order'] = $data['sort_order'] ?? 0;
-        $data['members_count'] = $data['members_count'] ?? 0;
         $data['topics_count'] = $data['topics_count'] ?? 0;
 
         $category = CommunityCategory::create($data);

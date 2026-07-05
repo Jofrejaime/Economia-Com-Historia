@@ -74,9 +74,8 @@
         <div *ngFor="let category of categories" class="category-view-category-card">
           
           <!-- Category Card -->
-          <div (click)="navigateTo('/forum/categoria/' + category.id)" 
-               class="category-view-category-item"
-               [class.category-view-category-item-disabled]="!canNavigate(category)">
+          <div (click)="navigateTo('/forum/categoria/' + category.id)"
+               class="category-view-category-item">
             
             <!-- Card Image -->
             <div class="category-view-category-image">
@@ -91,9 +90,6 @@
                 <div class="category-view-category-type" [style.backgroundColor]="getCategoryColor(category).bg">
                   <span [style.color]="getCategoryColor(category).text">{{ category.name }}</span>
                 </div>
-                <div class="category-view-category-access" [style.backgroundColor]="getAccessBadge(category.access_level_id).bg">
-                  <span [style.color]="getAccessBadge(category.access_level_id).text">{{ getAccessBadge(category.access_level_id).label }}</span>
-                </div>
               </div>
               
               <!-- Title -->
@@ -106,35 +102,12 @@
               <div class="category-view-category-stats">
   <span style="display:flex;align-items:center;gap:4px">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-    {{ category.members_count }} membros
-  </span>
-  <span style="display:flex;align-items:center;gap:4px">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
     {{ category.topics_count }} tópicos
   </span>
 </div>
             </div>
-          </div>
-
-          <!-- Pending Status -->
-          <div *ngIf="category.requestStatus === 'pending'" class="category-view-status-pending">
-            <div class="category-view-status-pending-dot"></div>
-            <span class="category-view-status-pending-text">Aguardando Aprovação</span>
-          </div>
-
-          <!-- Approved Status -->
-          <div *ngIf="category.requestStatus === 'approved'" class="category-view-status-approved">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            <span class="category-view-status-approved-text">Acesso Concedido</span>
           </div>
         </div>
       </div>

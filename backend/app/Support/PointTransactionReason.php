@@ -12,6 +12,8 @@ final class PointTransactionReason
 
     public const DOCUMENT_UPLOAD = 'document_upload';
 
+    public const DOCUMENT_READ = 'document_read';
+
     public const TOPIC_CREATED = 'topic_created';
 
     public const REPLY_POSTED = 'reply_posted';
@@ -32,6 +34,7 @@ final class PointTransactionReason
             self::QUIZ_BONUS_ACCURACY,
             self::QUIZ_BONUS_SPEED,
             self::DOCUMENT_UPLOAD,
+            self::DOCUMENT_READ,
             self::TOPIC_CREATED,
             self::REPLY_POSTED,
             self::REPLY_ACCEPTED,

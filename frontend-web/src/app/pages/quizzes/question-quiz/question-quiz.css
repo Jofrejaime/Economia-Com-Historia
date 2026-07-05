@@ -770,3 +770,35 @@ p, span, div, button {
 .quiz-timer svg {
   flex-shrink: 0;
 }
+/* ============================================
+   COVER DO QUIZ EM BACKDROP (subtil)
+   ============================================ */
+
+.quiz-main {
+  position: relative;
+  overflow: hidden;
+}
+
+.quiz-page-cover {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  filter: blur(10px) saturate(1.05);
+  transform: scale(1.08);
+  opacity: 0.09;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.quiz-page-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(245, 245, 245, 0.3) 0%, rgba(245, 245, 245, 0.95) 70%);
+}
+
+.quiz-main > *:not(.quiz-page-cover) {
+  position: relative;
+  z-index: 1;
+}

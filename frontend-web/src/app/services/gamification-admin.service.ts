@@ -48,6 +48,23 @@ export class GamificationAdminService {
     );
   }
 
+  adjustPoints(userId: string, points: number, description?: string): Observable<ApiResult<any>> {
+    return this.http.post<ApiEnvelope<any>>(
+      `${environment.apiBaseUrl}/api/admin/gamification/adjust-points`,
+      { user_id: userId, points, description: description || null },
+      { observe: 'response' }
+    ).pipe(
+      timeout({ first: 15000 }),
+      map((response) => ({
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        message: response.body?.message,
+        data: response.body?.data,
+      })),
+      catchError((error: unknown) => of(this.toFailureResult<any>(error, 'Erro ao ajustar pontos')))
+    );
+  }
+
   refreshLeaderboard(): Observable<ApiResult<null>> {
     return this.http.post<ApiEnvelope<null>>(`${environment.apiBaseUrl}/api/admin/leaderboard/refresh`, {}, { observe: 'response' }).pipe(
       timeout({ first: 15000 }),

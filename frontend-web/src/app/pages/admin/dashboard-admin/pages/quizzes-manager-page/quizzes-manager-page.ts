@@ -2,7 +2,9 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuizService, Quiz, QuizPayload, QuizQuestionInput, QuizOptionInput } from '../../../../../services/quiz.service';
-import { DocumentService, DocumentCategory } from '../../../../../services/document.service';
+import { DocumentService, DocumentCategory, Document } from '../../../../../services/document.service';
+import { ImageUploadComponent } from '../../../../../components/uploads/image-upload.component';
+import { MediaObject } from '../../../../../models/media.models';
 
 interface BatchQuestion {
   title: string;
@@ -15,7 +17,7 @@ interface BatchQuestion {
 @Component({
   selector: 'app-quizzes-manager-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImageUploadComponent],
   templateUrl: './quizzes-manager-page.html',
   styleUrls: ['./quizzes-manager-page.css']
 })
@@ -40,6 +42,7 @@ export class QuizzesManagerPageComponent implements OnInit {
   questionEditForm: BatchQuestion | null = null;
 
   categoriesList: DocumentCategory[] = [];
+  documentsList: Document[] = [];
   quizzes: Quiz[] = [];
 
   newQuiz: QuizPayload = this.emptyQuiz();
@@ -53,6 +56,7 @@ export class QuizzesManagerPageComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.loadQuizzes();
     this.loadCategories();
+    this.loadDocuments();
   }
 
   private emptyQuiz(): QuizPayload {
@@ -69,6 +73,7 @@ export class QuizzesManagerPageComponent implements OnInit {
       status: 'draft',
       category_id: null,
       questions: [],
+      documents: [],
     };
   }
 
@@ -87,6 +92,31 @@ export class QuizzesManagerPageComponent implements OnInit {
       this.categoriesList = await this.documentService.getCategories();
     } catch {
       this.categoriesList = [];
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  onQuizCoverChange(media: MediaObject | null): void {
+    this.newQuiz.cover_image_url = media?.url ?? null;
+  }
+
+  isQuizDocumentSelected(docId: string): boolean {
+    return (this.newQuiz.documents ?? []).includes(docId);
+  }
+
+  toggleQuizDocument(docId: string): void {
+    const docs = this.newQuiz.documents ?? [];
+    this.newQuiz.documents = docs.includes(docId)
+      ? docs.filter(id => id !== docId)
+      : [...docs, docId];
+  }
+
+  private async loadDocuments(): Promise<void> {
+    try {
+      this.documentsList = await this.documentService.getDocuments({ per_page: 50 });
+    } catch {
+      this.documentsList = [];
     } finally {
       this.cdr.detectChanges();
     }
@@ -287,6 +317,7 @@ export class QuizzesManagerPageComponent implements OnInit {
       status: quiz.status,
       category_id: quiz.category_id,
       questions: [],
+      documents: [],
     };
     this.pendingQuestions = [];
     this.cancelEditQuestion();
@@ -295,6 +326,9 @@ export class QuizzesManagerPageComponent implements OnInit {
     this.cdr.detectChanges();
 
     try {
+      const relatedDocs = await this.quizService.getRelatedDocuments(quiz.id);
+      this.newQuiz.documents = relatedDocs.map(d => d.id);
+
       const questions = await this.quizService.getQuestions(quiz.id);
       this.pendingQuestions = questions.map((q, index) => ({
         question_order: q.question_order ?? index + 1,

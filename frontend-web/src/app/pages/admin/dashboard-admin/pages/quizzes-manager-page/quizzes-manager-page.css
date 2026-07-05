@@ -1153,3 +1153,75 @@ textarea.form-input {
     font-size: 13px;
   }
 }
+/* Seletor de conteúdos relacionados (quiz_documents) */
+.doc-picker {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #f8fafc;
+}
+
+.doc-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #334155;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.doc-picker-item:hover {
+  background: #eff6ff;
+}
+
+.doc-picker-item input {
+  cursor: pointer;
+}
+
+/* Cover do quiz em background dos cards e da modal (subtil) */
+.quiz-card,
+.modal-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.quiz-cover-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(5px) saturate(1.05);
+  transform: scale(1.08);
+  opacity: 0.13;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.quiz-cover-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.9) 100%);
+}
+
+.quiz-cover-bg--modal {
+  filter: blur(8px) saturate(1.05);
+  opacity: 0.18;
+}
+
+.quiz-cover-bg--modal::after {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.9) 100%);
+}
+
+.quiz-card > *:not(.quiz-cover-bg),
+.modal-header > *:not(.quiz-cover-bg) {
+  position: relative;
+  z-index: 1;
+}

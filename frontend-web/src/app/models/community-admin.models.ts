@@ -10,20 +10,18 @@ export interface ApiEnvelope<T> {
   message?: string;
 }
 
-export type TopicVisibility = 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY';
+export type TopicVisibility = 'PUBLIC' | 'INVITE_ONLY';
 
 export interface Category {
   id: string;
   slug: string;
   name: string;
   description: string | null;
-  access_level_id: 'public' | 'jindungo' | 'restricted' | string;
   color_bg: string | null;
   color_text: string | null;
   cover_image_url: string | null;
   sort_order: number;
   is_active: boolean;
-  members_count?: number;
   topics_count?: number;
   created_at?: string;
 }
@@ -32,7 +30,6 @@ export interface CategoryCreatePayload {
   slug: string;
   name: string;
   description?: string | null;
-  access_level_id?: string;
   color_bg?: string | null;
   color_text?: string | null;
   cover_image_url?: string | null;

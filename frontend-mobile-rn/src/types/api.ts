@@ -273,28 +273,23 @@ export interface CommunityCategory {
   slug: string;
   name: string;
   description: string | null;
-  access_level_id: string;
   color_bg: string | null;
   color_text: string | null;
   cover_image_url: string | null;
   is_active: boolean;
   created_at: string;
-  members_count: number;
   topics_count: number;
 }
 
-// discussion_topic_members table
+// discussion_topic_members table (Sprint 18.5.1 — sem roles nem convites pendentes)
 export interface DiscussionTopicMember {
   id: string;
   topic_id: string;
   user_id: string;
-  role: 'owner' | 'moderator' | 'member';
-  invited_by: string | null;
-  accepted_at: string | null;
+  joined_at: string | null;
   created_at: string;
   updated_at: string;
   user?: UserProfile;
-  inviter?: UserProfile;
 }
 
 // Result from GET /users/search
@@ -313,7 +308,7 @@ export interface DiscussionTopic {
   author_id: string;
   title: string;
   content: string;
-  visibility: 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY';
+  visibility: 'PUBLIC' | 'INVITE_ONLY';
   status: 'open' | 'closed';
   is_pinned: boolean;
   is_featured: boolean;

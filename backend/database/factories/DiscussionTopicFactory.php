@@ -18,7 +18,7 @@ class DiscussionTopicFactory extends Factory
             'author_id' => User::factory(),
             'title' => $this->faker->sentence(),
             'content' => $this->faker->paragraphs(3, true),
-            'visibility' => 'CATEGORY',
+            'visibility' => 'PUBLIC',
             'status' => 'published',
             'is_pinned' => false,
             'is_featured' => false,

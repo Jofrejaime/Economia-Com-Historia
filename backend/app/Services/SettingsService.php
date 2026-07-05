@@ -14,16 +14,18 @@ class SettingsService
 
     public function getAll(): Collection
     {
-        return Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
-            return Setting::orderBy('key')->get();
+        // Cachear apenas arrays simples (nunca objetos Eloquent) e re-hidratar,
+        // para o driver database não rebentar ao desserializar após refactors.
+        $rows = Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
+            return Setting::orderBy('key')->get()->toArray();
         });
+
+        return Setting::hydrate($rows);
     }
 
     public function getByKey(string $key): Setting
     {
-        return Cache::remember(self::CACHE_KEY_PREFIX . $key, now()->addDay(), function () use ($key) {
-            return Setting::where('key', $key)->firstOrFail();
-        });
+        return Setting::where('key', $key)->firstOrFail();
     }
 
     public function update(string $key, $value, ?string $adminId = null): Setting

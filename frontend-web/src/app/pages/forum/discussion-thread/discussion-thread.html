@@ -109,7 +109,6 @@
                   <label class="edit-label">Visibilidade</label>
                   <div class="edit-visibility-row">
                     <button type="button" class="edit-visibility-btn" [class.selected]="editVisibility === 'PUBLIC'" (click)="setEditVisibility('PUBLIC')">Público</button>
-                    <button type="button" class="edit-visibility-btn" [class.selected]="editVisibility === 'CATEGORY'" (click)="setEditVisibility('CATEGORY')">Por Categoria</button>
                     <button type="button" class="edit-visibility-btn" [class.selected]="editVisibility === 'INVITE_ONLY'" (click)="setEditVisibility('INVITE_ONLY')">Por Convite</button>
                   </div>
                 </div>
@@ -133,10 +132,6 @@
                   <div class="edit-members-list">
                     <div *ngFor="let member of topicMembers" class="edit-member-chip">
                       <span>{{ member.display_name }}</span>
-                      <select [(ngModel)]="member.role" class="edit-member-role">
-                        <option value="member">Membro</option>
-                        <option value="moderator">Moderador</option>
-                      </select>
                       <button type="button" class="edit-member-remove" (click)="removeTopicMember(member.user_id)">Remover</button>
                     </div>
                     <p *ngIf="topicMembers.length === 0" class="edit-members-empty">Nenhum membro adicionado.</p>
@@ -163,7 +158,7 @@
                   <span class="discussion-action-text" [style.color]="discussionIsLiked ? '#8B1E2D' : '#9CA3AF'">{{ discussionLikes }}</span>
                 </button>
                 
-                <button (click)="showReplyForm = !showReplyForm" class="discussion-action-btn">
+                <button (click)="openReplyForm()" class="discussion-action-btn">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                   </svg>

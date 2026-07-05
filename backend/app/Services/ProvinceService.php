@@ -36,16 +36,18 @@ class ProvinceService
             return $query->paginate($perPage);
         }
 
-        return Cache::remember(self::CACHE_KEY_LIST, now()->addHour(), function () use ($query) {
-            return $query->get();
+        // Cachear apenas arrays simples (nunca objetos Eloquent) e re-hidratar,
+        // para o driver database não rebentar ao desserializar após refactors.
+        $rows = Cache::remember(self::CACHE_KEY_LIST, now()->addHour(), function () use ($query) {
+            return $query->get()->toArray();
         });
+
+        return Province::hydrate($rows);
     }
 
     public function find(string $id): Province
     {
-        return Cache::remember(self::CACHE_KEY_PREFIX . $id, now()->addHour(), function () use ($id) {
-            return Province::findOrFail($id);
-        });
+        return Province::findOrFail($id);
     }
 
     public function create(array $data): Province

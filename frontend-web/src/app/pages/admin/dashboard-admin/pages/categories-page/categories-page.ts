@@ -4,11 +4,29 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { DocumentCategory } from '../../../../../models/document-admin.models';
 import { DocumentAdminService } from '../../../../../services/document-admin.service';
+import { CommunityAdminService } from '../../../../../services/community-admin.service';
+import { Category as ForumCategory } from '../../../../../models/community-admin.models';
+import { ImageUploadComponent } from '../../../../../components/uploads/image-upload.component';
+import { MediaObject } from '../../../../../models/media.models';
+
+type CategoryType = 'document' | 'forum';
+
+interface CategoryFormState {
+  slug: string;
+  name: string;
+  description: string;
+  color_bg: string | null;
+  color_text: string | null;
+  icon: string | null;
+  cover_image_url: string | null;
+  is_active: boolean;
+  sort_order: number;
+}
 
 @Component({
   selector: 'app-categories-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImageUploadComponent],
   templateUrl: './categories-page.html',
   styleUrls: ['./categories-page.css']
 })
@@ -19,20 +37,16 @@ export class CategoriesPageComponent implements OnInit {
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
-  showCategoryModal = false;
-  editingCategory: DocumentCategory | null = null;
+  // Tipo de categoria em gestão: documentos ou fórum (comunidade)
+  categoryType: CategoryType = 'document';
 
-  categoryForm: {
-    slug: string;
-    name: string;
-    description: string;
-    color_bg: string | null;
-    color_text: string | null;
-    icon: string | null;
-    sort_order: number;
-  } = this.createEmptyForm();
+  showCategoryModal = false;
+  editingCategory: any | null = null;
+
+  categoryForm: CategoryFormState = this.createEmptyForm();
 
   categories: DocumentCategory[] = [];
+  forumCategories: ForumCategory[] = [];
 
   colorOptions = [
     { value: '#acf0e0', name: 'Verde água' },
@@ -44,25 +58,52 @@ export class CategoriesPageComponent implements OnInit {
     { value: '#d1fae5', name: 'Verde menta' },
   ];
 
-  constructor(private documentAdmin: DocumentAdminService) {}
+  constructor(
+    private documentAdmin: DocumentAdminService,
+    private community: CommunityAdminService
+  ) {}
 
   ngOnInit(): void {
-    void this.loadCategories();
+    void this.loadCurrentType();
   }
 
-  get filteredCategories(): DocumentCategory[] {
-    return this.categories.filter((cat) => {
-      const search = this.searchQuery.trim().toLowerCase();
-      return search === '' ||
-        cat.name.toLowerCase().includes(search) ||
-        (cat.description || '').toLowerCase().includes(search) ||
-        cat.slug.toLowerCase().includes(search);
-    });
+  get isForum(): boolean {
+    return this.categoryType === 'forum';
+  }
+
+  switchType(type: CategoryType): void {
+    if (this.categoryType === type) {
+      return;
+    }
+    this.categoryType = type;
+    this.searchQuery = '';
+    this.errorMessage = null;
+    this.successMessage = null;
+    void this.loadCurrentType();
+  }
+
+  private loadCurrentType(): Promise<void> {
+    return this.isForum ? this.loadForumCategories() : this.loadCategories();
+  }
+
+  get filteredCategories(): any[] {
+    const source: any[] = this.isForum ? this.forumCategories : this.categories;
+    const search = this.searchQuery.trim().toLowerCase();
+    return source.filter((cat) =>
+      search === '' ||
+      cat.name.toLowerCase().includes(search) ||
+      (cat.description || '').toLowerCase().includes(search) ||
+      cat.slug.toLowerCase().includes(search)
+    );
   }
 
   getStats() {
+    const list: any[] = this.isForum ? this.forumCategories : this.categories;
     return {
-      total: this.categories.length,
+      total: list.length,
+      topics: this.isForum
+        ? this.forumCategories.reduce((sum, c) => sum + (c.topics_count ?? 0), 0)
+        : null,
     };
   }
 
@@ -83,6 +124,23 @@ export class CategoriesPageComponent implements OnInit {
     this.loading = false;
   }
 
+  async loadForumCategories(): Promise<void> {
+    this.loading = true;
+    this.errorMessage = null;
+
+    const result = await firstValueFrom(this.community.getAdminCategories());
+
+    if (!result.ok || !result.data) {
+      this.forumCategories = [];
+      this.errorMessage = result.message || 'Não foi possível carregar as categorias do fórum.';
+      this.loading = false;
+      return;
+    }
+
+    this.forumCategories = result.data;
+    this.loading = false;
+  }
+
   openAddCategoryModal(): void {
     this.editingCategory = null;
     this.categoryForm = this.createEmptyForm();
@@ -91,7 +149,7 @@ export class CategoriesPageComponent implements OnInit {
     this.successMessage = null;
   }
 
-  openEditCategoryModal(category: DocumentCategory): void {
+  openEditCategoryModal(category: any): void {
     this.editingCategory = category;
     this.categoryForm = {
       slug: category.slug,
@@ -100,11 +158,17 @@ export class CategoriesPageComponent implements OnInit {
       color_bg: category.color_bg || '#acf0e0',
       color_text: category.color_text || '#000000',
       icon: category.icon || null,
+      cover_image_url: category.cover_image_url || null,
+      is_active: category.is_active ?? true,
       sort_order: category.sort_order || 0,
     };
     this.showCategoryModal = true;
     this.errorMessage = null;
     this.successMessage = null;
+  }
+
+  onCategoryCoverChange(media: MediaObject | null): void {
+    this.categoryForm.cover_image_url = media?.url ?? null;
   }
 
   closeCategoryModal(): void {
@@ -126,22 +190,9 @@ export class CategoriesPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const payload: Partial<DocumentCategory> = {
-      slug: this.categoryForm.slug.trim() || this.generateSlug(this.categoryForm.name),
-      name: this.categoryForm.name.trim(),
-      description: this.categoryForm.description.trim() || null,
-      color_bg: this.categoryForm.color_bg,
-      color_text: this.categoryForm.color_text,
-      icon: this.categoryForm.icon,
-      sort_order: this.categoryForm.sort_order,
-    };
-
-    let result;
-    if (this.editingCategory) {
-      result = await firstValueFrom(this.documentAdmin.updateCategory(this.editingCategory.id, payload));
-    } else {
-      result = await firstValueFrom(this.documentAdmin.createCategory(payload));
-    }
+    const result = this.isForum
+      ? await this.saveForumCategory()
+      : await this.saveDocumentCategory();
 
     if (!result.ok || !result.data) {
       this.errorMessage = result.message || 'Não foi possível salvar a categoria.';
@@ -152,11 +203,48 @@ export class CategoriesPageComponent implements OnInit {
     this.successMessage = this.editingCategory ? 'Categoria actualizada com sucesso.' : 'Categoria criada com sucesso.';
     this.showCategoryModal = false;
     this.editingCategory = null;
-    await this.loadCategories();
+    await this.loadCurrentType();
     this.saving = false;
   }
 
-  async deleteCategory(category: DocumentCategory): Promise<void> {
+  private saveDocumentCategory() {
+    const payload: Partial<DocumentCategory> = {
+      slug: this.categoryForm.slug.trim() || this.generateSlug(this.categoryForm.name),
+      name: this.categoryForm.name.trim(),
+      description: this.categoryForm.description.trim() || null,
+      color_bg: this.categoryForm.color_bg,
+      color_text: this.categoryForm.color_text,
+      icon: this.categoryForm.icon,
+      sort_order: this.categoryForm.sort_order,
+    };
+
+    return firstValueFrom(
+      this.editingCategory
+        ? this.documentAdmin.updateCategory(this.editingCategory.id, payload)
+        : this.documentAdmin.createCategory(payload)
+    );
+  }
+
+  private saveForumCategory() {
+    const payload: any = {
+      slug: this.categoryForm.slug.trim() || this.generateSlug(this.categoryForm.name),
+      name: this.categoryForm.name.trim(),
+      description: this.categoryForm.description.trim() || null,
+      color_bg: this.categoryForm.color_bg,
+      color_text: this.categoryForm.color_text,
+      cover_image_url: this.categoryForm.cover_image_url || null,
+      sort_order: this.categoryForm.sort_order,
+      is_active: this.categoryForm.is_active,
+    };
+
+    return firstValueFrom(
+      this.editingCategory
+        ? this.community.updateAdminCategory(this.editingCategory.id, payload)
+        : this.community.createAdminCategory(payload)
+    );
+  }
+
+  async deleteCategory(category: any): Promise<void> {
     if (!confirm(`Tem a certeza que deseja eliminar a categoria "${category.name}"?`)) {
       return;
     }
@@ -165,7 +253,11 @@ export class CategoriesPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const result = await firstValueFrom(this.documentAdmin.deleteCategory(category.id));
+    const result = await firstValueFrom(
+      this.isForum
+        ? this.community.deleteAdminCategory(category.id)
+        : this.documentAdmin.deleteCategory(category.id)
+    );
 
     if (!result.ok) {
       this.errorMessage = result.message || 'Não foi possível eliminar a categoria.';
@@ -174,18 +266,20 @@ export class CategoriesPageComponent implements OnInit {
     }
 
     this.successMessage = 'Categoria eliminada com sucesso.';
-    await this.loadCategories();
+    await this.loadCurrentType();
     this.loading = false;
   }
 
-  private createEmptyForm() {
+  private createEmptyForm(): CategoryFormState {
     return {
       slug: '',
       name: '',
       description: '',
       color_bg: '#acf0e0',
       color_text: '#000000',
-      icon: null as string | null,
+      icon: null,
+      cover_image_url: null,
+      is_active: true,
       sort_order: 0,
     };
   }
@@ -194,7 +288,7 @@ export class CategoriesPageComponent implements OnInit {
     return name
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[̀-ͯ]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
   }

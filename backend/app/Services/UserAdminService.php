@@ -75,8 +75,8 @@ class UserAdminService
                 'email' => $data['email'],
                 'password_hash' => Hash::make($data['password']),
                 'role' => $data['role'],
-                'is_active' => true,
-                'email_verified' => true,
+                'is_active' => $data['is_active'] ?? true,
+                'email_verified' => $data['email_verified'] ?? true,
             ]);
 
             UserProfile::create([
@@ -188,7 +188,10 @@ class UserAdminService
 
     public function buildAdminProfile(string $id): array
     {
-        return Cache::remember(self::CACHE_KEY_PREFIX . $id, 30, function () use ($id) {
+        // Não cachear: o array inclui modelos Eloquent ($user, $profile) que,
+        // serializados na tabela cache, rebentam ao desserializar após refactors
+        // (__PHP_Incomplete_Class). É um pedido admin pontual, cache dispensável.
+        $build = function () use ($id) {
             $user = $this->find($id);
             $profile = $user->profile ?: new UserProfile();
 
@@ -238,7 +241,9 @@ class UserAdminService
                 'access_requests' => $accessRequests,
                 'statistics' => $stats,
             ];
-        });
+        };
+
+        return $build();
     }
 
     public function listSessions(string $id): \Illuminate\Support\Collection

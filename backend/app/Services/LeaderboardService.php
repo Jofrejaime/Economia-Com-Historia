@@ -21,9 +21,12 @@ class LeaderboardService
 
     public function national(): Collection
     {
-        return Cache::remember('leaderboard-national', self::CACHE_TTL, function () {
-            return LeaderboardCache::orderBy('rank_position')->get();
+        // Cachear apenas arrays simples (nunca objetos Eloquent) e re-hidratar.
+        $rows = Cache::remember('leaderboard-national', self::CACHE_TTL, function () {
+            return LeaderboardCache::orderBy('rank_position')->get()->toArray();
         });
+
+        return LeaderboardCache::hydrate($rows);
     }
 
     // ──────────────────────────────────────────────
@@ -160,13 +163,13 @@ class LeaderboardService
         // National Scope (default)
         $cacheKey = "leaderboard-national.p{$page}.pp{$perPage}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($page, $perPage) {
+        $cached = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($page, $perPage) {
             $query = LeaderboardCache::orderBy('rank_position');
             $total = $query->count();
             $items = $query->forPage($page, $perPage)->get();
 
             return [
-                'data' => $items,
+                'data' => $items->toArray(), // nunca cachear objetos Eloquent
                 'pagination' => [
                     'total'        => $total,
                     'per_page'     => $perPage,
@@ -175,13 +178,19 @@ class LeaderboardService
                 ]
             ];
         });
+
+        $cached['data'] = LeaderboardCache::hydrate($cached['data']);
+
+        return $cached;
     }
 
     public function topUsers(int $limit = 10): Collection
     {
-        return Cache::remember("leaderboard-top-{$limit}", self::CACHE_TTL, function () use ($limit) {
-            return LeaderboardCache::orderBy('rank_position')->limit($limit)->get();
+        $rows = Cache::remember("leaderboard-top-{$limit}", self::CACHE_TTL, function () use ($limit) {
+            return LeaderboardCache::orderBy('rank_position')->limit($limit)->get()->toArray();
         });
+
+        return LeaderboardCache::hydrate($rows);
     }
 
     // ──────────────────────────────────────────────
@@ -190,11 +199,14 @@ class LeaderboardService
 
     public function snapshots(int $limit = 30): Collection
     {
-        return Cache::remember('leaderboard-snapshots', self::CACHE_TTL, function () use ($limit) {
+        $rows = Cache::remember('leaderboard-snapshots', self::CACHE_TTL, function () use ($limit) {
             return LeaderboardSnapshot::orderByDesc('snapshot_date')
                 ->limit($limit)
-                ->get();
+                ->get()
+                ->toArray();
         });
+
+        return LeaderboardSnapshot::hydrate($rows);
     }
 
     public function provinceStats(): Collection

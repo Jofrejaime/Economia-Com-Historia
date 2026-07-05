@@ -110,6 +110,7 @@ export class DocumentService {
   document_type?: string;
   media_type?: string;
   status?: string;
+  per_page?: number;
 } = {}): Promise<Document[]> {
   let httpParams = new HttpParams();
   if (params.category_id)     httpParams = httpParams.set('category_id', params.category_id);
@@ -118,6 +119,7 @@ export class DocumentService {
   if (params.document_type)   httpParams = httpParams.set('document_type', params.document_type);
   if (params.media_type)      httpParams = httpParams.set('media_type', params.media_type);
   if (params.status)          httpParams = httpParams.set('status', params.status);
+  if (params.per_page)        httpParams = httpParams.set('per_page', String(params.per_page));
 
   const res = await firstValueFrom(
     this.http.get<{ data: Document[] }>(`${this.base}/documents`, {

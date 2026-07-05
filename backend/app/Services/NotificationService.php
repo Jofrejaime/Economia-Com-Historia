@@ -55,19 +55,6 @@ class NotificationService
         );
     }
 
-    public function sendTopicJoined(User $user, string $topicTitle, ?string $referenceId = null): array
-    {
-        return $this->send(
-            $user,
-            'topic_joined',
-            'Novo membro no teu fórum',
-            "Um utilizador aceitou o convite para participar em \"{$topicTitle}\".",
-            $referenceId,
-            'discussion_topic',
-            ['topic_joined']
-        );
-    }
-
     public function sendTopicRemoved(User $user, string $topicTitle, ?string $referenceId = null): array
     {
         return $this->send(

@@ -102,6 +102,8 @@
   <!-- Quizzes Grid (Cards) -->
   <div class="quizzes-grid">
     <div *ngFor="let quiz of filteredQuizzes" class="quiz-card">
+      <div class="quiz-cover-bg" *ngIf="quiz.cover_image_url"
+           [style.background-image]="'url(' + quiz.cover_image_url + ')'"></div>
       <div class="card-header">
         <div class="card-title-section">
           <h3 class="quiz-title">{{ quiz.title }}</h3>
@@ -189,6 +191,8 @@
   <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
+        <div class="quiz-cover-bg quiz-cover-bg--modal" *ngIf="newQuiz.cover_image_url"
+             [style.background-image]="'url(' + newQuiz.cover_image_url + ')'"></div>
         <h2>{{ editingQuiz ? 'Editar quizz' : 'Novo quizz' }}</h2>
         <button class="modal-close" (click)="closeModal()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -278,8 +282,8 @@
             <div class="form-group">
               <label>Destaque</label>
               <select [(ngModel)]="newQuiz.is_featured" class="form-input">
-                <option [value]="false">Não</option>
-                <option [value]="true">Sim</option>
+                <option [ngValue]="false">Não</option>
+                <option [ngValue]="true">Sim</option>
               </select>
             </div>
           </div>
@@ -288,13 +292,34 @@
             <div class="form-group">
               <label>Categoria</label>
               <select [(ngModel)]="newQuiz.category_id" class="form-input">
-                <option [value]="null">Sem categoria</option>
+                <option [ngValue]="null">Sem categoria</option>
                 <option *ngFor="let cat of categoriesList" [value]="cat.id">{{ cat.name }}</option>
               </select>
             </div>
             <div class="form-group">
-              <label>URL da Imagem de Capa</label>
-              <input type="text" [(ngModel)]="newQuiz.cover_image_url" class="form-input" placeholder="https://...">
+              <app-image-upload
+                label="Imagem de capa"
+                hint="JPG, PNG, WEBP ou SVG — máx. 4 MB"
+                [autoUpload]="true"
+                [uploadOptions]="{ modelType: 'content', collection: 'cover', directory: 'quizzes/covers' }"
+                [existingUrl]="newQuiz.cover_image_url ?? null"
+                (mediaChange)="onQuizCoverChange($event)" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>Conteúdos relacionados</label>
+              <div class="doc-picker">
+                <label class="doc-picker-item" *ngFor="let doc of documentsList">
+                  <input type="checkbox"
+                    [checked]="isQuizDocumentSelected(doc.id)"
+                    (change)="toggleQuizDocument(doc.id)" />
+                  <span>{{ doc.title }}</span>
+                </label>
+                <p class="form-hint" *ngIf="documentsList.length === 0">Sem documentos disponíveis.</p>
+              </div>
+              <span class="form-hint">Documentos ligados a este questionário — o quiz passa a aparecer na página desses conteúdos</span>
             </div>
           </div>
           

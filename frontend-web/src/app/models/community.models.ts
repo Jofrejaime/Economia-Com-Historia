@@ -12,20 +12,18 @@ export interface ApiEnvelope<T> {
   meta?: Record<string, number>;
 }
 
-export type TopicVisibility = 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY';
+export type TopicVisibility = 'PUBLIC' | 'INVITE_ONLY';
 
 export interface CommunityCategory {
   id: string;
   slug: string;
   name: string;
   description: string | null;
-  access_level_id: 'public' | 'jindungo' | 'restricted' | string;
   color_bg: string | null;
   color_text: string | null;
   cover_image_url: string | null;
   sort_order: number;
   is_active: boolean;
-  members_count?: number;
   topics_count?: number;
   created_at?: string;
 }
@@ -42,13 +40,10 @@ export interface TopicMember {
   id: string;
   topic_id: string;
   user_id: string;
-  role: 'owner' | 'moderator' | 'member' | string;
-  invited_by: string | null;
-  accepted_at: string | null;
+  joined_at: string | null;
   created_at: string;
   updated_at: string;
   user?: CommunityUser;
-  inviter?: CommunityUser;
 }
 
 export interface DiscussionTopic {
@@ -92,7 +87,6 @@ export interface TopicReply {
 
 export interface TopicMemberPayload {
   user_id: string;
-  role?: 'member' | 'moderator';
 }
 
 export interface CreateTopicPayload {

@@ -244,8 +244,9 @@
           <button class="modal-tab-btn" [class.active]="modalTab === 'general'" (click)="modalTab = 'general'" style="background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 12px; font-weight: 600; cursor: pointer; color: #6B7280;" [style.borderBottomColor]="modalTab === 'general' ? '#8B1E2D' : 'transparent'" [style.color]="modalTab === 'general' ? '#8B1E2D' : '#6B7280'">Geral</button>
           <button class="modal-tab-btn" [class.active]="modalTab === 'gamification'" (click)="modalTab = 'gamification'; loadUserProfileData()" style="background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 12px; font-weight: 600; cursor: pointer; color: #6B7280;" [style.borderBottomColor]="modalTab === 'gamification' ? '#8B1E2D' : 'transparent'" [style.color]="modalTab === 'gamification' ? '#8B1E2D' : '#6B7280'">Progresso</button>
           <button class="modal-tab-btn" [class.active]="modalTab === 'sessions'" (click)="modalTab = 'sessions'; loadUserSessionsData()" style="background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 12px; font-weight: 600; cursor: pointer; color: #6B7280;" [style.borderBottomColor]="modalTab === 'sessions' ? '#8B1E2D' : 'transparent'" [style.color]="modalTab === 'sessions' ? '#8B1E2D' : '#6B7280'">Sessões</button>
+        </div>
       </div>
-      
+
       <div class="modal-body">
         <!-- Aba Geral: Exibe o formulário de cadastro/edição padrão -->
         <div *ngIf="modalTab === 'general'">

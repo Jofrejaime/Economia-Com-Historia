@@ -7,12 +7,16 @@ use App\Http\Resources\GamificationDashboardResource;
 use App\Http\Resources\LeaderboardResource;
 use App\Http\Resources\PointTransactionResource;
 use App\Http\Resources\QuizAttemptResource;
+use App\Models\User;
+use App\Services\GamificationService;
 use App\Services\LeaderboardService;
 use App\Services\PointTransactionService;
 use App\Services\QuizAttemptService;
+use App\Support\PointTransactionReason;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
  * @OA\Tag(
@@ -39,7 +43,50 @@ class GamificationAdminController extends Controller
         private readonly LeaderboardService $leaderboardService,
         private readonly PointTransactionService $pointTransactionService,
         private readonly QuizAttemptService $quizAttemptService,
+        private readonly GamificationService $gamificationService,
     ) {}
+
+    /**
+     * @OA\Post(
+     *     path="/api/admin/gamification/adjust-points",
+     *     summary="Ajustar manualmente os pontos de um utilizador (Admin)",
+     *     tags={"Gamification Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(required=true, @OA\JsonContent(
+     *         required={"user_id","points"},
+     *         @OA\Property(property="user_id", type="string", format="uuid"),
+     *         @OA\Property(property="points", type="integer", description="Positivo credita, negativo debita"),
+     *         @OA\Property(property="description", type="string")
+     *     )),
+     *     @OA\Response(response=200, description="Pontos ajustados"),
+     *     @OA\Response(response=422, description="Saldo insuficiente ou dados inválidos")
+     * )
+     */
+    public function adjustPoints(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'user_id'     => ['required', 'string', 'exists:users,id'],
+            'points'      => ['required', 'integer', 'not_in:0'],
+            'description' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $user = User::findOrFail($validated['user_id']);
+        $amount = (int) $validated['points'];
+        $description = $validated['description'] ?? 'Ajuste manual do administrador';
+
+        try {
+            $result = $amount > 0
+                ? $this->gamificationService->awardPoints($user, $amount, PointTransactionReason::ADMIN_ADJUSTMENT, null, null, $description)
+                : $this->gamificationService->deductPoints($user, abs($amount), $description);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Pontos ajustados com sucesso.',
+            'data'    => $result->toArray(),
+        ]);
+    }
 
     /**
      * @OA\Get(

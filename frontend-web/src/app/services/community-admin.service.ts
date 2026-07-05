@@ -238,17 +238,14 @@ export class CommunityAdminService {
     };
   }
 
-  private normalizeVisibility(value: string | null | undefined): 'PUBLIC' | 'CATEGORY' | 'INVITE_ONLY' {
+  private normalizeVisibility(value: string | null | undefined): 'PUBLIC' | 'INVITE_ONLY' {
     switch ((value ?? '').toUpperCase()) {
-      case 'PUBLIC':
-        return 'PUBLIC';
       case 'INVITE_ONLY':
       case 'PRIVATE':
         return 'INVITE_ONLY';
-      case 'CATEGORY':
-      case 'RESTRICTED':
+      case 'PUBLIC':
       default:
-        return 'CATEGORY';
+        return 'PUBLIC';
     }
   }
 

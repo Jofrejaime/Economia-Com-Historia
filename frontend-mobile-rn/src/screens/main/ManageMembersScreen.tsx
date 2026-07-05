@@ -45,10 +45,13 @@ export function ManageMembersScreen() {
     const load = async () => {
       setLoadingMembers(true);
       try {
-        const data = await communityService.topicMembers(topicId);
-        // Exclude owner — owner cannot be removed
-        const nonOwners = data.filter((m) => m.role !== "owner");
-        const mapped: UserProfile[] = nonOwners.map((m) => ({
+        const [topic, data] = await Promise.all([
+          communityService.topicDetail(topicId),
+          communityService.topicMembers(topicId),
+        ]);
+        // Exclude the topic author — the author cannot be removed
+        const nonAuthors = data.filter((m) => m.user_id !== topic.author_id);
+        const mapped: UserProfile[] = nonAuthors.map((m) => ({
           id: m.user_id,
           name: m.user?.display_name ?? "Membro",
           username: m.user?.full_name ?? m.user?.display_name ?? "membro",
@@ -108,7 +111,7 @@ export function ManageMembersScreen() {
 
       await Promise.all([
         ...toAdd.map((m) =>
-          communityService.inviteMember(topicId, { user_id: m.id, role: "member" }).catch(() => null)
+          communityService.inviteMember(topicId, { user_id: m.id }).catch(() => null)
         ),
         ...toRemove.map((id) =>
           communityService.removeMember(topicId, id).catch(() => null)
