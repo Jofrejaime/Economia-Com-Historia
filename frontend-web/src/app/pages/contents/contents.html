@@ -6,10 +6,17 @@
     <div class="contents-container">
       
       <!-- Page Header -->
-      <div class="contents-header">
-        <h1 class="contents-header-title">Arquivo de Conteúdos</h1>
-        <p class="contents-header-subtitle">Explore a nossa colecção de documentos históricos e económicos</p>
-      </div>
+<div class="contents-header">
+  <h1 class="contents-header-title">Arquivo de Conteúdos</h1>
+  <p class="contents-header-subtitle">Explore a nossa colecção de documentos históricos e económicos</p>
+
+  <button type="button" class="contents-saved-btn" (click)="goToSaved()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/>
+    </svg>
+    <span>Guardados</span>
+  </button>
+</div>
 
       <!-- FILTERS CARD -->
       <div class="contents-filters-card">

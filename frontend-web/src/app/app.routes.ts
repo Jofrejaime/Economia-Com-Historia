@@ -41,6 +41,7 @@ import { RankingComponent } from './pages/quizzes/quiz-ranking/quiz-ranking';
 import { ProvincesPageComponent } from './pages/admin/dashboard-admin/pages/provinces-page/provinces-page';
 import { InterestAreasPageComponent } from './pages/admin/dashboard-admin/pages/interest-areas-page/interest-areas-page';
 import { SavedContentsComponent } from './pages/contents/saved-contents/saved-contents';
+import { PrivacyPolicyComponent} from './pages/legal/privacy-policy/privacy-policy';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -64,7 +65,8 @@ export const routes: Routes = [
   { path: 'forum/community/discussao/:id', component: DiscussionThreadComponent },
   { path: 'landing', component: HomeVisitorComponent },
   { path: 'forum/categorias', component: CategoryViewComponent },
-  { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },    
+  { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },
+  { path: 'legal/privacy-policy', component: PrivacyPolicyComponent },
   {
     path: 'admin/dashboard',
     component: DashboardAdminComponent,

@@ -28,11 +28,9 @@ export class CommunityComponent implements OnInit {
   showDeleteCardModal = false;
   deleteCardTargetId: string | null = null;
 
-  featuredResearches: { date: string; title: string }[] = [
-    { date: '12 Mar 1975', title: 'Os documentos fundadores do BNA e a política fiscal inicial.' },
-    { date: '08 Fev 1982', title: 'Mudanças monetárias durante o período de transição.' },
-    { date: '22 Nov 1990', title: 'Linhas de crédito garantidas por petróleo: Uma análise histórica.' },
-  ];
+  // As 3 discussões com mais visualizações, calculadas a partir dos tópicos
+  // vindos do backend em loadData() — sem dados mockados.
+  featuredResearches: { id: string; date: string; title: string }[] = [];
 
   constructor(
     private router: Router,
@@ -58,12 +56,17 @@ export class CommunityComponent implements OnInit {
       const topics = topicsResult.ok && topicsResult.data ? topicsResult.data.data : [];
       this.discussions = topics;
 
-      if (topics.length > 0) {
-        this.featuredResearches = topics.slice(0, 3).map(t => ({
+      // Pesquisas em destaque = top 3 por visualizações.
+      // O spread evita reordenar this.discussions, que a tab "recentes"
+      // ordena por data.
+      this.featuredResearches = [...topics]
+        .sort((a, b) => (b.views_count ?? 0) - (a.views_count ?? 0))
+        .slice(0, 3)
+        .map(t => ({
+          id: t.id,
           date: this.formatDate(t.created_at),
           title: t.title,
         }));
-      }
     } catch {
       this.error = 'Erro ao carregar a comunidade.';
     } finally {

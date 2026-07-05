@@ -384,6 +384,14 @@ export class ContentsComponent implements OnInit, OnDestroy {
     } catch {}
   }
 
+  goToSaved(): void {
+  if (!this.isAuthenticated) {
+    this.router.navigate(['/auth/login']);
+    return;
+  }
+  this.router.navigate(['/contents/saved']);
+}
+
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: Event): void {
     const target = event.target as HTMLElement;

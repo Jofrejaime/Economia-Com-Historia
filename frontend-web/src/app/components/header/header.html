@@ -47,11 +47,11 @@
 
           <ng-template #mobileGuestActions>
             <div class="app-header-mobile-actions">
-              <button class="app-header-logout-mobile" (click)="goToLogin(); closeMobileMenu()">
-                <span>Entrar</span>
+              <button class="app-header-auth-btn app-header-auth-btn--outline" (click)="goToLogin(); closeMobileMenu()">
+                Entrar
               </button>
-              <button class="app-header-logout-mobile" (click)="goToRegister(); closeMobileMenu()">
-                <span>Criar conta</span>
+              <button class="app-header-auth-btn app-header-auth-btn--solid" (click)="goToRegister(); closeMobileMenu()">
+                Criar conta
               </button>
             </div>
           </ng-template>
@@ -89,19 +89,19 @@
       <ng-template #publicActions>
         <div class="app-header-icons">
           <button
+            type="button"
+            class="app-header-auth-btn app-header-auth-btn--outline"
             (click)="goToLogin()"
             title="Entrar"
-            aria-label="Entrar"
-            style="height: 40px; padding: 0 18px; border-radius: 999px; border: 1px solid #8B1E2D; background: transparent; color: #8B1E2D; font-weight: 600; cursor: pointer; transition: all 0.3s;"
-          >
+            aria-label="Entrar">
             Entrar
           </button>
           <button
+            type="button"
+            class="app-header-auth-btn app-header-auth-btn--solid"
             (click)="goToRegister()"
             title="Criar conta"
-            aria-label="Criar conta"
-            style="height: 40px; padding: 0 18px; border-radius: 999px; border: none; background: #8B1E2D; color: #FFFFFF; font-weight: 600; cursor: pointer; transition: all 0.3s;"
-          >
+            aria-label="Criar conta">
             Criar conta
           </button>
         </div>
