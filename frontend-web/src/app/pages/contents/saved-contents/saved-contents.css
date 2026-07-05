@@ -1,0 +1,381 @@
+/* ============================================
+   SAVED CONTENTS (CONTEÚDOS GUARDADOS) - DESIGN SYSTEM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+body {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  color: #1F2937;
+}
+
+/* ============================================
+   PAGE CONTAINER
+   ============================================ */
+
+.saved-page {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+}
+
+.saved-main {
+  flex: 1;
+  width: 100%;
+}
+
+.saved-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 48px 64px;
+}
+
+/* ============================================
+   BREADCRUMB
+   ============================================ */
+
+.saved-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.saved-breadcrumb-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9CA3AF;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.saved-breadcrumb-btn:hover {
+  color: #8B1E2D;
+}
+
+.saved-breadcrumb-separator {
+  color: #9CA3AF;
+}
+
+.saved-breadcrumb-current {
+  color: #8B1E2D;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.saved-header {
+  margin-bottom: 40px;
+}
+
+.saved-header-badge {
+  background: rgba(139, 30, 45, 0.1);
+  color: #8B1E2D;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  display: inline-block;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.saved-header-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1F2937;
+  font-size: 38px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.saved-header-description {
+  color: #1F2937;
+  font-size: 16px;
+  line-height: 1.7;
+  max-width: 800px;
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.saved-error {
+  color: #8B1E2D;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.saved-count {
+  color: #9CA3AF;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   GRID DE CARTÕES
+   ============================================ */
+
+.saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.saved-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.saved-card-image {
+  position: relative;
+  height: 140px;
+  overflow: hidden;
+  background: #F5F5F5;
+}
+
+.saved-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.saved-card-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #6B0119, #8B1E2D);
+}
+
+.saved-card-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s;
+}
+
+.saved-card-remove:hover:not(:disabled) {
+  background: #8B1E2D;
+}
+
+.saved-card-remove:hover:not(:disabled) svg {
+  fill: #FFFFFF;
+  stroke: #FFFFFF;
+}
+
+.saved-card-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.saved-card-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.saved-card-type {
+  color: #8B1E2D;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.saved-card-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+  line-height: 1.4;
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.saved-card-meta {
+  margin-top: auto;
+  color: #9CA3AF;
+  font-size: 12px;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.saved-empty {
+  text-align: center;
+  padding: 80px 24px;
+  color: #9CA3AF;
+  font-size: 15px;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.saved-empty-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 64px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.saved-empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(139, 30, 45, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.saved-empty-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+}
+
+.saved-empty-text {
+  color: #6B7280;
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 420px;
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.saved-btn-primary {
+  margin-top: 12px;
+  background: #8B1E2D;
+  padding: 10px 28px;
+  min-height: 44px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-family: 'Source Sans 3', sans-serif;
+  transition: all 0.3s;
+}
+
+.saved-btn-primary:hover {
+  background: #6B0119;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .saved-container {
+    padding: 32px 32px 48px;
+  }
+
+  .saved-header-title {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .saved-container {
+    padding: 24px 16px 40px;
+  }
+
+  .saved-header-title {
+    font-size: 28px;
+  }
+
+  .saved-header-description {
+    font-size: 14px;
+  }
+
+  .saved-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .saved-container {
+    padding: 16px 12px 32px;
+  }
+
+  .saved-header-title {
+    font-size: 24px;
+  }
+
+  .saved-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .saved-card-image {
+    height: 110px;
+  }
+
+  .saved-empty-card {
+    padding: 48px 20px;
+  }
+}
