@@ -64,6 +64,7 @@ function HomeTabScreen() {
 }
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
 
   return (

@@ -72,6 +72,12 @@ export function CreateTopicScreen() {
   }, [selectedMembers]);
 
   useEffect(() => {
+    if (!user) {
+      navigation.replace("LoginPrompt", { type: "create-topic" });
+    }
+  }, [user, navigation]);
+
+  useEffect(() => {
     const timer = setTimeout(() => { void searchUsers(searchMemberText); }, 300);
     return () => clearTimeout(timer);
   }, [searchMemberText, searchUsers]);
