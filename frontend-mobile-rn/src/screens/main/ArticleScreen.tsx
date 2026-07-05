@@ -53,26 +53,37 @@ export function ArticleScreen() {
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  const [errorType, setErrorType] = useState<"not_found" | "access_denied" | "subscription_required" | "network_error" | null>(null);
 
   // Dados embebidos no documento — sem chamadas extra
   const relatedQuizzes: DocumentQuizPreview[] = document?.quizzes ?? [];
   const relatedTopics: DocumentTopicPreview[] = document?.topics_preview ?? [];
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const doc = await documentService.detail(id);
-        setDocument(doc);
-        setIsLiked(doc.is_liked ?? false);
-        setLikesCount(doc.likes_count);
-      } catch {
-        // document not found handled in render
-      } finally {
-        setLoading(false);
+  const loadDocument = async () => {
+    setLoading(true);
+    setErrorType(null);
+    try {
+      const doc = await documentService.detail(id);
+      setDocument(doc);
+      setIsLiked(doc.is_liked ?? false);
+      setLikesCount(doc.likes_count);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 403) {
+        const subscriptionRequired = err.response?.data?.subscription_required;
+        setErrorType(subscriptionRequired ? "subscription_required" : "access_denied");
+      } else if (status === 404) {
+        setErrorType("not_found");
+      } else {
+        setErrorType("network_error");
       }
-    };
-    void load();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadDocument();
   }, [id]);
 
   const handleToggleLike = async () => {
@@ -108,6 +119,50 @@ export function ArticleScreen() {
         <HeaderBar title="Documento" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={appTheme.colors.primary} />
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (errorType) {
+    const isNetworkError = errorType === "network_error";
+    const isAccessError = errorType === "access_denied" || errorType === "subscription_required";
+
+    const errorMessages: Record<typeof errorType, string> = {
+      not_found: "Este documento não foi encontrado.",
+      access_denied: "Não tens permissão para aceder a este conteúdo.",
+      subscription_required: "Este conteúdo requer uma subscrição Jindungo.",
+      network_error: "Não foi possível carregar o documento.\nVerifica a tua ligação.",
+    };
+
+    return (
+      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+        <HeaderBar title="Documento" />
+        <View style={styles.loadingContainer}>
+          <Feather
+            name={isAccessError ? "lock" : isNetworkError ? "wifi-off" : "file-x"}
+            size={40}
+            color={appTheme.colors.textMuted}
+          />
+          <Text style={[styles.errorText, { marginTop: 16, textAlign: "center" }]}>
+            {errorMessages[errorType]}
+          </Text>
+          {errorType === "subscription_required" && (
+            <TouchableOpacity
+              style={styles.errorButton}
+              onPress={() => navigation.navigate("JindungoPermission")}
+            >
+              <Text style={styles.errorButtonText}>Ver planos Jindungo</Text>
+            </TouchableOpacity>
+          )}
+          {isNetworkError && (
+            <TouchableOpacity style={styles.errorButton} onPress={() => void loadDocument()}>
+              <Text style={styles.errorButtonText}>Tentar novamente</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 12 }}>
+            <Text style={styles.errorLink}>Voltar</Text>
+          </TouchableOpacity>
         </View>
       </ScreenContainer>
     );
@@ -336,6 +391,23 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: appTheme.colors.textMuted,
+  },
+  errorButton: {
+    marginTop: 20,
+    backgroundColor: appTheme.colors.primary,
+    borderRadius: appTheme.radius.md,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+  },
+  errorButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  errorLink: {
+    fontSize: 14,
+    color: appTheme.colors.textMuted,
+    textDecorationLine: "underline",
   },
   scrollView: {
     flex: 1,

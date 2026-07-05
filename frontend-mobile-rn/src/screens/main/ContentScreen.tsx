@@ -12,8 +12,10 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { HeaderBar } from "../../components/HeaderBar";
+import { ContentCard } from "../../components/ContentCard";
+import { SkeletonLoader } from "../../components/SkeletonLoader";
 import { appTheme } from "../../constants/theme";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { documentService } from "../../services/api/documentService";
 import type { Document, DocumentType, AccessLevelId } from "../../types/api";
 import type { ContentParams } from "../../types/navigation";
@@ -31,17 +33,37 @@ const DOCUMENT_TYPES: { label: string; value: DocumentType }[] = [
 ];
 
 
-function formatDate(dateString: string | null): string {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffDays = Math.ceil((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "Hoje";
-  if (diffDays === 1) return "Ontem";
-  if (diffDays < 7) return `Há ${diffDays} dias`;
-  if (diffDays < 30) return `Há ${Math.floor(diffDays / 7)} semanas`;
-  return `Há ${Math.floor(diffDays / 30)} meses`;
+function ListCardSkeleton() {
+  return (
+    <View style={skeletonStyles.card}>
+      <SkeletonLoader width={96} height={72} borderRadius={appTheme.radius.md} />
+      <View style={skeletonStyles.content}>
+        <SkeletonLoader width={72} height={14} />
+        <SkeletonLoader width="95%" height={16} />
+        <SkeletonLoader width="75%" height={14} />
+        <SkeletonLoader width="50%" height={12} />
+      </View>
+    </View>
+  );
 }
+
+const skeletonStyles = StyleSheet.create({
+  card: {
+    flexDirection: "row",
+    backgroundColor: appTheme.colors.surface,
+    borderRadius: appTheme.radius.md,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+    gap: 12,
+  },
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 8,
+  },
+});
 
 function accessLevelLabel(id: string): { label: string; color: string } {
   if (id === "jindungo") return { label: "Jindungo", color: appTheme.colors.warning };
@@ -129,53 +151,27 @@ export function ContentScreen() {
     setSearchQuery("");
   };
 
-  const renderDocument = ({ item }: { item: Document }) => {
-    const accessInfo = accessLevelLabel(item.access_level_id);
-    return (
-      <TouchableOpacity
-        onPress={() => {
-          const isMedia = item.document_type === "video" || item.document_type === "audio";
-          navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: item.id });
-        }}
-        style={styles.card}
-      >
-        <View style={styles.cardHeader}>
-          <View style={styles.cardMeta}>
-            {item.category && (
-              <Text style={styles.cardCategory}>{item.category.name}</Text>
-            )}
-            <View style={[styles.accessBadge, { backgroundColor: accessInfo.color + "20" }]}>
-              <Text style={[styles.accessBadgeText, { color: accessInfo.color }]}>
-                {accessInfo.label}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.cardSummary} numberOfLines={3}>{item.summary}</Text>
-
-        <View style={styles.cardFooter}>
-          <Text style={styles.cardAuthor} numberOfLines={1}>{item.author}</Text>
-          <View style={styles.cardStats}>
-            <Ionicons name="heart-outline" size={14} color={appTheme.colors.textMuted} />
-            <Text style={styles.cardStatText}>{item.likes_count}</Text>
-            <Ionicons name="chatbubble-outline" size={14} color={appTheme.colors.textMuted} style={{ marginLeft: 8 }} />
-            <Text style={styles.cardStatText}>{item.comments_count}</Text>
-          </View>
-        </View>
-
-        <View style={styles.cardBottom}>
-          <Text style={styles.cardDate}>
-            {formatDate(item.published_at ?? item.created_at)}
-          </Text>
-          <Text style={styles.cardTypeLabel}>
-            {DOCUMENT_TYPES.find((t) => t.value === item.document_type)?.label ?? item.document_type}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  const renderDocument = ({ item }: { item: Document }) => (
+    <ContentCard
+      variant="list"
+      title={item.title}
+      author={item.author}
+      image={item.cover_image_url}
+      documentType={item.document_type}
+      accessLevelId={item.access_level_id}
+      categoryName={item.category?.name}
+      categoryColorBg={item.category?.color_bg}
+      categoryColorText={item.category?.color_text}
+      summary={item.summary}
+      viewsCount={item.views_count}
+      likesCount={item.likes_count}
+      publishedAt={item.published_at ?? item.created_at}
+      onPress={() => {
+        const isMedia = item.document_type === "video" || item.document_type === "audio";
+        navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: item.id });
+      }}
+    />
+  );
 
   return (
     <ScreenContainer style={{ paddingHorizontal: 0 }}>
@@ -290,13 +286,13 @@ export function ContentScreen() {
         showsVerticalScrollIndicator={false}
         onEndReached={() => { if (hasMore && !loading) fetchDocuments(false); }}
         onEndReachedThreshold={0.4}
-        ListHeaderComponent={() => (
-          <Text style={styles.resultsCount}>
-            {loading && documents.length === 0
-              ? "A carregar..."
-              : `${total} ${total === 1 ? "documento encontrado" : "documentos encontrados"}`}
-          </Text>
-        )}
+        ListHeaderComponent={() =>
+          !loading || documents.length > 0 ? (
+            <Text style={styles.resultsCount}>
+              {`${total} ${total === 1 ? "documento encontrado" : "documentos encontrados"}`}
+            </Text>
+          ) : null
+        }
         ListFooterComponent={() =>
           loading && documents.length > 0 ? (
             <ActivityIndicator size="small" color={appTheme.colors.primary} style={{ marginVertical: 16 }} />
@@ -304,7 +300,11 @@ export function ContentScreen() {
         }
         ListEmptyComponent={() => {
           if (loading) {
-            return <ActivityIndicator size="large" color={appTheme.colors.primary} style={{ marginTop: 40 }} />;
+            return (
+              <View>
+                {[1, 2, 3, 4, 5].map((i) => <ListCardSkeleton key={i} />)}
+              </View>
+            );
           }
           const hasFilters = !!(searchQuery || selectedType || selectedAccessLevel);
           return (
@@ -462,100 +462,6 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
     marginTop: 12,
     marginBottom: 8,
-  },
-  card: {
-    backgroundColor: appTheme.colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: appTheme.colors.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardHeader: {
-    marginBottom: 8,
-  },
-  cardMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  cardCategory: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
-    fontWeight: "600",
-    color: appTheme.colors.primary,
-  },
-  accessBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  accessBadgeText: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: appTheme.colors.textPrimary,
-    lineHeight: 22,
-    marginBottom: 6,
-    fontFamily: "IBM_Plex_Sans",
-  },
-  cardSummary: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 14,
-    color: appTheme.colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  cardAuthor: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 13,
-    color: appTheme.colors.textSecondary,
-    fontWeight: "600",
-    flex: 1,
-  },
-  cardStats: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  cardStatText: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 13,
-    color: appTheme.colors.textMuted,
-  },
-  cardBottom: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderTopColor: appTheme.colors.border,
-    paddingTop: 8,
-  },
-  cardDate: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
-    color: appTheme.colors.textMuted,
-  },
-  cardTypeLabel: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
-    color: appTheme.colors.textMuted,
-    fontWeight: "500",
   },
   emptyState: {
     alignItems: "center",
