@@ -107,6 +107,37 @@
           </div>
         </div>
 
+        <!-- Conteúdos Relacionados -->
+        <div class="quiz-result-related" *ngIf="loadingRelated || relatedDocuments.length > 0">
+          <div class="quiz-result-related-header">
+            <div>
+              <span class="quiz-result-related-badge">APROFUNDAR</span>
+              <h2 class="quiz-result-related-title">Conteúdos Relacionados</h2>
+              <p class="quiz-result-related-subtitle">Documentos do arquivo ligados ao tema deste quiz — ideais para rever o que errou.</p>
+            </div>
+          </div>
+
+          <div *ngIf="loadingRelated" class="quiz-result-related-loading">
+            A carregar conteúdos relacionados...
+          </div>
+
+          <div *ngIf="!loadingRelated" class="quiz-result-related-grid">
+            <div *ngFor="let docItem of relatedDocuments"
+                 class="quiz-result-related-card"
+                 (click)="navigateToDocument(docItem.id)">
+              <div class="quiz-result-related-image">
+                <img *ngIf="docItem.cover_image_url" [src]="docItem.cover_image_url" [alt]="docItem.title">
+                <div *ngIf="!docItem.cover_image_url" class="quiz-result-related-placeholder"></div>
+              </div>
+              <div class="quiz-result-related-body">
+                <span class="quiz-result-related-type">{{ docItem.document_type || 'Documento' }}</span>
+                <h4 class="quiz-result-related-name">{{ docItem.title }}</h4>
+                <span class="quiz-result-related-link">Ler Conteúdo →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="quiz-result-actions">
           <button (click)="goToQuizList()" class="btn-secondary">

@@ -167,7 +167,7 @@
   <div class="quiz-related-card" *ngIf="relatedDocuments.length > 0">
     <span class="quiz-related-label">CONTEÚDOS RELACIONADOS</span>
     <div class="quiz-related-list">
-      <button *ngFor="let doc of relatedDocuments" (click)="navigateToDocument(doc.id)" class="quiz-related-item">
+      <button *ngFor="let doc of relatedDocuments" class="quiz-related-item">
         <span class="quiz-related-item-category" *ngIf="doc.category?.name">{{ doc.category?.name }}</span>
         <span class="quiz-related-item-title">{{ doc.title }}</span>
         <div class="quiz-related-item-meta">

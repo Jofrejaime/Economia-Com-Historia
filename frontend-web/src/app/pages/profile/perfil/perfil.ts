@@ -2,12 +2,15 @@ import { Component, OnInit, ViewEncapsulation, ChangeDetectorRef } from '@angula
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { ProfileService } from '../../../services/profile.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvinceAdminService } from '../../../services/province-admin.service';
+import { AuthService } from '../../../services/auth.service';
+import { environment } from '../../../../environments/environment';
 
 interface Merit {
   iconPath: string;
@@ -33,6 +36,7 @@ interface UiState {
   isLoadingProfile: boolean;
   isLoadingStats: boolean;
   isEditingProfile: boolean;
+  isChangingPassword: boolean;
   error: string | null;
 }
 
@@ -61,17 +65,29 @@ export class PerfilComponent implements OnInit {
     isLoadingProfile: true,
     isLoadingStats: false,
     isEditingProfile: false,
+    isChangingPassword: false,
     error: null
   };
 
   // Formulário de edição
   editForm!: FormGroup;
 
+  // Formulário de alteração de palavra-passe
+  passwordForm!: FormGroup;
+  passwordError: string | null = null;
+  savingPassword = false;
+
   // Avatar
   avatarPreview: string | null = null;
   avatarFile: File | null = null;
   avatarError: string | null = null;
   avatarPreviewTime: number = 0;
+
+  // Valores numéricos reais das estatísticas (fontes: /me + endpoints "me")
+  private statTotalPoints = 0;
+  private statQuizzesCompleted = 0;
+  private statCurrentLevel = 1;
+  private statDocumentsRead = 0;
 
   // Placeholder de avatar: em vez de usar um data:image/svg+xml (que alguns
   // browsers/políticas de segurança recusam renderizar em <img>), usamos um
@@ -104,7 +120,7 @@ export class PerfilComponent implements OnInit {
   userData: any = null;
   profileData: any = null;
   profileError: string | null = null;
-  
+
   // Estatísticas (carregadas do backend)
   stats: Stat[] = [];
 
@@ -126,7 +142,9 @@ export class PerfilComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private fb: FormBuilder,
     private toastService: ToastService,
-    private provinceAdmin: ProvinceAdminService
+    private provinceAdmin: ProvinceAdminService,
+    private http: HttpClient,
+    private authService: AuthService
   ) {
     // Inicializar formulário vazio
     this.editForm = this.fb.group({
@@ -135,6 +153,13 @@ export class PerfilComponent implements OnInit {
       institution: [''],
       province: [''],
       research_areas: ['']  // ← String, não array
+    });
+
+    // Formulário de alteração de palavra-passe
+    this.passwordForm = this.fb.group({
+      current_password: ['', [Validators.required]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      password_confirmation: ['', [Validators.required]],
     });
   }
 
@@ -148,6 +173,7 @@ export class PerfilComponent implements OnInit {
       const result = await firstValueFrom(this.provinceAdmin.getPublicProvinces());
       if (result.ok && result.data) {
         this.angolasProvinces = result.data.map((p: any) => p.name).sort();
+        this.cdr.detectChanges();
       }
     } catch (e) {
       // Fallback is the hardcoded list
@@ -167,10 +193,11 @@ export class PerfilComponent implements OnInit {
       // Mapear dados do perfil para exibição
       this.mapProfileData(profile, user);
 
-      // Mapear dados do utilizador para estatísticas
+      // Mapear dados do utilizador para estatísticas (base: /me)
       if (user) {
         this.mapUserDataToStats(user);
       }
+      this.buildStats();
 
       // Carregar dados adicionais (méritos, conteúdos, configurações)
       await this.loadAdditionalData();
@@ -182,8 +209,8 @@ export class PerfilComponent implements OnInit {
           bio: profile.bio || '',
           institution: profile.institution || '',
           province: profile.province || '',
-          research_areas: Array.isArray(profile.research_areas) 
-            ? profile.research_areas.join(', ') 
+          research_areas: Array.isArray(profile.research_areas)
+            ? profile.research_areas.join(', ')
             : ''
         });
       }
@@ -191,7 +218,7 @@ export class PerfilComponent implements OnInit {
       // Armazenar dados brutos para referência
       this.userData = user;
       this.profileData = profile;
-      
+
       this.state.error = null;
     } catch (error) {
       this.profileError = this.getErrorMessage(error);
@@ -200,6 +227,10 @@ export class PerfilComponent implements OnInit {
       this.state.isLoadingProfile = false;
       this.cdr.detectChanges();
     }
+
+    // Depois do render inicial, busca os números reais aos endpoints /me/*
+    // (não bloqueia o carregamento do perfil).
+    void this.loadRealStats();
   }
 
   /**
@@ -207,8 +238,8 @@ export class PerfilComponent implements OnInit {
    */
   private mapProfileData(profile: any, user: any): void {
     // Nome - usar display_name ou email como fallback
-    this.profileName = (profile?.display_name as string) || 
-                       (user?.['email'] as string) || 
+    this.profileName = (profile?.display_name as string) ||
+                       (user?.['email'] as string) ||
                        'Perfil Académico';
 
     // Status académico
@@ -238,47 +269,104 @@ export class PerfilComponent implements OnInit {
   }
 
   /**
-   * Mapeia dados do utilizador para estatísticas
+   * Extrai os números de gamificação do objeto user devolvido por /me.
+   * Suporta as várias formas possíveis do payload (user_levels, user_level,
+   * levels, gamification), porque o nome da relação varia consoante o
+   * controller a incluir ou não.
    */
   private mapUserDataToStats(user: any): void {
-    const userLevels = user.user_levels || {};
-    const currentLevel = userLevels.current_level || 1;
-    const totalPoints = userLevels.total_points || 0;
-    const quizzesCompleted = userLevels.quizzes_completed || 0;
+    const levels = user.user_levels ?? user.user_level ?? user.levels ?? user.gamification ?? {};
 
-    // Calcular progresso (0-100)
-    const progressPercentage = Math.min((currentLevel / 5) * 100, 100);
+    this.statTotalPoints      = Number(levels.total_points ?? levels.points ?? 0) || 0;
+    this.statCurrentLevel     = Number(levels.current_level ?? levels.level ?? 1) || 1;
+    this.statQuizzesCompleted = Number(levels.quizzes_completed ?? 0) || 0;
+    this.statDocumentsRead    = Number(levels.documents_read ?? 0) || 0;
+  }
+
+  /**
+   * Complementa os números com dados reais dos endpoints "me":
+   * - GET /api/me/point-transactions → total de pontos (soma das transações)
+   * - GET /api/me/quiz-attempts      → tentativas concluídas
+   * Só substitui o valor base quando este está a zero (evita "regredir"
+   * valores corretos vindos de /me com contagens de páginas parciais).
+   */
+  private async loadRealStats(): Promise<void> {
+    const token = this.authService.getToken();
+    const headers = token ? this.authService.getAuthHeaders(token) : {};
+
+    // ── Pontos ──────────────────────────────────────────────────────────
+    if (this.statTotalPoints === 0) {
+      try {
+        const res: any = await firstValueFrom(
+          this.http.get(`${environment.apiBaseUrl}/api/me/point-transactions`, { headers })
+        );
+        const list: any[] = Array.isArray(res) ? res : (res?.data?.data ?? res?.data ?? []);
+        const statsTotal = res?.stats?.total_points ?? res?.data?.stats?.total_points;
+
+        this.statTotalPoints = typeof statsTotal === 'number'
+          ? statsTotal
+          : list.reduce((sum, t) => sum + (Number(t.points) || 0), 0);
+      } catch { /* mantém 0 */ }
+    }
+
+    // ── Quizzes concluídos ──────────────────────────────────────────────
+    if (this.statQuizzesCompleted === 0) {
+      try {
+        const res: any = await firstValueFrom(
+          this.http.get(`${environment.apiBaseUrl}/api/me/quiz-attempts`, { headers })
+        );
+        const list: any[] = Array.isArray(res) ? res : (res?.data?.data ?? res?.data ?? []);
+        const metaTotal = res?.meta?.total ?? res?.data?.meta?.total;
+
+        const completed = list.filter(a =>
+          ['completed', 'passed', 'graded', 'finished'].includes(String(a.status ?? '').toLowerCase())
+          || !!a.completed_at
+        );
+
+        this.statQuizzesCompleted = completed.length > 0
+          ? completed.length
+          : (typeof metaTotal === 'number' ? metaTotal : list.length);
+      } catch { /* mantém 0 */ }
+    }
+
+    this.buildStats();
+    this.cdr.detectChanges();
+  }
+
+  /** Constrói o array de cards a partir dos valores numéricos atuais. */
+  private buildStats(): void {
+    const progressPercentage = Math.min((this.statCurrentLevel / 5) * 100, 100);
 
     this.stats = [
       {
         label: 'PONTUAÇÃO ACADÉMICA TOTAL',
-        value: totalPoints.toLocaleString(),
+        value: this.statTotalPoints.toLocaleString(),
         unit: 'pts',
         color: '#6b0119',
         progress: progressPercentage
       },
       {
         label: 'QUESTIONÁRIOS CONCLUÍDOS',
-        value: quizzesCompleted,
+        value: this.statQuizzesCompleted,
         unit: 'de 200',
         color: '#8b1e2d',
-        progress: Math.min((quizzesCompleted / 200) * 100, 100)
+        progress: Math.min((this.statQuizzesCompleted / 200) * 100, 100)
       },
       {
         label: 'NÍVEL ATUAL',
-        value: currentLevel,
+        value: this.statCurrentLevel,
         subtext: `de 5 níveis`,
-        rankBadge: this.getLevelName(currentLevel),
+        rankBadge: this.getLevelName(this.statCurrentLevel),
         color: 'white',
         bgColor: '#8b1e2d',
         progress: null
       },
       {
         label: 'DOCUMENTOS LIDOS',
-        value: userLevels.documents_read || 0,
+        value: this.statDocumentsRead,
         unit: 'arquivos',
         color: '#574142',
-        progress: Math.min(((userLevels.documents_read || 0) / 50) * 100, 100)
+        progress: Math.min((this.statDocumentsRead / 50) * 100, 100)
       }
     ];
   }
@@ -305,9 +393,6 @@ export class PerfilComponent implements OnInit {
       // TODO: Implementar endpoints no backend para:
       // 1. GET /api/profile/merits - Retornar méritos do utilizador
       // 2. GET /api/profile/contents - Retornar conteúdos criados
-      // 3. GET /api/profile/settings - Retornar configurações de privacidade/notificações
-      
-      // Por enquanto, manter arrays vazios até backend implementar
       this.merits = [];
       this.userContents = [];
       this.settings = {
@@ -332,6 +417,9 @@ export class PerfilComponent implements OnInit {
     if (error?.status === 404) {
       return 'Perfil não encontrado.';
     }
+    if (error?.status === 422) {
+      return error?.error?.message ?? 'Dados inválidos.';
+    }
     if (error?.status === 500) {
       return 'Erro do servidor. Tente novamente mais tarde.';
     }
@@ -353,18 +441,80 @@ export class PerfilComponent implements OnInit {
    */
   openEditProfileModal(): void {
     this.state.isEditingProfile = true;
+    this.cdr.detectChanges();
   }
 
   /**
    * Fecha o modal de edição de perfil.
-   * Nota: não refaz o pedido GET /api/me aqui de propósito — depois de um
-   * guardar bem-sucedido, os dados locais (profileData/profileAvatarUrl) já
-   * estão atualizados. Recarregar aqui criava uma condição de corrida: se o
-   * backend/storage ainda não tivesse propagado o novo avatar, o refetch
-   * sobrescrevia a foto correta com o valor antigo/vazio.
    */
   closeEditProfileModal(): void {
     this.state.isEditingProfile = false;
+    this.cdr.detectChanges();
+  }
+
+  // ==========================================
+  // ALTERAÇÃO DE PALAVRA-PASSE
+  // ==========================================
+  openPasswordModal(): void {
+    this.passwordForm.reset();
+    this.passwordError = null;
+    this.state.isChangingPassword = true;
+    this.cdr.detectChanges();
+  }
+
+  closePasswordModal(): void {
+    this.state.isChangingPassword = false;
+    this.passwordError = null;
+    this.cdr.detectChanges();
+  }
+
+  async submitPasswordChange(): Promise<void> {
+    this.passwordError = null;
+
+    if (!this.passwordForm.valid) {
+      this.passwordForm.markAllAsTouched();
+      this.passwordError = 'Preencha todos os campos corretamente.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const { current_password, password, password_confirmation } = this.passwordForm.value;
+
+    if (password !== password_confirmation) {
+      this.passwordError = 'A confirmação não coincide com a nova palavra-passe.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.savingPassword = true;
+    this.cdr.detectChanges();
+
+    try {
+      const token = this.authService.getToken();
+      const headers = token ? this.authService.getAuthHeaders(token) : {};
+
+      await firstValueFrom(
+        this.http.put(
+          `${environment.apiBaseUrl}/api/profile/password`,
+          { current_password, password, password_confirmation },
+          { headers }
+        )
+      );
+
+      this.toastService.success('Palavra-passe alterada com sucesso!');
+      this.closePasswordModal();
+    } catch (error: any) {
+      this.passwordError = error?.error?.message
+        ?? (error?.status === 422 ? 'Palavra-passe atual incorreta ou nova palavra-passe inválida.' : 'Erro ao alterar a palavra-passe.');
+    } finally {
+      this.savingPassword = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  /** Navega para a página de preferências de notificações. */
+  goToNotificationPreferences(): void {
+    this.router.navigate(['/auth/perfil/notificacoes']);
   }
 
   /**
@@ -373,11 +523,13 @@ export class PerfilComponent implements OnInit {
   async saveProfileChanges(): Promise<void> {
     if (!this.editForm.valid) {
       this.state.error = 'Por favor, preencha todos os campos obrigatórios corretamente.';
+      this.cdr.detectChanges();
       return;
     }
 
     this.state.isLoadingStats = true;
     this.state.error = null;
+    this.cdr.detectChanges();
 
     try {
       let updates = this.editForm.value;
@@ -401,17 +553,12 @@ export class PerfilComponent implements OnInit {
       // Se houver novo avatar, fazer upload
       if (this.avatarFile) {
         const response = await this.profileService.updateAvatar(this.avatarFile);
-        // Usar diretamente a URL retornada pelo backend (já completa e processada)
         if (response?.avatar_url) {
-          // Atualizar URL imediatamente para mostrar mudança
           this.profileAvatarUrl = response.avatar_url + '?t=' + Date.now();
-          // Sincronizar também profileData, para que mapProfileData() (chamado
-          // já a seguir) não reverta profileAvatarUrl para o valor antigo/vazio.
           if (this.profileData) {
             this.profileData.avatar_url = response.avatar_url;
           }
         }
-        // Limpar seleção
         this.avatarPreview = null;
         this.avatarFile = null;
         this.avatarPreviewTime = 0;
@@ -420,14 +567,10 @@ export class PerfilComponent implements OnInit {
       // Atualizar dados locais com os valores do form
       this.profileData = { ...this.profileData, ...updates };
       this.mapProfileData(this.profileData, this.userData);
-      
-      // Forçar detecção de mudanças
+
       this.cdr.detectChanges();
 
-      // Fechar modal após sucesso
       this.closeEditProfileModal();
-      
-      // Mostrar toast de sucesso
       this.toastService.success('Perfil atualizado com sucesso!');
     } catch (error) {
       const errorMsg = this.getErrorMessage(error);
@@ -443,7 +586,6 @@ export class PerfilComponent implements OnInit {
    * Descartar mudanças e fechar modal
    */
   discardChanges(): void {
-    // Restaurar valores originais
     if (this.profileData) {
       this.editForm.patchValue({
         display_name: this.profileData.display_name || '',
@@ -464,11 +606,9 @@ export class PerfilComponent implements OnInit {
    * Retorna a URL correta do avatar (preview ou atual)
    */
   getAvatarSrc(): string {
-    // Se há preview, usar diretamente
     if (this.avatarPreview) {
       return this.avatarPreview;
     }
-    // Caso contrário, usar o avatar atual (pode ser '' — o template trata isso)
     return this.profileAvatarUrl;
   }
 
@@ -485,42 +625,37 @@ export class PerfilComponent implements OnInit {
 
     this.avatarError = null;
 
-    // Validar tipo de arquivo
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       this.avatarError = 'Tipo de arquivo não permitido. Use JPG, PNG ou WebP.';
+      this.cdr.detectChanges();
       return;
     }
 
-    // Validar tamanho (máx 5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB em bytes
     if (file.size > maxSize) {
       this.avatarError = 'Arquivo muito grande. Máximo 5MB.';
+      this.cdr.detectChanges();
       return;
     }
 
-    // Criar preview usando FileReader
     const reader = new FileReader();
-    
+
     reader.onload = (e: any) => {
-      // Atualizar preview imediatamente
       const result = e.target?.result;
       if (result && typeof result === 'string') {
         this.avatarPreview = result;
         this.avatarPreviewTime = Date.now();
-        // Forçar Angular a detectar mudanças
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       }
     };
-    
+
     reader.onerror = () => {
       this.avatarError = 'Erro ao ler arquivo. Tente novamente.';
+      this.cdr.detectChanges();
     };
 
-    // Iniciar leitura do arquivo
     reader.readAsDataURL(file);
-
-    // Guardar arquivo para upload
     this.avatarFile = file;
   }
 
@@ -532,6 +667,7 @@ export class PerfilComponent implements OnInit {
     this.avatarFile = null;
     this.avatarError = null;
     this.avatarPreviewTime = 0;
+    this.cdr.detectChanges();
   }
 
   /**
@@ -549,7 +685,7 @@ export class PerfilComponent implements OnInit {
     const confirm = window.confirm(
       'Tem certeza que deseja desativar sua conta? Esta ação é irreversível.'
     );
-    
+
     if (confirm) {
       // TODO: Implementar desativação de conta
       this.toastService.info('Funcionalidade de desativação em desenvolvimento.');
@@ -561,6 +697,7 @@ export class PerfilComponent implements OnInit {
    */
   togglePrivacySetting(index: number): void {
     this.settings.privacy[index].checked = !this.settings.privacy[index].checked;
+    this.cdr.detectChanges();
     // TODO: Salvar no backend via SettingsService
   }
 
@@ -569,6 +706,7 @@ export class PerfilComponent implements OnInit {
    */
   toggleNotificationSetting(index: number): void {
     this.settings.notifications[index].checked = !this.settings.notifications[index].checked;
+    this.cdr.detectChanges();
     // TODO: Salvar no backend via SettingsService
   }
 
@@ -585,9 +723,6 @@ export class PerfilComponent implements OnInit {
 
   /**
    * Chamado quando a <img> do avatar falha ao carregar (link morto, 403, etc.).
-   * Em vez de trocar para um data-URI (que pode ser bloqueado), limpamos
-   * profileAvatarUrl para que o template caia automaticamente no placeholder
-   * de iniciais (*ngIf="hasRealAvatar").
    */
   onAvatarLoadError(event: Event): void {
     (event.target as HTMLImageElement).style.display = 'none';
@@ -602,7 +737,7 @@ export class PerfilComponent implements OnInit {
     this.profileService.getMe().then(me => {
       const profile = me?.profile ?? null;
       const user = me?.user as Record<string, unknown> | undefined;
-      
+
       if (profile) {
         this.profileData = profile;
         this.mapProfileData(profile, user);
