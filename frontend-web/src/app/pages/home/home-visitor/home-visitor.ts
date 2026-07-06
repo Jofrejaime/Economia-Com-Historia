@@ -15,7 +15,9 @@ interface FeaturedContent {
   category: string;
   date: string;
   views: string;
-  image: string; // pode vir vazia — o template deve mostrar placeholder nesse caso
+  image: string;
+  document_type: string;
+  access_level_id: string; // 'public' | 'jindungo' | 'restricted'
 }
 
 interface LeaderboardRow {
@@ -47,6 +49,12 @@ export class HomeVisitorComponent implements OnInit {
   recentDiscussions: RecentDiscussion[] = [];
   isLoading = true;
 
+  // ─── Modal de pedido de acesso (jindungo / restrito) ─────────────────────
+  accessModalDoc: FeaturedContent | null = null;
+  accessRequesting = false;
+  accessRequestDone = false;
+  accessRequestError: string | null = null;
+
   constructor(
     private router: Router,
     private documentService: DocumentService,
@@ -73,6 +81,8 @@ export class HomeVisitorComponent implements OnInit {
         date: this.formatDate(d.published_at ?? d.publication_date),
         views: this.formatViews(d.views_count ?? 0),
         image: d.cover_image_url ?? '',
+        document_type: d.document_type ?? '',
+        access_level_id: d.access_level_id ?? 'public',
       }));
 
       // Ranking (primeiros 5)
@@ -131,6 +141,65 @@ export class HomeVisitorComponent implements OnInit {
     if (days > 0) return `${days} dia${days > 1 ? 's' : ''}`;
     if (hours > 0) return `${hours} hora${hours > 1 ? 's' : ''}`;
     return 'agora mesmo';
+  }
+
+  // ==========================================
+  // ACESSO A CONTEÚDOS JINDUNGO / RESTRITOS
+  // ==========================================
+
+  getAccessLabel(accessLevelId: string): string {
+    switch (accessLevelId) {
+      case 'jindungo':   return 'Jindungo';
+      case 'restricted': return 'Restrito';
+      default:           return 'Público';
+    }
+  }
+
+  getAccessBadgeStyle(accessLevelId: string): { bg: string; text: string } {
+    switch (accessLevelId) {
+      case 'jindungo':   return { bg: '#ffd6a5', text: '#4a2c00' };
+      case 'restricted': return { bg: '#ffb3ba', text: '#5c0011' };
+      default:           return { bg: '#d1fae5', text: '#065f46' };
+    }
+  }
+
+  private needsAccessRequest(content: FeaturedContent): boolean {
+    return content.access_level_id === 'jindungo' || content.access_level_id === 'restricted';
+  }
+
+  navigateToContent(id: string): void {
+    const content = this.featuredContents.find(c => c.id === id);
+
+    if (content && this.needsAccessRequest(content)) {
+      this.openAccessModal(content);
+      return;
+    }
+
+    this.router.navigate(['/contents/view', id]);
+  }
+
+  openAccessModal(content: FeaturedContent): void {
+    this.accessModalDoc = content;
+    this.accessRequesting = false;
+    this.accessRequestDone = false;
+    this.accessRequestError = null;
+    this.cdr.detectChanges();
+    // Visitante não autenticado — não há verificação de status a fazer aqui,
+    // o pedido só pode ser feito depois de iniciar sessão.
+  }
+
+  closeAccessModal(): void {
+    this.accessModalDoc = null;
+    this.accessRequesting = false;
+    this.accessRequestDone = false;
+    this.accessRequestError = null;
+    this.cdr.detectChanges();
+  }
+
+  requestAccess(): void {
+    // Visitante tem sempre de iniciar sessão antes de pedir acesso
+    this.closeAccessModal();
+    this.router.navigate(['/auth/login']);
   }
 
   navigateTo(path: string): void {

@@ -91,7 +91,7 @@
 
       <!-- Lista de conteúdos — mesma estrutura visual da contents.html (home-user) -->
       <div class="visitor-docs-list" *ngIf="!isLoading && featuredContents.length > 0">
-        <div *ngFor="let content of featuredContents" (click)="navigateTo('/contents/view/' + content.id)" class="visitor-doc-item">
+       <div *ngFor="let content of featuredContents" (click)="navigateToContent(content.id)" class="visitor-doc-item">
           <div class="visitor-doc-item-image">
             <img *ngIf="content.image" [src]="content.image" [alt]="content.title">
             <div *ngIf="!content.image" class="visitor-doc-item-placeholder">
@@ -103,6 +103,11 @@
           </div>
           <div class="visitor-doc-item-body">
             <span class="visitor-doc-item-category">{{ content.category }}</span>
+            <span [style.background]="getAccessBadgeStyle(content.access_level_id).bg"
+        [style.color]="getAccessBadgeStyle(content.access_level_id).text"
+        style="display:inline-block;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:700;margin:4px 0;width:fit-content">
+    {{ getAccessLabel(content.access_level_id) }}
+  </span>
             <h3 class="visitor-doc-item-title">{{ content.title }}</h3>
             <p class="visitor-doc-item-description">{{ content.description }}</p>
             <p class="visitor-doc-item-meta">
@@ -348,4 +353,56 @@
       </div>
     </div>
   </footer>
+  </footer>
+
+  <!-- MODAL: Pedido de Acesso (Jindungo / Restrito) -->
+  <div *ngIf="accessModalDoc" class="access-modal-overlay" (click)="closeAccessModal()">
+    <div class="access-modal" (click)="$event.stopPropagation()">
+
+      <div class="access-modal-header">
+        <div class="access-modal-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="access-modal-title">Conteúdo {{ getAccessLabel(accessModalDoc.access_level_id) }}</h2>
+          <p class="access-modal-subtitle">Este documento requer subscrição de acesso</p>
+        </div>
+        <button class="access-modal-close" (click)="closeAccessModal()" aria-label="Fechar">&times;</button>
+      </div>
+
+      <div class="access-modal-body">
+
+        <div class="access-modal-doc">
+          <span class="access-modal-doc-type">{{ accessModalDoc.category | uppercase }}</span>
+          <h3 class="access-modal-doc-title">{{ accessModalDoc.title }}</h3>
+          <span class="access-modal-doc-badge"
+                [style.background]="getAccessBadgeStyle(accessModalDoc.access_level_id).bg"
+                [style.color]="getAccessBadgeStyle(accessModalDoc.access_level_id).text">
+            {{ getAccessLabel(accessModalDoc.access_level_id) }}
+          </span>
+        </div>
+
+        <p class="access-modal-text">
+          Os conteúdos {{ accessModalDoc.access_level_id === 'jindungo' ? 'Jindungo' : 'restritos' }}
+          fazem parte do acervo de acesso condicionado do arquivo. Inicie sessão e
+          envie um pedido de acesso — a equipa do arquivo irá analisá-lo.
+        </p>
+
+        <div class="access-modal-actions">
+          <button type="button" class="access-modal-btn-secondary" (click)="closeAccessModal()">
+            Agora não
+          </button>
+          <button type="button" class="access-modal-btn-primary" (click)="requestAccess()">
+            Iniciar Sessão para Pedir Acesso
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
 </div>
