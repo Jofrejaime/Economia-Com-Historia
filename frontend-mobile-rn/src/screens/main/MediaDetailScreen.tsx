@@ -18,6 +18,7 @@ import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { documentService } from "../../services/api/documentService";
+import { AccessRequestModal } from "../../components/AccessRequestModal";
 import type { Document, DocumentQuizPreview, DocumentTopicPreview } from "../../types/api";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -137,6 +138,8 @@ export function MediaDetailScreen() {
   const [doc, setDoc] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorType, setErrorType] = useState<"not_found" | "access_denied" | "subscription_required" | "network_error" | null>(null);
+  const [requiredAccessLevel, setRequiredAccessLevel] = useState<string>("restricted");
+  const [accessModalVisible, setAccessModalVisible] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
@@ -171,6 +174,9 @@ export function MediaDetailScreen() {
       const status = err?.response?.status;
       if (status === 403) {
         const subscriptionRequired = err.response?.data?.subscription_required;
+        const levelId = err.response?.data?.required_access_level_id
+          ?? (subscriptionRequired ? "jindungo" : "restricted");
+        setRequiredAccessLevel(levelId);
         setErrorType(subscriptionRequired ? "subscription_required" : "access_denied");
       } else if (status === 404) {
         setErrorType("not_found");
@@ -240,13 +246,13 @@ export function MediaDetailScreen() {
       },
       access_denied: {
         icon: "lock" as const,
-        title: "Acesso restrito",
-        message: "Não tens permissão para aceder a este conteúdo.",
+        title: "Acesso Restrito",
+        message: "Este conteúdo requer acesso especial aprovado.",
       },
       subscription_required: {
-        icon: "lock" as const,
+        icon: "zap" as const,
         title: "Conteúdo Jindungo",
-        message: "Este conteúdo requer uma subscrição Jindungo activa.",
+        message: "Este conteúdo é exclusivo para membros Jindungo. Solicita acesso e o administrador aprovará o teu pedido.",
       },
       network_error: {
         icon: "wifi-off" as const,
@@ -262,12 +268,19 @@ export function MediaDetailScreen() {
           <Feather name={errorConfig.icon} size={40} color={appTheme.colors.textMuted} />
           <Text style={styles.errorTitle}>{errorConfig.title}</Text>
           <Text style={styles.errorText}>{errorConfig.message}</Text>
-          {errorType === "subscription_required" && (
+          {(errorType === "access_denied" || errorType === "subscription_required") && (
             <TouchableOpacity
               style={styles.errorButton}
-              onPress={() => navigation.navigate("JindungoPermission")}
+              onPress={() => {
+                if (!user) {
+                  navigation.navigate("LoginPrompt", { type: "comment" });
+                } else {
+                  setAccessModalVisible(true);
+                }
+              }}
             >
-              <Text style={styles.errorButtonText}>Ver planos Jindungo</Text>
+              <Feather name="send" size={15} color={appTheme.colors.surface} style={{ marginRight: 6 }} />
+              <Text style={styles.errorButtonText}>Solicitar Acesso</Text>
             </TouchableOpacity>
           )}
           {errorType === "network_error" && (
@@ -279,6 +292,13 @@ export function MediaDetailScreen() {
             <Text style={styles.errorLinkText}>Voltar</Text>
           </TouchableOpacity>
         </View>
+
+        <AccessRequestModal
+          visible={accessModalVisible}
+          documentId={id}
+          accessLevelId={requiredAccessLevel}
+          onClose={() => setAccessModalVisible(false)}
+        />
       </ScreenContainer>
     );
   }
@@ -697,6 +717,9 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   errorButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: appTheme.colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,

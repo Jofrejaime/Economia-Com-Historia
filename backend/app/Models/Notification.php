@@ -20,6 +20,7 @@ class Notification extends Model
         'message',
         'reference_id',
         'reference_type',
+        'data',
         'is_read',
         'read_at',
         'created_at',
@@ -28,6 +29,7 @@ class Notification extends Model
     protected $casts = [
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'data'    => 'array',
     ];
 
     public $timestamps = false;

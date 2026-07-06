@@ -172,25 +172,32 @@ class AccessController extends Controller
     public function storeRequest(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'access_level_id' => ['required', 'string', 'exists:access_levels,id'],
+            'document_id'   => ['required', 'uuid', 'exists:documents,id'],
             'justification' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $user = $request->user();
-        $accessLevelId = $validated['access_level_id'];
+        $documentId = $validated['document_id'];
+
+        $document = DB::table('documents')->where('id', $documentId)->first();
+        if ($document === null) {
+            return response()->json(['message' => 'Document not found.'], 404);
+        }
+
+        $accessLevelId = $document->access_level_id;
 
         if (in_array($accessLevelId, $this->accessGate->activeGrantLevelIds($user), true)) {
-            return response()->json(['message' => 'You already have access to this level.'], 409);
+            return response()->json(['message' => 'You already have access to this content.'], 409);
         }
 
         $existingRequest = DB::table('user_access_requests')
             ->where('user_id', $user->id)
-            ->where('access_level_id', $accessLevelId)
+            ->where('document_id', $documentId)
             ->whereIn('status', ['pending', 'approved'])
             ->first();
 
         if ($existingRequest !== null) {
-            return response()->json(['message' => 'You already have a pending or approved request for this access level.'], 409);
+            return response()->json(['message' => 'You already have a pending or approved request for this content.'], 409);
         }
 
         $accessLevel = DB::table('access_levels')->where('id', $accessLevelId)->first();
@@ -202,16 +209,17 @@ class AccessController extends Controller
         $requestId = (string) Str::uuid();
         $status = $accessLevel->auto_grant ? 'approved' : 'pending';
 
-        DB::transaction(function () use ($user, $validated, $accessLevelId, $requestId, $status, $accessLevel): void {
+        DB::transaction(function () use ($user, $validated, $documentId, $accessLevelId, $requestId, $status, $accessLevel): void {
             DB::table('user_access_requests')->insert([
-                'id' => $requestId,
-                'user_id' => $user->id,
+                'id'             => $requestId,
+                'user_id'        => $user->id,
                 'access_level_id' => $accessLevelId,
-                'status' => $status,
-                'justification' => $validated['justification'] ?? null,
-                'reviewed_by' => $status === 'approved' ? null : null,
-                'reviewed_at' => $status === 'approved' ? now() : null,
-                'created_at' => now(),
+                'document_id'    => $documentId,
+                'status'         => $status,
+                'justification'  => $validated['justification'] ?? null,
+                'reviewed_by'    => null,
+                'reviewed_at'    => $status === 'approved' ? now() : null,
+                'created_at'     => now(),
             ]);
 
             if ($accessLevel->auto_grant) {
@@ -348,11 +356,18 @@ class AccessController extends Controller
             return response()->json(['message' => 'This request has already been reviewed.'], 409);
         }
 
-        // Get user and access level data before transaction
+        // Get user, access level and document data before transaction
         $user = User::find($accessRequest->user_id);
         $accessLevel = DB::table('access_levels')->where('id', $accessRequest->access_level_id)->first();
+        $document = $accessRequest->document_id
+            ? DB::table('documents')->where('id', $accessRequest->document_id)->select('id', 'title', 'media_type')->first()
+            : null;
 
-        DB::transaction(function () use ($accessRequest, $validated, $request, $id, $user, $accessLevel) {
+        $notifData = $document
+            ? ['document_id' => $document->id, 'media_type' => $document->media_type]
+            : [];
+
+        DB::transaction(function () use ($accessRequest, $validated, $request, $id, $user, $accessLevel, $document, $notifData) {
             DB::table('user_access_requests')
                 ->where('id', $id)
                 ->update([
@@ -388,24 +403,34 @@ class AccessController extends Controller
                         ]);
                 }
 
-                // Send notification for approval
+                $approvalMessage = $document
+                    ? "O teu pedido de acesso a \"{$document->title}\" foi aprovado."
+                    : "O teu pedido de acesso {$accessLevel->name} foi aprovado.";
+
                 $this->notificationService->send(
                     $user,
                     'access_request_approved',
-                    'Access Request Approved',
-                    "Your request for {$accessLevel->name} access has been approved.",
+                    'Pedido de acesso aprovado',
+                    $approvalMessage,
                     $id,
-                    'access_request'
+                    'access_request',
+                    [],
+                    $notifData
                 );
             } else {
-                // Send notification for rejection
+                $rejectionMessage = $document
+                    ? "O teu pedido de acesso a \"{$document->title}\" foi rejeitado."
+                    : "O teu pedido de acesso {$accessLevel->name} foi rejeitado.";
+
                 $this->notificationService->send(
                     $user,
                     'access_request_rejected',
-                    'Access Request Rejected',
-                    "Your request for {$accessLevel->name} access has been rejected.",
+                    'Pedido de acesso rejeitado',
+                    $rejectionMessage,
                     $id,
-                    'access_request'
+                    'access_request',
+                    [],
+                    $notifData
                 );
             }
         });

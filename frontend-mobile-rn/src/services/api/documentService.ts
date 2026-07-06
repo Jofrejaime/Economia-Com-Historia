@@ -1,6 +1,7 @@
 import { httpClient } from '../http/client';
 import { API_ENDPOINTS } from '../../constants/api';
 import type { Document, DocumentCategory, Quiz, PaginatedResponse } from '../../types/api';
+import { documentCache } from '../storage/documentCache';
 
 export interface DocumentFilters {
   q?: string;
@@ -32,15 +33,25 @@ export const documentService = {
   },
 
   async detail(id: string): Promise<Document> {
-    const { data } = await httpClient.get(API_ENDPOINTS.DOCUMENTS.DETAIL(id));
-    const doc: Document = data.data ?? data;
-    if (data.data) {
-      doc.is_liked       = data.is_liked ?? false;
-      doc.is_favorited   = data.is_favorited ?? false;
-      doc.tags           = data.tags ?? [];
-      doc.topics_preview = data.topics_preview ?? [];
+    try {
+      const { data } = await httpClient.get(API_ENDPOINTS.DOCUMENTS.DETAIL(id));
+      const doc: Document = data.data ?? data;
+      if (data.data) {
+        doc.is_liked       = data.is_liked ?? false;
+        doc.is_favorited   = data.is_favorited ?? false;
+        doc.tags           = data.tags ?? [];
+        doc.topics_preview = data.topics_preview ?? [];
+      }
+      void documentCache.save(doc);
+      return doc;
+    } catch (error: any) {
+      // Network unreachable — serve from cache if available
+      if (!error.response) {
+        const cached = await documentCache.get(id);
+        if (cached) return cached;
+      }
+      throw error;
     }
-    return doc;
   },
 
   async relatedQuizzes(documentId: string): Promise<Quiz[]> {
