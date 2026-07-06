@@ -170,6 +170,31 @@ export class DocumentService {
     }
   }
 
+  // ==========================================
+// SUBSCRIÇÕES (documentos jindungo/restritos)
+// ==========================================
+
+/** Pede acesso a um documento jindungo ou restrito. */
+async subscribeDocument(id: string): Promise<void> {
+  await firstValueFrom(
+    this.http.post(`${this.base}/documents/${id}/subscribe`, {}, { headers: this.headers })
+  );
+}
+
+/** Estado da subscrição do utilizador para este documento (pending/approved/rejected/none). */
+async getSubscriptionStatus(id: string): Promise<any> {
+  return firstValueFrom(
+    this.http.get(`${this.base}/documents/${id}/subscription`, { headers: this.headers })
+  );
+}
+
+/** Cancela o pedido/subscrição deste documento. */
+async cancelSubscription(id: string): Promise<void> {
+  await firstValueFrom(
+    this.http.delete(`${this.base}/documents/${id}/subscription`, { headers: this.headers })
+  );
+}
+
   /**
    * Tópicos de fórum relacionados com este documento — associação directa e
    * explícita, definida no momento em que o tópico é criado a partir desta

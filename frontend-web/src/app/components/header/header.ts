@@ -34,6 +34,7 @@ export class HeaderComponent implements OnInit {
   private static cachedDisplayName: string | null = null;
   private static cachedUserRole: string | null = null;
   private static cacheUserId: string | null = null;
+  private static cachedUnreadCount: number | null = null;
 
   constructor(
     public router: Router,
@@ -64,6 +65,7 @@ export class HeaderComponent implements OnInit {
       HeaderComponent.cachedDisplayName = null;
       HeaderComponent.cachedUserRole = null;
       HeaderComponent.cacheUserId = null;
+      HeaderComponent.cachedUnreadCount = null;
       return;
     }
 
@@ -90,6 +92,9 @@ export class HeaderComponent implements OnInit {
     if (HeaderComponent.cachedUserRole) {
       this.userRole = HeaderComponent.cachedUserRole;
     }
+    if (HeaderComponent.cachedUnreadCount !== null) {
+  this.unreadCount = HeaderComponent.cachedUnreadCount;
+}
   }
 
   private async loadUserAvatar(): Promise<void> {
@@ -106,14 +111,14 @@ export class HeaderComponent implements OnInit {
   }
 
   private async loadUnreadCount(): Promise<void> {
-    try {
-      const notifications = await this.notificationService.getNotifications();
-      this.unreadCount = notifications.filter(n => !n.is_read).length;
-    } catch {
-      this.unreadCount = 0;
-    }
+  try {
+    const notifications = await this.notificationService.getNotifications();
+    this.unreadCount = notifications.filter(n => !n.is_read).length;
+    HeaderComponent.cachedUnreadCount = this.unreadCount;
+  } catch {
+    // Mantém o valor atual (cache ou 0) em vez de limpar — evita o "piscar"
   }
-
+}
   hasAvatar(): boolean {
     return !!this.avatarUrl?.trim();
   }

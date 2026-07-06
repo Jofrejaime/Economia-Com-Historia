@@ -56,10 +56,10 @@ export class CommunityComponent implements OnInit {
       const topics = topicsResult.ok && topicsResult.data ? topicsResult.data.data : [];
       this.discussions = topics;
 
-      // Pesquisas em destaque = top 3 por visualizações.
-      // O spread evita reordenar this.discussions, que a tab "recentes"
-      // ordena por data.
+      // Pesquisas em destaque = top 3 por visualizações, APENAS entre as
+      // discussões que este utilizador pode ver (nunca destacar privadas).
       this.featuredResearches = [...topics]
+        .filter(t => this.canSeeTopic(t))
         .sort((a, b) => (b.views_count ?? 0) - (a.views_count ?? 0))
         .slice(0, 3)
         .map(t => ({
@@ -74,10 +74,23 @@ export class CommunityComponent implements OnInit {
     }
   }
 
+  /**
+   * Uma discussão INVITE_ONLY só é visível para o autor ou para membros
+   * convidados (se o backend enviar essa informação no tópico: is_member).
+   * NOTA: isto é apenas a camada visual — a barreira real é o backend
+   * filtrar/negar no indexTopics e showTopic.
+   */
+  private canSeeTopic(d: DiscussionTopic): boolean {
+    if (d.visibility !== 'INVITE_ONLY') return true;
+    if (this.currentUserId && d.author_id === this.currentUserId) return true;
+    return !!(d as any).is_member;
+  }
+
   get filteredDiscussions(): DiscussionTopic[] {
-    if (this.activeTab === 'pinned') return this.discussions.filter(d => d.is_pinned);
-    if (this.activeTab === 'popular') return [...this.discussions].sort((a, b) => b.views_count - a.views_count);
-    return [...this.discussions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const visible = this.discussions.filter(d => this.canSeeTopic(d));
+    if (this.activeTab === 'pinned') return visible.filter(d => d.is_pinned);
+    if (this.activeTab === 'popular') return [...visible].sort((a, b) => b.views_count - a.views_count);
+    return [...visible].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   get totalTopics(): number { return this.categories.reduce((t, c) => t + (c.topics_count ?? 0), 0); }
@@ -127,11 +140,15 @@ export class CommunityComponent implements OnInit {
   toggleCardMenu(event: Event, id: string): void {
     event.stopPropagation();
     this.openCardMenuId = this.openCardMenuId === id ? null : id;
+    this.cdr.detectChanges();
   }
 
   @HostListener('document:click')
   closeCardMenu(): void {
-    this.openCardMenuId = null;
+    if (this.openCardMenuId !== null) {
+      this.openCardMenuId = null;
+      this.cdr.detectChanges();
+    }
   }
 
   editCard(event: Event, id: string): void {
@@ -145,11 +162,13 @@ export class CommunityComponent implements OnInit {
     this.openCardMenuId = null;
     this.deleteCardTargetId = id;
     this.showDeleteCardModal = true;
+    this.cdr.detectChanges();
   }
 
   closeDeleteCardModal(): void {
     this.showDeleteCardModal = false;
     this.deleteCardTargetId = null;
+    this.cdr.detectChanges();
   }
 
   async confirmDeleteCard(): Promise<void> {
@@ -160,7 +179,13 @@ export class CommunityComponent implements OnInit {
       this.closeDeleteCardModal();
       this.cdr.detectChanges();
     } catch {
-      alert('Erro ao eliminar discussão.');
+      this.closeDeleteCardModal();
+      this.error = 'Erro ao eliminar discussão.';
+      this.cdr.detectChanges();
+      setTimeout(() => {
+        this.error = null;
+        this.cdr.detectChanges();
+      }, 4000);
     }
   }
 

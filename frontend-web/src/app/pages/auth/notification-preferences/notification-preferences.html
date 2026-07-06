@@ -1,0 +1,64 @@
+<div class="notifprefs-page">
+  <app-header></app-header>
+
+  <main class="notifprefs-main">
+    <div class="notifprefs-container">
+
+      <!-- Breadcrumb -->
+      <nav class="notifprefs-breadcrumb">
+        <button (click)="goBack()" class="notifprefs-breadcrumb-btn">Perfil</button>
+        <span class="notifprefs-breadcrumb-separator">/</span>
+        <span class="notifprefs-breadcrumb-current">Preferências de Notificações</span>
+      </nav>
+
+      <!-- Header -->
+      <div class="notifprefs-header">
+        <div style="margin-bottom: 16px;">
+          <span class="notifprefs-header-badge">CONTA</span>
+        </div>
+        <h1 class="notifprefs-header-title">Preferências de Notificações</h1>
+        <p class="notifprefs-header-description">
+          Escolha que tipos de notificações deseja receber. As alterações são guardadas automaticamente.
+        </p>
+      </div>
+
+      <!-- Ações em massa -->
+      <div class="notifprefs-bulk-actions">
+        <button type="button" class="notifprefs-bulk-btn" (click)="enableAll()">Ativar todas</button>
+        <button type="button" class="notifprefs-bulk-btn" (click)="disableAll()">Desativar todas</button>
+        <span class="notifprefs-saved" *ngIf="saved">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          Guardado
+        </span>
+      </div>
+
+      <!-- Lista de preferências -->
+      <div class="notifprefs-card">
+        <div *ngFor="let pref of preferences" class="notifprefs-item">
+          <div class="notifprefs-item-info">
+            <h3 class="notifprefs-item-label">{{ pref.label }}</h3>
+            <p class="notifprefs-item-desc">{{ pref.description }}</p>
+          </div>
+          <button type="button"
+                  class="notifprefs-switch"
+                  [class.on]="pref.enabled"
+                  role="switch"
+                  [attr.aria-checked]="pref.enabled"
+                  [attr.aria-label]="pref.label"
+                  (click)="togglePreference(pref)">
+            <span class="notifprefs-switch-thumb"></span>
+          </button>
+        </div>
+      </div>
+
+      <p class="notifprefs-footnote">
+        Estas preferências aplicam-se às notificações dentro da plataforma.
+      </p>
+
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

@@ -1185,3 +1185,81 @@ p, span, div, button, input, textarea, select {
 .profile-avatar-preview.profile-avatar-placeholder span {
   font-size: 36px;
 }
+
+/* ============================================
+   SEGURANÇA E PREFERÊNCIAS
+   ============================================ */
+
+.profile-security {
+  margin-bottom: var(--space-6);
+}
+
+.profile-security .section-title {
+  margin-bottom: 28px;
+}
+
+.profile-security-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.profile-security-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.profile-security-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(139, 30, 45, 0.15);
+}
+
+.profile-security-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: rgba(139, 30, 45, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-security-content {
+  flex: 1;
+}
+
+.profile-security-title {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-dark-grey);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.profile-security-desc {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-medium-grey);
+  margin: 0 0 14px 0;
+}
+
+.profile-security-btn {
+  min-height: 40px;
+  padding: 8px 18px;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .profile-security-grid {
+    grid-template-columns: 1fr;
+  }
+}

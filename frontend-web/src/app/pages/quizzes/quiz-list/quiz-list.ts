@@ -124,7 +124,6 @@ export class QuizListComponent implements OnInit {
   // ===== FILTROS =====
   get filteredQuizzes(): Quiz[] {
     return this.allQuizzes
-      .filter(q => !q.is_featured)
       .filter(q => {
         const matchSearch = this.searchQuery.trim().length === 0
           || q.title.toLowerCase().includes(this.searchQuery.toLowerCase())

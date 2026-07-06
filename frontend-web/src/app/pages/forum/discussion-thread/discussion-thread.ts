@@ -75,6 +75,7 @@ export class DiscussionThreadComponent implements OnInit {
   editingReplyIndex: number | null = null;
   editReplyText = '';
 
+  // Discussões relacionadas (mesma categoria) — sidebar
   relatedTopics: { id: string; title: string; replies: number; views: number }[] = [];
 
   constructor(
@@ -103,6 +104,8 @@ export class DiscussionThreadComponent implements OnInit {
 
       if (topicResult.ok && topicResult.data) {
         this.topic = topicResult.data;
+      } else if ((topicResult as any).status === 403) {
+        this.error = 'Esta discussão é privada. Apenas membros convidados podem aceder.';
       } else {
         this.error = topicResult.message ?? 'Erro ao carregar discussão.';
       }
@@ -114,6 +117,50 @@ export class DiscussionThreadComponent implements OnInit {
       this.error = 'Erro ao carregar discussão.';
     } finally {
       this.cdr.detectChanges();
+    }
+
+    // Carrega as relacionadas depois do render principal (não bloqueia a página)
+    if (this.topic) {
+      void this.loadRelatedTopics();
+    }
+  }
+
+  // ===== DISCUSSÕES RELACIONADAS (mesma categoria) =====
+  private async loadRelatedTopics(): Promise<void> {
+    if (!this.topic) return;
+
+    try {
+      const token = this.authService.getToken();
+      const headers = token ? this.authService.getAuthHeaders(token) : {};
+
+      // Pede tópicos filtrando por categoria no servidor; se o indexTopics
+      // ignorar o parâmetro, o filtro client-side abaixo garante o resultado.
+      const res: any = await firstValueFrom(
+        this.http.get(
+          `${environment.apiBaseUrl}/api/topics?category_id=${this.topic.category_id}&per_page=12`,
+          { headers }
+        )
+      );
+
+      const list: any[] = Array.isArray(res) ? res : (res?.data?.data ?? res?.data ?? []);
+
+      this.relatedTopics = list
+        .filter(t =>
+          t.id !== this.topic!.id &&                      // exclui a discussão atual
+          t.category_id === this.topic!.category_id &&    // garante mesma categoria
+          t.visibility !== 'INVITE_ONLY'                  // nunca sugerir privadas
+        )
+        .slice(0, 5)
+        .map(t => ({
+          id: t.id,
+          title: t.title,
+          replies: t.replies_count ?? 0,
+          views: t.views_count ?? 0,
+        }));
+
+      this.cdr.detectChanges();
+    } catch {
+      this.relatedTopics = []; // a sidebar simplesmente não mostra o cartão
     }
   }
 
@@ -197,6 +244,7 @@ export class DiscussionThreadComponent implements OnInit {
     this.editError = null;
     this.memberSearchResults = [];
     this.memberSearchQuery = '';
+    this.cdr.detectChanges();
   }
 
   setEditVisibility(v: TopicVisibility): void {
@@ -204,6 +252,7 @@ export class DiscussionThreadComponent implements OnInit {
     if (v === 'INVITE_ONLY' && this.topicMembers.length === 0) {
       this.loadTopicMembers();
     }
+    this.cdr.detectChanges();
   }
 
   private async loadTopicMembers(): Promise<void> {
@@ -230,6 +279,7 @@ export class DiscussionThreadComponent implements OnInit {
     clearTimeout(this.memberSearchTimer);
     if (value.trim().length < 2) {
       this.memberSearchResults = [];
+      this.cdr.detectChanges();
       return;
     }
     this.memberSearchTimer = setTimeout(() => this.searchMembers(), 400);
@@ -262,10 +312,12 @@ export class DiscussionThreadComponent implements OnInit {
       { user_id: user.id, display_name: user.display_name || user.full_name || 'Utilizador' },
     ];
     this.memberSearchResults = this.memberSearchResults.filter(u => u.id !== user.id);
+    this.cdr.detectChanges();
   }
 
   removeTopicMember(userId: string): void {
     this.topicMembers = this.topicMembers.filter(m => m.user_id !== userId);
+    this.cdr.detectChanges();
   }
 
   private get memberHeaders(): Record<string, string> {
@@ -309,14 +361,17 @@ export class DiscussionThreadComponent implements OnInit {
     if (!this.topic) return;
     if (!this.editTitle.trim() || this.editTitle.trim().length < 10) {
       this.editError = 'O título deve ter pelo menos 10 caracteres.';
+      this.cdr.detectChanges();
       return;
     }
     if (!this.editContent.trim() || this.editContent.trim().length < 50) {
       this.editError = 'O conteúdo deve ter pelo menos 50 caracteres.';
+      this.cdr.detectChanges();
       return;
     }
     if (this.editVisibility === 'INVITE_ONLY' && this.topicMembers.length === 0) {
       this.editError = 'Adicione pelo menos um membro para tópicos por convite.';
+      this.cdr.detectChanges();
       return;
     }
 
@@ -360,11 +415,13 @@ export class DiscussionThreadComponent implements OnInit {
     this.showReplyMenuIndex = null;
     this.editingReplyIndex = index;
     this.editReplyText = this.replies[index].content;
+    this.cdr.detectChanges();
   }
 
   cancelEditReply(): void {
     this.editingReplyIndex = null;
     this.editReplyText = '';
+    this.cdr.detectChanges();
   }
 
   async saveEditReply(index: number): Promise<void> {
@@ -380,7 +437,9 @@ export class DiscussionThreadComponent implements OnInit {
       this.editingReplyIndex = null;
       this.cdr.detectChanges();
     } catch {
-      alert('Erro ao guardar a resposta.');
+      this.error = 'Erro ao guardar a resposta.';
+      this.cdr.detectChanges();
+      setTimeout(() => { this.error = null; this.cdr.detectChanges(); }, 4000);
     }
   }
 
@@ -422,6 +481,7 @@ export class DiscussionThreadComponent implements OnInit {
   openReplyForm(): void {
     if (!this.requireLogin()) return;
     this.showReplyForm = !this.showReplyForm;
+    this.cdr.detectChanges();
   }
 
   async handleSubmitReply(event: Event): Promise<void> {
@@ -440,7 +500,9 @@ export class DiscussionThreadComponent implements OnInit {
         this.cdr.detectChanges();
       }
     } catch {
-      alert('Erro ao publicar resposta.');
+      this.error = 'Erro ao publicar resposta.';
+      this.cdr.detectChanges();
+      setTimeout(() => { this.error = null; this.cdr.detectChanges(); }, 4000);
     }
   }
 
@@ -463,7 +525,9 @@ export class DiscussionThreadComponent implements OnInit {
         this.cdr.detectChanges();
       }
     } catch {
-      alert('Erro ao publicar resposta.');
+      this.error = 'Erro ao publicar resposta.';
+      this.cdr.detectChanges();
+      setTimeout(() => { this.error = null; this.cdr.detectChanges(); }, 4000);
     }
   }
 
@@ -471,6 +535,7 @@ export class DiscussionThreadComponent implements OnInit {
     if (!this.requireLogin()) return;
     this.showReplyFormForReply[index] = !this.showReplyFormForReply[index];
     if (this.showReplyFormForReply[index]) this.replyReplyText[index] = '';
+    this.cdr.detectChanges();
   }
 
   // ===== LIKES =====
@@ -513,21 +578,27 @@ export class DiscussionThreadComponent implements OnInit {
     event.stopPropagation();
     this.showDiscussionMenu = !this.showDiscussionMenu;
     this.showReplyMenuIndex = null;
+    this.cdr.detectChanges();
   }
 
   toggleReplyMenu(index: number, event: Event): void {
     event.stopPropagation();
     this.showReplyMenuIndex = this.showReplyMenuIndex === index ? null : index;
     this.showDiscussionMenu = false;
+    this.cdr.detectChanges();
   }
 
   // ===== ELIMINAR DISCUSSÃO =====
   openDeleteDiscussionModal(): void {
     this.showDiscussionMenu = false;
     this.showDeleteDiscussionModal = true;
+    this.cdr.detectChanges();
   }
 
-  closeDeleteDiscussionModal(): void { this.showDeleteDiscussionModal = false; }
+  closeDeleteDiscussionModal(): void {
+    this.showDeleteDiscussionModal = false;
+    this.cdr.detectChanges();
+  }
 
   async confirmDeleteDiscussion(): Promise<void> {
     if (!this.topic) return;
@@ -536,7 +607,10 @@ export class DiscussionThreadComponent implements OnInit {
       this.showDeleteDiscussionModal = false;
       this.router.navigate(['/forum/community']);
     } catch {
-      alert('Erro ao eliminar discussão.');
+      this.showDeleteDiscussionModal = false;
+      this.error = 'Erro ao eliminar discussão.';
+      this.cdr.detectChanges();
+      setTimeout(() => { this.error = null; this.cdr.detectChanges(); }, 4000);
     }
   }
 
@@ -545,11 +619,13 @@ export class DiscussionThreadComponent implements OnInit {
     this.showReplyMenuIndex = null;
     this.deleteReplyIndex = index;
     this.showDeleteReplyModal = true;
+    this.cdr.detectChanges();
   }
 
   closeDeleteReplyModal(): void {
     this.showDeleteReplyModal = false;
     this.deleteReplyIndex = null;
+    this.cdr.detectChanges();
   }
 
   async confirmDeleteReply(): Promise<void> {
@@ -563,7 +639,11 @@ export class DiscussionThreadComponent implements OnInit {
       this.deleteReplyIndex = null;
       this.cdr.detectChanges();
     } catch {
-      alert('Erro ao eliminar resposta.');
+      this.showDeleteReplyModal = false;
+      this.deleteReplyIndex = null;
+      this.error = 'Erro ao eliminar resposta.';
+      this.cdr.detectChanges();
+      setTimeout(() => { this.error = null; this.cdr.detectChanges(); }, 4000);
     }
   }
 
@@ -574,11 +654,13 @@ export class DiscussionThreadComponent implements OnInit {
     this.reportDiscussionReason = '';
     this.reportDiscussionDescription = '';
     this.reportSubmitError = null;
+    this.cdr.detectChanges();
   }
 
   closeReportDiscussionModal(): void {
     this.showReportDiscussionModal = false;
     this.reportSubmitError = null;
+    this.cdr.detectChanges();
   }
 
   async submitReportDiscussion(): Promise<void> {
@@ -600,7 +682,6 @@ export class DiscussionThreadComponent implements OnInit {
 
       if (result.ok) {
         this.closeReportDiscussionModal();
-        alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
       } else {
         this.reportSubmitError = result.status === 409
           ? 'Já tem uma denúncia pendente para este conteúdo.'
@@ -622,6 +703,7 @@ export class DiscussionThreadComponent implements OnInit {
     this.reportReplyReason = '';
     this.reportReplyDescription = '';
     this.reportSubmitError = null;
+    this.cdr.detectChanges();
   }
 
   closeReportReplyModal(): void {
@@ -629,6 +711,7 @@ export class DiscussionThreadComponent implements OnInit {
     this.selectedReplyIndex = null;
     this.selectedReply = null;
     this.reportSubmitError = null;
+    this.cdr.detectChanges();
   }
 
   async submitReportReply(): Promise<void> {
@@ -650,7 +733,6 @@ export class DiscussionThreadComponent implements OnInit {
 
       if (result.ok) {
         this.closeReportReplyModal();
-        alert('Denúncia enviada com sucesso! A equipa de moderação irá analisar.');
       } else {
         this.reportSubmitError = result.status === 409
           ? 'Já tem uma denúncia pendente para este conteúdo.'
@@ -671,12 +753,24 @@ export class DiscussionThreadComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: Event): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.discussion-menu-wrapper')) this.showDiscussionMenu = false;
-    if (!target.closest('.reply-menu-wrapper')) this.showReplyMenuIndex = null;
+    let changed = false;
+    if (!target.closest('.discussion-menu-wrapper') && this.showDiscussionMenu) {
+      this.showDiscussionMenu = false;
+      changed = true;
+    }
+    if (!target.closest('.reply-menu-wrapper') && this.showReplyMenuIndex !== null) {
+      this.showReplyMenuIndex = null;
+      changed = true;
+    }
+    if (changed) this.cdr.detectChanges();
   }
 
   navigateToDiscussion(id: string): void {
-    this.router.navigate(['/forum/community/discussao', id]);
+    // Recarrega a página da discussão com o novo id (navegar para a mesma
+    // rota com outro parâmetro não re-executa o ngOnInit por defeito).
+    this.router.navigate(['/forum/community/discussao', id]).then(() => {
+      window.location.reload();
+    });
   }
 
   navigateTo(path: string): void {

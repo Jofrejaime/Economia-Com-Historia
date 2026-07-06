@@ -2067,3 +2067,67 @@ p, span, div, button, input, textarea {
 .reply-menu-btn:hover {
   color: #8B1E2D;
 }
+/* ============================================
+   FIX: OVERFLOW (grid/flex min-width + texto longo)
+   ============================================ */
+
+/* As duas colunas da grid (thread + sidebar) podem encolher
+   abaixo do tamanho do conteúdo */
+.discussion-grid > * {
+  min-width: 0;
+}
+
+/* Os cartões nunca ultrapassam a largura da coluna */
+.discussion-header,
+.reply-form,
+.reply-card,
+.sidebar-card {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Texto livre dos utilizadores quebra em vez de esticar a página */
+.discussion-title,
+.discussion-content,
+.reply-content,
+.discussion-author-name,
+.reply-author-name,
+.related-topic-title,
+.author-card-name,
+.confirm-item-value,
+.report-info-value {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Código inline/blocos em markdown também não podem esticar */
+.discussion-content code,
+.reply-content code,
+.discussion-content pre,
+.reply-content pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+/* Imagens coladas em markdown ficam contidas */
+.discussion-content img,
+.reply-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Os cartões filhos aninhados (reply-children) herdam o problema
+   a cada nível de profundidade — também precisam de poder encolher */
+.reply-child,
+.reply-children {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Textareas e inputs dos formulários de edição/resposta */
+.edit-input,
+.edit-textarea,
+.reply-textarea {
+  max-width: 100%;
+}

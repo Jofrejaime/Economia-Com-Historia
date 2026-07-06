@@ -43,6 +43,7 @@ import { ProvincesPageComponent } from './pages/admin/dashboard-admin/pages/prov
 import { InterestAreasPageComponent } from './pages/admin/dashboard-admin/pages/interest-areas-page/interest-areas-page';
 import { SavedContentsComponent } from './pages/contents/saved-contents/saved-contents';
 import { PrivacyPolicyComponent} from './pages/legal/privacy-policy/privacy-policy';
+import { NotificationPreferencesComponent} from './pages/auth/notification-preferences/notification-preferences';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -57,6 +58,7 @@ export const routes: Routes = [
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/login', canActivate: [guestGuard], component: LoginComponent },
+  { path: 'auth/notification-preferences', canActivate: [authGuard], component: NotificationPreferencesComponent },
   { path: 'auth/criar-conta', canActivate: [guestGuard], component: RegisterComponent },
   { path: 'auth/forgot-password', canActivate: [guestGuard], component: ForgotPasswordComponent },
   { path: 'auth/resend-verification', canActivate: [guestGuard], component: ResendVerificationComponent },
