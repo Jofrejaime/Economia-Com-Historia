@@ -42,6 +42,12 @@ export class ContentsComponent implements OnInit, OnDestroy {
 
   isAuthenticated = false;
 
+  // ─── Modal de pedido de acesso (jindungo / restrito) ─────────────────────
+  accessModalDoc: Document | null = null;
+  accessRequesting = false;
+  accessRequestDone = false;
+  accessRequestError: string | null = null;
+
   // Labels amigáveis para valores conhecidos; qualquer document_type/media_type
   // que apareça nos dados mas não esteja aqui usa o próprio valor como label.
   private documentTypeLabels: Record<string, string> = {
@@ -59,11 +65,6 @@ export class ContentsComponent implements OnInit, OnDestroy {
     image: 'Imagem',
   };
 
-  // Extraídos dinamicamente dos documentos carregados — nunca listas fixas,
-  // já que o backend não expõe um endpoint de metadados/enums dedicado.
-  // Construídos de forma incremental a partir de QUALQUER lista de documentos
-  // que chegue com sucesso (facets dedicados OU listagem normal) — nunca
-  // dependem de uma única chamada sem filtros, que pode falhar isoladamente.
   formats: SimpleOption[] = [];
   mediaTypes: SimpleOption[] = [];
   facetsLoadFailed = false;
@@ -82,7 +83,6 @@ export class ContentsComponent implements OnInit, OnDestroy {
   ];
 
   private searchTimer: any = null;
-  // guarda o category_id vindo da query param
   private preselectedCategoryId: string | null = null;
 
   private seenFormatIds = new Set<string>();
@@ -98,17 +98,9 @@ export class ContentsComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.isAuthenticated = this.authService.isAuthenticated();
-
-    // lê o category_id da query param antes de carregar
     this.preselectedCategoryId = this.route.snapshot.queryParamMap.get('category_id');
 
     await this.loadCategories();
-
-    // A listagem principal é o caminho garantido — carrega-se primeiro e já
-    // popula os facets a partir de dados reais. loadFacets() é só um
-    // "melhor esforço" complementar para descobrir tipos que não apareçam
-    // na primeira página; se falhar, a página continua perfeitamente
-    // funcional com o que loadDocuments() já trouxe.
     await this.loadDocuments();
     await this.loadFacets();
   }
@@ -122,7 +114,6 @@ export class ContentsComponent implements OnInit, OnDestroy {
       this.categories = await this.documentService.getCategories();
       this.themes = this.categories.map(c => c.name);
 
-      // pré-preenche o filtro de tema se vier da home
       if (this.preselectedCategoryId) {
         const cat = this.categories.find(c => c.id === this.preselectedCategoryId);
         if (cat) {
@@ -137,14 +128,6 @@ export class ContentsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Melhor esforço: tenta obter uma amostra sem filtros para descobrir tipos
-   * que possam não estar presentes nos documentos já exibidos. Se falhar
-   * (ex: erro 500 no endpoint sem filtros), não é crítico — os facets já
-   * mostram os tipos vindos de loadDocuments(), e apenas assinalamos
-   * facetsLoadFailed para uma indicação discreta na interface, sem quebrar
-   * a experiência do utilizador.
-   */
   private async loadFacets(): Promise<void> {
     try {
       const sample = await this.documentService.getDocuments();
@@ -157,7 +140,6 @@ export class ContentsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Acrescenta, sem duplicar, os document_type/media_type encontrados numa lista de documentos. */
   private mergeFacetsFromDocuments(docs: Document[]): void {
     for (const d of docs) {
       if (d.document_type && !this.seenFormatIds.has(d.document_type)) {
@@ -221,9 +203,9 @@ export class ContentsComponent implements OnInit, OnDestroy {
 
   // ─── Gestão centralizada dos dropdowns (mutuamente exclusivos) ───────────
 
-  /** Alterna um dropdown: se já estiver aberto, fecha; se outro estiver aberto, fecha-o e abre este. */
   private toggleDropdown(key: DropdownKey): void {
     this.openDropdown = this.openDropdown === key ? null : key;
+    this.cdr.detectChanges();
   }
 
   isDropdownOpen(key: DropdownKey): boolean {
@@ -236,8 +218,6 @@ export class ContentsComponent implements OnInit, OnDestroy {
   toggleFormatDropdown(): void { this.toggleDropdown('format'); }
   toggleMediaTypeDropdown(): void { this.toggleDropdown('mediaType'); }
 
-  // Getters mantidos por compatibilidade com o template actual (usam o
-  // estado único openDropdown por baixo, mas preservam os mesmos nomes).
   get showAccessDropdown(): boolean { return this.isDropdownOpen('access'); }
   get showThemeDropdown(): boolean { return this.isDropdownOpen('theme'); }
   get showLevelDropdown(): boolean { return this.isDropdownOpen('level'); }
@@ -342,8 +322,108 @@ export class ContentsComponent implements OnInit, OnDestroy {
     return doc.cover_image_url ?? '';
   }
 
+  // ==========================================
+  // ACESSO A CONTEÚDOS JINDUNGO / RESTRITOS
+  // ==========================================
+
+  /**
+   * Um documento precisa de pedido de acesso quando é jindungo/restrito E o
+   * utilizador ainda não tem acesso. Se o backend enviar has_access ou
+   * is_subscribed no documento, respeitamos; admins nunca são bloqueados.
+   */
+  private needsAccessRequest(doc: Document): boolean {
+    if (doc.access_level_id !== 'jindungo' && doc.access_level_id !== 'restricted') {
+      return false;
+    }
+    const anyDoc = doc as any;
+    if (anyDoc.has_access === true || anyDoc.is_subscribed === true) {
+      return false;
+    }
+    const role = (this.authService.getUser() as any)?.role;
+    if (role === 'admin') return false;
+
+    return true;
+  }
+
   navigateToDocument(id: string): void {
+    const doc = this.displayedDocuments.find(d => d.id === id);
+
+    if (doc && this.needsAccessRequest(doc)) {
+      this.openAccessModal(doc);
+      return;
+    }
+
     this.router.navigate(['/contents/view', id]);
+  }
+
+  openAccessModal(doc: Document): void {
+    this.accessModalDoc = doc;
+    this.accessRequesting = false;
+    this.accessRequestDone = false;
+    this.accessRequestError = null;
+    this.cdr.detectChanges();
+
+    // Se autenticado, verifica em background se já existe pedido/acesso
+    // (GET /documents/{id}/subscription). Não bloqueia a abertura do modal.
+    if (this.isAuthenticated) {
+      this.documentService.getSubscriptionStatus(doc.id)
+        .then((res: any) => {
+          const status = String(res?.data?.status ?? res?.status ?? '').toLowerCase();
+          if (status === 'pending') {
+            // já pediu — mostra diretamente o estado "pedido enviado"
+            this.accessRequestDone = true;
+          } else if (status === 'approved' || status === 'active') {
+            // já tem acesso — fecha o modal e entra direto no conteúdo
+            (doc as any).is_subscribed = true;
+            this.closeAccessModal();
+            this.router.navigate(['/contents/view', doc.id]);
+            return;
+          }
+          this.cdr.detectChanges();
+        })
+        .catch(() => { /* sem status conhecido — mantém o fluxo normal */ });
+    }
+  }
+
+  closeAccessModal(): void {
+    this.accessModalDoc = null;
+    this.accessRequesting = false;
+    this.accessRequestDone = false;
+    this.accessRequestError = null;
+    this.cdr.detectChanges();
+  }
+
+  async requestAccess(): Promise<void> {
+    if (!this.accessModalDoc || this.accessRequesting) return;
+
+    // Visitantes têm de iniciar sessão antes de pedir acesso
+    if (!this.isAuthenticated) {
+      this.closeAccessModal();
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    this.accessRequesting = true;
+    this.accessRequestError = null;
+    this.cdr.detectChanges();
+
+    try {
+      await this.documentService.subscribeDocument(this.accessModalDoc.id);
+      this.accessRequestDone = true;
+      // Marca localmente para não voltar a pedir nesta sessão
+      (this.accessModalDoc as any).is_subscribed = true;
+    } catch (err: any) {
+      if (err?.status === 409) {
+        // já tinha um pedido/subscrição — trata como sucesso
+        this.accessRequestDone = true;
+        (this.accessModalDoc as any).is_subscribed = true;
+      } else {
+        this.accessRequestError = err?.error?.message ?? 'Erro ao enviar o pedido de acesso. Tente novamente.';
+      }
+    } finally {
+      this.accessRequesting = false;
+      this.cdr.detectChanges();
+    }
   }
 
   async toggleLike(event: Event, doc: Document): Promise<void> {
@@ -385,18 +465,19 @@ export class ContentsComponent implements OnInit, OnDestroy {
   }
 
   goToSaved(): void {
-  if (!this.isAuthenticated) {
-    this.router.navigate(['/auth/login']);
-    return;
+    if (!this.isAuthenticated) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+    this.router.navigate(['/contents/saved']);
   }
-  this.router.navigate(['/contents/saved']);
-}
 
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: Event): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.contents-filter-dropdown')) {
+    if (!target.closest('.contents-filter-dropdown') && this.openDropdown !== null) {
       this.openDropdown = null;
+      this.cdr.detectChanges();
     }
   }
 }
