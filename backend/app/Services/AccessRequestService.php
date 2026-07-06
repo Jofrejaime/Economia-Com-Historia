@@ -134,8 +134,15 @@ class AccessRequestService
 
         $user = User::find($request->user_id);
         $accessLevel = AccessLevel::find($request->access_level_id);
+        $document = $request->document_id
+            ? \DB::table('documents')->where('id', $request->document_id)->select('id', 'title', 'media_type')->first()
+            : null;
 
-        DB::transaction(function () use ($request, $data, $moderator, $user, $accessLevel) {
+        $notifData = $document
+            ? ['document_id' => $document->id, 'media_type' => $document->media_type]
+            : [];
+
+        DB::transaction(function () use ($request, $data, $moderator, $user, $accessLevel, $document, $notifData) {
             $request->update([
                 'status'       => 'approved',
                 'reviewed_by'  => $moderator->id,
@@ -156,7 +163,11 @@ class AccessRequestService
                 'request_id'      => $request->id,
             ], $moderator);
 
-            $this->notify($user, 'access_request_approved', 'Access Request Approved', "Your request for {$accessLevel->name} access has been approved.", $request->id);
+            $approvalMessage = $document
+                ? "O teu pedido de acesso a \"{$document->title}\" foi aprovado."
+                : "O teu pedido de acesso {$accessLevel->name} foi aprovado.";
+
+            $this->notify($user, 'access_request_approved', 'Pedido de acesso aprovado', $approvalMessage, $request->id, $notifData);
         });
 
         return $request->fresh();
@@ -175,8 +186,15 @@ class AccessRequestService
 
         $user = User::find($request->user_id);
         $accessLevel = AccessLevel::find($request->access_level_id);
+        $document = $request->document_id
+            ? \DB::table('documents')->where('id', $request->document_id)->select('id', 'title', 'media_type')->first()
+            : null;
 
-        DB::transaction(function () use ($request, $data, $moderator, $user, $accessLevel) {
+        $notifData = $document
+            ? ['document_id' => $document->id, 'media_type' => $document->media_type]
+            : [];
+
+        DB::transaction(function () use ($request, $data, $moderator, $user, $accessLevel, $document, $notifData) {
             $request->update([
                 'status'       => 'rejected',
                 'reviewed_by'  => $moderator->id,
@@ -191,7 +209,11 @@ class AccessRequestService
                 'new_values'        => ['status' => 'rejected'],
             ]);
 
-            $this->notify($user, 'access_request_rejected', 'Access Request Rejected', "Your request for {$accessLevel->name} access has been rejected.", $request->id);
+            $rejectionMessage = $document !== null
+                ? "O teu pedido de acesso a \"{$document->title}\" foi rejeitado."
+                : "O teu pedido de acesso {$accessLevel->name} foi rejeitado.";
+
+            $this->notify($user, 'access_request_rejected', 'Pedido de acesso rejeitado', $rejectionMessage, $request->id, $notifData);
         });
 
         return $request->fresh();
@@ -224,7 +246,7 @@ class AccessRequestService
         return $request;
     }
 
-    public function notify(User $user, string $type, string $title, string $message, string $referenceId): void
+    public function notify(User $user, string $type, string $title, string $message, string $referenceId, array $data = []): void
     {
         $this->notificationService->send(
             $user,
@@ -232,7 +254,9 @@ class AccessRequestService
             $title,
             $message,
             $referenceId,
-            'access_request'
+            'access_request',
+            [],
+            $data
         );
     }
 

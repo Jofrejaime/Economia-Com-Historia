@@ -19,6 +19,7 @@ class AccessRequest extends Model
         'id',
         'user_id',
         'access_level_id',
+        'document_id',
         'status',
         'justification',
         'reviewed_by',

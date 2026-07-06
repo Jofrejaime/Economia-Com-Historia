@@ -26,7 +26,7 @@ const academicLevels = ["Ensino Médio", "Licenciatura", "Mestrado", "Outro"];
 const interestsList = ["Economia", "História", "Política", "Desenvolvimento", "Outro"];
 
 export function RegisterScreen({ navigation }: Props) {
-  const { signUp, refreshUser } = useAuth();
+  const { signUp, refreshUser, updateUser } = useAuth();
 
   const [step, setStep] = useState<1 | 2>(1);
 
@@ -108,6 +108,8 @@ export function RegisterScreen({ navigation }: Props) {
           await httpClient.post(API_ENDPOINTS.PROFILE.UPDATE_AVATAR, form, {
             headers: { "Content-Type": "multipart/form-data" },
           });
+          // Show the chosen photo immediately — refreshUser will sync the server URL
+          updateUser({ avatar_url: avatarUri });
         } catch {
           // avatar upload failure is non-fatal
         }

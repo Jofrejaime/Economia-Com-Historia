@@ -14,6 +14,7 @@ import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { documentService } from "../../services/api/documentService";
+import { AccessRequestModal } from "../../components/AccessRequestModal";
 import type { Document, DocumentQuizPreview, DocumentTopicPreview } from "../../types/api";
 
 
@@ -53,6 +54,8 @@ export function ArticleScreen() {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [errorType, setErrorType] = useState<"not_found" | "access_denied" | "subscription_required" | "network_error" | null>(null);
+  const [requiredAccessLevel, setRequiredAccessLevel] = useState<string>("restricted");
+  const [accessModalVisible, setAccessModalVisible] = useState(false);
 
   // Dados embebidos no documento — sem chamadas extra
   const relatedQuizzes: DocumentQuizPreview[] = document?.quizzes ?? [];
@@ -70,6 +73,9 @@ export function ArticleScreen() {
       const status = err?.response?.status;
       if (status === 403) {
         const subscriptionRequired = err.response?.data?.subscription_required;
+        const levelId = err.response?.data?.required_access_level_id
+          ?? (subscriptionRequired ? "jindungo" : "restricted");
+        setRequiredAccessLevel(levelId);
         setErrorType(subscriptionRequired ? "subscription_required" : "access_denied");
       } else if (status === 404) {
         setErrorType("not_found");
@@ -125,33 +131,51 @@ export function ArticleScreen() {
 
   if (errorType) {
     const isNetworkError = errorType === "network_error";
-    const isAccessError = errorType === "access_denied" || errorType === "subscription_required";
 
-    const errorMessages: Record<typeof errorType, string> = {
-      not_found: "Este documento não foi encontrado.",
-      access_denied: "Não tens permissão para aceder a este conteúdo.",
-      subscription_required: "Este conteúdo requer uma subscrição Jindungo.",
-      network_error: "Não foi possível carregar o documento.\nVerifica a tua ligação.",
-    };
+    const errorConfig = {
+      not_found: {
+        icon: "x-circle" as const,
+        title: "Documento não encontrado",
+        message: "Este documento pode ter sido removido ou o link está incorrecto.",
+      },
+      access_denied: {
+        icon: "lock" as const,
+        title: "Acesso Restrito",
+        message: "Este conteúdo requer acesso especial aprovado.",
+      },
+      subscription_required: {
+        icon: "zap" as const,
+        title: "Conteúdo Jindungo",
+        message: "Este conteúdo é exclusivo para membros Jindungo. Solicita acesso e o administrador aprovará o teu pedido.",
+      },
+      network_error: {
+        icon: "wifi-off" as const,
+        title: "Falha de ligação",
+        message: "Não foi possível carregar o documento.\nVerifica a tua ligação.",
+      },
+    }[errorType];
 
     return (
       <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
         <HeaderBar title="Documento" />
         <View style={styles.loadingContainer}>
-          <Feather
-            name={isAccessError ? "lock" : isNetworkError ? "wifi-off" : "x-circle"}
-            size={40}
-            color={appTheme.colors.textMuted}
-          />
-          <Text style={[styles.errorText, { marginTop: 16, textAlign: "center" }]}>
-            {errorMessages[errorType]}
-          </Text>
-          {errorType === "subscription_required" && (
+          <Feather name={errorConfig.icon} size={40} color={appTheme.colors.textMuted} />
+          <Text style={[styles.errorTitle, { marginTop: 16 }]}>{errorConfig.title}</Text>
+          <Text style={[styles.errorText, { textAlign: "center" }]}>{errorConfig.message}</Text>
+
+          {(errorType === "access_denied" || errorType === "subscription_required") && (
             <TouchableOpacity
               style={styles.errorButton}
-              onPress={() => navigation.navigate("JindungoPermission")}
+              onPress={() => {
+                if (!user) {
+                  navigation.navigate("LoginPrompt", { type: "comment" });
+                } else {
+                  setAccessModalVisible(true);
+                }
+              }}
             >
-              <Text style={styles.errorButtonText}>Ver planos Jindungo</Text>
+              <Feather name="send" size={15} color={appTheme.colors.surface} style={{ marginRight: 6 }} />
+              <Text style={styles.errorButtonText}>Solicitar Acesso</Text>
             </TouchableOpacity>
           )}
           {isNetworkError && (
@@ -163,6 +187,13 @@ export function ArticleScreen() {
             <Text style={styles.errorLink}>Voltar</Text>
           </TouchableOpacity>
         </View>
+
+        <AccessRequestModal
+          visible={accessModalVisible}
+          documentId={id}
+          accessLevelId={requiredAccessLevel}
+          onClose={() => setAccessModalVisible(false)}
+        />
       </ScreenContainer>
     );
   }
@@ -386,17 +417,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  errorTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 18,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    marginBottom: 6,
+    textAlign: "center",
+  },
   errorText: {
     fontFamily: "Source_Sans_3",
-    fontSize: 16,
+    fontSize: 15,
     color: appTheme.colors.textMuted,
+    lineHeight: 22,
   },
   errorButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 20,
     backgroundColor: appTheme.colors.primary,
     borderRadius: appTheme.radius.md,
     paddingHorizontal: 24,
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   errorButtonText: {
     fontFamily: "Source_Sans_3",

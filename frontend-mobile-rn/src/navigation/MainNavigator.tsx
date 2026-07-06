@@ -169,7 +169,13 @@ export function MainNavigator() {
   return (
     <MainStack.Navigator
       initialRouteName="MainTabs"
-      screenOptions={{ headerShown: false }}
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        animationDuration: 280,
+        gestureEnabled: true,
+        fullScreenGestureEnabled: true,
+      }}
     >
       <MainStack.Screen name="MainTabs" component={MainTabs} />
       <MainStack.Screen name="Dashboard" component={DashboardScreen} />

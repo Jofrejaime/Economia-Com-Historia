@@ -57,7 +57,6 @@ export function DashboardScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { unreadCount } = useNotifications();
   const [searchText, setSearchText] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
 
   const [featuredDoc, setFeaturedDoc] = useState<Document | null>(null);
   const [jindungoDocuments, setJindungoDocuments] = useState<Document[]>([]);
@@ -141,12 +140,12 @@ export function DashboardScreen() {
         </View>
 
         {/* Search Bar */}
-        <View style={[styles.searchBar, searchFocused && styles.searchBarFocused]}>
+        <View style={styles.searchBar}>
           <TouchableOpacity onPress={handleSearchSubmit} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
             <Ionicons
               name="search"
               size={18}
-              color={searchFocused ? appTheme.colors.primary : appTheme.colors.textMuted}
+              color={appTheme.colors.textMuted}
               style={styles.searchIcon}
             />
           </TouchableOpacity>
@@ -157,8 +156,6 @@ export function DashboardScreen() {
             value={searchText}
             onChangeText={setSearchText}
             onSubmitEditing={handleSearchSubmit}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
             returnKeyType="search"
             underlineColorAndroid="transparent"
             selectionColor={appTheme.colors.primary}
@@ -498,10 +495,6 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.md,
     borderWidth: 1.5,
     borderColor: appTheme.colors.border,
-    ...appTheme.shadow.sm,
-  },
-  searchBarFocused: {
-    borderColor: appTheme.colors.primary,
     ...appTheme.shadow.sm,
   },
   searchIcon: {
