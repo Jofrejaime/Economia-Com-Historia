@@ -27,6 +27,7 @@ export class CommunityComponent implements OnInit {
   openCardMenuId: string | null = null;
   showDeleteCardModal = false;
   deleteCardTargetId: string | null = null;
+  restrictedTopic: DiscussionTopic | null = null;
 
   // As 3 discussões com mais visualizações, calculadas a partir dos tópicos
   // vindos do backend em loadData() — sem dados mockados.
@@ -74,6 +75,8 @@ export class CommunityComponent implements OnInit {
     }
   }
 
+  
+
   /**
    * Uma discussão INVITE_ONLY só é visível para o autor ou para membros
    * convidados (se o backend enviar essa informação no tópico: is_member).
@@ -87,11 +90,13 @@ export class CommunityComponent implements OnInit {
   }
 
   get filteredDiscussions(): DiscussionTopic[] {
-    const visible = this.discussions.filter(d => this.canSeeTopic(d));
-    if (this.activeTab === 'pinned') return visible.filter(d => d.is_pinned);
-    if (this.activeTab === 'popular') return [...visible].sort((a, b) => b.views_count - a.views_count);
-    return [...visible].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }
+  // Mostra TODAS as discussões (incluindo INVITE_ONLY) — o acesso restrito
+  // é tratado ao clicar, não na listagem.
+  const all = this.discussions;
+  if (this.activeTab === 'pinned') return all.filter(d => d.is_pinned);
+  if (this.activeTab === 'popular') return [...all].sort((a, b) => b.views_count - a.views_count);
+  return [...all].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
 
   get totalTopics(): number { return this.categories.reduce((t, c) => t + (c.topics_count ?? 0), 0); }
 
@@ -190,5 +195,25 @@ export class CommunityComponent implements OnInit {
   }
 
   navigateTo(path: string): void { this.router.navigate([path]); }
-  navigateToDiscussion(id: string): void { this.router.navigate(['/forum/community/discussao', id]); }
+
+navigateToDiscussion(id: string): void {
+  const discussion = this.discussions.find(d => d.id === id);
+
+  if (discussion && !this.canSeeTopic(discussion)) {
+    this.openRestrictedModal(discussion);
+    return;
+  }
+
+  this.router.navigate(['/forum/community/discussao', id]);
+}
+
+openRestrictedModal(discussion: DiscussionTopic): void {
+  this.restrictedTopic = discussion;
+  this.cdr.detectChanges();
+}
+
+closeRestrictedModal(): void {
+  this.restrictedTopic = null;
+  this.cdr.detectChanges();
+}
 }
