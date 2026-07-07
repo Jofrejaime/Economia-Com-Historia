@@ -226,7 +226,7 @@
 
   <app-footer></app-footer>
 
-  <!-- MODAL: Pedido de Acesso (Jindungo / Restrito) -->
+  <!-- MODAL: Pedido de Acesso (Jindungo / Restrito / Subscrição) -->
   <div *ngIf="accessModalDoc" class="access-modal-overlay" (click)="closeAccessModal()">
     <div class="access-modal" (click)="$event.stopPropagation()">
 
@@ -239,7 +239,11 @@
         </div>
         <div>
           <h2 class="access-modal-title">Conteúdo {{ getAccessLabel(accessModalDoc.access_level_id) }}</h2>
-          <p class="access-modal-subtitle">Este documento requer subscrição de acesso</p>
+          <p class="access-modal-subtitle">
+            {{ accessMode === 'subscription'
+                ? 'Este documento requer subscrição de acesso'
+                : 'Este documento requer um nível de acesso superior' }}
+          </p>
         </div>
         <button class="access-modal-close" (click)="closeAccessModal()" aria-label="Fechar">&times;</button>
       </div>
@@ -259,10 +263,15 @@
 
         <!-- Estado: por pedir -->
         <ng-container *ngIf="!accessRequestDone">
-          <p class="access-modal-text">
+          <p class="access-modal-text" *ngIf="accessMode === 'access-request'">
             Os conteúdos {{ accessModalDoc.access_level_id === 'jindungo' ? 'Jindungo' : 'restritos' }}
             fazem parte do acervo de acesso condicionado do arquivo. Para os consultar,
             envie um pedido de acesso — a equipa do arquivo irá analisá-lo.
+          </p>
+          <p class="access-modal-text" *ngIf="accessMode === 'subscription'">
+            Este documento pertence a uma colecção que requer subscrição.
+            Para o consultar, envie um pedido de subscrição — a equipa do
+            arquivo irá analisá-lo.
           </p>
 
           <p *ngIf="accessRequestError" class="access-modal-error">{{ accessRequestError }}</p>

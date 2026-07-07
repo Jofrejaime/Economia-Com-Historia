@@ -9,6 +9,21 @@ import { AuthService } from '../../services/auth.service';
 
 type AccessCategory = 'all' | 'public' | 'jindungo' | 'restricted';
 type DropdownKey = 'access' | 'theme' | 'level' | 'format' | 'mediaType';
+
+/**
+ * Dois mecanismos de acesso distintos no backend (DocumentAccessService):
+ *   - 'subscription'    → categoria com requires_subscription; desbloqueia-se
+ *                         via POST /documents/{id}/subscribe (admin aprova em
+ *                         /admin/document-subscriptions);
+ *   - 'access-request'  → bloqueio por nível de acesso (jindungo/restrito);
+ *                         desbloqueia-se via POST /access-requests (admin
+ *                         aprova em /admin/access-requests → grant).
+ * Enviar o pedido errado cria um pedido que, mesmo aprovado, nunca desbloqueia
+ * o documento — por isso o modo é decidido pelo campo `required` que o próprio
+ * backend devolve em GET /documents/{id}/subscription.
+ */
+type AccessMode = 'subscription' | 'access-request';
+
 interface AccessOption { id: AccessCategory; label: string; }
 interface SimpleOption { id: string; label: string; }
 
@@ -42,11 +57,19 @@ export class ContentsComponent implements OnInit, OnDestroy {
 
   isAuthenticated = false;
 
-  // ─── Modal de pedido de acesso (jindungo / restrito) ─────────────────────
+  // ─── Modal de pedido de acesso (jindungo / restrito / subscrição) ────────
   accessModalDoc: Document | null = null;
   accessRequesting = false;
   accessRequestDone = false;
   accessRequestError: string | null = null;
+
+  /**
+   * Modo do pedido a enviar. O modal abre por causa do access_level_id
+   * (jindungo/restrito), pelo que o default é 'access-request'; o check em
+   * background (getSubscriptionStatus) corrige para 'subscription' quando o
+   * backend indicar required = true (categoria com requires_subscription).
+   */
+  accessMode: AccessMode = 'access-request';
 
   // Labels amigáveis para valores conhecidos; qualquer document_type/media_type
   // que apareça nos dados mas não esteja aqui usa o próprio valor como label.
@@ -361,19 +384,28 @@ export class ContentsComponent implements OnInit, OnDestroy {
     this.accessRequesting = false;
     this.accessRequestDone = false;
     this.accessRequestError = null;
+    // Default: bloqueio por nível de acesso (o modal abriu por causa do
+    // access_level_id). O check abaixo corrige para 'subscription' se for o caso.
+    this.accessMode = 'access-request';
     this.cdr.detectChanges();
 
-    // Se autenticado, verifica em background se já existe pedido/acesso
-    // (GET /documents/{id}/subscription). Não bloqueia a abertura do modal.
+    // Se autenticado, verifica em background o mecanismo real de acesso e se
+    // já existe pedido/subscrição (GET /documents/{id}/subscription).
+    // Não bloqueia a abertura do modal.
     if (this.isAuthenticated) {
       this.documentService.getSubscriptionStatus(doc.id)
-        .then((res: any) => {
-          const status = String(res?.data?.status ?? res?.status ?? '').toLowerCase();
+        .then((res) => {
+          // required = true → categoria com requires_subscription → o pedido
+          // certo é a subscrição de documento; caso contrário mantém-se o
+          // access request por nível de acesso.
+          this.accessMode = res?.required === true ? 'subscription' : 'access-request';
+
+          const status = String(res?.status ?? '').toLowerCase();
           if (status === 'pending') {
             // já pediu — mostra diretamente o estado "pedido enviado"
             this.accessRequestDone = true;
-          } else if (status === 'approved' || status === 'active') {
-            // já tem acesso — fecha o modal e entra direto no conteúdo
+          } else if (status === 'active') {
+            // já tem subscrição ativa — fecha o modal e entra direto no conteúdo
             (doc as any).is_subscribed = true;
             this.closeAccessModal();
             this.router.navigate(['/contents/view', doc.id]);
@@ -408,13 +440,23 @@ export class ContentsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
-      await this.documentService.subscribeDocument(this.accessModalDoc.id);
+      if (this.accessMode === 'subscription') {
+        // Categoria com requires_subscription → subscrição de documento.
+        // O backend nunca devolve erro para duplicados: responde 200 com
+        // already_exists quando já há pedido ACTIVE/PENDING.
+        await this.documentService.subscribeDocument(this.accessModalDoc.id);
+      } else {
+        // Bloqueio por nível de acesso → access request (é o único pedido
+        // que, aprovado, gera o grant que canReadDocument valida).
+        await this.documentService.requestAccessLevel(this.accessModalDoc.access_level_id);
+      }
       this.accessRequestDone = true;
       // Marca localmente para não voltar a pedir nesta sessão
       (this.accessModalDoc as any).is_subscribed = true;
     } catch (err: any) {
-      if (err?.status === 409) {
-        // já tinha um pedido/subscrição — trata como sucesso
+      if (err?.status === 409 || err?.status === 422) {
+        // já tinha um pedido — trata como sucesso (relevante sobretudo para
+        // access requests duplicados; a subscrição não devolve erro nesse caso)
         this.accessRequestDone = true;
         (this.accessModalDoc as any).is_subscribed = true;
       } else {
