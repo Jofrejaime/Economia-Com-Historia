@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Setting;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SettingsService
@@ -14,10 +15,13 @@ class SettingsService
 
     public function getAll(): Collection
     {
-        // Cachear apenas arrays simples (nunca objetos Eloquent) e re-hidratar,
-        // para o driver database não rebentar ao desserializar após refactors.
+        // Cachear as linhas CRUAS da BD (nunca objetos Eloquent nem toArray, que
+        // aplicaria os accessors — ex.: json_decode em getValueAttribute — e
+        // partiria ao re-hidratar). Re-hidratamos a partir dos valores de coluna.
         $rows = Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
-            return Setting::orderBy('key')->get()->toArray();
+            return DB::table('settings')->orderBy('key')->get()
+                ->map(fn ($row) => (array) $row)
+                ->all();
         });
 
         return Setting::hydrate($rows);

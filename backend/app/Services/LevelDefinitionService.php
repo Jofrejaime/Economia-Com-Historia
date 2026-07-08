@@ -17,10 +17,13 @@ class LevelDefinitionService
 
     public function getAll(): Collection
     {
-        // Cachear apenas arrays simples (nunca objetos Eloquent) e re-hidratar,
-        // para o driver database não rebentar ao desserializar após refactors.
+        // Cachear as linhas CRUAS da BD (não o toArray() do Eloquent, que aplica
+        // os casts — ex.: 'perks' => array — e partiria ao re-hidratar). Os casts
+        // aplicam-se corretamente na leitura, sobre os valores de coluna crus.
         $rows = Cache::remember(self::CACHE_KEY_ALL, now()->addDay(), function () {
-            return LevelDefinition::orderBy('level')->get()->toArray();
+            return DB::table('level_definitions')->orderBy('level')->get()
+                ->map(fn ($row) => (array) $row)
+                ->all();
         });
 
         return LevelDefinition::hydrate($rows);

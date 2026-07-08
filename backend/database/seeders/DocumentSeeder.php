@@ -141,7 +141,7 @@ class DocumentSeeder extends Seeder
                 'slug' => 'caminho-ferro-benguela-motor-desenvolvimento-' . Str::lower(Str::random(6)),
                 'author' => 'Prof. João Pedro da Silva',
                 'institution' => 'ISPTEC',
-                'category_id' => $categories[2]['id'], // Industrialização
+                'category_id' => $categories[2]['id'],
                 'document_type' => 'article',
                 'academic_level' => 'advanced',
                 'access_level_id' => 'public',

@@ -4,6 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\DocumentStatus;
 use App\Enums\SubscriptionStatus;
+use App\Events\Domain\Documents\DocumentDownloaded;
+use App\Events\Domain\Documents\DocumentFavorited;
+use App\Events\Domain\Documents\DocumentLiked;
+use App\Events\Domain\Documents\DocumentUnfavorited;
+use App\Events\Domain\Documents\DocumentUnliked;
+use App\Events\Domain\Documents\DocumentViewed;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
@@ -309,22 +315,13 @@ class DocumentController extends Controller
         'created_at'  => now(),
     ]);
 
-    $document->increment('views_count');
-
-    // Gamificação: contar o documento como lido e atribuir pontos, apenas na
-    // primeira leitura. incrementCounters corre antes de awardPoints para que
-    // a avaliação de badges (documents_read) já veja o contador atualizado.
-    if ($firstRead && $user !== null) {
-        $this->gamification->incrementCounters($user, ['documents_read' => 1]);
-        $this->gamification->awardPoints(
-            $user,
-            2,
-            PointTransactionReason::DOCUMENT_READ,
-            $id,
-            'document',
-            "Documento lido: {$document->title}"
-        );
-    }
+    // Emite o evento; o contador de visualizações (estatísticas) e a
+    // gamificação de leitura (na 1ª leitura) são tratados pelos listeners
+    // de DocumentViewed. O service/controller deixa de os conhecer.
+    DocumentViewed::dispatch($id, $userId, [
+        'first_read' => $firstRead,
+        'title'      => $document->title,
+    ]);
 
     $isLiked = $userId !== null && DB::table('document_likes')
         ->where('document_id', $id)
@@ -526,6 +523,8 @@ class DocumentController extends Controller
             "Liked document: {$document->title}"
         );
 
+        DocumentLiked::dispatch($id, $userId, ['title' => $document->title]);
+
         return response()->json([
             'message'      => 'Document liked.',
             'gamification' => $gamification->toArray(),
@@ -569,6 +568,8 @@ class DocumentController extends Controller
 
         $document->decrement('likes_count');
 
+        DocumentUnliked::dispatch($id, $userId, ['title' => $document->title]);
+
         return response()->json(['message' => 'Like removed.']);
     }
 
@@ -611,6 +612,8 @@ class DocumentController extends Controller
         ]);
 
         $document->increment('downloads_count');
+
+        DocumentDownloaded::dispatch($id, $request->user()->id, ['title' => $document->title]);
 
         return response()->json([
             'message' => 'Download recorded.',
@@ -661,6 +664,8 @@ class DocumentController extends Controller
             'created_at'  => now(),
         ]);
 
+        DocumentFavorited::dispatch($id, $userId, ['title' => $document->title]);
+
         return response()->json(['message' => 'Document added to favorites.']);
     }
 
@@ -698,6 +703,8 @@ class DocumentController extends Controller
         if ($deleted === 0) {
             return response()->json(['message' => 'Favorite not found.'], 404);
         }
+
+        DocumentUnfavorited::dispatch($id, $userId, ['title' => $document->title]);
 
         return response()->json(['message' => 'Document removed from favorites.']);
     }

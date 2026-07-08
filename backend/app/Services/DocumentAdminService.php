@@ -3,21 +3,28 @@
 namespace App\Services;
 
 use App\Enums\DocumentStatus;
+use App\Events\Domain\Documents\DocumentCreated;
+use App\Events\Domain\Documents\DocumentDeleted;
+use App\Events\Domain\Documents\DocumentPinned;
+use App\Events\Domain\Documents\DocumentPublished;
+use App\Events\Domain\Documents\DocumentUnpinned;
+use App\Events\Domain\Documents\DocumentUpdated;
 use App\Models\Document;
 use App\Models\User;
-use App\Support\PointTransactionReason;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
+/**
+ * Sprint 18.9 — Event-Driven: este service já NÃO limpa cache, não escreve
+ * logs de auditoria, não envia notificações e não calcula gamificação
+ * diretamente. Atualiza a BD e emite Domain Events; os Listeners tratam de
+ * toda a infraestrutura (ver App\Subscribers\DocumentSubscriber).
+ */
 class DocumentAdminService
 {
     public function __construct(
         private readonly MediaService $media,
-        private readonly GamificationService $gamification,
-        private readonly NotificationService $notifications,
     ) {}
 
     /**
@@ -54,18 +61,13 @@ class DocumentAdminService
 
         $this->applyMedia($id, $files, $creator);
 
-        // Gamificação: recompensar o autor por contribuir com um documento.
-        $this->gamification->awardPoints(
-            $creator,
-            10,
-            PointTransactionReason::DOCUMENT_UPLOAD,
-            $id,
-            'document',
-            "Documento carregado: {$data['title']}"
-        );
-
-        $this->logAudit($creator->id, $id, 'create', null, $data);
-        $this->clearCache();
+        // Emite o evento; cache, auditoria e gamificação (pontos de upload)
+        // são tratados pelos listeners de DocumentCreated.
+        DocumentCreated::dispatch($id, $creator->id, [
+            'title'      => $data['title'] ?? null,
+            'created_by' => $creator->id,
+            'status'     => $data['status'] ?? DocumentStatus::DRAFT->value,
+        ]);
 
         return Document::findOrFail($id);
     }
@@ -114,23 +116,18 @@ class DocumentAdminService
 
         $this->applyMedia($id, $files, $updater);
 
-        $this->logAudit($updater->id, $id, 'update', $oldValues, $data);
-        $this->clearCache();
+        // Cache e auditoria via listeners de DocumentUpdated.
+        DocumentUpdated::dispatch($id, $updater->id, [
+            'changed'    => array_keys($data),
+            'old_values' => $oldValues,
+        ]);
 
-        // Avisar o autor de que o seu documento foi publicado (exceto quando o
-        // próprio autor é quem publica).
-        if ($justPublished && $document->created_by !== null && $document->created_by !== $updater->id) {
-            $creator = User::find($document->created_by);
-            if ($creator !== null) {
-                $this->notifications->send(
-                    $creator,
-                    'document_published',
-                    'Documento publicado',
-                    "O seu documento \"{$document->title}\" foi publicado.",
-                    $id,
-                    'document'
-                );
-            }
+        // A notificação ao autor é tratada pelo listener de DocumentPublished.
+        if ($justPublished) {
+            DocumentPublished::dispatch($id, $updater->id, [
+                'title'      => $document->title,
+                'created_by' => $document->created_by,
+            ]);
         }
 
         return $document->refresh()->load(['category', 'accessLevel', 'createdBy.profile']);
@@ -162,8 +159,10 @@ class DocumentAdminService
         // galeria são removidos do disco junto com os registos de media.
         $this->media->deleteFor('document', $id);
 
-        $this->logAudit($deleter->id, $id, 'delete', $oldValues, null);
-        $this->clearCache();
+        // Cache e auditoria via listeners de DocumentDeleted.
+        DocumentDeleted::dispatch($id, $deleter->id, [
+            'title' => $oldValues['title'] ?? null,
+        ]);
     }
 
     /**
@@ -193,9 +192,13 @@ class DocumentAdminService
      */
     public function pin(string $id, User $admin): Document
     {
-        return $this->update($id, [
+        $document = $this->update($id, [
             'is_pinned' => true
         ], $admin);
+
+        DocumentPinned::dispatch($id, $admin->id, ['title' => $document->title]);
+
+        return $document;
     }
 
     /**
@@ -203,9 +206,13 @@ class DocumentAdminService
      */
     public function unpin(string $id, User $admin): Document
     {
-        return $this->update($id, [
+        $document = $this->update($id, [
             'is_pinned' => false
         ], $admin);
+
+        DocumentUnpinned::dispatch($id, $admin->id, ['title' => $document->title]);
+
+        return $document;
     }
 
     // ──────────────────────────────────────────────────────────────────
@@ -337,28 +344,5 @@ class DocumentAdminService
                 'tag_id'      => $tagId,
             ]);
         }
-    }
-
-    /**
-     * Log detailed audit trails.
-     */
-    private function logAudit(string $adminId, string $documentId, string $action, ?array $oldValues, ?array $newValues): void
-    {
-        Log::info('Document administrative action recorded', [
-            'admin_id'    => $adminId,
-            'document_id' => $documentId,
-            'action'      => $action,
-            'old_values'  => $oldValues,
-            'new_values'  => $newValues,
-            'timestamp'   => now()->toIso8601String()
-        ]);
-    }
-
-    /**
-     * Clear application cache.
-     */
-    public function clearCache(): void
-    {
-        Cache::flush();
     }
 }
