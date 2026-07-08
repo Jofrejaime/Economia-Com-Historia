@@ -31,6 +31,7 @@ function mapMeResponseToAuthUser(data: any): AuthUser {
     province: data.profile?.province ?? null,
     avatar_url: data.profile?.avatar_url ?? null,
     institution: data.profile?.institution ?? null,
+    access_grants: data.access_grants ?? [],
   };
 }
 

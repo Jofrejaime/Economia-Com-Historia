@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
@@ -106,7 +107,7 @@ export function ArticleScreen() {
       }
       setIsLiked((v) => !v);
     } catch {
-      // ignore
+      Alert.alert("Erro", "Não foi possível registar o gosto. Verifica a tua ligação e tenta novamente.");
     }
   };
 
@@ -192,6 +193,7 @@ export function ArticleScreen() {
           visible={accessModalVisible}
           documentId={id}
           accessLevelId={requiredAccessLevel}
+          mode={errorType === "subscription_required" ? "subscription" : "access-level"}
           onClose={() => setAccessModalVisible(false)}
         />
       </ScreenContainer>

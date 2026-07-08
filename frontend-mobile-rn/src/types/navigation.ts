@@ -30,7 +30,7 @@ export type MainStackParamList = {
   Podcast: undefined;
   Article: { id: string };
   MediaDetail: { id: string };
-  Quiz: { quizId: string; attemptId?: string };
+  Quiz: { quizId: string; attemptId?: string; accessLevelId?: string };
   QuizFeedback: { isCorrect: boolean; explanation: string | null; isLast: boolean; attemptId: string; quizId: string; gamification?: GamificationResult };
   QuizResult: { attemptId: string; quizId: string; gamification?: GamificationResult };
   CreateTopic: { initialTitle?: string; initialCategoryId?: string };
@@ -42,5 +42,5 @@ export type MainStackParamList = {
   Privacy: { isFromRecovery?: boolean; recoveryEmail?: string } | undefined;
   Support: undefined;
   JindungoPermission: undefined;
-  LoginPrompt: { type: 'create-topic' | 'comment' | 'quiz' };
+  LoginPrompt: { type: 'create-topic' | 'comment' | 'quiz' | 'jindungo' };
 };

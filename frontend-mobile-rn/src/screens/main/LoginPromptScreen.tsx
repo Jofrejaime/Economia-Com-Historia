@@ -9,7 +9,7 @@ import { HeaderBar } from "../../components/HeaderBar";
 export function LoginPromptScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { type } = (route.params as { type: "create-topic" | "comment" | "quiz" }) || {
+  const { type } = (route.params as { type: "create-topic" | "comment" | "quiz" | "jindungo" }) || {
     type: "quiz",
   };
 
@@ -25,6 +25,10 @@ export function LoginPromptScreen() {
     quiz: {
       title: "Quer testar os seus conhecimentos?",
       description: "Faça login para realizar quizzes e acompanhar o seu progresso académico.",
+    },
+    jindungo: {
+      title: "Quer aceder a conteúdo Jindungo?",
+      description: "Faça login para solicitar acesso a conteúdo Jindungo e acompanhar o estado do seu pedido.",
     },
   };
 
