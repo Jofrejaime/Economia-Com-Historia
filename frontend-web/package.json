@@ -3,10 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "start": "echo Inicializar Angular CLI neste modulo",
-    "build": "echo Build ainda nao configurado"
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build --configuration production"
   },
   "devDependencies": {
+    "@angular/cli": "^21.2.12",
     "@angular-devkit/build-angular": "^21.2.12",
     "@angular/compiler-cli": "^21.2.14",
     "typescript": "^5.9.3"
