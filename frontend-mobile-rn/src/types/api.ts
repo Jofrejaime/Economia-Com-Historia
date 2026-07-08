@@ -366,6 +366,7 @@ export interface Notification {
   message: string;
   reference_id: string | null;
   reference_type: string | null;
+  data: { document_id?: string; media_type?: string | null; [key: string]: unknown } | null;
   is_read: boolean;
   created_at: string;
   read_at: string | null;

@@ -26,7 +26,7 @@ const academicLevels = ["Ensino Médio", "Licenciatura", "Mestrado", "Outro"];
 const interestsList = ["Economia", "História", "Política", "Desenvolvimento", "Outro"];
 
 export function RegisterScreen({ navigation }: Props) {
-  const { signUp } = useAuth();
+  const { signUp, refreshUser, updateUser } = useAuth();
 
   const [step, setStep] = useState<1 | 2>(1);
 
@@ -108,10 +108,13 @@ export function RegisterScreen({ navigation }: Props) {
           await httpClient.post(API_ENDPOINTS.PROFILE.UPDATE_AVATAR, form, {
             headers: { "Content-Type": "multipart/form-data" },
           });
+          // Show the chosen photo immediately — refreshUser will sync the server URL
+          updateUser({ avatar_url: avatarUri });
         } catch {
           // avatar upload failure is non-fatal
         }
       }
+      await refreshUser();
       navigation.navigate("MainTabs");
     } catch (err: unknown) {
       const message = parseApiError(err);
@@ -359,7 +362,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 24,
-    paddingTop: 36,
+    paddingTop: appTheme.spacing.xl,
     paddingBottom: 48,
   },
   title: {
@@ -378,7 +381,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   formGroup: {
-    marginBottom: 28,
+    marginBottom: appTheme.spacing.lg,
   },
   groupLabel: {
     fontFamily: "IBM_Plex_Sans",
@@ -413,7 +416,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
   },
   termsWrap: {
-    marginTop: 28,
+    marginTop: appTheme.spacing.lg,
   },
   termsText: {
     fontFamily: "Source_Sans_3",
@@ -439,12 +442,12 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: 88,
     height: 88,
-    borderRadius: 44,
+    borderRadius: appTheme.radius.pill,
   },
   avatarPlaceholder: {
     width: 88,
     height: 88,
-    borderRadius: 44,
+    borderRadius: appTheme.radius.pill,
     backgroundColor: appTheme.colors.userAvatarBg,
     borderWidth: 2,
     borderColor: appTheme.colors.border,

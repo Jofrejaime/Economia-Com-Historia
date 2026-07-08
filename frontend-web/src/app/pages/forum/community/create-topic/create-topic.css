@@ -956,3 +956,17 @@ p, span, div, button, input, textarea, label {
     font-size: 12px;
   }
 }
+
+.create-topic-label-optional {
+  color: #9CA3AF;
+  font-weight: 400;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.create-topic-field-hint {
+  color: #9CA3AF;
+  font-size: 12px;
+  margin: -4px 0 10px 0;
+  font-family: 'Source Sans 3', sans-serif;
+}

@@ -1,0 +1,229 @@
+/* ============================================
+   POLÍTICA DE PRIVACIDADE - DESIGN SYSTEM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+body {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+  line-height: 1.7;
+  color: #1F2937;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  color: #1F2937;
+}
+
+p, span, div, button {
+  font-family: 'Source Sans 3', sans-serif;
+  line-height: 1.7;
+  color: #1F2937;
+}
+
+/* ============================================
+   PAGE CONTAINER
+   ============================================ */
+
+.privacy-page {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+}
+
+.privacy-main {
+  flex: 1;
+  width: 100%;
+}
+
+.privacy-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 48px 64px;
+}
+
+/* ============================================
+   BREADCRUMB
+   ============================================ */
+
+.privacy-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.privacy-breadcrumb-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9CA3AF;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.privacy-breadcrumb-btn:hover {
+  color: #8B1E2D;
+}
+
+.privacy-breadcrumb-separator {
+  color: #9CA3AF;
+}
+
+.privacy-breadcrumb-current {
+  color: #8B1E2D;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.privacy-header {
+  margin-bottom: 40px;
+}
+
+.privacy-header-badge {
+  background: rgba(139, 30, 45, 0.1);
+  color: #8B1E2D;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  display: inline-block;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.privacy-header-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1F2937;
+  font-size: 38px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.privacy-header-description {
+  color: #1F2937;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   CONTEÚDO
+   ============================================ */
+
+.privacy-content {
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  padding: 36px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.privacy-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.privacy-section:not(:last-child) {
+  padding-bottom: 28px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.privacy-section-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #8B1E2D;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.privacy-section-text {
+  color: #1F2937;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.privacy-section-text strong {
+  font-weight: 600;
+  color: #1F2937;
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .privacy-container {
+    padding: 32px 32px 48px;
+  }
+
+  .privacy-header-title {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .privacy-container {
+    padding: 24px 16px 40px;
+  }
+
+  .privacy-header-title {
+    font-size: 28px;
+  }
+
+  .privacy-header-description {
+    font-size: 14px;
+  }
+
+  .privacy-content {
+    padding: 24px 20px;
+  }
+
+  .privacy-section-title {
+    font-size: 16px;
+  }
+
+  .privacy-section-text {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .privacy-container {
+    padding: 16px 12px 32px;
+  }
+
+  .privacy-header-title {
+    font-size: 24px;
+  }
+
+  .privacy-content {
+    padding: 20px 16px;
+  }
+}

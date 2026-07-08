@@ -1,5 +1,5 @@
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { ModerationAdminService } from '../../../../../services/moderation-admin.service';
@@ -38,7 +38,10 @@ export class AccessGrantsPageComponent implements OnInit {
 
   grants: GrantView[] = [];
 
-  constructor(private moderationService: ModerationAdminService) {}
+  constructor(
+    private moderationService: ModerationAdminService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     void this.loadGrants();

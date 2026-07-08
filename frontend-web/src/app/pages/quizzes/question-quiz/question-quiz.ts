@@ -25,6 +25,11 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
   isCorrect = false;
   correctOptionId: string | null = null;
 
+  // Explicação da resposta (se o criador do quiz a tiver preenchido).
+  // Vem na resposta do POST /quiz-attempts/{id}/answers — nunca junto com
+  // as perguntas, para não expor o gabarito antes de responder.
+  answerExplanation: string | null = null;
+
   quizId = '';
   attemptId = '';
   questionStartTime = Date.now();
@@ -150,26 +155,37 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
     const timeSpent = Math.round((Date.now() - this.questionStartTime) / 1000);
 
     try {
-  const res: any = await this.quizService.answerAttempt(
-    this.attemptId,
-    this.question.id,
-    this.selectedOptionId,
-    timeSpent
-  );
-  this.isCorrect = !!res?.is_correct;
+      const res: any = await this.quizService.answerAttempt(
+        this.attemptId,
+        this.question.id,
+        this.selectedOptionId,
+        timeSpent
+      );
+      this.isCorrect = !!res?.is_correct;
 
-  if (this.isCorrect) {
-    // quando acerta, a opção seleccionada é a correcta
-    this.correctOptionId = this.selectedOptionId;
-  } else {
-    // quando erra, o backend pode (ou não) devolver a correcta
-    this.correctOptionId = res?.correct_option_id ?? null;
-  }
+      if (this.isCorrect) {
+        // quando acerta, a opção seleccionada é a correcta
+        this.correctOptionId = this.selectedOptionId;
+      } else {
+        // quando erra, o backend pode (ou não) devolver a correcta
+        this.correctOptionId = res?.correct_option_id ?? null;
+      }
 
-  this.answered = true;
-} catch {
-  alert('Erro ao registar resposta. Tente novamente.');
-} finally {
+      // Explicação da opção correcta (se o criador a preencheu no admin).
+      // Aceita os dois formatos possíveis da resposta do backend.
+      this.answerExplanation =
+        res?.explanation
+        ?? res?.correct_option?.explanation
+        ?? null;
+
+      this.answered = true;
+    } catch {
+      this.error = 'Erro ao registar resposta. Tente novamente.';
+      setTimeout(() => {
+        this.error = null;
+        this.cdr.detectChanges();
+      }, 4000);
+    } finally {
       this.isSubmitting = false;
       this.cdr.detectChanges();
     }
@@ -185,6 +201,7 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
     this.answered = false;
     this.isCorrect = false;
     this.correctOptionId = null;
+    this.answerExplanation = null;
     this.questionStartTime = Date.now();
     this.cdr.detectChanges();
   }
@@ -198,21 +215,21 @@ export class QuestionQuizComponent implements OnInit, OnDestroy {
   }
 
   private async finishQuiz(): Promise<void> {
-  this.isSubmitting = true;
-  this.cdr.detectChanges();
-  if (this.timerInterval) clearInterval(this.timerInterval);
-  try {
-    await this.quizService.completeAttempt(this.attemptId, this.elapsedSeconds);
-    this.router.navigate(['/quiz/resultado'], {
-      queryParams: { attempt: this.attemptId }
-    });
-  } catch {
-    alert('Erro ao finalizar quiz.');
-    this.isSubmitting = false;
-    this.startTimer();
+    this.isSubmitting = true;
     this.cdr.detectChanges();
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    try {
+      await this.quizService.completeAttempt(this.attemptId, this.elapsedSeconds);
+      this.router.navigate(['/quiz/resultado'], {
+        queryParams: { attempt: this.attemptId }
+      });
+    } catch {
+      this.error = 'Erro ao finalizar quiz. Tente novamente.';
+      this.isSubmitting = false;
+      this.startTimer();
+      this.cdr.detectChanges();
+    }
   }
-}
 
   get buttonLabel(): string {
     if (this.isSubmitting) return 'Aguarde...';

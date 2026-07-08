@@ -72,6 +72,12 @@ export function CreateTopicScreen() {
   }, [selectedMembers]);
 
   useEffect(() => {
+    if (!user) {
+      navigation.replace("LoginPrompt", { type: "create-topic" });
+    }
+  }, [user, navigation]);
+
+  useEffect(() => {
     const timer = setTimeout(() => { void searchUsers(searchMemberText); }, 300);
     return () => clearTimeout(timer);
   }, [searchMemberText, searchUsers]);
@@ -367,7 +373,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingTop: 24,
     paddingBottom: 48,
   },
@@ -496,7 +502,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.debateHighlightBg,
     borderWidth: 1,
     borderColor: appTheme.colors.primary,
-    borderRadius: 20,
+    borderRadius: appTheme.radius.pill,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
@@ -549,7 +555,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: appTheme.colors.overlay,
     justifyContent: "flex-end",
   },
   modalSheet: {
@@ -635,11 +641,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    shadowColor: appTheme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    ...appTheme.shadow.md,
   },
   publishBtnDisabled: {
     opacity: 0.5,

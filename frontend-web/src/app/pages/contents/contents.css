@@ -619,6 +619,11 @@ p, span, div, button, input {
     max-width: 100%;
   }
   
+  .contents-saved-btn {
+  position: static;
+  margin: 16px auto 0;
+}
+
   .contents-filter-btn {
     min-height: 34px;
     font-size: 13px;
@@ -761,7 +766,268 @@ p, span, div, button, input {
 }
 
 .contents-doc-placeholder {
-  background: linear-gradient(135deg, #E5E7EB, #F5F5F5);
+  background: linear-gradient(135deg, #8B1E2D, #6B0119);
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.contents-header {
+  text-align: center;
+  margin-bottom: 32px;
+  position: relative; /* âncora para o botão */
+}
+
+.contents-saved-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  min-height: 40px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  color: #8B1E2D;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.contents-saved-btn:hover {
+  border-color: #8B1E2D;
+  background: rgba(139, 30, 45, 0.04);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 30, 45, 0.12);
+}
+
+.contents-saved-btn svg {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   MODAL DE PEDIDO DE ACESSO
+   ============================================ */
+
+.access-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.access-modal {
+  background: #FFFFFF;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 480px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.access-modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 24px;
+  border-bottom: 1px solid #F5F5F5;
+}
+
+.access-modal-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(139, 30, 45, 0.08);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.access-modal-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.access-modal-subtitle {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin: 2px 0 0 0;
+}
+
+.access-modal-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9CA3AF;
+  font-size: 22px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.access-modal-close:hover {
+  color: #8B1E2D;
+  background: rgba(139, 30, 45, 0.05);
+}
+
+.access-modal-body {
+  padding: 22px 24px 24px;
+}
+
+.access-modal-doc {
+  background: #F8FAFC;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.access-modal-doc-type {
+  color: #8B1E2D;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.access-modal-doc-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 4px 0 8px 0;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.access-modal-doc-badge {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.access-modal-text {
+  font-size: 14px;
+  color: #1F2937;
+  line-height: 1.7;
+  margin: 0 0 16px 0;
+}
+
+.access-modal-error {
+  font-size: 13px;
+  color: #DC2626;
+  margin: 0 0 12px 0;
+}
+
+.access-modal-success {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.access-modal-success svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.access-modal-success-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #15803D;
+  margin: 0;
+}
+
+.access-modal-success-text {
+  font-size: 13px;
+  color: #1F2937;
+  margin: 2px 0 0 0;
+}
+
+.access-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.access-modal-btn-secondary {
+  padding: 10px 20px;
+  min-height: 44px;
+  border-radius: 4px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  color: #1F2937;
+  transition: all 0.2s;
+}
+
+.access-modal-btn-secondary:hover:not(:disabled) {
+  border-color: #8B1E2D;
+  color: #8B1E2D;
+}
+
+.access-modal-btn-primary {
+  padding: 10px 24px;
+  min-height: 44px;
+  border-radius: 4px;
+  border: none;
+  background: #8B1E2D;
+  color: #FFFFFF;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.access-modal-btn-primary:hover:not(:disabled) {
+  background: #6B0119;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
+}
+
+.access-modal-btn-primary:disabled,
+.access-modal-btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .access-modal-actions {
+    flex-direction: column-reverse;
+  }
+  .access-modal-btn-primary,
+  .access-modal-btn-secondary {
+    width: 100%;
+  }
 }

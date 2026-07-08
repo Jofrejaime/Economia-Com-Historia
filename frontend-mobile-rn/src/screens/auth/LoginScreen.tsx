@@ -14,6 +14,8 @@ import { appTheme } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
 import { parseApiError } from "../../utils/apiError";
 import { MainStackParamList } from "../../types/navigation";
+import { httpClient } from "../../services/http/client";
+import { API_ENDPOINTS } from "../../constants/api";
 
 type Props = NativeStackScreenProps<MainStackParamList, "Login">;
 
@@ -29,9 +31,7 @@ export function LoginScreen({ navigation }: Props) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [recoveryEmailError, setRecoveryEmailError] = useState("");
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [recoveryCode, setRecoveryCode] = useState("");
-  const [recoveryCodeError, setRecoveryCodeError] = useState("");
+  const [isRecoverySuccess, setIsRecoverySuccess] = useState(false);
   const [isRecoverySubmitting, setIsRecoverySubmitting] = useState(false);
 
   const canSubmit = useMemo(
@@ -80,51 +80,11 @@ export function LoginScreen({ navigation }: Props) {
     setIsRecoverySubmitting(true);
     setRecoveryEmailError("");
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      const registeredEmailsRaw = await AsyncStorage.getItem("@registered_emails");
-      const registered = registeredEmailsRaw ? JSON.parse(registeredEmailsRaw) : ["user@demo.com", "luis@demo.com"];
-
-      if (registered.includes(trimmedEmail.toLowerCase())) {
-        setIsEmailVerified(true);
-        setRecoveryCode("123456");
-        if (Platform.OS === "web") {
-          window.alert(`Código Enviado\n\nEnviámos o código de verificação para o email ${trimmedEmail}.\n\n(Para efeitos de teste, o código é: 123456)`);
-        } else {
-          Alert.alert(
-            "Código Enviado",
-            `Enviámos o código de verificação para o email ${trimmedEmail}.\n\n(Para efeitos de teste, o código é: 123456)`
-          );
-        }
-      } else {
-        setRecoveryEmailError("Este email não está associado a nenhuma conta.");
-      }
+      await httpClient.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { email: trimmedEmail });
+      setIsRecoverySuccess(true);
     } catch (error) {
       console.error(error);
-      setRecoveryEmailError("Ocorreu um erro. Tente novamente.");
-    } finally {
-      setIsRecoverySubmitting(false);
-    }
-  };
-
-  const handleVerifyRecoveryCode = async () => {
-    if (recoveryCode !== "123456") {
-      setRecoveryCodeError("Código incorreto");
-      return;
-    }
-    setIsRecoverySubmitting(true);
-    setRecoveryCodeError("");
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      const targetEmail = recoveryEmail.trim();
-      setIsModalVisible(false);
-      setIsEmailVerified(false);
-      setRecoveryEmail("");
-      setRecoveryCode("");
-      await signIn({ email: targetEmail, password: "" });
-      navigation.navigate("Privacy", { isFromRecovery: true });
-    } catch (error) {
-      console.error(error);
-      setRecoveryCodeError("Erro ao redirecionar. Tente novamente.");
+      setRecoveryEmailError(parseApiError(error));
     } finally {
       setIsRecoverySubmitting(false);
     }
@@ -134,9 +94,7 @@ export function LoginScreen({ navigation }: Props) {
     setIsModalVisible(false);
     setRecoveryEmail("");
     setRecoveryEmailError("");
-    setIsEmailVerified(false);
-    setRecoveryCode("");
-    setRecoveryCodeError("");
+    setIsRecoverySuccess(false);
   };
 
   return (
@@ -232,10 +190,10 @@ export function LoginScreen({ navigation }: Props) {
             </View>
 
             <View style={styles.modalBody}>
-              {!isEmailVerified ? (
+              {!isRecoverySuccess ? (
                 <>
                   <Text style={styles.modalDescription}>
-                    Introduz o email com o qual fizeste a abertura de conta para receberes um código de verificação.
+                    Introduz o email com o qual fizeste a abertura de conta para receberes um link de redefinição.
                   </Text>
 
                   <FormInput
@@ -263,52 +221,21 @@ export function LoginScreen({ navigation }: Props) {
                     {isRecoverySubmitting ? (
                       <ActivityIndicator size="small" color={appTheme.colors.surface} />
                     ) : (
-                      <Text style={styles.modalSubmitLabel}>Enviar código</Text>
+                      <Text style={styles.modalSubmitLabel}>Enviar link</Text>
                     )}
                   </Pressable>
                 </>
               ) : (
                 <>
                   <Text style={styles.modalDescription}>
-                    Enviámos um código para{" "}
-                    <Text style={styles.modalEmailHighlight}>{recoveryEmail}</Text>.{" "}
-                    Introduz o código abaixo para prosseguir.
+                    Enviámos um link de redefinição de palavra-passe para o email <Text style={styles.modalEmailHighlight}>{recoveryEmail}</Text>. Por favor, consulte a sua caixa de entrada para prosseguir.
                   </Text>
 
-                  <FormInput
-                    label="Código de Verificação"
-                    value={recoveryCode}
-                    onChangeText={(text) => {
-                      if (text.length <= 6) setRecoveryCode(text);
-                      if (recoveryCodeError) setRecoveryCodeError("");
-                    }}
-                    placeholder="000000"
-                    error={recoveryCodeError}
-                    keyboardType="numeric"
-                  />
-
                   <Pressable
-                    onPress={() => void handleVerifyRecoveryCode()}
-                    disabled={isRecoverySubmitting}
-                    style={({ pressed }) => [
-                      styles.modalSubmitButton,
-                      isRecoverySubmitting && styles.submitButtonDisabled,
-                      pressed && !isRecoverySubmitting && styles.pressed,
-                    ]}
+                    onPress={handleCloseModal}
+                    style={styles.modalSubmitButton}
                   >
-                    {isRecoverySubmitting ? (
-                      <ActivityIndicator size="small" color={appTheme.colors.surface} />
-                    ) : (
-                      <Text style={styles.modalSubmitLabel}>Verificar Código</Text>
-                    )}
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => setIsEmailVerified(false)}
-                    disabled={isRecoverySubmitting}
-                    style={styles.modalSecondaryButton}
-                  >
-                    <Text style={styles.modalSecondaryLabel}>Alterar email</Text>
+                    <Text style={styles.modalSubmitLabel}>Fechar</Text>
                   </Pressable>
                 </>
               )}
@@ -330,7 +257,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 24,
-    paddingTop: 36,
+    paddingTop: appTheme.spacing.xl,
     paddingBottom: 48,
   },
   title: {
@@ -379,7 +306,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
   },
   registerWrap: {
-    marginTop: 28,
+    marginTop: appTheme.spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -400,7 +327,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    backgroundColor: appTheme.colors.overlay,
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
@@ -410,11 +337,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.lg,
     width: "100%",
     maxWidth: 400,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
+    ...appTheme.shadow.lg,
   },
   modalHeader: {
     flexDirection: "row",

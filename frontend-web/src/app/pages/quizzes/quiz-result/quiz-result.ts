@@ -1,9 +1,21 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
 import { QuizService, QuizAttempt } from '../../../services/quiz.service';
+import { AuthService } from '../../../services/auth.service';
+import { environment } from '../../../../environments/environment';
+
+interface RelatedDocument {
+  id: string;
+  title: string;
+  document_type?: string | null;
+  cover_image_url?: string | null;
+  summary?: string | null;
+}
 
 @Component({
   selector: 'app-quiz-result',
@@ -18,10 +30,16 @@ export class QuizResultComponent implements OnInit {
   error: string | null = null;
   isLoadingNext = false;
 
+  // Conteúdos relacionados ao quiz (GET /quizzes/{id}/documents)
+  relatedDocuments: RelatedDocument[] = [];
+  loadingRelated = false;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private quizService: QuizService,
+    private http: HttpClient,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -37,11 +55,53 @@ export class QuizResultComponent implements OnInit {
   private async loadResult(attemptId: string): Promise<void> {
     try {
       this.attempt = await this.quizService.getAttempt(attemptId);
+      // Assim que sabemos o quiz, busca os conteúdos relacionados
+      // (não bloqueia a exibição do resultado)
+      if (this.attempt?.quiz_id) {
+        void this.loadRelatedDocuments(this.attempt.quiz_id);
+      }
     } catch {
       this.error = 'Erro ao carregar resultado.';
     } finally {
       this.cdr.detectChanges();
     }
+  }
+
+  /**
+   * Conteúdos relacionados = documentos ligados ao quiz via pivot N:N.
+   * Endpoint público (auth opcional): GET /api/quizzes/{id}/documents
+   */
+  private async loadRelatedDocuments(quizId: string): Promise<void> {
+    this.loadingRelated = true;
+    this.cdr.detectChanges();
+
+    try {
+      const token = this.authService.getToken();
+      const headers = token ? this.authService.getAuthHeaders(token) : {};
+
+      const res: any = await firstValueFrom(
+        this.http.get(`${environment.apiBaseUrl}/api/quizzes/${quizId}/documents`, { headers })
+      );
+
+      // aceita tanto { data: [...] } como array directo
+      const list: any[] = Array.isArray(res) ? res : (res?.data ?? []);
+      this.relatedDocuments = list.map(d => ({
+        id: d.id,
+        title: d.title,
+        document_type: d.document_type ?? null,
+        cover_image_url: d.cover_image_url ?? null,
+        summary: d.summary ?? null,
+      }));
+    } catch {
+      this.relatedDocuments = [];
+    } finally {
+      this.loadingRelated = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  navigateToDocument(id: string): void {
+    this.router.navigate(['/contents/view', id]);
   }
 
   get score(): number {
@@ -119,7 +179,7 @@ export class QuizResultComponent implements OnInit {
         queryParams: { quiz: nextQuiz.id, attempt: newAttemptId }
       });
     } catch {
-      alert('Erro ao iniciar o próximo quiz.');
+      this.error = 'Erro ao iniciar o próximo quiz.';
       this.isLoadingNext = false;
       this.cdr.detectChanges();
     }

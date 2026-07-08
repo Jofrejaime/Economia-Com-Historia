@@ -26,6 +26,21 @@ export class ContentsViewComponent implements OnInit {
   error: string | null = null;
   isAuthenticated = false;
 
+  // ─── Acesso negado (403 do backend) ───────────────────────────────────────
+  // O denyDocumentAccess() do backend devolve:
+  //   { message, subscription_required, required_access_level_id }
+  // subscription_required = true  → categoria com requires_subscription →
+  //   o pedido certo é POST /documents/{id}/subscribe;
+  // subscription_required = false → bloqueio por nível de acesso →
+  //   o pedido certo é POST /access-requests (required_access_level_id).
+  accessDenied = false;
+  subscriptionRequired = false;
+  requiredAccessLevelId: string | null = null;
+  accessRequesting = false;
+  accessRequestDone = false;
+  accessRequestError: string | null = null;
+  private docId: string | null = null;
+
   // Relacionados — carregados em paralelo, sem bloquear o render do documento principal
   relatedContents: Document[] = [];
   relatedQuizzes: RelatedQuiz[] = [];
@@ -51,15 +66,99 @@ export class ContentsViewComponent implements OnInit {
   }
 
   private async loadDocument(id: string): Promise<void> {
+    this.docId = id;
     try {
       this.doc = await this.documentService.getDocument(id);
       this.cdr.detectChanges();
       // Não bloqueia o ecrã principal à espera dos relacionados
       this.loadRelated(id);
     } catch (err: any) {
-      this.error = err?.message ?? 'Erro ao carregar documento.';
+      if (err?.status === 403) {
+        // Sem acesso — apanha tanto entradas pela listagem como deep links
+        // (link partilhado, favoritos, histórico do browser).
+        this.accessDenied = true;
+        this.subscriptionRequired = err?.error?.subscription_required === true;
+        this.requiredAccessLevelId = err?.error?.required_access_level_id ?? null;
+
+        // Se for subscrição e o utilizador estiver autenticado, verifica em
+        // background se já existe um pedido pendente — evita pedido duplicado
+        // e mostra logo o estado "pedido enviado".
+        if (this.subscriptionRequired && this.isAuthenticated) {
+          this.checkExistingSubscription(id);
+        }
+      } else if (err?.status === 404) {
+        this.error = 'Documento não encontrado.';
+      } else {
+        this.error = 'Erro ao carregar documento.';
+      }
       this.cdr.detectChanges();
     }
+  }
+
+  private async checkExistingSubscription(id: string): Promise<void> {
+    try {
+      const res = await this.documentService.getSubscriptionStatus(id);
+      if (String(res?.status ?? '').toUpperCase() === 'PENDING') {
+        this.accessRequestDone = true;
+        this.cdr.detectChanges();
+      }
+    } catch { /* sem status conhecido — mantém o fluxo normal */ }
+  }
+
+  /**
+   * Envia o pedido correcto conforme o mecanismo indicado pelo 403:
+   * subscrição de documento ou access request de nível de acesso.
+   */
+  async requestAccess(): Promise<void> {
+    if (!this.docId || this.accessRequesting) return;
+
+    // Visitantes têm de iniciar sessão antes de pedir acesso
+    if (!this.isAuthenticated) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    this.accessRequesting = true;
+    this.accessRequestError = null;
+    this.cdr.detectChanges();
+
+    try {
+      if (this.subscriptionRequired) {
+        // O backend nunca devolve erro para duplicados: responde 200 com
+        // already_exists quando já há pedido ACTIVE/PENDING.
+        await this.documentService.subscribeDocument(this.docId);
+      } else if (this.requiredAccessLevelId) {
+        await this.documentService.requestAccessLevel(this.requiredAccessLevelId);
+      } else {
+        this.accessRequestError = 'Não foi possível determinar o tipo de acesso necessário.';
+        return;
+      }
+      this.accessRequestDone = true;
+    } catch (err: any) {
+      if (err?.status === 409 || err?.status === 422) {
+        // já tinha um pedido — trata como sucesso
+        this.accessRequestDone = true;
+      } else {
+        this.accessRequestError = err?.error?.message
+          ?? 'Erro ao enviar o pedido de acesso. Tente novamente.';
+      }
+    } finally {
+      this.accessRequesting = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  /** Label do nível de acesso em falta — para o cartão de acesso negado. */
+  getRequiredAccessLabel(): string {
+    switch (this.requiredAccessLevelId) {
+      case 'jindungo':   return 'Jindungo';
+      case 'restricted': return 'Restrito';
+      default:           return this.subscriptionRequired ? 'com Subscrição' : 'Condicionado';
+    }
+  }
+
+  goBackToContents(): void {
+    this.router.navigate(['/contents']);
   }
 
   private async loadRelated(id: string): Promise<void> {

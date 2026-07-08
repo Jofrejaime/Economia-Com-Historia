@@ -27,12 +27,11 @@ export class CommunityComponent implements OnInit {
   openCardMenuId: string | null = null;
   showDeleteCardModal = false;
   deleteCardTargetId: string | null = null;
+  restrictedTopic: DiscussionTopic | null = null;
 
-  featuredResearches: { date: string; title: string }[] = [
-    { date: '12 Mar 1975', title: 'Os documentos fundadores do BNA e a política fiscal inicial.' },
-    { date: '08 Fev 1982', title: 'Mudanças monetárias durante o período de transição.' },
-    { date: '22 Nov 1990', title: 'Linhas de crédito garantidas por petróleo: Uma análise histórica.' },
-  ];
+  // As 3 discussões com mais visualizações, calculadas a partir dos tópicos
+  // vindos do backend em loadData() — sem dados mockados.
+  featuredResearches: { id: string; date: string; title: string }[] = [];
 
   constructor(
     private router: Router,
@@ -58,12 +57,17 @@ export class CommunityComponent implements OnInit {
       const topics = topicsResult.ok && topicsResult.data ? topicsResult.data.data : [];
       this.discussions = topics;
 
-      if (topics.length > 0) {
-        this.featuredResearches = topics.slice(0, 3).map(t => ({
+      // Pesquisas em destaque = top 3 por visualizações, APENAS entre as
+      // discussões que este utilizador pode ver (nunca destacar privadas).
+      this.featuredResearches = [...topics]
+        .filter(t => this.canSeeTopic(t))
+        .sort((a, b) => (b.views_count ?? 0) - (a.views_count ?? 0))
+        .slice(0, 3)
+        .map(t => ({
+          id: t.id,
           date: this.formatDate(t.created_at),
           title: t.title,
         }));
-      }
     } catch {
       this.error = 'Erro ao carregar a comunidade.';
     } finally {
@@ -71,11 +75,28 @@ export class CommunityComponent implements OnInit {
     }
   }
 
-  get filteredDiscussions(): DiscussionTopic[] {
-    if (this.activeTab === 'pinned') return this.discussions.filter(d => d.is_pinned);
-    if (this.activeTab === 'popular') return [...this.discussions].sort((a, b) => b.views_count - a.views_count);
-    return [...this.discussions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  
+
+  /**
+   * Uma discussão INVITE_ONLY só é visível para o autor ou para membros
+   * convidados (se o backend enviar essa informação no tópico: is_member).
+   * NOTA: isto é apenas a camada visual — a barreira real é o backend
+   * filtrar/negar no indexTopics e showTopic.
+   */
+  private canSeeTopic(d: DiscussionTopic): boolean {
+    if (d.visibility !== 'INVITE_ONLY') return true;
+    if (this.currentUserId && d.author_id === this.currentUserId) return true;
+    return !!(d as any).is_member;
   }
+
+  get filteredDiscussions(): DiscussionTopic[] {
+  // Mostra TODAS as discussões (incluindo INVITE_ONLY) — o acesso restrito
+  // é tratado ao clicar, não na listagem.
+  const all = this.discussions;
+  if (this.activeTab === 'pinned') return all.filter(d => d.is_pinned);
+  if (this.activeTab === 'popular') return [...all].sort((a, b) => b.views_count - a.views_count);
+  return [...all].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
 
   get totalTopics(): number { return this.categories.reduce((t, c) => t + (c.topics_count ?? 0), 0); }
 
@@ -124,11 +145,15 @@ export class CommunityComponent implements OnInit {
   toggleCardMenu(event: Event, id: string): void {
     event.stopPropagation();
     this.openCardMenuId = this.openCardMenuId === id ? null : id;
+    this.cdr.detectChanges();
   }
 
   @HostListener('document:click')
   closeCardMenu(): void {
-    this.openCardMenuId = null;
+    if (this.openCardMenuId !== null) {
+      this.openCardMenuId = null;
+      this.cdr.detectChanges();
+    }
   }
 
   editCard(event: Event, id: string): void {
@@ -142,11 +167,13 @@ export class CommunityComponent implements OnInit {
     this.openCardMenuId = null;
     this.deleteCardTargetId = id;
     this.showDeleteCardModal = true;
+    this.cdr.detectChanges();
   }
 
   closeDeleteCardModal(): void {
     this.showDeleteCardModal = false;
     this.deleteCardTargetId = null;
+    this.cdr.detectChanges();
   }
 
   async confirmDeleteCard(): Promise<void> {
@@ -157,10 +184,36 @@ export class CommunityComponent implements OnInit {
       this.closeDeleteCardModal();
       this.cdr.detectChanges();
     } catch {
-      alert('Erro ao eliminar discussão.');
+      this.closeDeleteCardModal();
+      this.error = 'Erro ao eliminar discussão.';
+      this.cdr.detectChanges();
+      setTimeout(() => {
+        this.error = null;
+        this.cdr.detectChanges();
+      }, 4000);
     }
   }
 
   navigateTo(path: string): void { this.router.navigate([path]); }
-  navigateToDiscussion(id: string): void { this.router.navigate(['/forum/community/discussao', id]); }
+
+navigateToDiscussion(id: string): void {
+  const discussion = this.discussions.find(d => d.id === id);
+
+  if (discussion && !this.canSeeTopic(discussion)) {
+    this.openRestrictedModal(discussion);
+    return;
+  }
+
+  this.router.navigate(['/forum/community/discussao', id]);
+}
+
+openRestrictedModal(discussion: DiscussionTopic): void {
+  this.restrictedTopic = discussion;
+  this.cdr.detectChanges();
+}
+
+closeRestrictedModal(): void {
+  this.restrictedTopic = null;
+  this.cdr.detectChanges();
+}
 }

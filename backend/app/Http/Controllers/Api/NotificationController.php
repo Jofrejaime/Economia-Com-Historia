@@ -37,13 +37,17 @@ class NotificationController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        return response()->json([
-            'data' => DB::table('notifications')
-                ->where('user_id', $request->user()->id)
-                ->orderByDesc('created_at')
-                ->limit(50)
-                ->get(),
-        ]);
+        $notifications = DB::table('notifications')
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->map(function ($n) {
+                $n->data = isset($n->data) && $n->data !== null ? json_decode($n->data, true) : null;
+                return $n;
+            });
+
+        return response()->json(['data' => $notifications]);
     }
 
     /**

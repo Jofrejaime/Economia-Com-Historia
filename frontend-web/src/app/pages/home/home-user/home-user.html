@@ -9,7 +9,12 @@
       <!-- Hero Section -->
 <div class="contents-hero">
   <img *ngIf="hasFeaturedImage()" [src]="getFeaturedImage()" alt="Hero" class="contents-hero-image" />
-  <div *ngIf="!hasFeaturedImage()" class="contents-hero-image contents-hero-placeholder"></div>
+  <div *ngIf="!hasFeaturedImage()" class="contents-hero-image contents-hero-placeholder">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: rgba(255,255,255,0.85)">
+      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+      <path d="M6 6h10M6 10h10"/>
+    </svg>
+  </div>
   <div class="contents-hero-overlay"></div>
   <div class="contents-hero-content">
     <p class="contents-hero-badge">DOCUMENTO EM DESTAQUE</p>
@@ -43,14 +48,25 @@
   <div *ngFor="let doc of documents" class="contents-doc-item" (click)="navigateToContent(doc.id)">
     <div class="contents-doc-item-image">
       <img *ngIf="hasDocumentImage(doc)" [src]="getDocumentImage(doc)" [alt]="doc.title" />
-      <div *ngIf="!hasDocumentImage(doc)" class="contents-doc-item-placeholder"></div>
+      <div *ngIf="!hasDocumentImage(doc)" class="contents-doc-item-placeholder">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: rgba(255,255,255,0.85)">
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+      </div>
     </div>
     <div class="contents-doc-item-body">
-      <span class="contents-doc-item-category">{{ getFormatLabel(doc.document_type) }}</span>
-      <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
-      <p class="contents-doc-item-description">{{ doc.summary }}</p>
-      <span class="contents-doc-item-link">Ler Conteúdo →</span>
-    </div>
+  <span class="contents-doc-item-category">{{ getFormatLabel(doc.document_type) }}</span>
+  <span class="contents-doc-item-access"
+        [style.background]="getAccessBadgeStyle(doc.access_level_id).bg"
+        [style.color]="getAccessBadgeStyle(doc.access_level_id).text"
+        style="display:inline-block;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:700;margin-bottom:4px;width:fit-content">
+    {{ getAccessLabel(doc.access_level_id) }}
+  </span>
+  <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
+  <p class="contents-doc-item-description">{{ doc.summary }}</p>
+  <span class="contents-doc-item-link">Ler Conteúdo →</span>
+</div>
   </div>
 </div>
         </div>
@@ -173,5 +189,76 @@
   </main>
 
   <app-footer></app-footer>
+
+  <!-- MODAL: Pedido de Acesso (Jindungo / Restrito) -->
+  <div *ngIf="accessModalDoc" class="access-modal-overlay" (click)="closeAccessModal()">
+    <div class="access-modal" (click)="$event.stopPropagation()">
+
+      <div class="access-modal-header">
+        <div class="access-modal-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="access-modal-title">Conteúdo {{ getAccessLabel(accessModalDoc.access_level_id) }}</h2>
+          <p class="access-modal-subtitle">Este documento requer subscrição de acesso</p>
+        </div>
+        <button class="access-modal-close" (click)="closeAccessModal()" aria-label="Fechar">&times;</button>
+      </div>
+
+      <div class="access-modal-body">
+
+        <div class="access-modal-doc">
+          <span class="access-modal-doc-type">{{ accessModalDoc.document_type | uppercase }}</span>
+          <h3 class="access-modal-doc-title">{{ accessModalDoc.title }}</h3>
+          <span class="access-modal-doc-badge"
+                [style.background]="getAccessBadgeStyle(accessModalDoc.access_level_id).bg"
+                [style.color]="getAccessBadgeStyle(accessModalDoc.access_level_id).text">
+            {{ getAccessLabel(accessModalDoc.access_level_id) }}
+          </span>
+        </div>
+
+        <ng-container *ngIf="!accessRequestDone">
+          <p class="access-modal-text">
+            Os conteúdos {{ accessModalDoc.access_level_id === 'jindungo' ? 'Jindungo' : 'restritos' }}
+            fazem parte do acervo de acesso condicionado do arquivo. Para os consultar,
+            envie um pedido de acesso — a equipa do arquivo irá analisá-lo.
+          </p>
+
+          <p *ngIf="accessRequestError" class="access-modal-error">{{ accessRequestError }}</p>
+
+          <div class="access-modal-actions">
+            <button type="button" class="access-modal-btn-secondary" (click)="closeAccessModal()" [disabled]="accessRequesting">
+              Agora não
+            </button>
+            <button type="button" class="access-modal-btn-primary" (click)="requestAccess()" [disabled]="accessRequesting">
+              {{ accessRequesting ? 'A enviar pedido...' : 'Pedir Acesso' }}
+            </button>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="accessRequestDone">
+          <div class="access-modal-success">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            <div>
+              <p class="access-modal-success-title">Pedido de acesso enviado</p>
+              <p class="access-modal-success-text">Será notificado(a) quando o acesso for concedido.</p>
+            </div>
+          </div>
+
+          <div class="access-modal-actions">
+            <button type="button" class="access-modal-btn-primary" (click)="closeAccessModal()">
+              Entendido
+            </button>
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+  </div>
 
 </div>

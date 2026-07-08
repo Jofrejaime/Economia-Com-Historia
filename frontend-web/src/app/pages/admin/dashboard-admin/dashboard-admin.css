@@ -649,3 +649,31 @@ p, span, div, button, input, textarea, a {
     font-size: 20px;
   }
 }
+
+/* ─── Adicionar a dashboard-admin.css ─────────────────────────────────────
+   Ajusta .logo-area para layout em linha (ícone + texto) e adiciona
+   .logo-icon — quadrado bordeaux com o ícone de livro aberto em branco,
+   consistente com a imagem do logótipo da aplicação. */
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background: #8B1E2D;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Quando a sidebar está colapsada (mobile), mantém só o ícone visível */
+.sidebar.collapsed .logo-title,
+.sidebar.collapsed .subtitle-area {
+  display: none;
+}

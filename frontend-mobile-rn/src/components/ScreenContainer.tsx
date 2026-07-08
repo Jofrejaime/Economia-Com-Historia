@@ -1,15 +1,21 @@
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { appTheme } from "../constants/theme";
+import { OfflineBanner } from "./OfflineBanner";
 
 interface ScreenContainerProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function ScreenContainer({ children, style }: ScreenContainerProps) {
-  return <SafeAreaView style={[styles.container, style]}>{children}</SafeAreaView>;
+  return (
+    <SafeAreaView style={[styles.container, style]}>
+      <OfflineBanner />
+      {children}
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({

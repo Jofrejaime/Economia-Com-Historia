@@ -52,7 +52,7 @@ function HomeTabScreen() {
       onLogin={() => navigation.navigate("Login")}
       onRegister={() => navigation.navigate("Register")}
       onViewJindungo={() => navigation.navigate("JindungoPermission")}
-      onViewArticle={() => navigation.navigate("Article", { type: "micro" })}
+      onViewArticle={() => navigation.navigate("Content", { document_type: "article" })}
       onViewPodcast={() => navigation.navigate("Podcast")}
       onViewCommunity={() => navigation.navigate("Community")}
       onViewContent={() => navigation.navigate("Content")}
@@ -64,6 +64,7 @@ function HomeTabScreen() {
 }
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
 
   return (
@@ -101,7 +102,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         // Map route name to vector icons
         let iconName: any = "home";
         if (route.name === "Home") iconName = "home";
-        else if (route.name === "Content") iconName = "trending-up";
+        else if (route.name === "Content") iconName = "book-open";
         else if (route.name === "Community") iconName = "message-circle";
         else if (route.name === "QuizList") iconName = "award";
         else if (route.name === "Profile") iconName = "user";
@@ -168,7 +169,13 @@ export function MainNavigator() {
   return (
     <MainStack.Navigator
       initialRouteName="MainTabs"
-      screenOptions={{ headerShown: false }}
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        animationDuration: 280,
+        gestureEnabled: true,
+        fullScreenGestureEnabled: true,
+      }}
     >
       <MainStack.Screen name="MainTabs" component={MainTabs} />
       <MainStack.Screen name="Dashboard" component={DashboardScreen} />

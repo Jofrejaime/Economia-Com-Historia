@@ -69,19 +69,24 @@
             </div>
 
             <!-- Feedback -->
-            <div *ngIf="answered" class="quiz-feedback"
-                 [class.quiz-feedback-correct]="isCorrect"
-                 [class.quiz-feedback-wrong]="!isCorrect">
-              <svg *ngIf="isCorrect" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              <svg *ngIf="!isCorrect" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#991B1B" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="15" y1="9" x2="9" y2="15"/>
-                <line x1="9" y1="9" x2="15" y2="15"/>
-              </svg>
-              <span>{{ isCorrect ? 'Resposta correcta!' : 'Resposta incorrecta.' }}</span>
-            </div>
+<div *ngIf="answered" class="quiz-feedback"
+     [class.quiz-feedback-correct]="isCorrect"
+     [class.quiz-feedback-wrong]="!isCorrect">
+  <div class="quiz-feedback-main">
+    <svg *ngIf="isCorrect" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <svg *ngIf="!isCorrect" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#991B1B" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    <span>{{ isCorrect ? 'Resposta correcta!' : 'Resposta incorrecta.' }}</span>
+  </div>
+  <p *ngIf="answerExplanation" class="quiz-feedback-explanation">
+    {{ answerExplanation }}
+  </p>
+</div>
 
             <!-- Progress and Navigation -->
             <div class="quiz-progress">
@@ -167,7 +172,7 @@
   <div class="quiz-related-card" *ngIf="relatedDocuments.length > 0">
     <span class="quiz-related-label">CONTEÚDOS RELACIONADOS</span>
     <div class="quiz-related-list">
-      <button *ngFor="let doc of relatedDocuments" (click)="navigateToDocument(doc.id)" class="quiz-related-item">
+      <button *ngFor="let doc of relatedDocuments" class="quiz-related-item">
         <span class="quiz-related-item-category" *ngIf="doc.category?.name">{{ doc.category?.name }}</span>
         <span class="quiz-related-item-title">{{ doc.title }}</span>
         <div class="quiz-related-item-meta">

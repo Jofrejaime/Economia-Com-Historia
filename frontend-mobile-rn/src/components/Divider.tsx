@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.border,
   },
   text: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textMuted,
     fontSize: 14,
   },

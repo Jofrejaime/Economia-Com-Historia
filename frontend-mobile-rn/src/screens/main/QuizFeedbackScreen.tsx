@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  StatusBar,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -31,7 +30,6 @@ export function QuizFeedbackScreen() {
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
       <HeaderBar title="Resultado" showBackButton={false} />
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -118,12 +116,13 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.successLight,
   },
   iconWrapIncorrect: {
-    backgroundColor: "#FCA5A5",
+    backgroundColor: appTheme.colors.dangerLight,
   },
   statusTextContainer: {
     flex: 1,
   },
   feedbackLabel: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.success,
@@ -148,10 +147,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     overflow: "hidden",
     marginBottom: 32,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...appTheme.shadow.sm,
   },
   cardCorrect: {
     borderLeftColor: appTheme.colors.success,
@@ -189,7 +185,7 @@ const styles = StyleSheet.create({
   },
   footerSection: {
     borderTopWidth: 1,
-    borderTopColor: "rgba(222,191,191,0.2)",
+    borderTopColor: appTheme.colors.border,
     paddingTop: 24,
   },
   nextBtn: {
@@ -198,21 +194,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 16,
-    borderRadius: 10,
+    borderRadius: appTheme.radius.sm,
   },
   nextBtnCorrect: {
     backgroundColor: appTheme.colors.success,
-    shadowColor: appTheme.colors.success,
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
+    ...appTheme.shadow.md,
   },
   nextBtnIncorrect: {
     backgroundColor: appTheme.colors.primary,
-    shadowColor: appTheme.colors.primary,
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
+    ...appTheme.shadow.md,
   },
   nextBtnLabel: {
     fontFamily: "IBM_Plex_Sans",

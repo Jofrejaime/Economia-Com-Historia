@@ -10,6 +10,7 @@ interface AuthContextValue extends AuthState {
   signUp: (input: SignUpInput) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateUser: (partial: Partial<AuthUser>) => void;
 }
 
 const initialState: AuthState = {
@@ -115,6 +116,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState({ status: "authenticated", token, user });
   };
 
+  const updateUser = (partial: Partial<AuthUser>) => {
+    setState((prev) => {
+      if (!prev.user) return prev;
+      const updated = { ...prev.user, ...partial };
+      void AsyncStorage.setItem("@auth_user", JSON.stringify(updated));
+      return { ...prev, user: updated };
+    });
+  };
+
   const signOut = async () => {
     try {
       await httpClient.post(API_ENDPOINTS.AUTH.LOGOUT);
@@ -128,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const value = useMemo(
-    () => ({ ...state, signIn, signUp, signOut, refreshUser }),
+    () => ({ ...state, signIn, signUp, signOut, refreshUser, updateUser }),
     [state]
   );
 

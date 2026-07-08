@@ -67,37 +67,119 @@
                 <p *ngIf="errors.category" class="create-topic-error">{{ errors.category }}</p>
               </div>
 
-              <!-- Visibility Field -->
-<div class="create-topic-form-group">
-  <label class="create-topic-label">
-    Visibilidade
-    <span class="create-topic-label-required">*</span>
-  </label>
-  <div class="create-topic-privacy">
-    <button type="button" (click)="setVisibility('PUBLIC')" class="create-topic-privacy-btn" [class.selected]="visibility === 'PUBLIC'">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-      </svg>
-      <div class="create-topic-privacy-info">
-        <span class="create-topic-privacy-label">Público</span>
-        <span class="create-topic-privacy-desc">Qualquer membro pode ver e responder</span>
-      </div>
-    </button>
+              <!-- Related Document (optional, single) -->
+              <div class="create-topic-form-group">
+                <label class="create-topic-label">
+                  Conteúdo Relacionado
+                  <span class="create-topic-label-optional">(opcional)</span>
+                </label>
+                <p class="create-topic-field-hint">
+                  Ligue esta discussão a um conteúdo da plataforma. Ela aparecerá como sugestão de discussão no final desse conteúdo.
+                </p>
 
-    <button type="button" (click)="setVisibility('INVITE_ONLY')" class="create-topic-privacy-btn" [class.selected]="visibility === 'INVITE_ONLY'">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        <circle cx="12" cy="16" r="1.5"/>
-      </svg>
-      <div class="create-topic-privacy-info">
-        <span class="create-topic-privacy-label">Privado</span>
-        <span class="create-topic-privacy-desc">Apenas owner, moderadores e membros convidados</span>
-      </div>
-    </button>
-  </div>
-</div>
+                <!-- Documento já selecionado -->
+                <div *ngIf="selectedDocument" class="create-topic-participants">
+                  <div class="create-topic-participants-list">
+                    <div class="create-topic-participant-item">
+                      <div class="create-topic-participant-avatar" style="background:#8B1E2D;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                      </div>
+                      <div class="create-topic-participant-info">
+                        <span class="create-topic-participant-name">{{ selectedDocument.title }}</span>
+                        <span class="create-topic-participant-email">{{ selectedDocument.category?.name || 'Conteúdo da plataforma' }}</span>
+                      </div>
+                      <button type="button" class="btn-ghost" (click)="clearSelectedDocument()">Remover</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pesquisa (só quando ainda não há documento selecionado) -->
+                <div *ngIf="!selectedDocument" class="create-topic-participants">
+                  <div class="create-topic-participants-search">
+                    <svg class="create-topic-participants-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input
+                      type="text"
+                      [ngModel]="documentSearch"
+                      name="documentSearch"
+                      (ngModelChange)="onDocumentSearchInput($event)"
+                      (keyup.enter)="searchDocuments()"
+                      placeholder="Pesquisar conteúdos por título..."
+                      class="create-topic-participants-input"
+                    >
+                    <button type="button" class="create-topic-search-btn" (click)="searchDocuments()">Pesquisar</button>
+                  </div>
+
+                  <div *ngIf="documentSearchError" class="create-topic-error" style="padding: 12px 16px 0;">{{ documentSearchError }}</div>
+
+                  <div class="create-topic-participants-list" *ngIf="documentSearchLoading || documentSearchResults.length > 0 || documentSearch.trim().length > 1">
+                    <div *ngFor="let doc of documentSearchResults" class="create-topic-participant-item" (click)="selectDocument(doc)">
+                      <div class="create-topic-participant-avatar" style="background:#8B1E2D;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                      </div>
+                      <div class="create-topic-participant-info">
+                        <span class="create-topic-participant-name">{{ doc.title }}</span>
+                        <span class="create-topic-participant-email">{{ doc.category?.name || 'Conteúdo' }}</span>
+                      </div>
+                      <svg class="create-topic-participant-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+
+                    <div *ngIf="documentSearchLoading" class="create-topic-participant-item">
+                      <div class="create-topic-participant-info">
+                        <span class="create-topic-participant-name">A pesquisar conteúdos...</span>
+                      </div>
+                    </div>
+
+                    <div *ngIf="!documentSearchLoading && documentSearchResults.length === 0 && documentSearch.trim().length > 1" class="create-topic-participant-item">
+                      <div class="create-topic-participant-info">
+                        <span class="create-topic-participant-name">Sem resultados para pesquisa.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Visibility Field -->
+              <div class="create-topic-form-group">
+                <label class="create-topic-label">
+                  Visibilidade
+                  <span class="create-topic-label-required">*</span>
+                </label>
+                <div class="create-topic-privacy">
+                  <button type="button" (click)="setVisibility('PUBLIC')" class="create-topic-privacy-btn" [class.selected]="visibility === 'PUBLIC'">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <div class="create-topic-privacy-info">
+                      <span class="create-topic-privacy-label">Público</span>
+                      <span class="create-topic-privacy-desc">Qualquer membro pode ver e responder</span>
+                    </div>
+                  </button>
+
+                  <button type="button" (click)="setVisibility('INVITE_ONLY')" class="create-topic-privacy-btn" [class.selected]="visibility === 'INVITE_ONLY'">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      <circle cx="12" cy="16" r="1.5"/>
+                    </svg>
+                    <div class="create-topic-privacy-info">
+                      <span class="create-topic-privacy-label">Privado</span>
+                      <span class="create-topic-privacy-desc">Apenas owner, moderadores e membros convidados</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
 
               <!-- Participants Selection (INVITE_ONLY) -->
               <div *ngIf="visibility === 'INVITE_ONLY'" class="create-topic-form-group">
@@ -108,21 +190,21 @@
 
                 <div class="create-topic-participants">
                   <div class="create-topic-participants-search">
-  <svg class="create-topic-participants-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
-    <circle cx="11" cy="11" r="8"/>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-  </svg>
-  <input
-    type="text"
-    [ngModel]="memberSearch"
-    name="memberSearch"
-    (ngModelChange)="onMemberSearchInput($event)"
-    (keyup.enter)="searchMembers()"
-    placeholder="Pesquisar utilizadores por nome..."
-    class="create-topic-participants-input"
-  >
-  <button type="button" class="create-topic-search-btn" (click)="searchMembers()">Pesquisar</button>
-</div>
+                    <svg class="create-topic-participants-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input
+                      type="text"
+                      [ngModel]="memberSearch"
+                      name="memberSearch"
+                      (ngModelChange)="onMemberSearchInput($event)"
+                      (keyup.enter)="searchMembers()"
+                      placeholder="Pesquisar utilizadores por nome..."
+                      class="create-topic-participants-input"
+                    >
+                    <button type="button" class="create-topic-search-btn" (click)="searchMembers()">Pesquisar</button>
+                  </div>
 
                   <div *ngIf="memberSearchError" class="create-topic-error" style="padding: 12px 16px 0;">{{ memberSearchError }}</div>
 
@@ -222,7 +304,6 @@
                   </svg>
                   {{ isSubmitting ? 'A publicar...' : 'Publicar Tópico' }}
                 </button>
-                <button type="button" (click)="saveDraft()" class="btn-secondary">Guardar Rascunho</button>
                 <button type="button" (click)="navigateTo('/forum/community')" class="btn-ghost">Cancelar</button>
               </div>
             </div>
@@ -273,6 +354,10 @@
                 <div class="create-topic-tips-item">
                   <span class="create-topic-tips-item-title">Membros</span>
                   <p class="create-topic-tips-item-text">{{ selectedMemberCount }} seleccionado(s)</p>
+                </div>
+                <div class="create-topic-tips-item">
+                  <span class="create-topic-tips-item-title">Conteúdo</span>
+                  <p class="create-topic-tips-item-text">{{ selectedDocument ? selectedDocument.title : 'Nenhum conteúdo relacionado' }}</p>
                 </div>
                 <div class="create-topic-tips-item" *ngIf="!canSearchUsers && visibility === 'INVITE_ONLY'">
                   <span class="create-topic-tips-item-title">Pendência</span>

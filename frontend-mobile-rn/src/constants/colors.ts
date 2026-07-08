@@ -51,6 +51,7 @@ export const colors = {
   rankingCardGray: "#6B7280",
   userAvatarBg: "#D9E3F6",
   progressBackground: "rgba(255,255,255,0.2)",
+  overlay: "rgba(0,0,0,0.5)",
 };
 
 export type AppColors = typeof colors;

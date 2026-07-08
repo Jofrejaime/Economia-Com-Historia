@@ -20,6 +20,7 @@ import { AccessLevelsPageComponent } from './pages/admin/dashboard-admin/pages/a
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
 import { adminGuard } from './guards/admin.guard';
+import { homeGuard } from './guards/home.guard';
 import { DashboardAdminComponent } from './pages/admin/dashboard-admin/dashboard-admin';
 import { OverviewPageComponent } from './pages/admin/dashboard-admin/pages/overview-page/overview-page';
 import { RequestsPageComponent } from './pages/admin/dashboard-admin/pages/request-page/request-page';
@@ -40,29 +41,35 @@ import { UserNotificationsComponent } from './pages/user-notifications/user-noti
 import { RankingComponent } from './pages/quizzes/quiz-ranking/quiz-ranking';
 import { ProvincesPageComponent } from './pages/admin/dashboard-admin/pages/provinces-page/provinces-page';
 import { InterestAreasPageComponent } from './pages/admin/dashboard-admin/pages/interest-areas-page/interest-areas-page';
+import { SavedContentsComponent } from './pages/contents/saved-contents/saved-contents';
+import { PrivacyPolicyComponent} from './pages/legal/privacy-policy/privacy-policy';
+import { NotificationPreferencesComponent} from './pages/auth/notification-preferences/notification-preferences';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', canActivate: [authGuard], loadComponent: () => import('./pages/home/home-user/home-user').then(m => m.HomeUser) },
+  { path: 'home', canActivate: [homeGuard], loadComponent: () => import('./pages/home/home-user/home-user').then(m => m.HomeUser) },
   { path: 'contents', component: ContentsComponent },
+  { path: 'contents/saved', canActivate: [authGuard], component: SavedContentsComponent },
   { path: 'forum/community', component: CommunityComponent },
   { path: 'quiz', component: QuizListComponent },
   { path: 'quiz/pergunta', canActivate: [authGuard], component: QuestionQuizComponent },
   { path: 'quiz/resultado', canActivate: [authGuard], component: QuizResultComponent },
-  { path: 'quiz/ranking', canActivate: [authGuard], component: RankingComponent },
+  { path: 'quiz/ranking', component: RankingComponent },
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/perfil', canActivate: [authGuard], component: PerfilComponent },
   { path: 'auth/login', canActivate: [guestGuard], component: LoginComponent },
+  { path: 'auth/notification-preferences', canActivate: [authGuard], component: NotificationPreferencesComponent },
   { path: 'auth/criar-conta', canActivate: [guestGuard], component: RegisterComponent },
   { path: 'auth/forgot-password', canActivate: [guestGuard], component: ForgotPasswordComponent },
   { path: 'auth/resend-verification', canActivate: [guestGuard], component: ResendVerificationComponent },
   { path: 'auth/reset-password', canActivate: [guestGuard], component: ResetPasswordComponent },
   { path: 'contents/view/:id', component: ContentsViewComponent },
   { path: 'forum/comunidade/criar-topico', canActivate: [authGuard], component: CreateTopicComponent },
-  { path: 'forum/community/discussao/:id', component: DiscussionThreadComponent },
+  { path: 'forum/community/discussao/:id', canActivate: [authGuard], component: DiscussionThreadComponent },
   { path: 'landing', component: HomeVisitorComponent },
   { path: 'forum/categorias', component: CategoryViewComponent },
   { path: 'forum/categoria/:id', canActivate: [authGuard], component: CategoryDetailComponent },
+  { path: 'legal/privacy-policy', component: PrivacyPolicyComponent },
   {
     path: 'admin/dashboard',
     component: DashboardAdminComponent,

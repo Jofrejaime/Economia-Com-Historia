@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  StatusBar,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
@@ -15,6 +14,7 @@ import { appTheme } from "../../constants/theme";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { documentService } from "../../services/api/documentService";
+import { AccessRequestModal } from "../../components/AccessRequestModal";
 import type { Document, DocumentQuizPreview, DocumentTopicPreview } from "../../types/api";
 
 
@@ -53,26 +53,42 @@ export function ArticleScreen() {
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  const [errorType, setErrorType] = useState<"not_found" | "access_denied" | "subscription_required" | "network_error" | null>(null);
+  const [requiredAccessLevel, setRequiredAccessLevel] = useState<string>("restricted");
+  const [accessModalVisible, setAccessModalVisible] = useState(false);
 
   // Dados embebidos no documento — sem chamadas extra
   const relatedQuizzes: DocumentQuizPreview[] = document?.quizzes ?? [];
   const relatedTopics: DocumentTopicPreview[] = document?.topics_preview ?? [];
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const doc = await documentService.detail(id);
-        setDocument(doc);
-        setIsLiked(doc.is_liked ?? false);
-        setLikesCount(doc.likes_count);
-      } catch {
-        // document not found handled in render
-      } finally {
-        setLoading(false);
+  const loadDocument = async () => {
+    setLoading(true);
+    setErrorType(null);
+    try {
+      const doc = await documentService.detail(id);
+      setDocument(doc);
+      setIsLiked(doc.is_liked ?? false);
+      setLikesCount(doc.likes_count);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 403) {
+        const subscriptionRequired = err.response?.data?.subscription_required;
+        const levelId = err.response?.data?.required_access_level_id
+          ?? (subscriptionRequired ? "jindungo" : "restricted");
+        setRequiredAccessLevel(levelId);
+        setErrorType(subscriptionRequired ? "subscription_required" : "access_denied");
+      } else if (status === 404) {
+        setErrorType("not_found");
+      } else {
+        setErrorType("network_error");
       }
-    };
-    void load();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadDocument();
   }, [id]);
 
   const handleToggleLike = async () => {
@@ -113,6 +129,75 @@ export function ArticleScreen() {
     );
   }
 
+  if (errorType) {
+    const isNetworkError = errorType === "network_error";
+
+    const errorConfig = {
+      not_found: {
+        icon: "x-circle" as const,
+        title: "Documento não encontrado",
+        message: "Este documento pode ter sido removido ou o link está incorrecto.",
+      },
+      access_denied: {
+        icon: "lock" as const,
+        title: "Acesso Restrito",
+        message: "Este conteúdo requer acesso especial aprovado.",
+      },
+      subscription_required: {
+        icon: "zap" as const,
+        title: "Conteúdo Jindungo",
+        message: "Este conteúdo é exclusivo para membros Jindungo. Solicita acesso e o administrador aprovará o teu pedido.",
+      },
+      network_error: {
+        icon: "wifi-off" as const,
+        title: "Falha de ligação",
+        message: "Não foi possível carregar o documento.\nVerifica a tua ligação.",
+      },
+    }[errorType];
+
+    return (
+      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
+        <HeaderBar title="Documento" />
+        <View style={styles.loadingContainer}>
+          <Feather name={errorConfig.icon} size={40} color={appTheme.colors.textMuted} />
+          <Text style={[styles.errorTitle, { marginTop: 16 }]}>{errorConfig.title}</Text>
+          <Text style={[styles.errorText, { textAlign: "center" }]}>{errorConfig.message}</Text>
+
+          {(errorType === "access_denied" || errorType === "subscription_required") && (
+            <TouchableOpacity
+              style={styles.errorButton}
+              onPress={() => {
+                if (!user) {
+                  navigation.navigate("LoginPrompt", { type: "comment" });
+                } else {
+                  setAccessModalVisible(true);
+                }
+              }}
+            >
+              <Feather name="send" size={15} color={appTheme.colors.surface} style={{ marginRight: 6 }} />
+              <Text style={styles.errorButtonText}>Solicitar Acesso</Text>
+            </TouchableOpacity>
+          )}
+          {isNetworkError && (
+            <TouchableOpacity style={styles.errorButton} onPress={() => void loadDocument()}>
+              <Text style={styles.errorButtonText}>Tentar novamente</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 12 }}>
+            <Text style={styles.errorLink}>Voltar</Text>
+          </TouchableOpacity>
+        </View>
+
+        <AccessRequestModal
+          visible={accessModalVisible}
+          documentId={id}
+          accessLevelId={requiredAccessLevel}
+          onClose={() => setAccessModalVisible(false)}
+        />
+      </ScreenContainer>
+    );
+  }
+
   if (!document) {
     return (
       <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
@@ -129,7 +214,6 @@ export function ArticleScreen() {
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
       <HeaderBar title="Documento" />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -333,9 +417,41 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  errorTitle: {
+    fontFamily: "IBM_Plex_Sans",
+    fontSize: 18,
+    fontWeight: "700",
+    color: appTheme.colors.textPrimary,
+    marginBottom: 6,
+    textAlign: "center",
+  },
   errorText: {
-    fontSize: 16,
+    fontFamily: "Source_Sans_3",
+    fontSize: 15,
     color: appTheme.colors.textMuted,
+    lineHeight: 22,
+  },
+  errorButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+    backgroundColor: appTheme.colors.primary,
+    borderRadius: appTheme.radius.md,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  errorButtonText: {
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.surface,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  errorLink: {
+    fontFamily: "Source_Sans_3",
+    fontSize: 14,
+    color: appTheme.colors.textMuted,
+    textDecorationLine: "underline",
   },
   scrollView: {
     flex: 1,
@@ -348,19 +464,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingTop: 24,
     marginBottom: 16,
   },
   docTypeBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: appTheme.radius.button,
     backgroundColor: appTheme.colors.surface,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
   },
   docTypeBadgeText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.textSecondary,
     fontSize: 11,
     fontWeight: "700",
@@ -373,7 +490,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.danger,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: appTheme.radius.button,
   },
   badgeRestricted: {
     flexDirection: "row",
@@ -382,9 +499,10 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.rankingCardGray,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: appTheme.radius.button,
   },
   badgeText: {
+    fontFamily: "Source_Sans_3",
     color: appTheme.colors.surface,
     fontSize: 11,
     fontWeight: "700",
@@ -396,13 +514,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     lineHeight: 32,
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     marginBottom: 16,
   },
   authorRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     gap: 12,
     marginBottom: 16,
   },
@@ -410,7 +528,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: appTheme.colors.primary + "22",
+    backgroundColor: appTheme.colors.userAvatarBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -423,11 +541,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   authorName: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   authorMeta: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     color: appTheme.colors.textMuted,
     marginTop: 2,
@@ -436,27 +556,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: appTheme.spacing.lg,
+    marginBottom: appTheme.spacing.md,
   },
   metaChip: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: appTheme.radius.pill,
     backgroundColor: appTheme.colors.surface,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
   },
   metaChipText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     color: appTheme.colors.textSecondary,
     fontWeight: "500",
   },
   summaryBlock: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: appTheme.spacing.lg,
+    marginBottom: appTheme.spacing.md,
   },
   summaryLabel: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -464,16 +586,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   summaryText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 15,
     color: appTheme.colors.textSecondary,
     lineHeight: 22,
     fontStyle: "italic",
   },
   articleBody: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     marginBottom: 24,
   },
   paragraph: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
     color: appTheme.colors.textPrimary,
     lineHeight: 26,
@@ -482,7 +606,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: 16,
     borderTopWidth: 1,
     borderTopColor: appTheme.colors.border,
@@ -495,6 +619,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   statText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     fontWeight: "600",
@@ -515,10 +640,10 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textMuted,
     letterSpacing: 1.2,
     marginBottom: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
   },
   horizontalList: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingBottom: 16,
     gap: 12,
   },
@@ -606,11 +731,12 @@ const styles = StyleSheet.create({
   },
   // Actions
   actionsBlock: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: 24,
     gap: 12,
   },
   actionsLabel: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -627,15 +753,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   actionBtnLabel: {
+    fontFamily: "IBM_Plex_Sans",
     color: appTheme.colors.surface,
     fontSize: 15,
     fontWeight: "600",
   },
   periodBlock: {
-    paddingHorizontal: 20,
+    paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: 20,
   },
   periodLabel: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -643,6 +771,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   periodText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 16,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,

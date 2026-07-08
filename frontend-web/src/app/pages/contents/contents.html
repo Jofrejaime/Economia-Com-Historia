@@ -6,10 +6,17 @@
     <div class="contents-container">
       
       <!-- Page Header -->
-      <div class="contents-header">
-        <h1 class="contents-header-title">Arquivo de Conteúdos</h1>
-        <p class="contents-header-subtitle">Explore a nossa colecção de documentos históricos e económicos</p>
-      </div>
+<div class="contents-header">
+  <h1 class="contents-header-title">Arquivo de Conteúdos</h1>
+  <p class="contents-header-subtitle">Explore a nossa colecção de documentos históricos e económicos</p>
+
+  <button type="button" class="contents-saved-btn" (click)="goToSaved()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/>
+    </svg>
+    <span>Guardados</span>
+  </button>
+</div>
 
       <!-- FILTERS CARD -->
       <div class="contents-filters-card">
@@ -138,7 +145,12 @@
                class="contents-doc-item">
             <div class="contents-doc-item-image">
               <img *ngIf="hasDocumentImage(doc)" [src]="getDocumentImage(doc)" [alt]="doc.title">
-              <div *ngIf="!hasDocumentImage(doc)" class="contents-doc-placeholder"></div>
+              <div *ngIf="!hasDocumentImage(doc)" class="contents-doc-placeholder">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </div>
             </div>
             <div class="contents-doc-item-body">
               <span class="contents-doc-item-category">{{ doc.document_type | uppercase }}</span>
@@ -213,4 +225,88 @@
   </main>
 
   <app-footer></app-footer>
+
+  <!-- MODAL: Pedido de Acesso (Jindungo / Restrito / Subscrição) -->
+  <div *ngIf="accessModalDoc" class="access-modal-overlay" (click)="closeAccessModal()">
+    <div class="access-modal" (click)="$event.stopPropagation()">
+
+      <div class="access-modal-header">
+        <div class="access-modal-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="access-modal-title">Conteúdo {{ getAccessLabel(accessModalDoc.access_level_id) }}</h2>
+          <p class="access-modal-subtitle">
+            {{ accessMode === 'subscription'
+                ? 'Este documento requer subscrição de acesso'
+                : 'Este documento requer um nível de acesso superior' }}
+          </p>
+        </div>
+        <button class="access-modal-close" (click)="closeAccessModal()" aria-label="Fechar">&times;</button>
+      </div>
+
+      <div class="access-modal-body">
+
+        <!-- Documento em causa -->
+        <div class="access-modal-doc">
+          <span class="access-modal-doc-type">{{ accessModalDoc.document_type | uppercase }}</span>
+          <h3 class="access-modal-doc-title">{{ accessModalDoc.title }}</h3>
+          <span class="access-modal-doc-badge"
+                [style.background]="getAccessBadgeStyle(accessModalDoc.access_level_id).bg"
+                [style.color]="getAccessBadgeStyle(accessModalDoc.access_level_id).text">
+            {{ getAccessLabel(accessModalDoc.access_level_id) }}
+          </span>
+        </div>
+
+        <!-- Estado: por pedir -->
+        <ng-container *ngIf="!accessRequestDone">
+          <p class="access-modal-text" *ngIf="accessMode === 'access-request'">
+            Os conteúdos {{ accessModalDoc.access_level_id === 'jindungo' ? 'Jindungo' : 'restritos' }}
+            fazem parte do acervo de acesso condicionado do arquivo. Para os consultar,
+            envie um pedido de acesso — a equipa do arquivo irá analisá-lo.
+          </p>
+          <p class="access-modal-text" *ngIf="accessMode === 'subscription'">
+            Este documento pertence a uma colecção que requer subscrição.
+            Para o consultar, envie um pedido de subscrição — a equipa do
+            arquivo irá analisá-lo.
+          </p>
+
+          <p *ngIf="accessRequestError" class="access-modal-error">{{ accessRequestError }}</p>
+
+          <div class="access-modal-actions">
+            <button type="button" class="access-modal-btn-secondary" (click)="closeAccessModal()" [disabled]="accessRequesting">
+              Agora não
+            </button>
+            <button type="button" class="access-modal-btn-primary" (click)="requestAccess()" [disabled]="accessRequesting">
+              {{ accessRequesting ? 'A enviar pedido...' : 'Pedir Acesso' }}
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- Estado: pedido enviado -->
+        <ng-container *ngIf="accessRequestDone">
+          <div class="access-modal-success">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            <div>
+              <p class="access-modal-success-title">Pedido de acesso enviado</p>
+              <p class="access-modal-success-text">Será notificado(a) quando o acesso for concedido.</p>
+            </div>
+          </div>
+
+          <div class="access-modal-actions">
+            <button type="button" class="access-modal-btn-primary" (click)="closeAccessModal()">
+              Entendido
+            </button>
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+  </div>
+
 </div>

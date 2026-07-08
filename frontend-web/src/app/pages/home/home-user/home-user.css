@@ -343,7 +343,10 @@ p, span, div, button, input, textarea, a {
 }
 .contents-hero-placeholder,
 .contents-doc-item-placeholder {
-  background: linear-gradient(135deg, #E5E7EB, #F5F5F5);
+  background: linear-gradient(135deg, #8B1E2D, #6B0119);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .contents-doc-item-placeholder {

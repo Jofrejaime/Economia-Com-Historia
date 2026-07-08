@@ -1,4 +1,18 @@
 <div class="gamification-container">
+  <!-- Banner de feedback (substitui os alerts) -->
+  <div *ngIf="banner" class="banner"
+       [class.banner-info]="banner.type === 'info'"
+       [class.banner-success]="banner.type === 'success'"
+       [class.banner-error]="banner.type === 'error'">
+    <p>{{ banner.text }}</p>
+    <button type="button" class="banner-close" (click)="dismissBanner()" aria-label="Fechar">&times;</button>
+  </div>
+
+  <!-- Erro de carregamento da tab -->
+  <div *ngIf="errorMessage" class="banner banner-error">
+    <p>{{ errorMessage }}</p>
+  </div>
+
   <!-- Tab navigation -->
   <nav class="tabs">
     <button class="tab" [class.active]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">Dashboard</button>
@@ -26,6 +40,9 @@
         <p>{{ dashboardData.top_users?.[0]?.score ?? '-' }}</p>
       </div>
     </div>
+    <div *ngIf="!loading && !dashboardData && !errorMessage" class="loader">
+      Sem dados de gamificação para apresentar.
+    </div>
   </section>
 
   <!-- Badges tab -->
@@ -34,7 +51,8 @@
     <div class="actions">
       <button class="primary" (click)="openAddBadgeModal()">Novo Badge</button>
     </div>
-    <table class="data-table">
+    <div *ngIf="loading" class="loader">Carregando...</div>
+    <table *ngIf="!loading" class="data-table">
       <thead>
         <tr>
           <th>Ícone</th>
@@ -45,6 +63,9 @@
         </tr>
       </thead>
       <tbody>
+        <tr *ngIf="badges.length === 0">
+          <td colspan="5" class="empty-row">Nenhum badge registado.</td>
+        </tr>
         <tr *ngFor="let badge of badges">
           <td><img [src]="badge.icon_url" alt="{{badge.name}}" class="badge-icon" /></td>
           <td>{{ badge.name }}</td>
@@ -93,7 +114,12 @@
         </tr>
       </tbody>
     </table>
-    <button class="secondary" (click)="refreshLeaderboardCache()">Recalcular Cache</button>
+    <div *ngIf="!loading && !leaderboardData?.entries?.length" class="loader">
+      Sem entradas no leaderboard para os filtros selecionados.
+    </div>
+    <div class="actions" style="margin-top: 16px;">
+      <button class="secondary" (click)="refreshLeaderboardCache()">Recalcular Cache</button>
+    </div>
     <div class="snapshots" *ngIf="snapshots?.length">
       <h3>Snapshots recentes</h3>
       <ul>
@@ -155,6 +181,9 @@
         </tr>
       </tbody>
     </table>
+    <div *ngIf="!loading && !transactions?.length" class="loader">
+      Nenhuma transação encontrada para os filtros aplicados.
+    </div>
     <div class="pagination" *ngIf="txLastPage > 1">
       <button class="secondary" (click)="txPagePrev()" [disabled]="txCurrentPage === 1">Anterior</button>
       <span>Página {{ txCurrentPage }} de {{ txLastPage }}</span>
@@ -198,6 +227,9 @@
         </tr>
       </tbody>
     </table>
+    <div *ngIf="!loading && !attempts?.length" class="loader">
+      Nenhuma tentativa encontrada para os filtros aplicados.
+    </div>
     <div class="pagination" *ngIf="attemptLastPage > 1">
       <button class="secondary" (click)="attemptPagePrev()" [disabled]="attemptCurrentPage === 1">Anterior</button>
       <span>Página {{ attemptCurrentPage }} de {{ attemptLastPage }}</span>
@@ -243,8 +275,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeBadgeModal()">Cancelar</button>
-        <button class="btn btn-primary" (click)="saveBadge()">Salvar</button>
+        <button class="btn-secondary" (click)="closeBadgeModal()">Cancelar</button>
+        <button class="btn-primary" [disabled]="saving" (click)="saveBadge()">{{ saving ? 'A guardar...' : 'Salvar' }}</button>
       </div>
     </div>
   </div>
@@ -263,8 +295,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeAssignModal()">Cancelar</button>
-        <button class="btn btn-primary" (click)="submitAssignment()">Confirmar</button>
+        <button class="btn-secondary" (click)="closeAssignModal()">Cancelar</button>
+        <button class="btn-primary" [disabled]="saving" (click)="submitAssignment()">{{ saving ? 'A processar...' : 'Confirmar' }}</button>
       </div>
     </div>
   </div>
@@ -284,7 +316,7 @@
         <p><strong>Data:</strong> {{ selectedTx.created_at | date:'medium' }}</p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeTxDetails()">Fechar</button>
+        <button class="btn-secondary" (click)="closeTxDetails()">Fechar</button>
       </div>
     </div>
   </div>
@@ -303,7 +335,24 @@
         <p><strong>Data:</strong> {{ selectedAttempt.completed_at | date:'medium' }}</p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeAttemptDetails()">Fechar</button>
+        <button class="btn-secondary" (click)="closeAttemptDetails()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmação (substitui os confirm()) -->
+  <div *ngIf="confirmModal" class="modal-backdrop" (click)="closeConfirmModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ confirmModal.title }}</h2>
+        <button class="close-btn" (click)="closeConfirmModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>{{ confirmModal.message }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeConfirmModal()">Cancelar</button>
+        <button class="btn-primary" (click)="proceedConfirm()">Confirmar</button>
       </div>
     </div>
   </div>

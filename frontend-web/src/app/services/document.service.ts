@@ -69,6 +69,23 @@ export interface DocumentsResponse {
   data: Document[];
 }
 
+/**
+ * Estado da subscrição devolvido por GET /documents/{id}/subscription.
+ * `required` distingue os dois mecanismos de acesso do backend:
+ *   - required = true  → categoria com requires_subscription → o desbloqueio
+ *     é feito por subscrição de documento (POST /documents/{id}/subscribe);
+ *   - required = false → o bloqueio (se existir) é por nível de acesso
+ *     (jindungo/restrito) → o desbloqueio é feito por access request
+ *     (POST /access-requests).
+ */
+export interface SubscriptionStatus {
+  required: boolean;
+  status: 'PENDING' | 'ACTIVE' | 'REJECTED' | 'CANCELLED' | null;
+  reason: string | null;
+  has_subscription: boolean;
+  started_at: string | null;
+}
+
 export interface RelatedQuiz {
   id: string;
   title: string;
@@ -104,54 +121,54 @@ export class DocumentService {
   }
 
   async getDocuments(params: {
-  category_id?: string;
-  access_level_id?: string;
-  academic_level?: string;
-  document_type?: string;
-  media_type?: string;
-  status?: string;
-  per_page?: number;
-} = {}): Promise<Document[]> {
-  let httpParams = new HttpParams();
-  if (params.category_id)     httpParams = httpParams.set('category_id', params.category_id);
-  if (params.access_level_id) httpParams = httpParams.set('access_level_id', params.access_level_id);
-  if (params.academic_level)  httpParams = httpParams.set('academic_level', params.academic_level);
-  if (params.document_type)   httpParams = httpParams.set('document_type', params.document_type);
-  if (params.media_type)      httpParams = httpParams.set('media_type', params.media_type);
-  if (params.status)          httpParams = httpParams.set('status', params.status);
-  if (params.per_page)        httpParams = httpParams.set('per_page', String(params.per_page));
+    category_id?: string;
+    access_level_id?: string;
+    academic_level?: string;
+    document_type?: string;
+    media_type?: string;
+    status?: string;
+    per_page?: number;
+  } = {}): Promise<Document[]> {
+    let httpParams = new HttpParams();
+    if (params.category_id)     httpParams = httpParams.set('category_id', params.category_id);
+    if (params.access_level_id) httpParams = httpParams.set('access_level_id', params.access_level_id);
+    if (params.academic_level)  httpParams = httpParams.set('academic_level', params.academic_level);
+    if (params.document_type)   httpParams = httpParams.set('document_type', params.document_type);
+    if (params.media_type)      httpParams = httpParams.set('media_type', params.media_type);
+    if (params.status)          httpParams = httpParams.set('status', params.status);
+    if (params.per_page)        httpParams = httpParams.set('per_page', String(params.per_page));
 
-  const res = await firstValueFrom(
-    this.http.get<{ data: Document[] }>(`${this.base}/documents`, {
-      headers: this.headers,
-      params: httpParams,
-    })
-  );
-  return res.data;
-}
+    const res = await firstValueFrom(
+      this.http.get<{ data: Document[] }>(`${this.base}/documents`, {
+        headers: this.headers,
+        params: httpParams,
+      })
+    );
+    return res.data;
+  }
 
   async searchDocuments(params: {
-  q?: string;
-  category_id?: string;
-  document_type?: string;
-  media_type?: string;
-} = {}): Promise<Document[]> {
-  let httpParams = new HttpParams();
-  if (params.q)             httpParams = httpParams.set('q', params.q);
-  if (params.category_id)   httpParams = httpParams.set('category_id', params.category_id);
-  if (params.document_type) httpParams = httpParams.set('document_type', params.document_type);
-  if (params.media_type)    httpParams = httpParams.set('media_type', params.media_type);
+    q?: string;
+    category_id?: string;
+    document_type?: string;
+    media_type?: string;
+  } = {}): Promise<Document[]> {
+    let httpParams = new HttpParams();
+    if (params.q)             httpParams = httpParams.set('q', params.q);
+    if (params.category_id)   httpParams = httpParams.set('category_id', params.category_id);
+    if (params.document_type) httpParams = httpParams.set('document_type', params.document_type);
+    if (params.media_type)    httpParams = httpParams.set('media_type', params.media_type);
 
-  const res = await firstValueFrom(
-    this.http.get<{ data: Document[] }>(`${this.base}/documents/search`, {
-      headers: this.headers,
-      params: httpParams,
-    })
-  );
-  return res.data;
-}
+    const res = await firstValueFrom(
+      this.http.get<{ data: Document[] }>(`${this.base}/documents/search`, {
+        headers: this.headers,
+        params: httpParams,
+      })
+    );
+    return res.data;
+  }
 
-/**
+  /**
    * Quizzes relacionados com este documento — associação primariamente por
    * categoria, complementada por associação directa opcional (quiz_documents).
    * Endpoint: GET /documents/{id}/quizzes
@@ -168,6 +185,60 @@ export class DocumentService {
     } catch {
       return [];
     }
+  }
+
+  // ==========================================
+  // SUBSCRIÇÕES (categorias com requires_subscription)
+  // ==========================================
+
+  /** Pede subscrição de um documento cuja categoria exige subscrição. */
+  async subscribeDocument(id: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post(`${this.base}/documents/${id}/subscribe`, {}, { headers: this.headers })
+    );
+  }
+
+  /**
+   * Estado da subscrição do utilizador para este documento.
+   * O campo `required` indica se o documento é, de facto, gerido por
+   * subscrição (true) ou por nível de acesso (false) — ver SubscriptionStatus.
+   */
+  async getSubscriptionStatus(id: string): Promise<SubscriptionStatus> {
+    return firstValueFrom(
+      this.http.get<SubscriptionStatus>(
+        `${this.base}/documents/${id}/subscription`,
+        { headers: this.headers }
+      )
+    );
+  }
+
+  /** Cancela o pedido/subscrição deste documento. */
+  async cancelSubscription(id: string): Promise<void> {
+    await firstValueFrom(
+      this.http.delete(`${this.base}/documents/${id}/subscription`, { headers: this.headers })
+    );
+  }
+
+  // ==========================================
+  // ACCESS REQUESTS (níveis de acesso jindungo/restrito)
+  // ==========================================
+
+  /**
+   * Pede elevação de nível de acesso (jindungo/restrito) via access request.
+   * Endpoint: POST /access-requests — é este, e não a subscrição, que
+   * desbloqueia documentos cujo bloqueio vem do access_level_id.
+   *
+   * ⚠️ Assunção sobre o payload: { access_level_id, message? }. Se o
+   * FormRequest do AccessController usar outros nomes de campos, ajustar aqui.
+   */
+  async requestAccessLevel(accessLevelId: string, message?: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post(
+        `${this.base}/access-requests`,
+        { access_level_id: accessLevelId, ...(message ? { message } : {}) },
+        { headers: this.headers }
+      )
+    );
   }
 
   /**
@@ -189,6 +260,7 @@ export class DocumentService {
       return [];
     }
   }
+
   async getDocument(id: string): Promise<DocumentDetail> {
     const res = await firstValueFrom(
       this.http.get<{ data: any; tags: DocumentTag[]; is_liked: boolean; is_favorited: boolean }>(

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  StatusBar,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
@@ -302,7 +301,6 @@ export function TopicDiscussionScreen() {
       style={styles.keyboardContainer}
     >
       <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
-        <StatusBar barStyle="dark-content" backgroundColor={appTheme.colors.surface} />
         <HeaderBar
           title="Discussão do Fórum"
           onBackPress={() => navigation.navigate("MainTabs", { screen: "Community" })}
@@ -716,7 +714,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   terminatedBannerText: {
-    color: "white",
+    fontFamily: "Source_Sans_3",
+    color: appTheme.colors.surface,
     fontSize: 14,
     fontWeight: "600",
   },
@@ -734,6 +733,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   topicCategory: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -771,11 +771,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   authorName: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   authorMeta: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     color: appTheme.colors.textMuted,
   },
@@ -788,6 +790,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   blockquoteText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 15,
     color: appTheme.colors.textSecondary,
     lineHeight: 22,
@@ -807,6 +810,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   commentCountText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 13,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -817,6 +821,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   likeCountText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     fontWeight: "600",
     color: appTheme.colors.textMuted,
@@ -842,6 +847,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   topicActionBtnText: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 13,
     fontWeight: "600",
     color: appTheme.colors.textSecondary,
@@ -893,15 +899,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   commentAuthor: {
+    fontFamily: "IBM_Plex_Sans",
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   commentTime: {
+    fontFamily: "Source_Sans_3",
     fontSize: 11,
     color: appTheme.colors.textMuted,
   },
   commentText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     lineHeight: 20,
@@ -917,6 +926,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   actionLinkText: {
+    fontFamily: "Source_Sans_3",
     fontSize: 12,
     fontWeight: "600",
     color: appTheme.colors.textMuted,
@@ -987,7 +997,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: appTheme.radius.button,
   },
   publishBtnText: {
     fontSize: 12,
@@ -1013,17 +1023,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     backgroundColor: appTheme.colors.surface,
-    borderRadius: 24,
+    borderRadius: appTheme.radius.lg,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
     minHeight: 52,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 8,
+    ...appTheme.shadow.lg,
   },
   composerAvatar: {
     width: 40,
@@ -1092,7 +1098,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: appTheme.colors.overlay,
     justifyContent: "flex-end",
   },
   menuSheet: {
@@ -1167,7 +1173,7 @@ const styles = StyleSheet.create({
   },
   reasonChipSelected: {
     borderColor: appTheme.colors.danger,
-    backgroundColor: appTheme.colors.danger + "12",
+    backgroundColor: appTheme.colors.dangerLight,
   },
   reasonChipText: {
     fontFamily: "Source_Sans_3",
@@ -1206,7 +1212,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   reportSubmitBtnText: {
-    color: "white",
+    color: appTheme.colors.surface,
     fontFamily: "Source_Sans_3",
     fontSize: 15,
     fontWeight: "700",

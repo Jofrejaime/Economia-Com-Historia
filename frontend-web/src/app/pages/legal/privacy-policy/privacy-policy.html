@@ -1,0 +1,149 @@
+<div class="privacy-page">
+  <app-header></app-header>
+
+  <main class="privacy-main">
+    <div class="privacy-container">
+
+      <!-- Breadcrumb -->
+      <nav class="privacy-breadcrumb">
+        <button (click)="navigateTo('/home')" class="privacy-breadcrumb-btn">Início</button>
+        <span class="privacy-breadcrumb-separator">/</span>
+        <span class="privacy-breadcrumb-current">Política de Privacidade</span>
+      </nav>
+
+      <!-- Header -->
+      <div class="privacy-header">
+        <div style="margin-bottom: 16px;">
+          <span class="privacy-header-badge">LEGAL</span>
+        </div>
+        <h1 class="privacy-header-title">Política de Privacidade</h1>
+        <p class="privacy-header-description">
+          Esta política descreve como a plataforma Economia com História recolhe, utiliza e protege
+          os seus dados pessoais. Última atualização: {{ lastUpdated }}.
+        </p>
+      </div>
+
+      <div class="privacy-content">
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">1. Quem Somos</h2>
+          <p class="privacy-section-text">
+            A Economia com História é uma plataforma educativa dedicada à divulgação e discussão da
+            evolução histórica da economia angolana, através de um arquivo de conteúdos, quizzes e
+            uma comunidade de discussão. Ao utilizar a plataforma, aceita as práticas descritas
+            nesta política.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">2. Dados que Recolhemos</h2>
+          <p class="privacy-section-text">
+            Recolhemos apenas os dados necessários ao funcionamento da plataforma:
+          </p>
+          <p class="privacy-section-text">
+            <strong>Dados de registo</strong> — nome completo, endereço de e-mail, palavra-passe
+            (armazenada de forma cifrada) e, opcionalmente, instituição de ensino e província.
+          </p>
+          <p class="privacy-section-text">
+            <strong>Dados de perfil</strong> — nome de exibição, fotografia de perfil (avatar) e
+            áreas de interesse, se optar por preenchê-los.
+          </p>
+          <p class="privacy-section-text">
+            <strong>Dados de atividade</strong> — conteúdos que gosta, guarda ou descarrega,
+            tentativas de quiz e respetivas pontuações, pontos e badges de gamificação, tópicos e
+            respostas que publica na comunidade, e posições no leaderboard.
+          </p>
+          <p class="privacy-section-text">
+            <strong>Dados técnicos</strong> — informações de sessão necessárias para manter a sua
+            autenticação segura, como identificadores de sessão e datas de acesso.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">3. Como Utilizamos os Seus Dados</h2>
+          <p class="privacy-section-text">
+            Utilizamos os seus dados para: criar e gerir a sua conta; personalizar a sua experiência
+            (conteúdos guardados, favoritos, histórico de quizzes); calcular pontos, badges e
+            classificações nos leaderboards nacional, provincial e institucional; permitir a sua
+            participação na comunidade, incluindo tópicos privados por convite; enviar notificações
+            relacionadas com a sua atividade (respostas aos seus tópicos, convites, badges
+            atribuídos); e garantir a segurança da plataforma e a moderação dos conteúdos.
+          </p>
+          <p class="privacy-section-text">
+            Não vendemos os seus dados pessoais nem os partilhamos com terceiros para fins de
+            marketing.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">4. Visibilidade Pública dos Seus Dados</h2>
+          <p class="privacy-section-text">
+            Algumas informações são visíveis para outros utilizadores por natureza da plataforma:
+            o seu nome de exibição e avatar aparecem junto aos tópicos e respostas que publica na
+            comunidade e nos leaderboards; a sua instituição pode aparecer no leaderboard
+            institucional. Os tópicos com visibilidade "Privado" apenas são visíveis para o autor,
+            os membros convidados e os administradores.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">5. Conservação dos Dados</h2>
+          <p class="privacy-section-text">
+            Conservamos os seus dados enquanto a sua conta estiver ativa. Se eliminar a sua conta,
+            os dados pessoais são removidos; as contribuições públicas na comunidade poderão ser
+            mantidas de forma anonimizada para preservar a integridade das discussões.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">6. Segurança</h2>
+          <p class="privacy-section-text">
+            Adotamos medidas técnicas adequadas para proteger os seus dados: palavras-passe cifradas,
+            sessões autenticadas com tokens, controlo de acessos por perfil (visitante, estudante,
+            professor, administrador) e restrição de conteúdos por nível de acesso. Pode consultar e
+            terminar as suas sessões ativas a partir do seu perfil.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">7. Os Seus Direitos</h2>
+          <p class="privacy-section-text">
+            Tem o direito de aceder, corrigir e atualizar os seus dados pessoais a qualquer momento
+            através da página de perfil. Pode também solicitar a eliminação da sua conta e dos dados
+            associados, retirar o consentimento para tratamentos opcionais, e apresentar reclamações
+            relativas ao tratamento dos seus dados através dos nossos canais de contacto.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">8. Menores de Idade</h2>
+          <p class="privacy-section-text">
+            A plataforma destina-se a estudantes e investigadores. Os utilizadores menores de idade
+            devem utilizar a plataforma com o conhecimento e consentimento dos seus encarregados de
+            educação.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">9. Alterações a Esta Política</h2>
+          <p class="privacy-section-text">
+            Esta política pode ser atualizada para refletir alterações na plataforma ou em requisitos
+            legais. A data da última atualização é sempre indicada no topo da página. Alterações
+            relevantes serão comunicadas através de notificação na plataforma.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2 class="privacy-section-title">10. Contacto</h2>
+          <p class="privacy-section-text">
+            Para questões relacionadas com privacidade e proteção de dados, contacte a equipa da
+            plataforma através dos canais indicados no rodapé do site.
+          </p>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

@@ -1,0 +1,300 @@
+/* ============================================
+   PREFERÊNCIAS DE NOTIFICAÇÕES - DESIGN SYSTEM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+body {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+  line-height: 1.7;
+  color: #1F2937;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -0.02em;
+  color: #1F2937;
+}
+
+.notifprefs-page {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+}
+
+.notifprefs-main {
+  flex: 1;
+  width: 100%;
+}
+
+.notifprefs-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 48px 64px;
+}
+
+/* ============================================
+   BREADCRUMB
+   ============================================ */
+
+.notifprefs-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.notifprefs-breadcrumb-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9CA3AF;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.notifprefs-breadcrumb-btn:hover {
+  color: #8B1E2D;
+}
+
+.notifprefs-breadcrumb-separator {
+  color: #9CA3AF;
+}
+
+.notifprefs-breadcrumb-current {
+  color: #8B1E2D;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.notifprefs-header {
+  margin-bottom: 28px;
+}
+
+.notifprefs-header-badge {
+  background: rgba(139, 30, 45, 0.1);
+  color: #8B1E2D;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  display: inline-block;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.notifprefs-header-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1F2937;
+  font-size: 34px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.notifprefs-header-description {
+  color: #1F2937;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   AÇÕES EM MASSA
+   ============================================ */
+
+.notifprefs-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.notifprefs-bulk-btn {
+  padding: 8px 16px;
+  min-height: 38px;
+  border-radius: 4px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  color: #1F2937;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.notifprefs-bulk-btn:hover {
+  border-color: #8B1E2D;
+  color: #8B1E2D;
+}
+
+.notifprefs-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #15803D;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* ============================================
+   LISTA DE PREFERÊNCIAS
+   ============================================ */
+
+.notifprefs-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.notifprefs-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #E5E7EB;
+  transition: background 0.2s;
+}
+
+.notifprefs-item:last-child {
+  border-bottom: none;
+}
+
+.notifprefs-item:hover {
+  background: rgba(139, 30, 45, 0.02);
+}
+
+.notifprefs-item-info {
+  flex: 1;
+}
+
+.notifprefs-item-label {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.notifprefs-item-desc {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ============================================
+   SWITCH
+   ============================================ */
+
+.notifprefs-switch {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  border-radius: 9999px;
+  border: 1px solid #E5E7EB;
+  background: #E5E7EB;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+  padding: 0;
+}
+
+.notifprefs-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease;
+}
+
+.notifprefs-switch.on {
+  background: #8B1E2D;
+  border-color: #8B1E2D;
+}
+
+.notifprefs-switch.on .notifprefs-switch-thumb {
+  transform: translateX(20px);
+}
+
+.notifprefs-switch:hover {
+  box-shadow: 0 0 0 3px rgba(139, 30, 45, 0.1);
+}
+
+/* ============================================
+   FOOTNOTE
+   ============================================ */
+
+.notifprefs-footnote {
+  margin-top: 16px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 12px;
+  color: #9CA3AF;
+  line-height: 1.7;
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .notifprefs-container {
+    padding: 24px 16px 40px;
+  }
+
+  .notifprefs-header-title {
+    font-size: 26px;
+  }
+
+  .notifprefs-item {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notifprefs-container {
+    padding: 16px 12px 32px;
+  }
+
+  .notifprefs-header-title {
+    font-size: 22px;
+  }
+
+  .notifprefs-bulk-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .notifprefs-bulk-btn {
+    width: 100%;
+  }
+}

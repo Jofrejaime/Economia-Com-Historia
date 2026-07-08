@@ -157,7 +157,7 @@ export function CreateRoomScreen() {
             activeOpacity={0.85}
             disabled={!selectedCategory}
           >
-            <Ionicons name="rocket-outline" size={20} color="#FFF" style={styles.saveButtonIcon} />
+            <Ionicons name="rocket-outline" size={20} color={appTheme.colors.surface} style={styles.saveButtonIcon} />
             <Text style={styles.saveButtonText}>Salvar sala virtual</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 20,
+    padding: appTheme.spacing.lg,
     paddingBottom: 32,
   },
   subtitle: {
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   section: {
-    marginBottom: 26,
+    marginBottom: appTheme.spacing.lg,
   },
   sectionTitle: {
     fontFamily: "IBM_Plex_Sans",
@@ -198,13 +198,9 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.lg,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
-    padding: 18,
+    padding: appTheme.spacing.md,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
+    ...appTheme.shadow.sm,
   },
   controlLabel: {
     fontFamily: "Source_Sans_3",
@@ -237,11 +233,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    shadowColor: appTheme.colors.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    elevation: 4,
+    ...appTheme.shadow.md,
   },
   saveButtonIcon: {
     marginRight: 10,
