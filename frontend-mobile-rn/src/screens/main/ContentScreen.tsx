@@ -17,7 +17,7 @@ import { SkeletonLoader } from "../../components/SkeletonLoader";
 import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { documentService } from "../../services/api/documentService";
-import type { Document, DocumentType, AccessLevelId } from "../../types/api";
+import type { Document, DocumentType } from "../../types/api";
 import type { ContentParams } from "../../types/navigation";
 
 type SortType = "recent" | "popular";
@@ -65,12 +65,6 @@ const skeletonStyles = StyleSheet.create({
   },
 });
 
-function accessLevelLabel(id: string): { label: string; color: string } {
-  if (id === "jindungo") return { label: "Jindungo", color: appTheme.colors.warning };
-  if (id === "restricted") return { label: "Restrito", color: appTheme.colors.danger };
-  return { label: "Público", color: appTheme.colors.success };
-}
-
 export function ContentScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -78,7 +72,6 @@ export function ContentScreen() {
   const [draftSearch, setDraftSearch] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<DocumentType | undefined>(undefined);
-  const [selectedAccessLevel, setSelectedAccessLevel] = useState<AccessLevelId | undefined>(undefined);
   const [sortBy, setSortBy] = useState<SortType>("recent");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -92,17 +85,15 @@ export function ContentScreen() {
 
   useEffect(() => {
     const params = route.params as ContentParams | undefined;
-    const hasAny = !!(params?.document_type || params?.access_level_id || params?.searchQuery);
+    const hasAny = !!(params?.document_type || params?.searchQuery);
     if (!hasAny) return;
 
     if (params!.document_type) { setSelectedType(params!.document_type); }
-    if (params!.access_level_id) { setSelectedAccessLevel(params!.access_level_id); }
     if (params!.searchQuery) { setSearchQuery(params!.searchQuery); setDraftSearch(params!.searchQuery); }
     setShowFilters(true);
 
     navigation.setParams({
       document_type: undefined,
-      access_level_id: undefined,
       academic_level: undefined,
       searchQuery: undefined,
     });
@@ -121,7 +112,6 @@ export function ContentScreen() {
       const response = await documentService.list({
         q: searchQuery.trim() || undefined,
         document_type: selectedType,
-        access_level_id: selectedAccessLevel,
         sort: sortBy,
         page: currentPage,
         per_page: 15,
@@ -135,7 +125,7 @@ export function ContentScreen() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedType, selectedAccessLevel, sortBy]);
+  }, [searchQuery, selectedType, sortBy]);
 
   useEffect(() => {
     void fetchDocuments(true);
@@ -158,7 +148,7 @@ export function ContentScreen() {
       author={item.author}
       image={item.cover_image_url}
       documentType={item.document_type}
-      accessLevelId={item.access_level_id}
+      requiresSubscription={item.category?.requires_subscription === true}
       categoryName={item.category?.name}
       categoryColorBg={item.category?.color_bg}
       categoryColorText={item.category?.color_text}
@@ -202,10 +192,10 @@ export function ContentScreen() {
           style={[styles.filterButton, showFilters && styles.filterButtonActive]}
         >
           <Feather name="filter" size={16} color={showFilters ? "white" : appTheme.colors.textSecondary} />
-          {[selectedType, selectedAccessLevel].filter(Boolean).length > 0 ? (
+          {[selectedType].filter(Boolean).length > 0 ? (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>
-                {[selectedType, selectedAccessLevel].filter(Boolean).length}
+                {[selectedType].filter(Boolean).length}
               </Text>
             </View>
           ) : (
@@ -236,27 +226,6 @@ export function ContentScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
-
-          <Text style={[styles.filterLabel, { marginTop: 12 }]}>Acesso</Text>
-          <View style={styles.chipsRow}>
-            <TouchableOpacity
-              onPress={() => setSelectedAccessLevel(undefined)}
-              style={[styles.chip, !selectedAccessLevel && styles.chipActive]}
-            >
-              <Text style={[styles.chipText, !selectedAccessLevel && styles.chipTextActive]}>Todos</Text>
-            </TouchableOpacity>
-            {(["public", "jindungo", "restricted"] as AccessLevelId[]).map((id) => (
-              <TouchableOpacity
-                key={id}
-                onPress={() => setSelectedAccessLevel(selectedAccessLevel === id ? undefined : id)}
-                style={[styles.chip, selectedAccessLevel === id && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, selectedAccessLevel === id && styles.chipTextActive]}>
-                  {accessLevelLabel(id).label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
 
           <Text style={[styles.filterLabel, { marginTop: 12 }]}>Ordenar por</Text>
           <View style={styles.chipsRow}>
@@ -306,7 +275,7 @@ export function ContentScreen() {
               </View>
             );
           }
-          const hasFilters = !!(searchQuery || selectedType || selectedAccessLevel);
+          const hasFilters = !!(searchQuery || selectedType);
           return (
             <View style={styles.emptyState}>
               <Feather name="inbox" size={52} color={appTheme.colors.textMuted} />
@@ -324,7 +293,6 @@ export function ContentScreen() {
                       setSearchQuery("");
                       setDraftSearch("");
                       setSelectedType(undefined);
-                      setSelectedAccessLevel(undefined);
                     }}
                   >
                     <Feather name="x-circle" size={15} color={appTheme.colors.primary} />

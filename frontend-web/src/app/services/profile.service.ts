@@ -19,15 +19,6 @@ export interface ApiProfile {
   updated_at?: string;
 }
 
-export interface AccessGrant {
-  id: string;
-  user_id: string;
-  access_level_id: string;
-  granted_at: string;
-  access_level_name: string;
-  access_level_description: string | null;
-}
-
 export interface Badge {
   id: string;
   name: string;
@@ -71,7 +62,6 @@ export interface InterestAreaRef {
 export interface MeResponse {
   user?: unknown;
   profile?: ApiProfile | null;
-  access_grants?: AccessGrant[];
   user_level?: UserLevel | null;
   level_definition?: LevelDefinition | null;
   badges?: Badge[];

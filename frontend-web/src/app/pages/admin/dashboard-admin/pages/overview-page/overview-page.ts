@@ -138,7 +138,6 @@ export class OverviewPageComponent implements OnInit {
     }
 
     const data = result.data;
-    const pendingRequests = data.access_requests.pending;
     const publishedDocuments = data.documents.published;
     const archivedDocuments = data.documents.archived;
     const openTopics = data.community.topics_open;
@@ -152,15 +151,6 @@ export class OverviewPageComponent implements OnInit {
           badge: `+${this.formatPercent(data.users.new_today, data.users.total)}%`,
           badgeLabel: 'hoje',
           positive: data.users.new_today >= 0
-        }
-      },
-      {
-        label: 'PEDIDOS DE ACESSO',
-        value: this.formatNumber(pendingRequests),
-        leftBorderColor: '#ba1a1a',
-        variant: {
-          type: 'alert',
-          badge: 'PENDENTES'
         }
       },
       {

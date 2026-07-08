@@ -43,7 +43,6 @@ class DomainEventsTest extends TestCase
             'summary'         => 'Resumo',
             'document_type'   => 'article',
             'academic_level'  => 'intro',
-            'access_level_id' => 'public',
         ];
     }
 
@@ -58,7 +57,6 @@ class DomainEventsTest extends TestCase
             'summary'         => 'Resumo',
             'document_type'   => 'article',
             'academic_level'  => 'intro',
-            'access_level_id' => 'public',
             'status'          => 'draft',
             'created_by'      => $createdBy,
             'created_at'      => now(),

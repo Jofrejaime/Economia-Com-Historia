@@ -242,12 +242,7 @@ export class CommunityPageComponent implements OnInit {
 
   async saveTopic(): Promise<void> {
     if (!this.editingTopic) {
-      this.errorMessage = 'Selecione um tópico para editar.';
-      return;
-    }
-
-    if (!this.topicForm.title.trim() || !this.topicForm.content.trim()) {
-      this.errorMessage = 'Título e conteúdo são obrigatórios.';
+      this.errorMessage = 'Selecione um tópico para moderar.';
       return;
     }
 
@@ -255,9 +250,9 @@ export class CommunityPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
+    // Admins moderam (estado/categoria/fixado/destaque) mas NÃO editam o
+    // conteúdo (título/corpo) de discussões criadas pelos utilizadores.
     const result = await firstValueFrom(this.communityAdmin.updateTopic(this.editingTopic.id, {
-      title: this.topicForm.title.trim(),
-      content: this.topicForm.content.trim(),
       status: this.topicForm.status,
       category_id: this.topicForm.category_id || null,
       is_pinned: this.topicForm.is_pinned,
@@ -265,12 +260,12 @@ export class CommunityPageComponent implements OnInit {
     }));
 
     if (!result.ok || !result.data) {
-      this.errorMessage = result.message || 'Não foi possível actualizar o tópico.';
+      this.errorMessage = result.message || 'Não foi possível moderar o tópico.';
       this.loading = false;
       return;
     }
 
-    this.successMessage = result.message || 'Tópico actualizado com sucesso.';
+    this.successMessage = result.message || 'Tópico moderado com sucesso.';
     this.showTopicModal = false;
     this.editingTopic = null;
     await this.loadInitialData();
@@ -381,43 +376,10 @@ export class CommunityPageComponent implements OnInit {
     this.showReplyModal = true;
   }
 
-  enableReplyEditMode(): void {
-    this.replyModalMode = 'edit';
-  }
-
   closeReplyModal(): void {
     this.showReplyModal = false;
     this.editingReply = null;
     this.replyModalMode = 'view';
-  }
-
-  async saveReply(): Promise<void> {
-    if (!this.editingReply) {
-      return;
-    }
-
-    if (!this.replyForm.content.trim()) {
-      this.errorMessage = 'O conteúdo da resposta é obrigatório.';
-      return;
-    }
-
-    this.loading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
-
-    const result = await firstValueFrom(this.communityAdmin.updateReply(this.editingReply.id, {
-      content: this.replyForm.content.trim(),
-    }));
-
-    if (!result.ok || !result.data) {
-      this.errorMessage = result.message || 'Não foi possível actualizar a resposta.';
-      this.loading = false;
-      return;
-    }
-
-    this.successMessage = result.message || 'Resposta actualizada com sucesso.';
-    await this.loadInitialData();
-    this.closeReplyModal();
   }
 
   async deleteReply(reply: ReplyView): Promise<void> {

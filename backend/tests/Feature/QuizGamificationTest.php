@@ -168,7 +168,6 @@ class QuizGamificationTest extends TestCase
             'difficulty' => 'Básico',
             'base_points' => 100,
             'time_limit_secs' => 600,
-            'access_level_id' => 'public',
             'status' => QuizStatus::PUBLISHED->value,
             'created_by' => $createdBy,
             'published_at' => now(),

@@ -66,7 +66,6 @@ class DocumentSubscriptionIdempotencyTest extends TestCase
             'summary'         => 'Summary',
             'document_type'   => 'article',
             'academic_level'  => 'intro',
-            'access_level_id' => 'public',
             'category_id'     => $categoryId,
             'status'          => 'published',
             'created_by'      => $author->id,

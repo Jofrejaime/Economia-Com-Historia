@@ -26,7 +26,7 @@ export class HomeUser implements OnInit {
 
   isAuthenticated = false;
 
-  // ─── Modal de pedido de acesso (jindungo / restrito) ─────────────────────
+  // ─── Modal de pedido de subscrição (categorias restritas) ────────────────
   accessModalDoc: Document | null = null;
   accessRequesting = false;
   accessRequestDone = false;
@@ -139,24 +139,16 @@ export class HomeUser implements OnInit {
   // ACESSO A CONTEÚDOS JINDUNGO / RESTRITOS
   // ==========================================
 
-  getAccessLabel(accessLevelId: string): string {
-    switch (accessLevelId) {
-      case 'jindungo':   return 'Jindungo';
-      case 'restricted': return 'Restrito';
-      default:           return 'Público';
+  /** Badge por documento, decidido pela categoria (restrita → "Subscrição"). */
+  getDocBadge(doc: Document): { label: string; bg: string; text: string } {
+    if (doc.category?.requires_subscription === true) {
+      return { label: 'Subscrição', bg: '#e0d4f7', text: '#3b1f6b' };
     }
-  }
-
-  getAccessBadgeStyle(accessLevelId: string): { bg: string; text: string } {
-    switch (accessLevelId) {
-      case 'jindungo':   return { bg: '#ffd6a5', text: '#4a2c00' };
-      case 'restricted': return { bg: '#ffb3ba', text: '#5c0011' };
-      default:           return { bg: '#d1fae5', text: '#065f46' };
-    }
+    return { label: 'Público', bg: '#d1fae5', text: '#065f46' };
   }
 
   private needsAccessRequest(doc: Document): boolean {
-    if (doc.access_level_id !== 'jindungo' && doc.access_level_id !== 'restricted') {
+    if (doc.category?.requires_subscription !== true) {
       return false;
     }
     const anyDoc = doc as any;

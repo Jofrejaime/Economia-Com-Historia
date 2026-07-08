@@ -48,14 +48,6 @@ export interface MeResponse {
     category: string | null;
     earned_at: string;
   }>;
-  access_grants: Array<{
-    id: string;
-    user_id: string;
-    access_level_id: string;
-    granted_at: string;
-    access_level_name: string;
-    access_level_description: string | null;
-  }>;
 }
 
 // level_definitions table
@@ -120,6 +112,7 @@ export interface DocumentCategory {
   icon: string | null;
   parent_id: string | null;
   sort_order: number;
+  requires_subscription?: boolean;
   created_at: string;
 }
 
@@ -133,7 +126,6 @@ export interface Tag {
 
 export type DocumentType = 'article' | 'thesis' | 'report' | 'manuscript' | 'archive' | 'video' | 'audio';
 export type AcademicLevel = 'intro' | 'advanced' | 'doctorate';
-export type AccessLevelId = 'public' | 'jindungo' | 'restricted';
 
 export interface DocumentQuizPreview {
   id: string;
@@ -166,7 +158,6 @@ export interface Document {
   category_id: string | null;
   document_type: DocumentType;
   academic_level: AcademicLevel;
-  access_level_id: AccessLevelId;
   publication_date: string | null;
   period_start: number | null;
   period_end: number | null;
@@ -183,7 +174,6 @@ export interface Document {
   updated_at: string;
   views_count: number;
   likes_count: number;
-  downloads_count: number;
   comments_count: number;
   category?: DocumentCategory;
   tags?: Tag[];
@@ -206,7 +196,6 @@ export interface Quiz {
   difficulty: 'Básico' | 'Intermédio' | 'Avançado';
   base_points: number;
   time_limit_secs: number | null;
-  access_level_id: AccessLevelId;
   is_featured: boolean;
   status: 'draft' | 'published';
   category_id: string | null;

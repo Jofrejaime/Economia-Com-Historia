@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\AccessController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CommunityController;
@@ -17,7 +16,6 @@ use App\Http\Controllers\Api\QuizAdminController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\LevelDefinitionController;
-use App\Http\Controllers\Api\AccessLevelController;
 use App\Http\Controllers\Api\DocumentCategoryController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\UserAdminController;
@@ -28,8 +26,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BadgeController;
 use App\Http\Controllers\Api\CommunityCategoryAdminController;
 use App\Http\Controllers\Api\TopicAdminController;
-use App\Http\Controllers\Api\AccessRequestAdminController;
-use App\Http\Controllers\Api\AccessGrantAdminController;
 use App\Http\Controllers\Api\ReportAdminController;
 use App\Http\Controllers\Api\GamificationAdminController;
 use App\Http\Controllers\Api\ProvinceController;
@@ -133,13 +129,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         Route::patch('/level-definitions/{level}', [LevelDefinitionController::class, 'update']);
         Route::delete('/level-definitions/{level}', [LevelDefinitionController::class, 'destroy']);
 
-        // Access Levels management
-        Route::get('/access-levels', [AccessLevelController::class, 'index']);
-        Route::get('/access-levels/{id}', [AccessLevelController::class, 'show']);
-        Route::post('/access-levels', [AccessLevelController::class, 'store']);
-        Route::patch('/access-levels/{id}', [AccessLevelController::class, 'update']);
-        Route::delete('/access-levels/{id}', [AccessLevelController::class, 'destroy']);
-
         // Documents Management (Admin)
         Route::get('/documents', [DocumentController::class, 'index']);
         Route::post('/documents', [DocumentController::class, 'store']);
@@ -183,17 +172,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         // Notifications — send to others (Admin)
         Route::post('/notifications/send', [NotificationController::class, 'send']);
         Route::post('/notifications/invite', [NotificationController::class, 'sendInvite']);
-
-        // Access Request Admin (Sprint 18.6)
-        Route::get('/access-requests', [AccessRequestAdminController::class, 'index']);
-        Route::post('/access-requests', [AccessRequestAdminController::class, 'store']);
-        Route::get('/access-requests/{id}', [AccessRequestAdminController::class, 'show']);
-        Route::patch('/access-requests/{id}/approve', [AccessRequestAdminController::class, 'approve']);
-        Route::patch('/access-requests/{id}/reject', [AccessRequestAdminController::class, 'reject']);
-
-        // Access Grant Admin (Sprint 18.6)
-        Route::get('/access-grants', [AccessGrantAdminController::class, 'index']);
-        Route::post('/access-grants/{id}/revoke', [AccessGrantAdminController::class, 'revoke']);
 
         // Reports Admin (Sprint 18.6)
         Route::get('/reports', [ReportAdminController::class, 'index']);
@@ -256,18 +234,11 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
     Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
 
-    // Access — own requests/grants
-    Route::get('/access-levels', [AccessController::class, 'index']);
     Route::get('/badges', [BadgeController::class, 'index']);
-    Route::get('/access-requests', [AccessController::class, 'requests']);
-    Route::post('/access-requests', [AccessController::class, 'storeRequest']);
-    Route::get('/access-requests/{id}', [AccessController::class, 'showRequest']);
-    Route::get('/access-grants', [AccessController::class, 'grants']);
 
     // Documents — interações
     Route::post('/documents/{id}/like', [DocumentController::class, 'like']);
     Route::delete('/documents/{id}/like', [DocumentController::class, 'unlike']);
-    Route::post('/documents/{id}/download', [DocumentController::class, 'download']);
     Route::post('/documents/{id}/favorite', [DocumentController::class, 'favorite']);
     Route::delete('/documents/{id}/favorite', [DocumentController::class, 'unfavorite']);
     Route::post('/documents/{id}/citations', [DocumentController::class, 'createCitation']);
@@ -343,10 +314,6 @@ Route::middleware(AuthenticateApiSession::class)->group(function (): void {
         // Documents — pin management
         Route::post('/documents/{id}/pin', [DocumentController::class, 'pin']);
         Route::delete('/documents/{id}/pin', [DocumentController::class, 'unpin']);
-
-        // Access management
-        Route::patch('/access-requests/{id}', [AccessController::class, 'reviewRequest']);
-        Route::post('/access-grants/{id}/revoke', [AccessController::class, 'revokeGrant']);
 
         // Notifications — send to others
         Route::post('/notifications/send', [NotificationController::class, 'send']);

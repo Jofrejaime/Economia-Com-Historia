@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('slug', 100)->unique();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('access_level_id', 20)->default('public');
             $table->string('color_bg', 7)->nullable();
             $table->string('color_text', 7)->nullable();
             $table->string('cover_image_url', 500)->nullable();
@@ -28,8 +27,6 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
             $table->integer('members_count')->default(0);
             $table->integer('topics_count')->default(0);
-
-            $table->foreign('access_level_id')->references('id')->on('access_levels');
         });
 
         Schema::create('discussion_topics', function (Blueprint $table) {

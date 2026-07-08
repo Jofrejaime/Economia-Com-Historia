@@ -13,7 +13,6 @@ use Illuminate\Support\Collection;
 class QuizAttemptService
 {
     public function __construct(
-        private readonly AccessGateService $accessGate,
         private readonly GamificationService $gamification,
     ) {}
 
@@ -26,10 +25,6 @@ class QuizAttemptService
         $quiz = Quiz::find($quizId);
         if ($quiz === null) {
             abort(404, 'Quiz not found.');
-        }
-
-        if (!$this->accessGate->canAccess($user, $quiz->access_level_id) && $quiz->created_by !== $user->id) {
-            abort(403, 'Access denied.');
         }
 
         if (!$quiz->isPublished() && $user->role !== 'admin' && $quiz->created_by !== $user->id) {
@@ -82,10 +77,6 @@ class QuizAttemptService
         $quiz = Quiz::find($attempt->quiz_id);
         if ($quiz === null) {
             abort(404, 'Quiz not found.');
-        }
-
-        if (!$this->accessGate->canAccess($user, $quiz->access_level_id) && $quiz->created_by !== $user->id) {
-            abort(403, 'Access denied.');
         }
 
         $question = DB::table('quiz_questions')
@@ -145,10 +136,6 @@ class QuizAttemptService
             $quiz = Quiz::find($attempt->quiz_id);
             if ($quiz === null) {
                 abort(404, 'Quiz not found.');
-            }
-
-            if (!$this->accessGate->canAccess($user, $quiz->access_level_id) && $quiz->created_by !== $user->id) {
-                abort(403, 'Access denied.');
             }
 
             $totalQuestions = (int) DB::table('quiz_questions')

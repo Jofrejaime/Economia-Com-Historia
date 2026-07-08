@@ -38,14 +38,6 @@ class AdminSeeder extends Seeder
             'updated_at' => now(),
         ]);
 
-        DB::table('user_access_grants')->insert([
-            'id' => (string) Str::uuid(),
-            'user_id' => $userId,
-            'access_level_id' => 'public',
-            'granted_at' => now(),
-            'is_active' => true,
-        ]);
-
         DB::table('user_levels')->insert([
             'id' => (string) Str::uuid(),
             'user_id' => $userId,

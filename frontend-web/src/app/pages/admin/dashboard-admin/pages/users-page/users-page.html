@@ -454,36 +454,6 @@
               </div>
             </div>
 
-            <!-- Níveis de Acesso Section -->
-            <div style="margin-bottom: 24px;">
-              <h4 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;">Níveis de Acesso Concedidos</h4>
-              <div *ngIf="profileDetails.access_grants?.length === 0" style="color: #9CA3AF; font-size: 13px; font-style: italic;">Apenas acesso público geral configurado.</div>
-              <div class="badges-grid-mini" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                <div class="badge-item-mini" *ngFor="let g of profileDetails.access_grants" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 9999px; background: #E0F2FE; border: 1px solid #BAE6FD;">
-                  <span style="font-size: 12px; font-weight: 600; color: #0369A1;">🔑 {{ g.access_level_name || g.access_level_id }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Pedidos de Acesso Section -->
-            <div>
-              <h4 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;">Pedidos de Acesso Efetivados</h4>
-              <div *ngIf="profileDetails.access_requests?.length === 0" style="color: #9CA3AF; font-size: 13px; font-style: italic;">Nenhum pedido de acesso registado.</div>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <div *ngFor="let r of profileDetails.access_requests" style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
-                  <div>
-                    <span style="font-size: 13px; font-weight: 600; color: #374151;">{{ r.access_level_name || r.access_level_id }}</span>
-                    <p style="font-size: 11px; color: #9CA3AF; margin: 4px 0 0 0;">Justificativa: {{ r.justification || 'N/A' }}</p>
-                  </div>
-                  <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 9999px;" 
-                        [style.background]="r.status === 'approved' ? 'rgba(15, 118, 110, 0.1)' : r.status === 'pending' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(220, 38, 38, 0.1)'"
-                        [style.color]="r.status === 'approved' ? '#0F766E' : r.status === 'pending' ? '#B45309' : '#DC2626'">
-                    {{ r.status }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
 

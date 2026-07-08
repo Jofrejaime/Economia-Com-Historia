@@ -45,26 +45,21 @@ class DocumentSearchService
     {
         return DB::table('documents as d')
             ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
-            ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
             ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
             ->select(
                 'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
-                'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
+                'd.category_id', 'd.document_type', 'd.academic_level',
                 'd.publication_date', 'd.period_start', 'd.period_end',
                 'd.summary', 'd.content', 'd.cover_image_url',
                 'd.media_type', 'd.media_url', 'd.pdf_url',
                 'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
-                'd.views_count', 'd.likes_count', 'd.downloads_count',
+                'd.views_count', 'd.likes_count',
                 'dc.name as category_name',
                 'dc.slug as category_slug',
                 'dc.color_bg as category_color_bg',
                 'dc.color_text as category_color_text',
                 'dc.icon as category_icon',
                 'dc.requires_subscription as category_requires_subscription',
-                'al.name as access_level_name',
-                'al.icon as access_level_icon',
-                'al.color_bg as access_level_color_bg',
-                'al.color_text as access_level_color_text',
                 'up.display_name as author_display_name',
                 'up.avatar_url as author_avatar_url'
             )
@@ -140,9 +135,6 @@ class DocumentSearchService
         if (!empty($params['academic_level'])) {
             $query->where('d.academic_level', $params['academic_level']);
         }
-        if (!empty($params['access_level_id'])) {
-            $query->where('d.access_level_id', $params['access_level_id']);
-        }
         if (!empty($params['media_type'])) {
             $query->where('d.media_type', $params['media_type']);
         }
@@ -185,9 +177,6 @@ class DocumentSearchService
                 break;
             case 'popular':
                 $query->orderByDesc('d.likes_count')->orderByDesc('d.views_count');
-                break;
-            case 'downloads':
-                $query->orderByDesc('d.downloads_count');
                 break;
             case 'favorites':
                 $query->orderByDesc(function ($sub) {

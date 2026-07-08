@@ -17,7 +17,7 @@ interface FeaturedContent {
   views: string;
   image: string;
   document_type: string;
-  access_level_id: string; // 'public' | 'jindungo' | 'restricted'
+  requires_subscription: boolean;
 }
 
 interface LeaderboardRow {
@@ -49,7 +49,7 @@ export class HomeVisitorComponent implements OnInit {
   recentDiscussions: RecentDiscussion[] = [];
   isLoading = true;
 
-  // ─── Modal de pedido de acesso (jindungo / restrito) ─────────────────────
+  // ─── Modal de pedido de subscrição (categorias restritas) ────────────────
   accessModalDoc: FeaturedContent | null = null;
   accessRequesting = false;
   accessRequestDone = false;
@@ -82,7 +82,7 @@ export class HomeVisitorComponent implements OnInit {
         views: this.formatViews(d.views_count ?? 0),
         image: d.cover_image_url ?? '',
         document_type: d.document_type ?? '',
-        access_level_id: d.access_level_id ?? 'public',
+        requires_subscription: d.category_requires_subscription === true,
       }));
 
       // Ranking (primeiros 5)
@@ -147,24 +147,16 @@ export class HomeVisitorComponent implements OnInit {
   // ACESSO A CONTEÚDOS JINDUNGO / RESTRITOS
   // ==========================================
 
-  getAccessLabel(accessLevelId: string): string {
-    switch (accessLevelId) {
-      case 'jindungo':   return 'Jindungo';
-      case 'restricted': return 'Restrito';
-      default:           return 'Público';
+  /** Badge por conteúdo, decidido pela categoria (restrita → "Subscrição"). */
+  getContentBadge(content: FeaturedContent): { label: string; bg: string; text: string } {
+    if (content.requires_subscription === true) {
+      return { label: 'Subscrição', bg: '#e0d4f7', text: '#3b1f6b' };
     }
-  }
-
-  getAccessBadgeStyle(accessLevelId: string): { bg: string; text: string } {
-    switch (accessLevelId) {
-      case 'jindungo':   return { bg: '#ffd6a5', text: '#4a2c00' };
-      case 'restricted': return { bg: '#ffb3ba', text: '#5c0011' };
-      default:           return { bg: '#d1fae5', text: '#065f46' };
-    }
+    return { label: 'Público', bg: '#d1fae5', text: '#065f46' };
   }
 
   private needsAccessRequest(content: FeaturedContent): boolean {
-    return content.access_level_id === 'jindungo' || content.access_level_id === 'restricted';
+    return content.requires_subscription === true;
   }
 
   navigateToContent(id: string): void {

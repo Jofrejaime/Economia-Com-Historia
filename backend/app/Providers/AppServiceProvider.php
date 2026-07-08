@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Services\AccessGateService;
 use App\Services\GamificationService;
 use App\Services\Media\NullPreviewGenerator;
 use App\Services\Media\PreviewGenerator;
@@ -22,7 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(AccessGateService::class);
         $this->app->singleton(GamificationService::class);
         $this->app->singleton(NotificationService::class);
 

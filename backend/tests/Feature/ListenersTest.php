@@ -52,13 +52,11 @@ class ListenersTest extends TestCase
             'summary'         => 'Resumo',
             'document_type'   => 'article',
             'academic_level'  => 'intro',
-            'access_level_id' => 'public',
             'status'          => 'published',
             'created_by'      => $createdBy,
             'published_at'    => now(),
             'views_count'     => 0,
             'likes_count'     => 0,
-            'downloads_count' => 0,
             'created_at'      => now(),
             'updated_at'      => now(),
         ]);

@@ -51,8 +51,6 @@ export interface Document {
   media_type: string | null;
   media_url: string | null;
   academic_level: 'intro' | 'advanced' | 'doctorate';
-  access_level_id: string;
-  access_level_name: string | null;
   publication_date: string | null;
   period_start: number | null;
   period_end: number | null;
@@ -65,7 +63,6 @@ export interface Document {
   published_at: string | null;
   views_count: number;
   likes_count: number;
-  downloads_count: number;
   is_liked: boolean;
   is_favorited: boolean;
   tags: DocumentTag[];
@@ -94,12 +91,9 @@ export interface PageMeta {
 
 /**
  * Estado da subscrição devolvido por GET /documents/{id}/subscription.
- * `required` distingue os dois mecanismos de acesso do backend:
- *   - required = true  → categoria com requires_subscription → o desbloqueio
- *     é feito por subscrição de documento (POST /documents/{id}/subscribe);
- *   - required = false → o bloqueio (se existir) é por nível de acesso
- *     (jindungo/restrito) → o desbloqueio é feito por access request
- *     (POST /access-requests).
+ * `required = true` quando a categoria do documento exige subscrição
+ * (requires_subscription); o desbloqueio é feito por subscrição de documento
+ * (POST /documents/{id}/subscribe → admin aprova). Categorias públicas → livre.
  */
 export interface SubscriptionStatus {
   required: boolean;
@@ -145,7 +139,6 @@ export class DocumentService {
 
   async getDocuments(params: {
     category_id?: string;
-    access_level_id?: string;
     academic_level?: string;
     document_type?: string;
     media_type?: string;
@@ -154,7 +147,6 @@ export class DocumentService {
   } = {}): Promise<Document[]> {
     let httpParams = new HttpParams();
     if (params.category_id)     httpParams = httpParams.set('category_id', params.category_id);
-    if (params.access_level_id) httpParams = httpParams.set('access_level_id', params.access_level_id);
     if (params.academic_level)  httpParams = httpParams.set('academic_level', params.academic_level);
     if (params.document_type)   httpParams = httpParams.set('document_type', params.document_type);
     if (params.media_type)      httpParams = httpParams.set('media_type', params.media_type);
@@ -177,7 +169,6 @@ export class DocumentService {
    */
   async getDocumentsPage(params: {
     category_id?: string;
-    access_level_id?: string;
     academic_level?: string;
     document_type?: string;
     media_type?: string;
@@ -187,7 +178,6 @@ export class DocumentService {
   } = {}): Promise<{ data: Document[]; meta: PageMeta }> {
     let httpParams = new HttpParams();
     if (params.category_id)     httpParams = httpParams.set('category_id', params.category_id);
-    if (params.access_level_id) httpParams = httpParams.set('access_level_id', params.access_level_id);
     if (params.academic_level)  httpParams = httpParams.set('academic_level', params.academic_level);
     if (params.document_type)   httpParams = httpParams.set('document_type', params.document_type);
     if (params.media_type)      httpParams = httpParams.set('media_type', params.media_type);
@@ -300,28 +290,6 @@ export class DocumentService {
     );
   }
 
-  // ==========================================
-  // ACCESS REQUESTS (níveis de acesso jindungo/restrito)
-  // ==========================================
-
-  /**
-   * Pede elevação de nível de acesso (jindungo/restrito) via access request.
-   * Endpoint: POST /access-requests — é este, e não a subscrição, que
-   * desbloqueia documentos cujo bloqueio vem do access_level_id.
-   *
-   * ⚠️ Assunção sobre o payload: { access_level_id, message? }. Se o
-   * FormRequest do AccessController usar outros nomes de campos, ajustar aqui.
-   */
-  async requestAccessLevel(accessLevelId: string, message?: string): Promise<void> {
-    await firstValueFrom(
-      this.http.post(
-        `${this.base}/access-requests`,
-        { access_level_id: accessLevelId, ...(message ? { message } : {}) },
-        { headers: this.headers }
-      )
-    );
-  }
-
   /**
    * Tópicos de fórum relacionados com este documento — associação directa e
    * explícita, definida no momento em que o tópico é criado a partir desta
@@ -401,12 +369,4 @@ export class DocumentService {
     );
   }
 
-  async downloadDocument(id: string): Promise<string | null> {
-    const res = await firstValueFrom(
-      this.http.post<{ pdf_url: string | null }>(
-        `${this.base}/documents/${id}/download`, {}, { headers: this.headers }
-      )
-    );
-    return res.pdf_url;
-  }
 }

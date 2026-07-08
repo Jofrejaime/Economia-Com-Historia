@@ -54,8 +54,7 @@ export function ArticleScreen() {
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
-  const [errorType, setErrorType] = useState<"not_found" | "access_denied" | "subscription_required" | "network_error" | null>(null);
-  const [requiredAccessLevel, setRequiredAccessLevel] = useState<string>("restricted");
+  const [errorType, setErrorType] = useState<"not_found" | "subscription_required" | "network_error" | null>(null);
   const [accessModalVisible, setAccessModalVisible] = useState(false);
 
   // Dados embebidos no documento — sem chamadas extra
@@ -73,11 +72,7 @@ export function ArticleScreen() {
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 403) {
-        const subscriptionRequired = err.response?.data?.subscription_required;
-        const levelId = err.response?.data?.required_access_level_id
-          ?? (subscriptionRequired ? "jindungo" : "restricted");
-        setRequiredAccessLevel(levelId);
-        setErrorType(subscriptionRequired ? "subscription_required" : "access_denied");
+        setErrorType("subscription_required");
       } else if (status === 404) {
         setErrorType("not_found");
       } else {
@@ -139,15 +134,10 @@ export function ArticleScreen() {
         title: "Documento não encontrado",
         message: "Este documento pode ter sido removido ou o link está incorrecto.",
       },
-      access_denied: {
-        icon: "lock" as const,
-        title: "Acesso Restrito",
-        message: "Este conteúdo requer acesso especial aprovado.",
-      },
       subscription_required: {
-        icon: "zap" as const,
-        title: "Conteúdo Jindungo",
-        message: "Este conteúdo é exclusivo para membros Jindungo. Solicita acesso e o administrador aprovará o teu pedido.",
+        icon: "lock" as const,
+        title: "Acesso por Subscrição",
+        message: "Este documento pertence a uma colecção que requer subscrição. Solicita acesso e o administrador aprovará o teu pedido.",
       },
       network_error: {
         icon: "wifi-off" as const,
@@ -164,7 +154,7 @@ export function ArticleScreen() {
           <Text style={[styles.errorTitle, { marginTop: 16 }]}>{errorConfig.title}</Text>
           <Text style={[styles.errorText, { textAlign: "center" }]}>{errorConfig.message}</Text>
 
-          {(errorType === "access_denied" || errorType === "subscription_required") && (
+          {errorType === "subscription_required" && (
             <TouchableOpacity
               style={styles.errorButton}
               onPress={() => {
@@ -192,8 +182,6 @@ export function ArticleScreen() {
         <AccessRequestModal
           visible={accessModalVisible}
           documentId={id}
-          accessLevelId={requiredAccessLevel}
-          mode={errorType === "subscription_required" ? "subscription" : "access-level"}
           onClose={() => setAccessModalVisible(false)}
         />
       </ScreenContainer>
@@ -211,8 +199,7 @@ export function ArticleScreen() {
     );
   }
 
-  const isJindungo = document.access_level_id === "jindungo";
-  const isRestricted = document.access_level_id === "restricted";
+  const requiresSubscription = document.category?.requires_subscription === true;
 
   return (
     <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
@@ -224,16 +211,10 @@ export function ArticleScreen() {
           <View style={styles.docTypeBadge}>
             <Text style={styles.docTypeBadgeText}>{documentTypeLabel(document.document_type).toUpperCase()}</Text>
           </View>
-          {isJindungo && (
-            <View style={styles.badgeJindungo}>
-              <Ionicons name="flame" size={12} color="white" />
-              <Text style={styles.badgeText}>JINDUNGO</Text>
-            </View>
-          )}
-          {isRestricted && (
+          {requiresSubscription && (
             <View style={styles.badgeRestricted}>
               <Ionicons name="lock-closed" size={12} color="white" />
-              <Text style={styles.badgeText}>RESTRITO</Text>
+              <Text style={styles.badgeText}>SUBSCRIÇÃO</Text>
             </View>
           )}
         </View>

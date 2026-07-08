@@ -31,7 +31,6 @@ import { NotificationsScreen } from "../screens/main/NotificationsScreen";
 import { NotificationPreferencesScreen } from "../screens/main/NotificationPreferencesScreen";
 import { PrivacyScreen } from "../screens/main/PrivacyScreen";
 import { SupportScreen } from "../screens/main/SupportScreen";
-import { JindungoPermissionScreen } from "../screens/main/JindungoPermissionScreen";
 import { LoginPromptScreen } from "../screens/main/LoginPromptScreen";
 import { ManageMembersScreen } from "../screens/main/ManageMembersScreen";
 import { MediaDetailScreen } from "../screens/main/MediaDetailScreen";
@@ -51,7 +50,6 @@ function HomeTabScreen() {
     <AuthHomeScreen
       onLogin={() => navigation.navigate("Login")}
       onRegister={() => navigation.navigate("Register")}
-      onViewJindungo={() => navigation.navigate("JindungoPermission")}
       onViewArticle={() => navigation.navigate("Content", { document_type: "article" })}
       onViewPodcast={() => navigation.navigate("Podcast")}
       onViewCommunity={() => navigation.navigate("Community")}
@@ -195,7 +193,6 @@ export function MainNavigator() {
       <MainStack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />
       <MainStack.Screen name="Privacy" component={PrivacyScreen} />
       <MainStack.Screen name="Support" component={SupportScreen} />
-      <MainStack.Screen name="JindungoPermission" component={JindungoPermissionScreen} />
       <MainStack.Screen name="LoginPrompt" component={LoginPromptScreen} />
     </MainStack.Navigator>
   );

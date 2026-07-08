@@ -16,15 +16,12 @@ import { DiscussionThreadComponent } from './pages/forum/discussion-thread/discu
 import { HomeVisitorComponent } from './pages/home/home-visitor/home-visitor';
 import { CategoryViewComponent } from './pages/forum/category-view/category-view';
 import { CategoryDetailComponent } from './pages/forum/category-detail/category-detail';
-import { AccessLevelsPageComponent } from './pages/admin/dashboard-admin/pages/access-levels-page/access-levels-page';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
 import { adminGuard } from './guards/admin.guard';
 import { homeGuard } from './guards/home.guard';
 import { DashboardAdminComponent } from './pages/admin/dashboard-admin/dashboard-admin';
 import { OverviewPageComponent } from './pages/admin/dashboard-admin/pages/overview-page/overview-page';
-import { RequestsPageComponent } from './pages/admin/dashboard-admin/pages/request-page/request-page';
-import { AccessGrantsPageComponent } from './pages/admin/dashboard-admin/pages/access-grants-page/access-grants-page';
 import { UsersPageComponent } from './pages/admin/dashboard-admin/pages/users-page/users-page';
 import { CategoriesPageComponent } from './pages/admin/dashboard-admin/pages/categories-page/categories-page';
 import { TagsPageComponent } from './pages/admin/dashboard-admin/pages/tags-page/tags-page';
@@ -78,8 +75,6 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'visao-geral', pathMatch: 'full' },
       { path: 'visao-geral', component: OverviewPageComponent },
-      { path: 'pedidos', component: RequestsPageComponent },
-      { path: 'concessoes', component: AccessGrantsPageComponent },
       { path: 'utilizadores', component: UsersPageComponent },
       { path: 'categorias', component: CategoriesPageComponent },
       { path: 'tags', component: TagsPageComponent },
@@ -93,7 +88,6 @@ export const routes: Routes = [
       { path: 'niveis', component: LevelsPageComponent },
       { path: 'badges', component: BadgesPageComponent },
       { path: 'notificacoes', component: NotificationsPageComponent },
-      { path: 'niveis-acesso', component: AccessLevelsPageComponent },
       { path: 'provincias', component: ProvincesPageComponent },
       { path: 'areas-interesse', component: InterestAreasPageComponent },
     ]

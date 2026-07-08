@@ -46,6 +46,7 @@ class LeaderboardService
                 ->join('users as u', 'u.id', '=', 'up.user_id')
                 ->join('user_levels as ul', 'ul.user_id', '=', 'u.id')
                 ->where('u.is_active', 1)
+                ->where('u.role', '!=', 'admin')
                 ->where('up.province', $province);
 
             $total = (clone $base)->count();
@@ -102,6 +103,7 @@ class LeaderboardService
                 ->join('users as u', 'u.id', '=', 'up.user_id')
                 ->join('user_levels as ul', 'ul.user_id', '=', 'u.id')
                 ->where('u.is_active', 1)
+                ->where('u.role', '!=', 'admin')
                 ->where('up.institution', $institution);
 
             $total = (clone $base)->count();
@@ -228,8 +230,10 @@ class LeaderboardService
         $points = DB::table('user_levels')->where('user_id', $userId)->value('total_points') ?? 0;
         $level = DB::table('user_levels')->where('user_id', $userId)->value('current_level') ?? 1;
 
-        $rank = DB::table('user_levels')
-            ->where('total_points', '>', $points)
+        $rank = DB::table('user_levels as ul')
+            ->join('users as u', 'u.id', '=', 'ul.user_id')
+            ->where('u.role', '!=', 'admin')
+            ->where('ul.total_points', '>', $points)
             ->count() + 1;
 
         return [
@@ -266,6 +270,7 @@ class LeaderboardService
             ->join('user_profiles as up', 'up.user_id', '=', 'u.id')
             ->join('user_levels as ul', 'ul.user_id', '=', 'u.id')
             ->where('u.is_active', 1)
+            ->where('u.role', '!=', 'admin')
             ->orderByDesc('ul.total_points')
             ->orderByDesc('ul.quizzes_completed')
             ->select([

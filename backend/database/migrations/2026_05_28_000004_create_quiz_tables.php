@@ -23,7 +23,6 @@ return new class extends Migration
             $table->string('difficulty', 20)->default('Básico');
             $table->integer('base_points')->default(100);
             $table->integer('time_limit_secs')->nullable();
-            $table->string('access_level_id', 20)->default('public');
             $table->boolean('is_featured')->default(false);
             $table->string('status', 20)->default('published');
             $table->foreignUuid('category_id')->nullable()->constrained('document_categories');
@@ -35,7 +34,6 @@ return new class extends Migration
             $table->integer('completions_count')->default(0);
             $table->decimal('avg_score', 5, 2)->default(0.00);
 
-            $table->foreign('access_level_id')->references('id')->on('access_levels');
             $table->index('difficulty', 'idx_quizzes_difficulty');
             $table->index('status', 'idx_quizzes_status');
         });

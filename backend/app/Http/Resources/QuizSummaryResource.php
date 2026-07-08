@@ -22,7 +22,6 @@ class QuizSummaryResource extends JsonResource
             'difficulty'        => $this->difficulty,
             'base_points'       => (int) ($this->base_points ?? 0),
             'time_limit_secs'   => $this->time_limit_secs,
-            'access_level_id'   => $this->access_level_id,
             'is_featured'       => (bool) $this->is_featured,
             'category_id'       => $this->category_id,
             'attempts_count'    => (int) ($this->attempts_count ?? 0),

@@ -14,7 +14,6 @@ return new class extends Migration
                 'slug'           => 'sala-privada',
                 'name'           => 'Sala Privada',
                 'description'    => 'Espaço de discussão restrito a membros seleccionados pelo autor.',
-                'access_level_id'=> 'restricted',
                 'color_bg'       => '#FFB3BA',
                 'color_text'     => '#5C0011',
                 'cover_image_url'=> null,

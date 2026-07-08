@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
-import { ProfileService, AccessGrant, Badge, InterestAreaRef, UserLevel } from '../../../services/profile.service';
+import { ProfileService, Badge, InterestAreaRef, UserLevel } from '../../../services/profile.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvinceAdminService } from '../../../services/province-admin.service';
 import { InterestAreaAdminService } from '../../../services/interest-area-admin.service';
@@ -120,9 +120,6 @@ export class PerfilComponent implements OnInit {
   // 4 cartões principais.
   userLevel: UserLevel | null = null;
 
-  // Níveis de acesso concedidos ao utilizador (categorias/documentos com subscrição)
-  accessGrants: AccessGrant[] = [];
-
   // Distinções realmente conquistadas (user_badges)
   badges: Badge[] = [];
 
@@ -231,7 +228,6 @@ export class PerfilComponent implements OnInit {
       this.buildStats();
 
       // Dados adicionais que já vêm na mesma resposta de /me
-      this.accessGrants = me?.access_grants ?? [];
       this.badges = me?.badges ?? [];
       this.interestAreas = me?.interest_areas ?? [];
       this.selectedInterestAreaIds = new Set(this.interestAreas.map(a => a.id));

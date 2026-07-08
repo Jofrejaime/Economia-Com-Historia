@@ -36,25 +36,6 @@
         <!-- Filtros -->
         <div class="contents-filters-row">
           
-          <!-- Access Category -->
-          <div class="contents-filter-group">
-            <label class="contents-filter-label">Categoria</label>
-            <div class="contents-filter-dropdown">
-              <button (click)="toggleAccessDropdown()" class="contents-filter-btn">
-                <span>{{ getAccessCategoryLabel() }}</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" [class.rotated]="showAccessDropdown">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </button>
-              <div *ngIf="showAccessDropdown" class="contents-filter-dropdown-menu">
-                <button *ngFor="let option of accessOptions" (click)="selectAccessCategory(option.id)" 
-                        class="contents-filter-option" [class.selected]="selectedAccessCategory === option.id">
-                  {{ option.label }}
-                </button>
-              </div>
-            </div>
-          </div>
-
           <!-- Theme -->
           <div class="contents-filter-group">
             <label class="contents-filter-label">Tema</label>
@@ -239,11 +220,7 @@
         </div>
         <div>
           <h2 class="access-modal-title">Conteúdo {{ getDocBadge(accessModalDoc).label }}</h2>
-          <p class="access-modal-subtitle">
-            {{ accessMode === 'subscription'
-                ? 'Este documento requer subscrição de acesso'
-                : 'Este documento requer um nível de acesso superior' }}
-          </p>
+          <p class="access-modal-subtitle">Este documento requer subscrição de acesso</p>
         </div>
         <button class="access-modal-close" (click)="closeAccessModal()" aria-label="Fechar">&times;</button>
       </div>
@@ -263,12 +240,7 @@
 
         <!-- Estado: por pedir -->
         <ng-container *ngIf="!accessRequestDone">
-          <p class="access-modal-text" *ngIf="accessMode === 'access-request'">
-            Os conteúdos {{ accessModalDoc.access_level_id === 'jindungo' ? 'Jindungo' : 'restritos' }}
-            fazem parte do acervo de acesso condicionado do arquivo. Para os consultar,
-            envie um pedido de acesso — a equipa do arquivo irá analisá-lo.
-          </p>
-          <p class="access-modal-text" *ngIf="accessMode === 'subscription'">
+          <p class="access-modal-text">
             Este documento pertence a uma colecção que requer subscrição.
             Para o consultar, envie um pedido de subscrição — a equipa do
             arquivo irá analisá-lo.

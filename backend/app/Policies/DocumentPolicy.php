@@ -11,11 +11,9 @@ class DocumentPolicy
     public function __construct(private readonly DocumentAccessService $documentAccess) {}
 
     /**
-     * Any authenticated user with the required access grant may view the document.
-     * Admins and document authors always have access. Delegates to
-     * DocumentAccessService so this policy honours category-based subscription
-     * gating, not just access_level_id (it was previously wired to
-     * AccessGateService directly, which knows nothing about subscriptions).
+     * Admins e o autor do documento têm sempre acesso. Restante acesso é
+     * decidido pela categoria (subscrição por-documento), via
+     * DocumentAccessService::canReadDocument().
      */
     public function view(User $user, Document $document): bool
     {

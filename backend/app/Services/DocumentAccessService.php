@@ -5,14 +5,20 @@ namespace App\Services;
 use App\Models\Document;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
 
 class DocumentAccessService
 {
     public function __construct(
-        private readonly AccessGateService $accessGate,
         private readonly DocumentSubscriptionService $subscriptionService,
     ) {}
 
+    /**
+     * O acesso a um documento é decidido pela CATEGORIA: se a categoria for
+     * restrita (requires_subscription), os seus documentos exigem subscrição —
+     * e a subscrição é sempre por-documento (subscrever um documento não abre
+     * os restantes da mesma categoria). Categorias públicas → acesso livre.
+     */
     public function canReadDocument(?User $user, object $document): bool
     {
         if ($user !== null && $user->role === 'admin') {
@@ -23,34 +29,35 @@ class DocumentAccessService
             return true;
         }
 
-        if ($document instanceof Document && !$document->relationLoaded('category')) {
-            $document->load('category');
+        if (!$this->isSubscriptionRequired($document)) {
+            return true;
         }
 
-        $category = $document instanceof Document ? $document->category : null;
-
-        if ($category !== null && $category->requires_subscription) {
-            if ($user === null) {
-                return false;
-            }
-
-            return $this->subscriptionService->hasActiveSubscription($user->id, $document->id);
+        if ($user === null) {
+            return false;
         }
 
-        $accessLevelId = $document->access_level_id ?? 'public';
-
-        return $this->accessGate->canAccess($user, $accessLevelId);
+        return $this->subscriptionService->hasActiveSubscription($user->id, $document->id);
     }
 
+    /**
+     * Fonte de verdade única: a categoria do documento. Categoria restrita
+     * (requires_subscription) → exige subscrição por-documento.
+     */
     public function isSubscriptionRequired(object $document): bool
     {
         if ($document instanceof Document) {
             if (!$document->relationLoaded('category')) {
                 $document->load('category');
             }
-            $category = $document->category;
 
-            return $category !== null && (bool) $category->requires_subscription;
+            return $document->category !== null && (bool) $document->category->requires_subscription;
+        }
+
+        if (isset($document->category_id) && $document->category_id !== null) {
+            return (bool) DB::table('document_categories')
+                ->where('id', $document->category_id)
+                ->value('requires_subscription');
         }
 
         return false;

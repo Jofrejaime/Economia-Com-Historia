@@ -524,9 +524,13 @@ class CommunityController extends Controller
             abort(403, 'Um fórum encerrado não pode ser reaberto.');
         }
 
+        // Só o autor edita o conteúdo (título/corpo). Admins moderam o estado
+        // (fechar/reabrir/bloquear) mas não editam discussões de outros.
+        $isAuthor = $topic->author_id === $request->user()->id;
+
         $topic->update([
-            'title'      => $validated['title']      ?? $topic->title,
-            'content'    => $validated['content']    ?? $topic->content,
+            'title'      => $isAuthor ? ($validated['title']   ?? $topic->title)   : $topic->title,
+            'content'    => $isAuthor ? ($validated['content'] ?? $topic->content) : $topic->content,
             'status'     => $validated['status']     ?? $topic->status,
             'visibility' => $validated['visibility'] ?? $topic->visibility,
             'updated_at' => now(),
@@ -1275,7 +1279,9 @@ class CommunityController extends Controller
         $reply = TopicReply::findOrFail($id);
         $topic = $this->resolveTopicForUserOrFail($reply->topic_id, $request, ['category', 'members']);
 
-        if ($reply->author_id !== $request->user()->id && $request->user()->role !== 'admin') {
+        // Só o autor pode editar o conteúdo de uma resposta. Admins moderam
+        // (eliminam), mas não editam discussões de outros utilizadores.
+        if ($reply->author_id !== $request->user()->id) {
             abort(403, 'Unauthorized.');
         }
 

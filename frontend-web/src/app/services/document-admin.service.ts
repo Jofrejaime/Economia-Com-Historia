@@ -6,7 +6,6 @@ import { MediaCollections } from '../models/media.models';
 import {
   ApiEnvelope,
   ApiResult,
-  AccessLevel,
   Document,
   DocumentCategory,
   DocumentListFilters,
@@ -324,20 +323,6 @@ export class DocumentAdminService {
         data: response.body,
       })),
       catchError((error: unknown) => of(this.toFailureResult<any>(error, 'Erro ao eliminar tag')))
-    );
-  }
-
-  getAccessLevels(): Observable<ApiResult<AccessLevel[]>> {
-    return this.http.get<ApiEnvelope<AccessLevel[]>>(`${environment.apiBaseUrl}/api/access-levels`, {
-      observe: 'response',
-    }).pipe(
-      timeout({ first: 15000 }),
-      map((response) => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        data: response.body?.data ?? [],
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessLevel[]>(error, 'Erro ao carregar níveis de acesso')))
     );
   }
 

@@ -52,7 +52,6 @@ class DocumentAdminService
                 'updated_at'      => now(),
                 'views_count'     => 0,
                 'likes_count'     => 0,
-                'downloads_count' => 0,
                 'status'          => $data['status'] ?? DocumentStatus::DRAFT->value,
             ]));
 
@@ -130,7 +129,7 @@ class DocumentAdminService
             ]);
         }
 
-        return $document->refresh()->load(['category', 'accessLevel', 'createdBy.profile']);
+        return $document->refresh()->load(['category', 'createdBy.profile']);
     }
 
     /**
@@ -144,9 +143,8 @@ class DocumentAdminService
         DB::transaction(function () use ($document, $id): void {
             // Delete tags relationships
             DB::table('document_tags')->where('document_id', $id)->delete();
-            // Delete likes, downloads, views, favorites, citations
+            // Delete likes, views, favorites, citations
             DB::table('document_likes')->where('document_id', $id)->delete();
-            DB::table('document_downloads')->where('document_id', $id)->delete();
             DB::table('document_views')->where('document_id', $id)->delete();
             DB::table('user_favorites')->where('document_id', $id)->delete();
             DB::table('document_citations')->where('document_id', $id)->delete();

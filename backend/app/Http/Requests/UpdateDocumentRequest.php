@@ -22,7 +22,6 @@ class UpdateDocumentRequest extends FormRequest
             'content'          => ['sometimes', 'nullable', 'string'],
             'document_type'    => ['sometimes', 'in:manuscript,article,report,thesis,archive'],
             'academic_level'   => ['sometimes', 'in:intro,advanced,doctorate'],
-            'access_level_id'  => ['sometimes', 'exists:access_levels,id'],
             'category_id'      => ['sometimes', 'nullable', 'exists:document_categories,id'],
             'institution'      => ['sometimes', 'nullable', 'string', 'max:255'],
             'publication_date' => ['sometimes', 'nullable', 'date'],

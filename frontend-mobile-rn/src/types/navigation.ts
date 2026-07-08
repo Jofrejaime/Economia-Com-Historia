@@ -1,4 +1,4 @@
-import type { DocumentType, AccessLevelId, AcademicLevel, GamificationResult } from "./api";
+import type { DocumentType, AcademicLevel, GamificationResult } from "./api";
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -9,7 +9,6 @@ export type AuthStackParamList = {
 export interface ContentParams {
   searchQuery?: string;
   document_type?: DocumentType;
-  access_level_id?: AccessLevelId;
   academic_level?: AcademicLevel;
   category_id?: string;
 }
@@ -30,7 +29,7 @@ export type MainStackParamList = {
   Podcast: undefined;
   Article: { id: string };
   MediaDetail: { id: string };
-  Quiz: { quizId: string; attemptId?: string; accessLevelId?: string };
+  Quiz: { quizId: string; attemptId?: string };
   QuizFeedback: { isCorrect: boolean; explanation: string | null; isLast: boolean; attemptId: string; quizId: string; gamification?: GamificationResult };
   QuizResult: { attemptId: string; quizId: string; gamification?: GamificationResult };
   CreateTopic: { initialTitle?: string; initialCategoryId?: string };
@@ -41,6 +40,5 @@ export type MainStackParamList = {
   NotificationPreferences: undefined;
   Privacy: { isFromRecovery?: boolean; recoveryEmail?: string } | undefined;
   Support: undefined;
-  JindungoPermission: undefined;
-  LoginPrompt: { type: 'create-topic' | 'comment' | 'quiz' | 'jindungo' };
+  LoginPrompt: { type: 'create-topic' | 'comment' | 'quiz' };
 };

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\AccessRequest;
 use App\Models\DiscussionTopic;
 use App\Models\TopicReply;
 use App\Models\User;
@@ -361,59 +360,4 @@ class NotificationTest extends TestCase
         ]);
     }
 
-    // ─── INTEGRATION: ACCESS ───────────────────────────────────────────────
-
-    public function test_access_request_approved_sends_notification(): void
-    {
-        DB::table('user_access_requests')->insertGetId([
-            'id' => (string) \Illuminate\Support\Str::uuid(),
-            'user_id' => $this->user->id,
-            'access_level_id' => 'jindungo',
-            'status' => 'pending',
-            'justification' => 'Please grant access',
-            'created_at' => now(),
-        ]);
-
-        $requestId = DB::table('user_access_requests')->where('user_id', $this->user->id)->first()->id;
-
-        $response = $this->withHeaders(['Authorization' => "Bearer {$this->adminToken}"])
-            ->patchJson("/api/access-requests/{$requestId}", [
-                'status' => 'approved',
-            ]);
-
-        $response->assertStatus(200);
-
-        $this->assertDatabaseHas('notifications', [
-            'user_id' => $this->user->id,
-            'type' => 'access_request_approved',
-            'title' => 'Access Request Approved',
-        ]);
-    }
-
-    public function test_access_request_rejected_sends_notification(): void
-    {
-        DB::table('user_access_requests')->insertGetId([
-            'id' => (string) \Illuminate\Support\Str::uuid(),
-            'user_id' => $this->user->id,
-            'access_level_id' => 'jindungo',
-            'status' => 'pending',
-            'justification' => 'Please grant access',
-            'created_at' => now(),
-        ]);
-
-        $requestId = DB::table('user_access_requests')->where('user_id', $this->user->id)->first()->id;
-
-        $response = $this->withHeaders(['Authorization' => "Bearer {$this->adminToken}"])
-            ->patchJson("/api/access-requests/{$requestId}", [
-                'status' => 'rejected',
-            ]);
-
-        $response->assertStatus(200);
-
-        $this->assertDatabaseHas('notifications', [
-            'user_id' => $this->user->id,
-            'type' => 'access_request_rejected',
-            'title' => 'Access Request Rejected',
-        ]);
-    }
 }

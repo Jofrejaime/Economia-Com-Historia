@@ -21,7 +21,6 @@ class DocumentFactory extends Factory
             'summary' => $this->faker->paragraph(),
             'document_type' => 'article',
             'academic_level' => 'intro',
-            'access_level_id' => 'public',
             'status' => 'published',
             'created_by' => User::factory(),
             'created_at' => now(),

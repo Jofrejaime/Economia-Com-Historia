@@ -111,9 +111,9 @@ class TopicAdminController extends Controller
      */
     public function update(string $id, Request $request): JsonResponse
     {
+        // Admins moderam o estado dos tópicos mas não editam o conteúdo
+        // (título/corpo) de discussões criadas pelos utilizadores.
         $validated = $request->validate([
-            'title' => ['sometimes', 'string', 'max:255'],
-            'content' => ['sometimes', 'string', 'max:5000'],
             'status' => ['sometimes', 'string', 'in:draft,published,closed,locked,archived'],
             'visibility' => ['sometimes', 'string', 'in:PUBLIC,INVITE_ONLY'],
             'pinned' => ['sometimes', 'boolean'],

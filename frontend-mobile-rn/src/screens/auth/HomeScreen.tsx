@@ -18,7 +18,6 @@ import { MediaFormatCards } from '../../components/MediaFormatCards';
 interface HomeScreenProps {
   onLogin: () => void;
   onRegister: () => void;
-  onViewJindungo?: () => void;
   onViewArticle?: () => void;
   onViewPodcast?: () => void;
   onViewCommunity?: () => void;
@@ -31,7 +30,6 @@ interface HomeScreenProps {
 export function HomeScreen({
   onLogin,
   onRegister,
-  onViewJindungo,
   onViewArticle,
   onViewPodcast,
   onViewCommunity,
@@ -67,7 +65,7 @@ export function HomeScreen({
             <Text style={styles.sectionTitle}>EM DESTAQUE</Text>
           </View>
 
-          <TouchableOpacity style={styles.featuredCard} onPress={onViewJindungo} activeOpacity={0.9}>
+          <TouchableOpacity style={styles.featuredCard} onPress={onViewArticle} activeOpacity={0.9}>
             <Image
               source={{ uri: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80' }}
               style={styles.featuredImage}
@@ -76,10 +74,6 @@ export function HomeScreen({
             <View style={styles.featuredTags}>
               <View style={styles.tagIntermédio}>
                 <Text style={styles.tagIntermédioText}>Intermédio</Text>
-              </View>
-              <View style={styles.tagJindungo}>
-                <Ionicons name="flame" size={12} color="#fff" />
-                <Text style={styles.tagJindungoText}>JINDUNGO</Text>
               </View>
             </View>
             <View style={styles.featuredBottom}>
@@ -94,7 +88,7 @@ export function HomeScreen({
                   <Text style={styles.metaText}>📖 12 min de leitura</Text>
                   <Text style={styles.metaText}>🎥 1 vídeo</Text>
                 </View>
-                <TouchableOpacity style={styles.readButton} onPress={onViewJindungo}>
+                <TouchableOpacity style={styles.readButton} onPress={onViewArticle}>
                   <Text style={styles.readButtonText}>Ler</Text>
                   <Feather name="arrow-right" size={16} color="white" />
                 </TouchableOpacity>

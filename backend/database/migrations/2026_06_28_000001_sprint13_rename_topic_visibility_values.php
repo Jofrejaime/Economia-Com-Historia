@@ -38,14 +38,6 @@ return new class extends Migration
         Schema::table('discussion_topics', function (Blueprint $table) {
             $table->string('visibility', 20)->default('CATEGORY')->change();
         });
-
-        // ── 3. Tornar community_categories.access_level_id nullable ─────────
-        //   Mantemos a coluna para compatibilidade retroactiva, mas removemos
-        //   a restrição FK para que a coluna não interfira na autorização.
-        //   A lógica de autorização passa a ignorar este campo completamente.
-        Schema::table('community_categories', function (Blueprint $table) {
-            $table->string('access_level_id', 20)->nullable()->default(null)->change();
-        });
     }
 
     public function down(): void
@@ -61,10 +53,6 @@ return new class extends Migration
 
         Schema::table('discussion_topics', function (Blueprint $table) {
             $table->string('visibility', 20)->default('RESTRICTED')->change();
-        });
-
-        Schema::table('community_categories', function (Blueprint $table) {
-            $table->string('access_level_id', 20)->nullable(false)->default('public')->change();
         });
     }
 };

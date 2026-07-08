@@ -50,7 +50,6 @@ class DocumentLikeGamificationTest extends TestCase
             'summary' => 'Summary',
             'document_type' => 'article',
             'academic_level' => 'intro',
-            'access_level_id' => 'public',
             'status' => 'published',
             'created_by' => User::factory()->create()->id,
             'published_at' => now(),

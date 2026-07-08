@@ -210,20 +210,6 @@ class UserAdminService
                 ->orderByDesc('ub.earned_at')
                 ->get();
 
-            $accessGrants = DB::table('user_access_grants as uag')
-                ->join('access_levels as al', 'uag.access_level_id', '=', 'al.id')
-                ->where('uag.user_id', $id)
-                ->whereNull('uag.revoked_at')
-                ->select('uag.*', 'al.name as access_level_name')
-                ->get();
-
-            $accessRequests = DB::table('user_access_requests as uar')
-                ->join('access_levels as al', 'uar.access_level_id', '=', 'al.id')
-                ->where('uar.user_id', $id)
-                ->select('uar.*', 'al.name as access_level_name')
-                ->orderByDesc('uar.created_at')
-                ->get();
-
             $stats = [
                 'quizzes_completed' => $userLevel->quizzes_completed ?? 0,
                 'documents_read' => $userLevel->documents_read ?? 0,
@@ -237,8 +223,6 @@ class UserAdminService
                 'user_level' => $userLevel,
                 'level_definition' => $levelDefinition,
                 'badges' => $badges,
-                'access_grants' => $accessGrants,
-                'access_requests' => $accessRequests,
                 'statistics' => $stats,
             ];
         };

@@ -104,7 +104,6 @@ export class DashboardAdminComponent implements OnInit {
     const result = await firstValueFrom(this.adminApi.getSummary());
 
     if (result.ok && result.data) {
-      this.pendingCount = result.data.access_requests?.pending ?? 0;
       this.pendingReportsCount = result.data.moderation?.reports_pending ?? 0;
     }
   }

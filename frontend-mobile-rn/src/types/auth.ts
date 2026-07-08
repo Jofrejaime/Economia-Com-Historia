@@ -1,13 +1,5 @@
 export type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
-export interface AuthUserAccessGrant {
-  id: string;
-  access_level_id: string;
-  granted_at: string;
-  access_level_name: string;
-  access_level_description: string | null;
-}
-
 // Core user fields from the users + user_profiles tables
 export interface AuthUser {
   id: string;
@@ -18,7 +10,6 @@ export interface AuthUser {
   province: string | null;
   avatar_url: string | null;
   institution: string | null;
-  access_grants: AuthUserAccessGrant[];
 }
 
 export interface AuthState {

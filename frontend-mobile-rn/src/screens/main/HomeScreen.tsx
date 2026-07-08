@@ -103,9 +103,7 @@ export function HomeScreen() {
                         <TouchableOpacity
                           style={styles.featuredButton}
                           onPress={() =>
-                            featuredDoc.access_level_id === "jindungo"
-                              ? navigation.navigate("Content", { access_level_id: "jindungo" })
-                              : navigation.navigate("Content", { document_type: featuredDoc.document_type })
+                            navigation.navigate("Content", { document_type: featuredDoc.document_type })
                           }
                         >
                           <Text style={styles.featuredButtonText}>
@@ -125,9 +123,7 @@ export function HomeScreen() {
                         <TouchableOpacity
                           style={styles.featuredButton}
                           onPress={() =>
-                            featuredDoc.access_level_id === "jindungo"
-                              ? navigation.navigate("Content", { access_level_id: "jindungo" })
-                              : navigation.navigate("Content", { document_type: featuredDoc.document_type })
+                            navigation.navigate("Content", { document_type: featuredDoc.document_type })
                           }
                         >
                           <Text style={styles.featuredButtonText}>
@@ -197,20 +193,6 @@ export function HomeScreen() {
             {/* Explorar por Formato */}
             <View style={styles.section}>
               <Text style={styles.sectionTitleSmall}>Explorar por Formato</Text>
-
-              <TouchableOpacity
-                style={styles.formatCard}
-                onPress={() => navigation.navigate("Content", { access_level_id: "jindungo" })}
-              >
-                <View style={[styles.formatIcon, { backgroundColor: appTheme.colors.primary }]}>
-                  <Ionicons name="flame" size={24} color="white" />
-                </View>
-                <View style={styles.formatBody}>
-                  <Text style={styles.formatTitle}>Jindungo</Text>
-                  <Text style={styles.formatDesc}>Análises profundas</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={appTheme.colors.textMuted} />
-              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.formatCard}

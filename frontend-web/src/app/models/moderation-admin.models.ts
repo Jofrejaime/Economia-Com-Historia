@@ -39,38 +39,6 @@ export interface Report {
   reviewed_by_user?: UserSummary;
 }
 
-export interface AccessRequest {
-  id: string;
-  user_id: string;
-  access_level_id: string;
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
-  justification: string | null;
-  reviewed_by: string | null;
-  reviewed_at: string | null;
-  review_notes: string | null;
-  expires_at: string | null;
-  created_at: string;
-  access_level_name?: string;
-  user_display_name?: string;
-  user_institution?: string;
-  user_email?: string;
-}
-
-export interface AccessGrant {
-  id: string;
-  user_id: string;
-  access_level_id: string;
-  granted_by: string | null;
-  request_id: string | null;
-  granted_at: string;
-  expires_at: string | null;
-  revoked_at: string | null;
-  is_active: boolean;
-  access_level_name?: string;
-  user_display_name?: string;
-  user_email?: string;
-}
-
 export interface ModerationAction {
   report_id: string;
   action: 'warn' | 'delete' | 'hide' | 'restore' | 'dismiss' | 'flag';

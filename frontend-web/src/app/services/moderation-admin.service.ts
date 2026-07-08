@@ -6,8 +6,6 @@ import {
   ApiEnvelope,
   ApiResult,
   Report,
-  AccessRequest,
-  AccessGrant,
   ModerationAction,
 } from '../models/moderation-admin.models';
 
@@ -67,104 +65,6 @@ export class ModerationAdminService {
         data: response.body?.data,
       })),
       catchError((error: unknown) => of(this.toFailureResult<ModerationAction>(error, 'Erro ao executar acção de moderação')))
-    );
-  }
-
-  // ── Access Requests ──────────────────────────────────────────────────────
-
-  getAccessRequests(params?: { status?: string; search?: string; page?: number; per_page?: number }): Observable<ApiResult<AccessRequest[]>> {
-    const httpParams = this.cleanParams(params);
-    const options = httpParams ? { observe: 'response' as const, params: httpParams } : { observe: 'response' as const };
-
-    return this.http.get<ApiEnvelope<AccessRequest[]>>(`${environment.apiBaseUrl}/api/admin/access-requests`, options).pipe(
-      timeout({ first: 15000 }),
-      map((response) => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        data: response.body?.data ?? [],
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessRequest[]>(error, 'Erro ao carregar solicitações de acesso')))
-    );
-  }
-
-  getAccessRequest(id: string): Observable<ApiResult<AccessRequest>> {
-    return this.http.get<ApiEnvelope<AccessRequest>>(`${environment.apiBaseUrl}/api/admin/access-requests/${id}`, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response) => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        data: response.body?.data,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessRequest>(error, 'Erro ao carregar detalhe do pedido')))
-    );
-  }
-
-  createAccessRequest(payload: { user_id: string; access_level_id: string; justification?: string }): Observable<ApiResult<AccessRequest>> {
-    return this.http.post<ApiEnvelope<AccessRequest>>(`${environment.apiBaseUrl}/api/admin/access-requests`, payload, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response) => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        message: response.body?.message,
-        data: response.body?.data,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessRequest>(error, 'Erro ao criar solicitação de acesso')))
-    );
-  }
-
-  approveAccessRequest(id: string, reviewNotes?: string): Observable<ApiResult<AccessRequest>> {
-    return this.http.patch<ApiEnvelope<AccessRequest>>(`${environment.apiBaseUrl}/api/admin/access-requests/${id}/approve`, { review_notes: reviewNotes }, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response) => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        message: response.body?.message,
-        data: response.body?.data,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessRequest>(error, 'Erro ao aprovar solicitação')))
-    );
-  }
-
-  rejectAccessRequest(id: string, reviewNotes?: string): Observable<ApiResult<AccessRequest>> {
-    return this.http.patch<ApiEnvelope<AccessRequest>>(`${environment.apiBaseUrl}/api/admin/access-requests/${id}/reject`, { review_notes: reviewNotes }, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response) => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        message: response.body?.message,
-        data: response.body?.data,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessRequest>(error, 'Erro ao rejeitar solicitação')))
-    );
-  }
-
-  // ── Access Grants ────────────────────────────────────────────────────────
-
-  getAccessGrants(params?: { user_id?: string; access_level_id?: string; active?: boolean; page?: number; per_page?: number }): Observable<ApiResult<AccessGrant[]>> {
-    const httpParams = this.cleanParams(params);
-    const options = httpParams ? { observe: 'response' as const, params: httpParams } : { observe: 'response' as const };
-
-    return this.http.get<ApiEnvelope<AccessGrant[]>>(`${environment.apiBaseUrl}/api/admin/access-grants`, options).pipe(
-      timeout({ first: 15000 }),
-      map((response) => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        data: response.body?.data ?? [],
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessGrant[]>(error, 'Erro ao carregar concessões de acesso')))
-    );
-  }
-
-  revokeAccessGrant(id: string, reason?: string): Observable<ApiResult<AccessGrant>> {
-    return this.http.post<ApiEnvelope<AccessGrant>>(`${environment.apiBaseUrl}/api/admin/access-grants/${id}/revoke`, { reason }, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response) => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        message: response.body?.message,
-        data: response.body?.data,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessGrant>(error, 'Erro ao revogar concessão')))
     );
   }
 

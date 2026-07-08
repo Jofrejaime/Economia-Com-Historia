@@ -37,11 +37,10 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/documents/${id}`,
     RELATED_QUIZZES: (id: string) => `/documents/${id}/quizzes`,
     LIKE: (id: string) => `/documents/${id}/like`,
-    DOWNLOAD: (id: string) => `/documents/${id}/download`,
     FAVORITE: (id: string) => `/documents/${id}/favorite`,
     CITE: (id: string) => `/documents/${id}/citations`,
-    // Subscrição por categoria (requires_subscription) — distinto de /access-requests,
-    // que trata do gate por access_level_id. Ver DocumentController::subscribe/subscriptionStatus/cancelSubscription.
+    // Subscrição por categoria (requires_subscription).
+    // Ver DocumentController::subscribe/subscriptionStatus/cancelSubscription.
     SUBSCRIBE: (id: string) => `/documents/${id}/subscribe`,
     SUBSCRIPTION_STATUS: (id: string) => `/documents/${id}/subscription`,
     CANCEL_SUBSCRIPTION: (id: string) => `/documents/${id}/subscription`,
@@ -97,14 +96,6 @@ export const API_ENDPOINTS = {
     MARK_READ: (id: string) => `/notifications/${id}/read`,
     MARK_ALL_READ: '/notifications/read-all',
     DELETE: (id: string) => `/notifications/${id}`,
-  },
-
-  // /access-levels, /access-requests, /access-grants
-  ACCESS: {
-    LEVELS: '/access-levels',
-    REQUESTS: '/access-requests',
-    REQUEST_DETAIL: (id: string) => `/access-requests/${id}`,
-    GRANTS: '/access-grants',
   },
 
   // /users/search

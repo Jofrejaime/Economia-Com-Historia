@@ -13,7 +13,6 @@ export interface Quiz {
   difficulty: string;
   base_points: number;
   time_limit_secs: number | null;
-  access_level_id: string;
   is_featured: boolean;
   status: string;
   attempts_count: number;
@@ -49,7 +48,6 @@ export interface QuizRelatedDocument {
   summary: string | null;
   document_type: string | null;
   academic_level: string | null;
-  access_level_id: string;
   cover_image_url: string | null;
   views_count: number;
   likes_count: number;
@@ -125,7 +123,6 @@ export interface QuizPayload {
   difficulty?: string;
   base_points?: number;
   time_limit_secs?: number | null;
-  access_level_id?: string;
   is_featured?: boolean;
   status?: string;
   category_id?: string | null;
