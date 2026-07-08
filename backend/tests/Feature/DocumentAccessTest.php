@@ -42,20 +42,40 @@ class DocumentAccessTest extends TestCase
         return $token;
     }
 
-    private function seedPublishedDocument(string $accessLevelId, ?string $createdBy = null): string
+    private function seedCategory(bool $requiresSubscription): string
+    {
+        $id = (string) Str::uuid();
+
+        DB::table('document_categories')->insert([
+            'id' => $id,
+            'slug' => 'cat-'.Str::lower(Str::random(6)),
+            'name' => 'Category '.Str::random(4),
+            'requires_subscription' => $requiresSubscription,
+            'sort_order' => 1,
+            'created_at' => now(),
+        ]);
+
+        return $id;
+    }
+
+    /**
+     * Semeia um documento publicado. O acesso é decidido pela categoria:
+     * categoria restrita (requires_subscription) → exige subscrição por-documento.
+     */
+    private function seedPublishedDocument(bool $restricted = false, ?string $createdBy = null): string
     {
         $authorId = $createdBy ?? User::factory()->create()->id;
         $id = (string) Str::uuid();
 
         DB::table('documents')->insert([
             'id' => $id,
-            'title' => 'Test Document '.$accessLevelId,
-            'slug' => 'test-'.$accessLevelId.'-'.Str::lower(Str::random(4)),
+            'title' => 'Test Document '.($restricted ? 'restricted' : 'public'),
+            'slug' => 'test-'.Str::lower(Str::random(6)),
             'author' => 'Test Author',
             'summary' => 'Summary',
             'document_type' => 'article',
             'academic_level' => 'intro',
-            'access_level_id' => $accessLevelId,
+            'category_id' => $this->seedCategory($restricted),
             'status' => 'published',
             'created_by' => $authorId,
             'published_at' => now(),
@@ -66,39 +86,43 @@ class DocumentAccessTest extends TestCase
         return $id;
     }
 
-    public function test_public_document_is_accessible_without_grant(): void
+    public function test_public_document_is_accessible(): void
     {
         $token = $this->registerStudent();
-        $documentId = $this->seedPublishedDocument('public');
+        $documentId = $this->seedPublishedDocument(restricted: false);
 
         $this->withHeader('Authorization', "Bearer {$token}")
             ->getJson("/api/documents/{$documentId}")
             ->assertStatus(200);
     }
 
-    public function test_restricted_document_returns_forbidden_without_grant(): void
+    public function test_restricted_document_returns_forbidden_and_signals_subscription(): void
     {
         $token = $this->registerStudent();
-        $documentId = $this->seedPublishedDocument('jindungo');
+        $documentId = $this->seedPublishedDocument(restricted: true);
 
+        // O acesso a documentos é por-documento (subscrição), decidido pela
+        // categoria — o 403 sinaliza subscription_required.
         $this->withHeader('Authorization', "Bearer {$token}")
             ->getJson("/api/documents/{$documentId}")
             ->assertStatus(403)
-            ->assertJsonPath('required_access_level_id', 'jindungo');
+            ->assertJsonPath('subscription_required', true);
     }
 
-    public function test_restricted_document_is_accessible_with_grant(): void
+    public function test_restricted_document_is_accessible_with_active_subscription(): void
     {
         $token = $this->registerStudent();
         $user = User::query()->where('email', 'student@example.com')->first();
-        $documentId = $this->seedPublishedDocument('jindungo');
+        $documentId = $this->seedPublishedDocument(restricted: true);
 
-        DB::table('user_access_grants')->insert([
+        DB::table('document_subscriptions')->insert([
             'id' => (string) Str::uuid(),
             'user_id' => $user->id,
-            'access_level_id' => 'jindungo',
-            'granted_at' => now(),
-            'is_active' => true,
+            'document_id' => $documentId,
+            'status' => 'ACTIVE',
+            'started_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $this->withHeader('Authorization', "Bearer {$token}")
@@ -106,38 +130,59 @@ class DocumentAccessTest extends TestCase
             ->assertStatus(200);
     }
 
-    public function test_document_index_filters_by_access_gate(): void
+    public function test_subscription_to_one_document_does_not_unlock_another_in_same_category(): void
     {
+        // A subscrição é por-documento: subscrever um documento restrito não
+        // abre os restantes documentos da mesma categoria restrita.
         $token = $this->registerStudent();
-        $publicId = $this->seedPublishedDocument('public');
-        $restrictedId = $this->seedPublishedDocument('jindungo');
+        $user = User::query()->where('email', 'student@example.com')->first();
+        $categoryId = $this->seedCategory(requiresSubscription: true);
 
-        $response = $this->withHeader('Authorization', "Bearer {$token}")
-            ->getJson('/api/documents');
+        $subscribedDoc = (string) Str::uuid();
+        $otherDoc = (string) Str::uuid();
+        foreach ([$subscribedDoc, $otherDoc] as $docId) {
+            DB::table('documents')->insert([
+                'id' => $docId,
+                'title' => 'Doc '.Str::random(4),
+                'slug' => 'doc-'.Str::lower(Str::random(6)),
+                'author' => 'Author',
+                'summary' => 'Summary',
+                'document_type' => 'article',
+                'academic_level' => 'intro',
+                'category_id' => $categoryId,
+                'status' => 'published',
+                'created_by' => User::factory()->create()->id,
+                'published_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
-        $response->assertStatus(200);
-
-        $ids = collect($response->json('data'))->pluck('id')->all();
-
-        $this->assertContains($publicId, $ids);
-        $this->assertNotContains($restrictedId, $ids);
-    }
-
-    public function test_download_requires_access(): void
-    {
-        $token = $this->registerStudent();
-        $documentId = $this->seedPublishedDocument('restricted');
+        DB::table('document_subscriptions')->insert([
+            'id' => (string) Str::uuid(),
+            'user_id' => $user->id,
+            'document_id' => $subscribedDoc,
+            'status' => 'ACTIVE',
+            'started_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $this->withHeader('Authorization', "Bearer {$token}")
-            ->postJson("/api/documents/{$documentId}/download")
+            ->getJson("/api/documents/{$subscribedDoc}")
+            ->assertStatus(200);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson("/api/documents/{$otherDoc}")
             ->assertStatus(403);
     }
+
 
     public function test_admin_can_access_any_document(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $adminToken = $this->issueToken($admin);
-        $documentId = $this->seedPublishedDocument('restricted');
+        $documentId = $this->seedPublishedDocument(restricted: true);
 
         $this->withHeader('Authorization', "Bearer {$adminToken}")
             ->getJson("/api/documents/{$documentId}")

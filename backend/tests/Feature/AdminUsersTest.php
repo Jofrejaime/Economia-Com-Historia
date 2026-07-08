@@ -200,8 +200,6 @@ class AdminUsersTest extends TestCase
                          'user_level',
                          'level_definition',
                          'badges',
-                         'access_grants',
-                         'access_requests',
                          'statistics'
                      ]
                  ]);

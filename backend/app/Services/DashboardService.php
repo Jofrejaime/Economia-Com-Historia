@@ -24,11 +24,6 @@ class DashboardService
                 'new_today' => DB::table('users')->whereDate('created_at', $today)->count(),
                 'admins'    => DB::table('users')->where('role', 'admin')->count(),
             ],
-            'access_requests' => [
-                'pending'  => DB::table('user_access_requests')->where('status', 'pending')->count(),
-                'approved' => DB::table('user_access_requests')->where('status', 'approved')->count(),
-                'rejected' => DB::table('user_access_requests')->where('status', 'rejected')->count(),
-            ],
             'documents'     => $this->documentStats->summary(),
             'categories'    => $this->categoryStats->summary(),
             'subscriptions' => $this->subscriptionStats->summary(),
@@ -50,30 +45,6 @@ class DashboardService
     private function buildRecentActivity(): array
     {
         $activities = [];
-
-        $requests = DB::table('user_access_requests as uar')
-            ->leftJoin('user_profiles as up', 'up.user_id', '=', 'uar.user_id')
-            ->leftJoin('access_levels as al', 'al.id', '=', 'uar.access_level_id')
-            ->select(
-                'uar.*',
-                'up.display_name as user_display_name',
-                'al.name as access_level_name'
-            )
-            ->orderByDesc('uar.created_at')
-            ->limit(2)
-            ->get();
-
-        foreach ($requests as $item) {
-            $activities[] = [
-                'icon'        => 'request',
-                'title'       => 'Novo pedido de acesso',
-                'description' => trim(($item->user_display_name ?? 'Utilizador').' solicitou '.$item->access_level_name.' ('.$item->status.').'),
-                'time'        => $item->created_at,
-                'type'        => 'button',
-                'buttonText'  => 'Analisar',
-                'route'       => '/admin/dashboard/pedidos',
-            ];
-        }
 
         $documents = DB::table('documents as d')
             ->orderByDesc('d.created_at')

@@ -35,11 +35,8 @@ class QuizAdminTest extends TestCase
 
     private function seedAccessLevel(string $id = 'public'): void
     {
-        if (DB::table('access_levels')->where('id', $id)->doesntExist()) {
-            DB::table('access_levels')->insert([
-                'id' => $id, 'name' => 'Public', 'created_at' => now(),
-            ]);
-        }
+        // Sistema de níveis de acesso removido — helper mantido como no-op
+        // para não alterar as dezenas de chamadas existentes.
     }
 
     private function seedCategory(): string
@@ -66,7 +63,6 @@ class QuizAdminTest extends TestCase
             'title'           => 'Quiz '.Str::random(6),
             'difficulty'      => 'Básico',
             'base_points'     => 50,
-            'access_level_id' => 'public',
             'is_featured'     => $featured,
             'status'          => $status,
             'category_id'     => $categoryId,
@@ -91,7 +87,6 @@ class QuizAdminTest extends TestCase
             'summary'         => 'Summary',
             'document_type'   => 'article',
             'academic_level'  => 'intro',
-            'access_level_id' => 'public',
             'category_id'     => $categoryId,
             'status'          => 'published',
             'is_pinned'       => false,
@@ -308,7 +303,6 @@ class QuizAdminTest extends TestCase
             'description' => 'Quiz de finanças',
             'module' => 'Módulo 1',
             'created_by' => $admin->id,
-            'access_level_id' => 'public',
         ]);
 
         DB::table('quizzes')->insert([
@@ -317,7 +311,6 @@ class QuizAdminTest extends TestCase
             'description' => 'Quiz de história',
             'module' => 'Módulo 2',
             'created_by' => $admin->id,
-            'access_level_id' => 'public',
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
@@ -337,12 +330,12 @@ class QuizAdminTest extends TestCase
 
         $quizA = (string) Str::uuid();
         DB::table('quizzes')->insert([
-            'id' => $quizA, 'title' => 'A Quiz', 'created_by' => $admin->id, 'access_level_id' => 'public', 'created_at' => now()->subDays(2),
+            'id' => $quizA, 'title' => 'A Quiz', 'created_by' => $admin->id, 'created_at' => now()->subDays(2),
         ]);
 
         $quizB = (string) Str::uuid();
         DB::table('quizzes')->insert([
-            'id' => $quizB, 'title' => 'B Quiz', 'created_by' => $admin->id, 'access_level_id' => 'public', 'created_at' => now(),
+            'id' => $quizB, 'title' => 'B Quiz', 'created_by' => $admin->id, 'created_at' => now(),
         ]);
 
         // Order by created_at desc

@@ -149,26 +149,29 @@ class CommunityAdminTest extends TestCase
             ->assertJsonPath('data.id', $topic->id);
     }
 
-    public function test_admin_can_update_topic(): void
+    public function test_admin_cannot_edit_topic_content_but_can_moderate_status(): void
     {
         $topic = DiscussionTopic::factory()->create([
             'category_id' => $this->category->id,
             'author_id' => $this->student->id,
             'title' => 'Original title',
+            'status' => 'published',
         ]);
 
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->adminToken}"])
             ->patchJson("/api/admin/topics/{$topic->id}", [
                 'title' => 'Admin overwritten title',
-                'content' => $topic->content,
+                'status' => 'locked',
             ]);
 
-        $response->assertOk()
-            ->assertJsonPath('data.title', 'Admin overwritten title');
+        $response->assertOk();
 
+        // O admin modera o estado, mas não edita o conteúdo (título/corpo) da
+        // discussão de outro utilizador.
         $this->assertDatabaseHas('discussion_topics', [
             'id' => $topic->id,
-            'title' => 'Admin overwritten title',
+            'title' => 'Original title',
+            'status' => 'locked',
         ]);
     }
 

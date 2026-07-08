@@ -112,7 +112,7 @@ export function QuizListScreen() {
       navigation.navigate("LoginPrompt", { type: "quiz" });
       return;
     }
-    navigation.navigate("Quiz", { quizId: quiz.id, accessLevelId: quiz.access_level_id });
+    navigation.navigate("Quiz", { quizId: quiz.id });
   };
 
   const renderQuiz = ({ item }: { item: Quiz }) => (

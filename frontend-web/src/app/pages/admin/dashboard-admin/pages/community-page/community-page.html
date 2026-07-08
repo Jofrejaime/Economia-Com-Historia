@@ -181,7 +181,7 @@
             <td>
               <div class="actions-cell">
                 <button class="action-btn" type="button" (click)="openTopic(topic)">Ver</button>
-                <button class="action-btn" type="button" (click)="openTopic(topic, 'edit')">Editar</button>
+                <button class="action-btn" type="button" (click)="openTopic(topic, 'edit')">Moderar</button>
                 <button class="action-btn action-btn-warning" type="button" (click)="pinTopic(topic)" title="Fixar tópico">📌</button>
                 <button *ngIf="!topic.locked" class="action-btn action-btn-warning" type="button" (click)="lockTopic(topic)" title="Bloquear">🔒</button>
                 <button *ngIf="topic.locked" class="action-btn" type="button" (click)="unlockTopic(topic)" title="Desbloquear">🔓</button>
@@ -355,7 +355,6 @@
             <td>
               <div class="actions-cell">
                 <button class="action-btn" type="button" (click)="openReply(reply)">Ver</button>
-                <button class="action-btn" type="button" (click)="openReply(reply, 'edit')">Editar</button>
                 <button class="action-btn" type="button" (click)="acceptReply(reply)">Aceitar</button>
                 <button class="action-btn action-btn-danger" type="button" (click)="deleteReply(reply)">Eliminar</button>
               </div>
@@ -369,7 +368,7 @@
   <div class="modal-overlay" *ngIf="showTopicModal" (click)="closeTopicModal()">
     <div class="modal-content modal-content--wide" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ topicModalMode === 'edit' ? 'Editar Tópico' : 'Visualizar Tópico' }}</h2>
+        <h2>{{ topicModalMode === 'edit' ? 'Moderar Tópico' : 'Visualizar Tópico' }}</h2>
         <button class="modal-close" type="button" (click)="closeTopicModal()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m6 6 12 12M18 6 6 18"></path>
@@ -399,19 +398,15 @@
           </div>
 
           <ng-container *ngIf="topicModalMode === 'edit'">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Título</label>
-                <input type="text" [(ngModel)]="topicForm.title" class="form-input" />
-              </div>
-              <div class="form-group">
-                <label>Estado</label>
-                <select [(ngModel)]="topicForm.status" class="form-input">
-                  <option value="open">Aberto</option>
-                  <option value="locked">Bloqueado</option>
-                  <option value="archived">Arquivado</option>
-                </select>
-              </div>
+            <p class="form-hint">Os administradores moderam a discussão (estado, categoria, fixado, destaque), mas não editam o título nem o conteúdo criados pelo utilizador.</p>
+
+            <div class="form-group">
+              <label>Estado</label>
+              <select [(ngModel)]="topicForm.status" class="form-input">
+                <option value="open">Aberto</option>
+                <option value="locked">Bloqueado</option>
+                <option value="archived">Arquivado</option>
+              </select>
             </div>
 
             <div class="form-group">
@@ -422,11 +417,6 @@
                   {{ category.name }}
                 </option>
               </select>
-            </div>
-
-            <div class="form-group">
-              <label>Conteúdo</label>
-              <textarea [(ngModel)]="topicForm.content" rows="8" class="form-input"></textarea>
             </div>
 
             <div class="form-row">
@@ -449,7 +439,7 @@
 
       <div class="modal-footer">
         <button *ngIf="topicModalMode === 'view'" class="btn-cancel" type="button" (click)="closeTopicModal()">Fechar</button>
-        <button *ngIf="topicModalMode === 'view'" class="btn-save" type="button" (click)="enableTopicEditMode()">Editar</button>
+        <button *ngIf="topicModalMode === 'view'" class="btn-save" type="button" (click)="enableTopicEditMode()">Moderar</button>
         <button *ngIf="topicModalMode === 'edit'" class="btn-cancel" type="button" (click)="closeTopicModal()">Cancelar</button>
         <button *ngIf="topicModalMode === 'edit'" class="btn-save" type="button" (click)="saveTopic()">Guardar</button>
       </div>
@@ -459,7 +449,7 @@
   <div class="modal-overlay" *ngIf="showReplyModal" (click)="closeReplyModal()">
     <div class="modal-content modal-content--wide" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ replyModalMode === 'edit' ? 'Editar Resposta' : 'Visualizar Resposta' }}</h2>
+        <h2>Visualizar Resposta</h2>
         <button class="modal-close" type="button" (click)="closeReplyModal()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m6 6 12 12M18 6 6 18"></path>
@@ -469,7 +459,7 @@
 
       <div class="modal-body">
         <ng-container *ngIf="editingReply">
-          <div *ngIf="replyModalMode === 'view'" class="detail-card">
+          <div class="detail-card">
             <div class="detail-row">
               <span class="detail-label">Autor</span>
               <span class="detail-value">{{ editingReply.author_name }}</span>
@@ -483,21 +473,11 @@
               <p class="detail-content">{{ editingReply.content }}</p>
             </div>
           </div>
-
-          <ng-container *ngIf="replyModalMode === 'edit'">
-            <div class="form-group">
-              <label>Conteúdo</label>
-              <textarea [(ngModel)]="replyForm.content" rows="8" class="form-input"></textarea>
-            </div>
-          </ng-container>
         </ng-container>
       </div>
 
       <div class="modal-footer">
-        <button *ngIf="replyModalMode === 'view'" class="btn-cancel" type="button" (click)="closeReplyModal()">Fechar</button>
-        <button *ngIf="replyModalMode === 'view'" class="btn-save" type="button" (click)="enableReplyEditMode()">Editar</button>
-        <button *ngIf="replyModalMode === 'edit'" class="btn-cancel" type="button" (click)="closeReplyModal()">Cancelar</button>
-        <button *ngIf="replyModalMode === 'edit'" class="btn-save" type="button" (click)="saveReply()">Guardar</button>
+        <button class="btn-cancel" type="button" (click)="closeReplyModal()">Fechar</button>
       </div>
     </div>
   </div>

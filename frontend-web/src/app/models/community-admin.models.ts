@@ -77,8 +77,10 @@ export interface DiscussionTopic {
 }
 
 export interface DiscussionTopicPayload {
-  title: string;
-  content: string;
+  // Título/conteúdo são opcionais: o admin apenas modera (estado/categoria/
+  // fixado/destaque) e não edita o conteúdo das discussões dos utilizadores.
+  title?: string;
+  content?: string;
   status?: 'open' | 'locked' | 'archived' | 'published' | 'draft';
   category_id?: string | null;
   is_pinned?: boolean;

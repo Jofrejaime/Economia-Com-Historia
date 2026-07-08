@@ -28,15 +28,11 @@ export class ContentsViewComponent implements OnInit {
   isAuthenticated = false;
 
   // ─── Acesso negado (403 do backend) ───────────────────────────────────────
-  // O denyDocumentAccess() do backend devolve:
-  //   { message, subscription_required, required_access_level_id }
-  // subscription_required = true  → categoria com requires_subscription →
-  //   o pedido certo é POST /documents/{id}/subscribe;
-  // subscription_required = false → bloqueio por nível de acesso →
-  //   o pedido certo é POST /access-requests (required_access_level_id).
+  // O denyDocumentAccess() do backend devolve { message, subscription_required }.
+  // O acesso a documentos restritos é sempre por subscrição por-documento
+  // (POST /documents/{id}/subscribe → admin aprova).
   accessDenied = false;
   subscriptionRequired = false;
-  requiredAccessLevelId: string | null = null;
   accessRequesting = false;
   accessRequestDone = false;
   accessRequestError: string | null = null;
@@ -86,7 +82,6 @@ export class ContentsViewComponent implements OnInit {
     this.error = null;
     this.accessDenied = false;
     this.subscriptionRequired = false;
-    this.requiredAccessLevelId = null;
     this.accessRequesting = false;
     this.accessRequestDone = false;
     this.accessRequestError = null;
@@ -110,7 +105,6 @@ export class ContentsViewComponent implements OnInit {
         // (link partilhado, favoritos, histórico do browser).
         this.accessDenied = true;
         this.subscriptionRequired = err?.error?.subscription_required === true;
-        this.requiredAccessLevelId = err?.error?.required_access_level_id ?? null;
 
         // Se for subscrição e o utilizador estiver autenticado, verifica em
         // background se já existe um pedido pendente — evita pedido duplicado
@@ -138,8 +132,7 @@ export class ContentsViewComponent implements OnInit {
   }
 
   /**
-   * Envia o pedido correcto conforme o mecanismo indicado pelo 403:
-   * subscrição de documento ou access request de nível de acesso.
+   * Envia o pedido de subscrição do documento (fluxo do 403 restrito).
    */
   async requestAccess(): Promise<void> {
     if (!this.docId || this.accessRequesting) return;
@@ -155,16 +148,9 @@ export class ContentsViewComponent implements OnInit {
     this.cdr.detectChanges();
 
     try {
-      if (this.subscriptionRequired) {
-        // O backend nunca devolve erro para duplicados: responde 200 com
-        // already_exists quando já há pedido ACTIVE/PENDING.
-        await this.documentService.subscribeDocument(this.docId);
-      } else if (this.requiredAccessLevelId) {
-        await this.documentService.requestAccessLevel(this.requiredAccessLevelId);
-      } else {
-        this.accessRequestError = 'Não foi possível determinar o tipo de acesso necessário.';
-        return;
-      }
+      // O backend nunca devolve erro para duplicados: responde 200 com
+      // already_exists quando já há pedido ACTIVE/PENDING.
+      await this.documentService.subscribeDocument(this.docId);
       this.accessRequestDone = true;
     } catch (err: any) {
       if (err?.status === 409 || err?.status === 422) {
@@ -180,13 +166,9 @@ export class ContentsViewComponent implements OnInit {
     }
   }
 
-  /** Label do nível de acesso em falta — para o cartão de acesso negado. */
+  /** Label para o cartão de acesso negado. */
   getRequiredAccessLabel(): string {
-    switch (this.requiredAccessLevelId) {
-      case 'jindungo':   return 'Jindungo';
-      case 'restricted': return 'Restrito';
-      default:           return this.subscriptionRequired ? 'com Subscrição' : 'Condicionado';
-    }
+    return 'com Subscrição';
   }
 
   goBackToContents(): void {
@@ -273,19 +255,6 @@ export class ContentsViewComponent implements OnInit {
         this.doc.is_favorited = true;
       }
       this.cdr.detectChanges();
-    } catch {}
-  }
-
-  async onDownload(): Promise<void> {
-    if (!this.doc) return;
-    if (!this.isAuthenticated) {
-      this.router.navigate(['/auth/login']);
-      return;
-    }
-    try {
-      const pdfUrl = await this.documentService.downloadDocument(this.doc.id);
-      const url = pdfUrl ?? this.doc.pdf_url;
-      if (url) window.open(url, '_blank');
     } catch {}
   }
 

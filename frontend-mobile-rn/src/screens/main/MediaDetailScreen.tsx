@@ -138,8 +138,7 @@ export function MediaDetailScreen() {
 
   const [doc, setDoc] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
-  const [errorType, setErrorType] = useState<"not_found" | "access_denied" | "subscription_required" | "network_error" | null>(null);
-  const [requiredAccessLevel, setRequiredAccessLevel] = useState<string>("restricted");
+  const [errorType, setErrorType] = useState<"not_found" | "subscription_required" | "network_error" | null>(null);
   const [accessModalVisible, setAccessModalVisible] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -174,11 +173,7 @@ export function MediaDetailScreen() {
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 403) {
-        const subscriptionRequired = err.response?.data?.subscription_required;
-        const levelId = err.response?.data?.required_access_level_id
-          ?? (subscriptionRequired ? "jindungo" : "restricted");
-        setRequiredAccessLevel(levelId);
-        setErrorType(subscriptionRequired ? "subscription_required" : "access_denied");
+        setErrorType("subscription_required");
       } else if (status === 404) {
         setErrorType("not_found");
       } else {
@@ -249,15 +244,10 @@ export function MediaDetailScreen() {
         title: "Conteúdo não encontrado",
         message: "Este conteúdo pode ter sido removido ou o link está incorrecto.",
       },
-      access_denied: {
-        icon: "lock" as const,
-        title: "Acesso Restrito",
-        message: "Este conteúdo requer acesso especial aprovado.",
-      },
       subscription_required: {
-        icon: "zap" as const,
-        title: "Conteúdo Jindungo",
-        message: "Este conteúdo é exclusivo para membros Jindungo. Solicita acesso e o administrador aprovará o teu pedido.",
+        icon: "lock" as const,
+        title: "Acesso por Subscrição",
+        message: "Este conteúdo pertence a uma colecção que requer subscrição. Solicita acesso e o administrador aprovará o teu pedido.",
       },
       network_error: {
         icon: "wifi-off" as const,
@@ -273,7 +263,7 @@ export function MediaDetailScreen() {
           <Feather name={errorConfig.icon} size={40} color={appTheme.colors.textMuted} />
           <Text style={styles.errorTitle}>{errorConfig.title}</Text>
           <Text style={styles.errorText}>{errorConfig.message}</Text>
-          {(errorType === "access_denied" || errorType === "subscription_required") && (
+          {errorType === "subscription_required" && (
             <TouchableOpacity
               style={styles.errorButton}
               onPress={() => {
@@ -301,8 +291,6 @@ export function MediaDetailScreen() {
         <AccessRequestModal
           visible={accessModalVisible}
           documentId={id}
-          accessLevelId={requiredAccessLevel}
-          mode={errorType === "subscription_required" ? "subscription" : "access-level"}
           onClose={() => setAccessModalVisible(false)}
         />
       </ScreenContainer>

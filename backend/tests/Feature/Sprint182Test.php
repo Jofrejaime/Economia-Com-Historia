@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\AccessLevel;
 use App\Models\LevelDefinition;
 use App\Models\Setting;
 use App\Models\User;
@@ -188,72 +187,6 @@ class Sprint182Test extends TestCase
                  ->assertJsonFragment(['message' => 'Cannot delete the only remaining level definition.']);
     }
 
-    // ─── ACCESS LEVELS TESTS ─────────────────────────────────────────────────
-
-    public function test_admin_can_crud_access_levels()
-    {
-        $admin = $this->createAdmin();
-
-        // List
-        $response = $this->auth($admin)->getJson('/api/admin/access-levels');
-        $response->assertStatus(200);
-
-        // Store
-        $response = $this->auth($admin)->postJson('/api/admin/access-levels', [
-            'id' => 'platinum',
-            'name' => 'Platina',
-            'description' => 'Acesso Platina',
-            'requires_approval' => true,
-            'auto_grant' => false,
-        ]);
-        $response->assertStatus(201)
-                 ->assertJsonPath('data.id', 'platinum');
-
-        // Show
-        $response = $this->auth($admin)->getJson('/api/admin/access-levels/platinum');
-        $response->assertStatus(200)
-                 ->assertJsonPath('data.name', 'Platina');
-
-        // Update
-        $response = $this->auth($admin)->patchJson('/api/admin/access-levels/platinum', [
-            'name' => 'Platina VIP'
-        ]);
-        $response->assertStatus(200)
-                 ->assertJsonPath('data.name', 'Platina VIP');
-
-        // Delete
-        $response = $this->auth($admin)->deleteJson('/api/admin/access-levels/platinum');
-        $response->assertStatus(200);
-        $this->assertDatabaseMissing('access_levels', ['id' => 'platinum']);
-    }
-
-    public function test_prevent_delete_access_level_in_use()
-    {
-        $admin = $this->createAdmin();
-
-        // 1. In use by request
-        \DB::table('user_access_requests')->insert([
-            'id' => (string) Str::uuid(),
-            'user_id' => $admin->id,
-            'access_level_id' => 'restricted',
-            'status' => 'pending',
-            'created_at' => now(),
-        ]);
-        $response = $this->auth($admin)->deleteJson('/api/admin/access-levels/restricted');
-        $response->assertStatus(400);
-
-        // 2. In use by grant
-        \DB::table('user_access_grants')->insert([
-            'id' => (string) Str::uuid(),
-            'user_id' => $admin->id,
-            'access_level_id' => 'jindungo',
-            'is_active' => true,
-            'granted_at' => now(),
-        ]);
-        $response = $this->auth($admin)->deleteJson('/api/admin/access-levels/jindungo');
-        $response->assertStatus(400);
-    }
-
     public function test_settings_validation_invalid_boolean()
     {
         $admin = $this->createAdmin();
@@ -280,22 +213,4 @@ class Sprint182Test extends TestCase
                  ->assertJsonFragment(['message' => 'Setting [support_email] must be a valid email address.']);
     }
 
-    public function test_access_level_prevent_delete_last()
-    {
-        $admin = $this->createAdmin();
-
-        // Delete referencing records first to avoid foreign key failures
-        \DB::table('user_access_grants')->delete();
-        \DB::table('user_access_requests')->delete();
-        \DB::table('documents')->delete();
-        \DB::table('quizzes')->delete();
-        \DB::table('community_categories')->delete();
-
-        // Delete all except one
-        AccessLevel::where('id', '!=', 'public')->delete();
-
-        $response = $this->auth($admin)->deleteJson('/api/admin/access-levels/public');
-        $response->assertStatus(400)
-                 ->assertJsonFragment(['message' => 'Cannot delete the only remaining Access Level.']);
-    }
 }

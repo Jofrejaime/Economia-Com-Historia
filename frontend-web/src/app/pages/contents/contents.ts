@@ -7,24 +7,8 @@ import { HeaderComponent } from '../../components/header/header';
 import { DocumentService, Document, DocumentCategory, PageMeta } from '../../services/document.service';
 import { AuthService } from '../../services/auth.service';
 
-type AccessCategory = 'all' | 'public' | 'jindungo' | 'restricted';
-type DropdownKey = 'access' | 'theme' | 'level' | 'format' | 'mediaType';
+type DropdownKey = 'theme' | 'level' | 'format' | 'mediaType';
 
-/**
- * Dois mecanismos de acesso distintos no backend (DocumentAccessService):
- *   - 'subscription'    → categoria com requires_subscription; desbloqueia-se
- *                         via POST /documents/{id}/subscribe (admin aprova em
- *                         /admin/document-subscriptions);
- *   - 'access-request'  → bloqueio por nível de acesso (jindungo/restrito);
- *                         desbloqueia-se via POST /access-requests (admin
- *                         aprova em /admin/access-requests → grant).
- * Enviar o pedido errado cria um pedido que, mesmo aprovado, nunca desbloqueia
- * o documento — por isso o modo é decidido pelo campo `required` que o próprio
- * backend devolve em GET /documents/{id}/subscription.
- */
-type AccessMode = 'subscription' | 'access-request';
-
-interface AccessOption { id: AccessCategory; label: string; }
 interface SimpleOption { id: string; label: string; }
 
 @Component({
@@ -44,7 +28,6 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedLevel: string | null = null;
   selectedFormat: string | null = null;
   selectedMediaType: string | null = null;
-  selectedAccessCategory: AccessCategory = 'all';
 
   // Único dropdown aberto de cada vez — abrir um fecha automaticamente
   // qualquer outro que estivesse aberto, em vez de 5 booleanos independentes.
@@ -61,19 +44,11 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isAuthenticated = false;
 
-  // ─── Modal de pedido de acesso (jindungo / restrito / subscrição) ────────
+  // ─── Modal de pedido de subscrição (categorias restritas) ────────────────
   accessModalDoc: Document | null = null;
   accessRequesting = false;
   accessRequestDone = false;
   accessRequestError: string | null = null;
-
-  /**
-   * Modo do pedido a enviar. O modal abre por causa do access_level_id
-   * (jindungo/restrito), pelo que o default é 'access-request'; o check em
-   * background (getSubscriptionStatus) corrige para 'subscription' quando o
-   * backend indicar required = true (categoria com requires_subscription).
-   */
-  accessMode: AccessMode = 'access-request';
 
   // Labels amigáveis para valores conhecidos; qualquer document_type/media_type
   // que apareça nos dados mas não esteja aqui usa o próprio valor como label.
@@ -100,13 +75,6 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
     { id: 'intro',     label: 'Introdutório' },
     { id: 'advanced',  label: 'Investigação Avançada' },
     { id: 'doctorate', label: 'Arquivo de Doutoramento' },
-  ];
-
-  accessOptions: AccessOption[] = [
-    { id: 'all',        label: 'Todos os Documentos' },
-    { id: 'public',     label: 'Documentos Públicos' },
-    { id: 'jindungo',   label: 'Jindungo' },
-    { id: 'restricted', label: 'Conteúdos Restritos' },
   ];
 
   private searchTimer: any = null;
@@ -208,7 +176,6 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const params: any = { page };
-    if (this.selectedAccessCategory !== 'all') params.access_level_id = this.selectedAccessCategory;
     if (this.selectedFormat)    params.document_type  = this.selectedFormat;
     if (this.selectedMediaType) params.media_type     = this.selectedMediaType;
     if (this.selectedLevel)     params.academic_level = this.selectedLevel;
@@ -284,27 +251,15 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.openDropdown === key;
   }
 
-  toggleAccessDropdown(): void { this.toggleDropdown('access'); }
   toggleThemeDropdown(): void { this.toggleDropdown('theme'); }
   toggleLevelDropdown(): void { this.toggleDropdown('level'); }
   toggleFormatDropdown(): void { this.toggleDropdown('format'); }
   toggleMediaTypeDropdown(): void { this.toggleDropdown('mediaType'); }
 
-  get showAccessDropdown(): boolean { return this.isDropdownOpen('access'); }
   get showThemeDropdown(): boolean { return this.isDropdownOpen('theme'); }
   get showLevelDropdown(): boolean { return this.isDropdownOpen('level'); }
   get showFormatDropdown(): boolean { return this.isDropdownOpen('format'); }
   get showMediaTypeDropdown(): boolean { return this.isDropdownOpen('mediaType'); }
-
-  getAccessCategoryLabel(): string {
-    return this.accessOptions.find(o => o.id === this.selectedAccessCategory)?.label ?? 'Todos os Documentos';
-  }
-
-  selectAccessCategory(cat: AccessCategory): void {
-    this.selectedAccessCategory = cat;
-    this.openDropdown = null;
-    this.loadDocuments();
-  }
 
   getSelectedThemeLabel(): string { return this.selectedTheme ?? 'Todos os Temas'; }
 
@@ -355,39 +310,20 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedLevel = null;
     this.selectedFormat = null;
     this.selectedMediaType = null;
-    this.selectedAccessCategory = 'all';
     this.searchQuery = '';
     this.openDropdown = null;
     this.loadDocuments();
   }
 
-  getAccessLabel(accessLevelId: string): string {
-    switch (accessLevelId) {
-      case 'jindungo':   return 'Jindungo';
-      case 'restricted': return 'Restrito';
-      default:           return 'Público';
-    }
-  }
-
-  getAccessBadgeStyle(accessLevelId: string): { bg: string; text: string } {
-    switch (accessLevelId) {
-      case 'jindungo':   return { bg: '#ffd6a5', text: '#4a2c00' };
-      case 'restricted': return { bg: '#ffb3ba', text: '#5c0011' };
-      default:           return { bg: '#d1fae5', text: '#065f46' };
-    }
-  }
-
   /**
-   * Badge/label únicos por documento — verifica primeiro o gate por
-   * subscrição (categoria com requires_subscription), que é independente de
-   * access_level_id e por isso invisível para getAccessLabel/getAccessBadgeStyle
-   * sozinhos; só depois cai para o gate por nível de acesso.
+   * Badge/label por documento — decidido pela categoria: restrita
+   * (requires_subscription) → "Subscrição"; caso contrário "Público".
    */
   getDocBadge(doc: Document): { label: string; bg: string; text: string } {
     if (doc.category?.requires_subscription === true) {
       return { label: 'Subscrição', bg: '#e0d4f7', text: '#3b1f6b' };
     }
-    return { label: this.getAccessLabel(doc.access_level_id), ...this.getAccessBadgeStyle(doc.access_level_id) };
+    return { label: 'Público', bg: '#d1fae5', text: '#065f46' };
   }
 
   getFormatLabel(format: string): string {
@@ -408,21 +344,15 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ==========================================
-  // ACESSO A CONTEÚDOS JINDUNGO / RESTRITOS
+  // ACESSO A CONTEÚDOS RESTRITOS (subscrição)
   // ==========================================
 
   /**
-   * Um documento precisa de pedido de acesso quando a sua categoria exige
-   * subscrição OU (na ausência disso) quando é jindungo/restrito — os dois
-   * mecanismos são mutuamente exclusivos no backend (canReadDocument):
-   * requires_subscription manda sempre que presente, access_level_id só é
-   * consultado quando a categoria não exige subscrição.
+   * Um documento precisa de subscrição quando a sua categoria é restrita
+   * (requires_subscription) e o utilizador ainda não tem acesso.
    */
   private needsAccessRequest(doc: Document): boolean {
-    const gated = doc.category?.requires_subscription === true
-      ? true
-      : (doc.access_level_id === 'jindungo' || doc.access_level_id === 'restricted');
-    if (!gated) {
+    if (doc.category?.requires_subscription !== true) {
       return false;
     }
     const anyDoc = doc as any;
@@ -451,23 +381,13 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.accessRequesting = false;
     this.accessRequestDone = false;
     this.accessRequestError = null;
-    // Determinado de imediato a partir dos dados já carregados na listagem —
-    // essencial para visitantes, que nunca recebem a confirmação em segundo
-    // plano abaixo (GET /documents/{id}/subscription exige sessão).
-    this.accessMode = doc.category?.requires_subscription === true ? 'subscription' : 'access-request';
     this.cdr.detectChanges();
 
-    // Se autenticado, verifica em background o mecanismo real de acesso e se
-    // já existe pedido/subscrição (GET /documents/{id}/subscription).
-    // Não bloqueia a abertura do modal.
+    // Se autenticado, verifica em background se já existe pedido/subscrição
+    // (GET /documents/{id}/subscription). Não bloqueia a abertura do modal.
     if (this.isAuthenticated) {
       this.documentService.getSubscriptionStatus(doc.id)
         .then((res) => {
-          // required = true → categoria com requires_subscription → o pedido
-          // certo é a subscrição de documento; caso contrário mantém-se o
-          // access request por nível de acesso.
-          this.accessMode = res?.required === true ? 'subscription' : 'access-request';
-
           const status = String(res?.status ?? '').toLowerCase();
           if (status === 'pending') {
             // já pediu — mostra diretamente o estado "pedido enviado"
@@ -508,16 +428,10 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
-      if (this.accessMode === 'subscription') {
-        // Categoria com requires_subscription → subscrição de documento.
-        // O backend nunca devolve erro para duplicados: responde 200 com
-        // already_exists quando já há pedido ACTIVE/PENDING.
-        await this.documentService.subscribeDocument(this.accessModalDoc.id);
-      } else {
-        // Bloqueio por nível de acesso → access request (é o único pedido
-        // que, aprovado, gera o grant que canReadDocument valida).
-        await this.documentService.requestAccessLevel(this.accessModalDoc.access_level_id);
-      }
+      // Acesso a documentos restritos é sempre por subscrição por-documento.
+      // O backend nunca devolve erro para duplicados: responde 200 com
+      // already_exists quando já há pedido ACTIVE/PENDING.
+      await this.documentService.subscribeDocument(this.accessModalDoc.id);
       this.accessRequestDone = true;
       // Marca localmente para não voltar a pedir nesta sessão
       (this.accessModalDoc as any).is_subscribed = true;

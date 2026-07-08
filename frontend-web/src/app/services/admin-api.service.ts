@@ -54,35 +54,6 @@ export interface AdminUser {
   research_areas: string[] | null;
 }
 
-export interface AccessRequestRecord {
-  id: string;
-  user_id: string;
-  access_level_id: string;
-  access_level_name?: string;
-  user_display_name?: string;
-  user_email?: string;
-  user_institution?: string;
-  status: 'pending' | 'approved' | 'rejected' | 'revoked';
-  justification: string | null;
-  reviewed_by: string | null;
-  reviewed_at: string | null;
-  review_notes: string | null;
-  created_at: string;
-}
-
-export interface AccessGrantRecord {
-  id: string;
-  user_id: string;
-  access_level_id: string;
-  access_level_name?: string;
-  granted_by: string | null;
-  request_id: string | null;
-  granted_at: string;
-  expires_at: string | null;
-  revoked_at: string | null;
-  is_active: boolean;
-}
-
 export interface SettingRecord {
   id: string;
   key: string;
@@ -103,19 +74,6 @@ export interface LevelDefinitionRecord {
   color_hex: string | null;
   icon_url: string | null;
   perks: string[] | null;
-}
-
-/** Nível de ACESSO A CONTEÚDO (público/jindungo/restrito) — não confundir com
- *  LevelDefinitionRecord, que são os níveis de gamificação do utilizador. */
-export interface AccessLevelRecord {
-  id: string;
-  name: string;
-  description: string | null;
-  icon: string | null;
-  color_bg: string | null;
-  color_text: string | null;
-  requires_approval: boolean;
-  auto_grant: boolean;
 }
 
 export interface ApiResult<T> {
@@ -195,54 +153,6 @@ export class AdminApiService {
     );
   }
 
-  listAccessRequests(params?: { scope?: 'mine' | 'all'; status?: string }): Observable<ApiResult<AccessRequestRecord[]>> {
-    return this.http.get<ApiEnvelope<AccessRequestRecord[]>>(`${environment.apiBaseUrl}/api/access-requests`, {
-      observe: 'response',
-      params: this.cleanParams(params),
-    }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<AccessRequestRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessRequestRecord[]>(error, 'Erro ao carregar pedidos de acesso')))
-    );
-  }
-
-  reviewAccessRequest(id: string, payload: { status: 'approved' | 'rejected'; review_notes?: string }): Observable<ApiResult<AccessRequestRecord>> {
-    return this.http.patch<ApiEnvelope<AccessRequestRecord>>(`${environment.apiBaseUrl}/api/access-requests/${id}`, payload, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<AccessRequestRecord> => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        message: response.body?.message,
-        data: response.body?.data,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessRequestRecord>(error, 'Erro ao rever pedido de acesso')))
-    );
-  }
-
-  listAccessGrants(params?: { scope?: 'mine' | 'all' }): Observable<ApiResult<AccessGrantRecord[]>> {
-    return this.http.get<ApiEnvelope<AccessGrantRecord[]>>(`${environment.apiBaseUrl}/api/access-grants`, {
-      observe: 'response',
-      params: this.cleanParams(params),
-    }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<AccessGrantRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessGrantRecord[]>(error, 'Erro ao carregar concessões de acesso')))
-    );
-  }
-
-  revokeAccessGrant(id: string): Observable<ApiResult<AccessGrantRecord>> {
-    return this.http.post<ApiEnvelope<AccessGrantRecord>>(`${environment.apiBaseUrl}/api/access-grants/${id}/revoke`, {}, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<AccessGrantRecord> => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        message: response.body?.message,
-        data: response.body?.data,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessGrantRecord>(error, 'Erro ao revogar concessão de acesso')))
-    );
-  }
-
   listSettings(): Observable<ApiResult<SettingRecord[]>> {
     return this.http.get<ApiEnvelope<SettingRecord[]>>(`${environment.apiBaseUrl}/api/admin/settings`, { observe: 'response' }).pipe(
       timeout({ first: 15000 }),
@@ -319,63 +229,6 @@ export class AdminApiService {
         data: response.body?.data ?? [],
       })),
       catchError((error: unknown) => of(this.toFailureResult<any[]>(error, 'Erro ao carregar sessões de auditoria')))
-    );
-  }
-
-  // ─── Access Levels (público/jindungo/restrito — controlo de acesso a conteúdo) ───
-
-  listAccessLevels(): Observable<ApiResult<AccessLevelRecord[]>> {
-    return this.http.get<ApiEnvelope<AccessLevelRecord[]>>(`${environment.apiBaseUrl}/api/admin/access-levels`, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<AccessLevelRecord[]> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data ?? [] })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord[]>(error, 'Erro ao carregar níveis de acesso')))
-    );
-  }
-
-  getAccessLevel(id: string): Observable<ApiResult<AccessLevelRecord>> {
-    return this.http.get<ApiEnvelope<AccessLevelRecord>>(`${environment.apiBaseUrl}/api/admin/access-levels/${id}`, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<AccessLevelRecord> => ({ ok: response.status >= 200 && response.status < 300, status: response.status, data: response.body?.data })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord>(error, 'Erro ao carregar nível de acesso')))
-    );
-  }
-
-  createAccessLevel(payload: Partial<AccessLevelRecord> & { id: string; name: string }): Observable<ApiResult<AccessLevelRecord>> {
-    return this.http.post<ApiEnvelope<AccessLevelRecord>>(`${environment.apiBaseUrl}/api/admin/access-levels`, payload, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<AccessLevelRecord> => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        message: response.body?.message,
-        data: response.body?.data,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord>(error, 'Erro ao criar nível de acesso')))
-    );
-  }
-
-  updateAccessLevel(id: string, payload: Partial<AccessLevelRecord>): Observable<ApiResult<AccessLevelRecord>> {
-    return this.http.patch<ApiEnvelope<AccessLevelRecord>>(`${environment.apiBaseUrl}/api/admin/access-levels/${id}`, payload, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<AccessLevelRecord> => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        message: response.body?.message,
-        data: response.body?.data,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<AccessLevelRecord>(error, 'Erro ao actualizar nível de acesso')))
-    );
-  }
-
-  deleteAccessLevel(id: string): Observable<ApiResult<null>> {
-    return this.http.delete<ApiEnvelope<null>>(`${environment.apiBaseUrl}/api/admin/access-levels/${id}`, { observe: 'response' }).pipe(
-      timeout({ first: 15000 }),
-      map((response): ApiResult<null> => ({
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        message: response.body?.message,
-        data: null,
-      })),
-      catchError((error: unknown) => of(this.toFailureResult<null>(error, 'Erro ao eliminar nível de acesso')))
     );
   }
 

@@ -23,7 +23,6 @@ class Document extends Model
         'category_id',
         'document_type',
         'academic_level',
-        'access_level_id',
         'publication_date',
         'period_start',
         'period_end',
@@ -40,7 +39,6 @@ class Document extends Model
         'published_at',
         'views_count',
         'likes_count',
-        'downloads_count',
     ];
 
     protected function casts(): array
@@ -52,7 +50,6 @@ class Document extends Model
             'period_end' => 'integer',
             'views_count' => 'integer',
             'likes_count' => 'integer',
-            'downloads_count' => 'integer',
             'is_pinned' => 'boolean',
         ];
     }
@@ -60,11 +57,6 @@ class Document extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(DocumentCategory::class, 'category_id');
-    }
-
-    public function accessLevel(): BelongsTo
-    {
-        return $this->belongsTo(AccessLevel::class, 'access_level_id', 'id');
     }
 
     public function createdBy(): BelongsTo
@@ -85,11 +77,6 @@ class Document extends Model
     public function likes(): HasMany
     {
         return $this->hasMany(DocumentLike::class, 'document_id');
-    }
-
-    public function downloads(): HasMany
-    {
-        return $this->hasMany(DocumentDownload::class, 'document_id');
     }
 
     public function views(): HasMany

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\DocumentStatus;
 use App\Enums\SubscriptionStatus;
-use App\Events\Domain\Documents\DocumentDownloaded;
 use App\Events\Domain\Documents\DocumentFavorited;
 use App\Events\Domain\Documents\DocumentLiked;
 use App\Events\Domain\Documents\DocumentUnfavorited;
@@ -98,25 +97,20 @@ class DocumentController extends Controller
         $query = DB::table('user_favorites as uf')
             ->join('documents as d', 'uf.document_id', '=', 'd.id')
             ->leftJoin('document_categories as dc', 'd.category_id', '=', 'dc.id')
-            ->leftJoin('access_levels as al', 'd.access_level_id', '=', 'al.id')
             ->leftJoin('user_profiles as up', 'd.created_by', '=', 'up.user_id')
             ->select(
                 'd.id', 'd.title', 'd.slug', 'd.author', 'd.institution',
-                'd.category_id', 'd.document_type', 'd.academic_level', 'd.access_level_id',
+                'd.category_id', 'd.document_type', 'd.academic_level',
                 'd.publication_date', 'd.period_start', 'd.period_end',
                 'd.summary', 'd.content', 'd.cover_image_url',
                 'd.media_type', 'd.media_url', 'd.pdf_url',
                 'd.status', 'd.is_pinned', 'd.created_by', 'd.published_at', 'd.created_at', 'd.updated_at',
-                'd.views_count', 'd.likes_count', 'd.downloads_count',
+                'd.views_count', 'd.likes_count',
                 'dc.name as category_name',
                 'dc.slug as category_slug',
                 'dc.color_bg as category_color_bg',
                 'dc.icon as category_icon',
                 'dc.requires_subscription as category_requires_subscription',
-                'al.name as access_level_name',
-                'al.icon as access_level_icon',
-                'al.color_bg as access_level_color_bg',
-                'al.color_text as access_level_color_text',
                 'up.display_name as author_display_name',
                 'up.avatar_url as author_avatar_url'
             )
@@ -259,7 +253,6 @@ class DocumentController extends Controller
         'category' => function ($q) {
             $q->withCount('documents');
         },
-        'accessLevel',
         'createdBy.profile',
         'quizzes' => function ($q) {
             $q->select(
@@ -583,54 +576,6 @@ class DocumentController extends Controller
         DocumentUnliked::dispatch($id, $userId, ['title' => $document->title]);
 
         return response()->json(['message' => 'Like removed.']);
-    }
-
-    /**
-     * @OA\Post(
-     *      path="/documents/{id}/download",
-     *      operationId="downloadDocument",
-     *      tags={"Documents"},
-     *      summary="Registar download de documento",
-     *      security={{"bearer_token": {}, "session_token": {}}},
-     *      @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
-     *      @OA\Response(response=200, description="Download registado com sucesso",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string"),
-     *              @OA\Property(property="pdf_url", type="string")
-     *          )
-     *      ),
-     *      @OA\Response(response=404, description="Documento não encontrado"),
-     *      @OA\Response(response=403, description="Acesso proibido")
-     * )
-     */
-    public function download(string $id, Request $request): JsonResponse
-    {
-        $document = Document::find($id);
-
-        if ($document === null) {
-            return response()->json(['message' => 'Document not found.'], 404);
-        }
-
-        if (!$this->documentAccess->canReadDocument($request->user(), $document)) {
-            return $this->denyDocumentAccess($document);
-        }
-
-        DB::table('document_downloads')->insert([
-            'id'          => (string) Str::uuid(),
-            'document_id' => $id,
-            'user_id'     => $request->user()->id,
-            'ip_address'  => $request->ip(),
-            'created_at'  => now(),
-        ]);
-
-        $document->increment('downloads_count');
-
-        DocumentDownloaded::dispatch($id, $request->user()->id, ['title' => $document->title]);
-
-        return response()->json([
-            'message' => 'Download recorded.',
-            'pdf_url' => $document->pdf_url,
-        ]);
     }
 
     /**
@@ -972,12 +917,9 @@ class DocumentController extends Controller
 
     private function denyDocumentAccess(object $document): JsonResponse
     {
-        $isSubscriptionRequired = $this->documentAccess->isSubscriptionRequired($document);
-
         return response()->json([
-            'message'                  => 'You do not have access to this content.',
-            'subscription_required'    => $isSubscriptionRequired,
-            'required_access_level_id' => $isSubscriptionRequired ? null : ($document->access_level_id ?? null),
+            'message'               => 'You do not have access to this content.',
+            'subscription_required' => true,
         ], 403);
     }
 

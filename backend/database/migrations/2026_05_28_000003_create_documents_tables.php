@@ -41,7 +41,6 @@ return new class extends Migration
             $table->foreignUuid('category_id')->nullable()->constrained('document_categories');
             $table->string('document_type', 20);
             $table->string('academic_level', 20)->default('intro');
-            $table->string('access_level_id', 20)->default('public');
             $table->date('publication_date')->nullable();
             $table->integer('period_start')->nullable();
             $table->integer('period_end')->nullable();
@@ -60,11 +59,8 @@ return new class extends Migration
             $table->timestamp('updated_at')->useCurrent();
             $table->integer('views_count')->default(0);
             $table->integer('likes_count')->default(0);
-            $table->integer('downloads_count')->default(0);
 
-            $table->foreign('access_level_id')->references('id')->on('access_levels');
             $table->index('status', 'idx_documents_status');
-            $table->index('access_level_id', 'idx_documents_access_level');
             $table->index('category_id', 'idx_documents_category');
             $table->index('academic_level', 'idx_documents_academic_level');
             $table->index('created_by', 'idx_documents_created_by');
@@ -104,19 +100,6 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->timestamp('created_at')->useCurrent();
             $table->unique(['document_id', 'user_id'], 'uq_doc_likes');
-        });
-
-        Schema::create('document_downloads', function (Blueprint $table) {
-            $id = $table->uuid('id');
-            if (DB::getDriverName() === 'mysql') {
-                $id->default(DB::raw('(UUID())'));
-            }
-            $id->primary();
-
-            $table->foreignUuid('document_id')->constrained('documents')->cascadeOnDelete();
-            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('ip_address', 45)->nullable();
-            $table->timestamp('created_at')->useCurrent();
         });
 
         Schema::create('document_views', function (Blueprint $table) {
@@ -164,7 +147,6 @@ return new class extends Migration
         Schema::dropIfExists('document_citations');
         Schema::dropIfExists('user_favorites');
         Schema::dropIfExists('document_views');
-        Schema::dropIfExists('document_downloads');
         Schema::dropIfExists('document_likes');
         Schema::dropIfExists('document_tags');
         Schema::dropIfExists('tags');

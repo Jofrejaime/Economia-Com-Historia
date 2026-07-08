@@ -59,7 +59,6 @@ export function DashboardScreen() {
   const [searchText, setSearchText] = useState("");
 
   const [featuredDoc, setFeaturedDoc] = useState<Document | null>(null);
-  const [jindungoDocuments, setJindungoDocuments] = useState<Document[]>([]);
   const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   const [activeTopics, setActiveTopics] = useState<DiscussionTopic[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -69,16 +68,14 @@ export function DashboardScreen() {
   const loadData = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const [featuredRes, jindungoRes, recentRes, topicsRes, rankingRes] = await Promise.allSettled([
+      const [featuredRes, recentRes, topicsRes, rankingRes] = await Promise.allSettled([
         documentService.list({ sort: "popular", per_page: 1 }),
-        documentService.list({ access_level_id: "jindungo", per_page: 3 }),
         documentService.list({ sort: "recent", per_page: 4 }),
         communityService.topics({ sort: "recent", per_page: 2, status: "published" }),
         leaderboardService.national({ per_page: 5 }),
       ]);
 
       if (featuredRes.status === "fulfilled") setFeaturedDoc(featuredRes.value.data[0] ?? null);
-      if (jindungoRes.status === "fulfilled") setJindungoDocuments(jindungoRes.value.data);
       if (recentRes.status === "fulfilled") setRecentDocuments(recentRes.value.data);
       if (topicsRes.status === "fulfilled") setActiveTopics(topicsRes.value.data);
       if (rankingRes.status === "fulfilled") setLeaderboard(rankingRes.value);
@@ -188,7 +185,7 @@ export function DashboardScreen() {
                 author={featuredDoc.author}
                 image={featuredDoc.cover_image_url}
                 documentType={featuredDoc.document_type}
-                accessLevelId={featuredDoc.access_level_id}
+                requiresSubscription={featuredDoc.category?.requires_subscription === true}
                 categoryColorBg={featuredDoc.category?.color_bg}
                 viewsCount={featuredDoc.views_count}
                 likesCount={featuredDoc.likes_count}
@@ -197,59 +194,6 @@ export function DashboardScreen() {
             ) : null}
           </View>
         ) : null}
-
-        {/* Jindungo Section */}
-        {jindungoDocuments.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="flame" size={20} color={appTheme.colors.danger} />
-              <Text style={styles.sectionTitle}>JINDUNGO</Text>
-            </View>
-            <Text style={styles.sectionSubTitle}>Conteúdo premium sobre economia angolana</Text>
-            {jindungoDocuments.map((doc) => (
-              <TouchableOpacity
-                key={doc.id}
-                style={styles.jindungoCard}
-                onPress={() => handleOpenDocument(doc)}
-              >
-                <View style={styles.jindungoCardContent}>
-                  <View style={styles.jindungoBadgeRow}>
-                    <View style={styles.jindungoBadge}>
-                      <Ionicons name="flame" size={12} color="white" />
-                      <Text style={styles.jindungoBadgeText}>JINDUNGO</Text>
-                    </View>
-                    {doc.category && (
-                      <Text style={styles.jindungoCategoryText}>{doc.category.name}</Text>
-                    )}
-                  </View>
-                  <Text style={styles.jindungoCardTitle} numberOfLines={2}>{doc.title}</Text>
-                  <Text style={styles.jindungoCardDesc} numberOfLines={2}>{doc.summary}</Text>
-                  <View style={styles.jindungoMeta}>
-                    <Text style={styles.jindungoMetaText}>{doc.author}</Text>
-                    <Text style={styles.jindungoMetaText}>
-                      <Ionicons name="heart-outline" size={12} /> {doc.likes_count}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              style={styles.exploreButtonOuter}
-              activeOpacity={0.85}
-              onPress={() => (navigation as any).navigate("MainTabs", { screen: "Content", params: { access_level_id: "jindungo" } })}
-            >
-              <LinearGradient
-                colors={[appTheme.colors.primary, appTheme.colors.primaryGradientEnd]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.exploreButton}
-              >
-                <Ionicons name="flame" size={16} color="white" style={{ marginRight: 6 }} />
-                <Text style={styles.exploreButtonText}>Explorar mais Jindungo</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        )}
 
         {/* Documentos Recentes */}
         {(loading || recentDocuments.length > 0) && (
@@ -286,7 +230,7 @@ export function DashboardScreen() {
                   author={doc.author}
                   image={doc.cover_image_url}
                   documentType={doc.document_type}
-                  accessLevelId={doc.access_level_id}
+                  requiresSubscription={doc.category?.requires_subscription === true}
                   categoryColorBg={doc.category?.color_bg}
                   viewsCount={doc.views_count}
                   likesCount={doc.likes_count}

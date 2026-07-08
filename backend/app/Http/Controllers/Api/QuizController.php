@@ -7,7 +7,6 @@ use App\Models\Document;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
-use App\Services\AccessGateService;
 use App\Services\QuizAttemptService;
 use App\Services\QuizDocumentService;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +22,6 @@ use Illuminate\Support\Facades\DB;
 class QuizController extends Controller
 {
     public function __construct(
-        private readonly AccessGateService    $accessGate,
         private readonly QuizAttemptService   $attemptService,
         private readonly QuizDocumentService  $quizDocuments,
     ) {}
@@ -34,7 +32,6 @@ class QuizController extends Controller
         $page = max((int) ($request->input('page', 1)), 1);
 
         $query = Quiz::published()->getQuery();
-        $this->accessGate->applyDocumentVisibilityFilter($query, $request->user(), 'quizzes');
 
         if ($request->filled('difficulty')) {
             $query->where('difficulty', $request->input('difficulty'));
@@ -72,7 +69,6 @@ class QuizController extends Controller
         if ($quiz === null) {
             abort(404, 'Quiz not found.');
         }
-        $this->checkQuizAccess($quiz, $request->user());
         return response()->json(['data' => $quiz]);
     }
 
@@ -87,7 +83,6 @@ class QuizController extends Controller
     if ($quiz === null) {
         abort(404, 'Quiz not found.');
     }
-    $this->checkQuizAccess($quiz, $request->user());
 
     $isAdmin = $request->user() !== null && $request->user()->role === 'admin';
 
@@ -220,7 +215,6 @@ class QuizController extends Controller
                 'summary'         => $doc->summary,
                 'document_type'   => $doc->document_type,
                 'academic_level'  => $doc->academic_level,
-                'access_level_id' => $doc->access_level_id,
                 'cover_image_url' => $doc->cover_image_url,
                 'views_count'     => (int) ($doc->views_count ?? 0),
                 'likes_count'     => (int) ($doc->likes_count ?? 0),
@@ -267,19 +261,4 @@ class QuizController extends Controller
         ]);
     }
 
-    /**
-     * O bypass de admin já é feito internamente por AccessGateService::canAccess()
-     * — não repetir aqui a verificação de role (mecanismo de autorização
-     * centralizado, ver AccessGateService::bypassesAccessChecks()).
-     */
-    private function checkQuizAccess(object $quiz, ?User $user): void
-    {
-        if ($user !== null && $quiz->created_by === $user->id) {
-            return;
-        }
-
-        if ($user === null || !$this->accessGate->canAccess($user, $quiz->access_level_id)) {
-            abort(403, 'Access denied.');
-        }
-    }
 }

@@ -42,11 +42,7 @@ class Sprint172Test extends TestCase
 
     private function seedAccessLevel(string $id = 'public'): void
     {
-        if (DB::table('access_levels')->where('id', $id)->doesntExist()) {
-            DB::table('access_levels')->insert([
-                'id' => $id, 'name' => 'Public', 'created_at' => now(),
-            ]);
-        }
+        // Sistema de níveis de acesso removido — no-op.
     }
 
     private function seedCategory(): string
@@ -73,7 +69,6 @@ class Sprint172Test extends TestCase
             'title'           => 'Quiz '.Str::random(6),
             'difficulty'      => 'Básico',
             'base_points'     => 50,
-            'access_level_id' => 'public',
             'is_featured'     => false,
             'status'          => $status,
             'category_id'     => $categoryId,
@@ -99,7 +94,6 @@ class Sprint172Test extends TestCase
             'summary'         => 'Summary',
             'document_type'   => 'article',
             'academic_level'  => 'intro',
-            'access_level_id' => 'public',
             'category_id'     => $categoryId,
             'status'          => 'published',
             'is_pinned'       => false,

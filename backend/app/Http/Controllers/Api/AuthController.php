@@ -337,20 +337,6 @@ class AuthController extends Controller
 
         $profile = DB::table('user_profiles')->where('user_id', $userId)->first();
 
-        $accessGrants = DB::table('user_access_grants as uag')
-            ->join('access_levels as al', 'uag.access_level_id', '=', 'al.id')
-            ->where('uag.user_id', $userId)
-            ->whereNull('uag.revoked_at')
-            ->select(
-                'uag.id',
-                'uag.user_id',
-                'uag.access_level_id',
-                'uag.granted_at',
-                'al.name as access_level_name',
-                'al.description as access_level_description'
-            )
-            ->get();
-
         $userLevel = DB::table('user_levels')->where('user_id', $userId)->first();
 
         $levelDefinition = null;
@@ -385,7 +371,6 @@ class AuthController extends Controller
         return response()->json([
             'user' => $user,
             'profile' => ProfilePresenter::presentProfile($profile),
-            'access_grants' => $accessGrants,
             'user_level' => $userLevel,
             'level_definition' => $levelDefinition,
             'badges' => $badges,

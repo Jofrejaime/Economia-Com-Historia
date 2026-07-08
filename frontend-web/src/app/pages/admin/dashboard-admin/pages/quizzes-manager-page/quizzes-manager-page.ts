@@ -68,7 +68,6 @@ export class QuizzesManagerPageComponent implements OnInit {
       difficulty: 'Básico',
       base_points: 100,
       time_limit_secs: null,
-      access_level_id: 'public',
       is_featured: false,
       status: 'draft',
       category_id: null,
@@ -312,7 +311,6 @@ export class QuizzesManagerPageComponent implements OnInit {
       difficulty: quiz.difficulty,
       base_points: quiz.base_points,
       time_limit_secs: quiz.time_limit_secs,
-      access_level_id: quiz.access_level_id,
       is_featured: quiz.is_featured,
       status: quiz.status,
       category_id: quiz.category_id,
@@ -436,7 +434,6 @@ export class QuizzesManagerPageComponent implements OnInit {
         description: quiz.description,
         difficulty: quiz.difficulty,
         base_points: quiz.base_points,
-        access_level_id: quiz.access_level_id,
         is_featured: quiz.is_featured,
         status: newStatus,
       });

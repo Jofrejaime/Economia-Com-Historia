@@ -72,7 +72,6 @@ class DocumentSubscriptionTest extends TestCase
             'summary'         => 'Summary',
             'document_type'   => 'article',
             'academic_level'  => 'intro',
-            'access_level_id' => $accessLevelId,
             'category_id'     => $categoryId,
             'status'          => 'published',
             'created_by'      => $authorId,
@@ -320,8 +319,11 @@ class DocumentSubscriptionTest extends TestCase
         $this->assertContains($documentId, $ids);
     }
 
-    public function test_listing_hides_premium_documents_without_subscription(): void
+    public function test_listing_shows_premium_documents_without_subscription(): void
     {
+        // As listagens mostram todos os documentos publicados — mesmo os de
+        // categorias restritas — para que o utilizador os descubra e possa
+        // pedir subscrição. O acesso ao conteúdo é bloqueado no detalhe.
         $token      = $this->registerStudent();
         $categoryId = $this->seedCategory(true);
         $documentId = $this->seedPublishedDocument('public', $categoryId);
@@ -331,7 +333,7 @@ class DocumentSubscriptionTest extends TestCase
 
         $response->assertStatus(200);
         $ids = collect($response->json('data'))->pluck('id')->all();
-        $this->assertNotContains($documentId, $ids);
+        $this->assertContains($documentId, $ids);
     }
 
     public function test_listing_shows_premium_documents_with_active_subscription(): void

@@ -19,7 +19,7 @@ class Quiz extends Model
     protected $fillable = [
         'title', 'module', 'description', 'cover_image_url',
         'difficulty', 'base_points', 'time_limit_secs',
-        'access_level_id', 'is_featured', 'status',
+        'is_featured', 'status',
         'category_id', 'created_by', 'published_at',
         'attempts_count', 'completions_count', 'avg_score',
         'published_by', 'reviewed_by', 'archived_by',

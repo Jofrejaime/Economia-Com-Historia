@@ -489,7 +489,6 @@ class QuizAdminController extends Controller
             'difficulty' => ['nullable', 'string', 'in:Básico,Intermédio,Avançado'],
             'base_points' => ['nullable', 'integer', 'min:0'],
             'time_limit_secs' => ['nullable', 'integer', 'min:0'],
-            'access_level_id' => ['nullable', 'string', 'exists:access_levels,id'],
             'is_featured' => ['nullable', 'boolean'],
             'category_id' => ['nullable', 'uuid', 'exists:document_categories,id'],
             'questions' => ['nullable', 'array'],

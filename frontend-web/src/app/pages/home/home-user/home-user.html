@@ -58,10 +58,10 @@
     <div class="contents-doc-item-body">
   <span class="contents-doc-item-category">{{ getFormatLabel(doc.document_type) }}</span>
   <span class="contents-doc-item-access"
-        [style.background]="getAccessBadgeStyle(doc.access_level_id).bg"
-        [style.color]="getAccessBadgeStyle(doc.access_level_id).text"
+        [style.background]="getDocBadge(doc).bg"
+        [style.color]="getDocBadge(doc).text"
         style="display:inline-block;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:700;margin-bottom:4px;width:fit-content">
-    {{ getAccessLabel(doc.access_level_id) }}
+    {{ getDocBadge(doc).label }}
   </span>
   <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
   <p class="contents-doc-item-description">{{ doc.summary }}</p>
@@ -202,7 +202,7 @@
           </svg>
         </div>
         <div>
-          <h2 class="access-modal-title">Conteúdo {{ getAccessLabel(accessModalDoc.access_level_id) }}</h2>
+          <h2 class="access-modal-title">Conteúdo {{ getDocBadge(accessModalDoc).label }}</h2>
           <p class="access-modal-subtitle">Este documento requer subscrição de acesso</p>
         </div>
         <button class="access-modal-close" (click)="closeAccessModal()" aria-label="Fechar">&times;</button>
@@ -214,17 +214,17 @@
           <span class="access-modal-doc-type">{{ accessModalDoc.document_type | uppercase }}</span>
           <h3 class="access-modal-doc-title">{{ accessModalDoc.title }}</h3>
           <span class="access-modal-doc-badge"
-                [style.background]="getAccessBadgeStyle(accessModalDoc.access_level_id).bg"
-                [style.color]="getAccessBadgeStyle(accessModalDoc.access_level_id).text">
-            {{ getAccessLabel(accessModalDoc.access_level_id) }}
+                [style.background]="getDocBadge(accessModalDoc).bg"
+                [style.color]="getDocBadge(accessModalDoc).text">
+            {{ getDocBadge(accessModalDoc).label }}
           </span>
         </div>
 
         <ng-container *ngIf="!accessRequestDone">
           <p class="access-modal-text">
-            Os conteúdos {{ accessModalDoc.access_level_id === 'jindungo' ? 'Jindungo' : 'restritos' }}
-            fazem parte do acervo de acesso condicionado do arquivo. Para os consultar,
-            envie um pedido de acesso — a equipa do arquivo irá analisá-lo.
+            Este documento pertence a uma colecção que requer subscrição.
+            Para o consultar, envie um pedido de subscrição — a equipa do
+            arquivo irá analisá-lo.
           </p>
 
           <p *ngIf="accessRequestError" class="access-modal-error">{{ accessRequestError }}</p>

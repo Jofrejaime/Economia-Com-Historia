@@ -36,6 +36,7 @@ class DocumentSeeder extends Seeder
                 'icon' => '⚓',
                 'parent_id' => null,
                 'sort_order' => 2,
+                'requires_subscription' => true,
                 'created_at' => now(),
             ],
             [
@@ -144,7 +145,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[2]['id'],
                 'document_type' => 'article',
                 'academic_level' => 'advanced',
-                'access_level_id' => 'public',
                 'publication_date' => '2024-03-15',
                 'period_start' => 1899,
                 'period_end' => 1975,
@@ -158,7 +158,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2024-03-20',
                 'views_count' => 342,
                 'likes_count' => 28,
-                'downloads_count' => 67,
                 'tags' => ['caminho-de-ferro', 'benguela', 'colonialismo', 'angola'],
             ],
             [
@@ -169,7 +168,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[1]['id'], // Comércio Atlântico
                 'document_type' => 'thesis',
                 'academic_level' => 'doctorate',
-                'access_level_id' => 'jindungo',
                 'publication_date' => '2023-11-10',
                 'period_start' => 1600,
                 'period_end' => 1850,
@@ -183,7 +181,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2023-12-01',
                 'views_count' => 567,
                 'likes_count' => 45,
-                'downloads_count' => 123,
                 'tags' => ['comercio-de-escravos', 'luanda', 'colonialismo', 'angola'],
             ],
             [
@@ -194,7 +191,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[4]['id'], // Agricultura e Recursos
                 'document_type' => 'article',
                 'academic_level' => 'advanced',
-                'access_level_id' => 'public',
                 'publication_date' => '2024-06-22',
                 'period_start' => 1830,
                 'period_end' => 1975,
@@ -208,7 +204,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2024-07-01',
                 'views_count' => 189,
                 'likes_count' => 15,
-                'downloads_count' => 34,
                 'tags' => ['cafe', 'angola', 'colonialismo'],
             ],
             [
@@ -219,7 +214,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[4]['id'], // Agricultura e Recursos
                 'document_type' => 'report',
                 'academic_level' => 'advanced',
-                'access_level_id' => 'restricted',
                 'publication_date' => '2024-01-18',
                 'period_start' => 1912,
                 'period_end' => 2024,
@@ -233,7 +227,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2024-02-15',
                 'views_count' => 412,
                 'likes_count' => 33,
-                'downloads_count' => 89,
                 'tags' => ['diamantes', 'angola', 'colonialismo'],
             ],
             [
@@ -244,7 +237,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[5]['id'], // História Monetária
                 'document_type' => 'article',
                 'academic_level' => 'intro',
-                'access_level_id' => 'public',
                 'publication_date' => '2024-09-05',
                 'period_start' => 1914,
                 'period_end' => 1977,
@@ -258,7 +250,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2024-09-10',
                 'views_count' => 95,
                 'likes_count' => 8,
-                'downloads_count' => 12,
                 'tags' => ['kwanza', 'angola', 'independencia'],
             ],
             [
@@ -269,7 +260,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[3]['id'], // Pós-Independência
                 'document_type' => 'thesis',
                 'academic_level' => 'doctorate',
-                'access_level_id' => 'jindungo',
                 'publication_date' => '2023-05-20',
                 'period_start' => 1975,
                 'period_end' => 2002,
@@ -283,7 +273,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2023-06-15',
                 'views_count' => 678,
                 'likes_count' => 52,
-                'downloads_count' => 145,
                 'tags' => ['independencia', 'angola', 'desenvolvimento'],
             ],
             [
@@ -294,7 +283,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[0]['id'], // Economia Colonial
                 'document_type' => 'manuscript',
                 'academic_level' => 'advanced',
-                'access_level_id' => 'public',
                 'publication_date' => '2024-04-12',
                 'period_start' => 1850,
                 'period_end' => 1961,
@@ -308,7 +296,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2024-04-20',
                 'views_count' => 156,
                 'likes_count' => 11,
-                'downloads_count' => 28,
                 'tags' => ['colonialismo', 'angola'],
             ],
             [
@@ -319,7 +306,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[4]['id'], // Agricultura e Recursos
                 'document_type' => 'report',
                 'academic_level' => 'advanced',
-                'access_level_id' => 'public',
                 'publication_date' => '2024-08-30',
                 'period_start' => 1956,
                 'period_end' => 2014,
@@ -333,7 +319,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2024-09-15',
                 'views_count' => 523,
                 'likes_count' => 41,
-                'downloads_count' => 98,
                 'tags' => ['petroleo', 'angola', 'desenvolvimento'],
             ],
             [
@@ -344,7 +329,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[1]['id'], // Comércio Atlântico
                 'document_type' => 'archive',
                 'academic_level' => 'doctorate',
-                'access_level_id' => 'restricted',
                 'publication_date' => '2024-02-28',
                 'period_start' => 1700,
                 'period_end' => 1870,
@@ -358,7 +342,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2024-03-10',
                 'views_count' => 234,
                 'likes_count' => 19,
-                'downloads_count' => 56,
                 'tags' => ['comercio-de-escravos', 'benguela', 'angola'],
             ],
             [
@@ -369,7 +352,6 @@ class DocumentSeeder extends Seeder
                 'category_id' => $categories[3]['id'], // Pós-Independência
                 'document_type' => 'article',
                 'academic_level' => 'intro',
-                'access_level_id' => 'public',
                 'publication_date' => '2025-01-15',
                 'period_start' => 2017,
                 'period_end' => 2025,
@@ -383,7 +365,6 @@ class DocumentSeeder extends Seeder
                 'published_at' => '2025-02-01',
                 'views_count' => 87,
                 'likes_count' => 6,
-                'downloads_count' => 9,
                 'tags' => ['desenvolvimento', 'petroleo', 'angola'],
             ],
         ];

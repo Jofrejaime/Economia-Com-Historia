@@ -21,7 +21,7 @@ export interface ContentCardProps {
   author: string;
   image?: string | null;
   documentType?: string;
-  accessLevelId?: string;
+  requiresSubscription?: boolean;
   categoryName?: string;
   categoryColorBg?: string | null;
   categoryColorText?: string | null;
@@ -69,13 +69,11 @@ interface MetaLineProps {
   categoryName?: string;
   categoryColorBg?: string | null;
   categoryColorText?: string | null;
-  accessLevelId?: string;
+  requiresSubscription?: boolean;
 }
 
-function MetaLine({ documentType, categoryName, categoryColorText, accessLevelId }: MetaLineProps) {
+function MetaLine({ documentType, categoryName, categoryColorText, requiresSubscription }: MetaLineProps) {
   const typeMeta = documentType ? TYPE_META[documentType] : null;
-  const isRestricted = accessLevelId === "restricted";
-  const isJindungo  = accessLevelId === "jindungo";
 
   return (
     <View style={styles.metaLine}>
@@ -99,12 +97,9 @@ function MetaLine({ documentType, categoryName, categoryColorText, accessLevelId
         </>
       ) : null}
 
-      {/* Indicador de acesso (apenas para não-público) */}
-      {isJindungo && (
-        <Feather name="zap" size={10} color={appTheme.colors.badgeYellowText} style={styles.metaAccessIcon} />
-      )}
-      {isRestricted && (
-        <Feather name="lock" size={10} color={appTheme.colors.danger} style={styles.metaAccessIcon} />
+      {/* Indicador de subscrição (categorias restritas) */}
+      {requiresSubscription && (
+        <Feather name="lock" size={10} color={appTheme.colors.badgeYellowText} style={styles.metaAccessIcon} />
       )}
     </View>
   );
@@ -113,7 +108,7 @@ function MetaLine({ documentType, categoryName, categoryColorText, accessLevelId
 // ─── Compact ────────────────────────────────────────────────────────────────
 
 function CompactCard({
-  title, author, image, documentType, accessLevelId,
+  title, author, image, documentType, requiresSubscription,
   categoryName, categoryColorBg, categoryColorText,
   viewsCount, likesCount, onPress, style,
 }: ContentCardProps) {
@@ -135,7 +130,7 @@ function CompactCard({
           categoryName={categoryName}
           categoryColorBg={categoryColorBg}
           categoryColorText={categoryColorText}
-          accessLevelId={accessLevelId}
+          requiresSubscription={requiresSubscription}
         />
         <Text style={styles.compactTitle} numberOfLines={2}>{title}</Text>
         <Text style={styles.compactMeta} numberOfLines={1}>{author}</Text>
@@ -163,7 +158,7 @@ function CompactCard({
 // ─── List ───────────────────────────────────────────────────────────────────
 
 function ListCard({
-  title, author, image, documentType, accessLevelId,
+  title, author, image, documentType, requiresSubscription,
   categoryName, categoryColorBg, categoryColorText,
   summary, viewsCount, likesCount, publishedAt, onPress, style,
 }: ContentCardProps) {
@@ -185,7 +180,7 @@ function ListCard({
           categoryName={categoryName}
           categoryColorBg={categoryColorBg}
           categoryColorText={categoryColorText}
-          accessLevelId={accessLevelId}
+          requiresSubscription={requiresSubscription}
         />
         <Text style={styles.listTitle} numberOfLines={2}>{title}</Text>
         {!!summary && (
@@ -217,10 +212,9 @@ function ListCard({
 // ─── Hero ───────────────────────────────────────────────────────────────────
 
 function HeroCard({
-  title, image, documentType, accessLevelId,
+  title, image, documentType, requiresSubscription,
   categoryColorBg, viewsCount, likesCount, onPress, style,
 }: ContentCardProps) {
-  const isPremium = accessLevelId === "jindungo" || accessLevelId === "restricted";
 
   return (
     <TouchableOpacity style={[styles.heroWrapper, style]} onPress={onPress} activeOpacity={0.88}>
@@ -239,7 +233,7 @@ function HeroCard({
         />
         <View style={styles.heroTop}>
           {documentType && <ContentBadge variant="type" value={documentType} size="md" />}
-          {isPremium && <ContentBadge variant="access" value={accessLevelId!} size="md" />}
+          {requiresSubscription && <ContentBadge variant="access" value="subscription" size="md" />}
         </View>
         <View style={styles.heroBottom}>
           <Text style={styles.heroTitle} numberOfLines={3}>{title}</Text>

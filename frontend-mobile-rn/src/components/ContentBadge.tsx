@@ -27,9 +27,8 @@ const TYPE_CONFIG: Record<string, { label: string; color: string; icon: keyof ty
 };
 
 const ACCESS_CONFIG: Record<string, { label: string; bg: string; color: string; icon?: keyof typeof Feather.glyphMap }> = {
-  public:     { label: "Público",  bg: appTheme.colors.successLight,   color: appTheme.colors.success },
-  jindungo:   { label: "Jindungo", bg: appTheme.colors.badgeYellowBg,  color: appTheme.colors.badgeYellowText, icon: "zap" },
-  restricted: { label: "Restrito", bg: appTheme.colors.dangerLight,    color: appTheme.colors.danger, icon: "lock" },
+  public:       { label: "Público",    bg: appTheme.colors.successLight,  color: appTheme.colors.success },
+  subscription: { label: "Subscrição", bg: appTheme.colors.badgeYellowBg, color: appTheme.colors.badgeYellowText, icon: "lock" },
 };
 
 const STATE_CONFIG: Record<string, { label: string; bg: string; color: string }> = {

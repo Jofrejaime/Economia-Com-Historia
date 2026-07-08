@@ -68,17 +68,6 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'id' => (string) Str::uuid(),
-                'key' => 'default_access_level',
-                'value' => 'public',
-                'type' => 'string',
-                'group' => 'security',
-                'description' => 'Nível de acesso atribuído por padrão a novos documentos',
-                'is_public' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => (string) Str::uuid(),
                 'key' => 'support_email',
                 'value' => 'suporte@economiacomhistoria.ao',
                 'type' => 'string',

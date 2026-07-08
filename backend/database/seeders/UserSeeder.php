@@ -120,15 +120,6 @@ class UserSeeder extends Seeder
                 'updated_at' => now(),
             ]);
 
-            // Grant public access
-            DB::table('user_access_grants')->insert([
-                'id' => (string) Str::uuid(),
-                'user_id' => $user->id,
-                'access_level_id' => 'public',
-                'granted_at' => now(),
-                'is_active' => true,
-            ]);
-
             // Initialize user level with varied data per role
             // quizzes_completed starts at 0 — no quiz_attempts are seeded,
             // so the counter must reflect reality (incremented by GamificationService on first real completion).

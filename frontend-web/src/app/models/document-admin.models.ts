@@ -25,15 +25,6 @@ export interface DocumentCategory {
   sort_order?: number;
 }
 
-export interface AccessLevel {
-  id: string;
-  name: string;
-  slug?: string | null;
-  description?: string | null;
-  is_active?: boolean;
-  auto_grant?: boolean;
-}
-
 export interface Document {
   id: string;
   slug: string;
@@ -43,7 +34,6 @@ export interface Document {
   category_id: string | null;
   document_type: DocumentType;
   academic_level: AcademicLevel;
-  access_level_id: string;
   publication_date: string | null;
   period_start: number | null;
   period_end: number | null;
@@ -57,7 +47,6 @@ export interface Document {
   status: DocumentStatus;
   views_count: number;
   likes_count: number;
-  downloads_count: number;
   created_by: string;
   published_at: string | null;
   reviewed_by?: string | null;
@@ -67,10 +56,6 @@ export interface Document {
   category_slug?: string | null;
   category_color_bg?: string | null;
   category_icon?: string | null;
-  access_level_name?: string | null;
-  access_level_icon?: string | null;
-  access_level_color_bg?: string | null;
-  access_level_color_text?: string | null;
   author_display_name?: string | null;
   author_avatar_url?: string | null;
   tags?: Array<{ id: string; name: string; slug: string }>;
@@ -85,7 +70,6 @@ export interface DocumentUpdatePayload {
   content?: string | null;
   document_type?: DocumentType;
   academic_level?: AcademicLevel;
-  access_level_id?: string;
   category_id?: string | null;
   institution?: string | null;
   publication_date?: string | null;
@@ -101,7 +85,6 @@ export interface DocumentListFilters {
   category_id?: string;
   author?: string;
   status?: 'draft' | 'published' | 'archived' | 'todos';
-  access_level_id?: string;
   document_type?: string;
   academic_level?: string;
 }

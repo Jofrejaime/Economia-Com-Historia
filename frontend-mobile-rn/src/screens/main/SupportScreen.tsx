@@ -129,9 +129,9 @@ export function SupportScreen() {
           <View style={styles.faqList}>
             {/* FAQ 1 */}
             <View style={styles.faqCard}>
-              <Text style={styles.faqQuestion}>Como posso aceder a textos com jindungo?</Text>
+              <Text style={styles.faqQuestion}>Como posso aceder a documentos restritos?</Text>
               <Text style={styles.faqAnswer}>
-                Os textos com jindungo requerem permissão especial. Pode solicitar acesso através do botão presente em cada artigo.
+                Alguns documentos pertencem a colecções que requerem subscrição. Pode solicitar acesso através do botão presente em cada documento; um administrador aprova o pedido.
               </Text>
             </View>
 

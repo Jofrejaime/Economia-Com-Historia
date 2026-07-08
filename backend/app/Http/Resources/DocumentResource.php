@@ -40,7 +40,6 @@ class DocumentResource extends JsonResource
             'category_id'      => $this->category_id,
             'document_type'    => $this->document_type,
             'academic_level'   => $this->academic_level,
-            'access_level_id'  => $this->access_level_id,
             'publication_date' => $this->publication_date,
             'period_start'     => $this->period_start,
             'period_end'       => $this->period_end,
@@ -58,7 +57,6 @@ class DocumentResource extends JsonResource
             'updated_at'       => $this->updated_at,
             'views_count'      => (int) $this->views_count,
             'likes_count'      => (int) $this->likes_count,
-            'downloads_count'  => (int) $this->downloads_count,
             'topics_count'     => (int) ($this->topics_count ?? 0),
             'quizzes_count'    => (int) ($this->quizzes_count ?? 0),
 
@@ -130,12 +128,6 @@ class DocumentResource extends JsonResource
                     'icon'       => $this->resource->category_icon ?? null,
                     'requires_subscription' => (bool) ($this->resource->category_requires_subscription ?? false),
                 ] : null),
-
-            // Access level joined fields
-            'access_level_name'      => $isModel ? optional($this->resource->accessLevel)->name      : ($this->resource->access_level_name ?? null),
-            'access_level_icon'      => $isModel ? optional($this->resource->accessLevel)->icon      : ($this->resource->access_level_icon ?? null),
-            'access_level_color_bg'  => $isModel ? optional($this->resource->accessLevel)->color_bg  : ($this->resource->access_level_color_bg ?? null),
-            'access_level_color_text' => $isModel ? optional($this->resource->accessLevel)->color_text : ($this->resource->access_level_color_text ?? null),
 
             // Creator joined fields
             'author_display_name' => $isModel ? optional($this->resource->createdBy?->profile)->display_name : ($this->resource->author_display_name ?? null),

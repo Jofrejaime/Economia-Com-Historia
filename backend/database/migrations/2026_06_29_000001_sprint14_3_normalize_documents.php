@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('media_url', 500)->nullable()->after('media_type');
 
             // Pinned flag — only admins may set this via dedicated endpoints.
-            $table->boolean('is_pinned')->default(false)->after('downloads_count');
+            $table->boolean('is_pinned')->default(false)->after('likes_count');
 
             $table->index('is_pinned', 'idx_documents_pinned');
             $table->index('media_type', 'idx_documents_media_type');

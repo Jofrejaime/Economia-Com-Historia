@@ -13,26 +13,13 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { appTheme } from "../constants/theme";
-import { accessService } from "../services/api/accessService";
 import { documentService } from "../services/api/documentService";
 
 interface AccessRequestModalProps {
   visible: boolean;
-  // Omitir quando o pedido não está associado a um documento (ex: quiz) —
-  // o backend usa então accessLevelId directamente.
-  documentId?: string;
-  accessLevelId: string;
+  documentId: string;
   documentTitle?: string;
   onClose: () => void;
-  /**
-   * "subscription": a categoria do documento tem requires_subscription=true —
-   * o pedido correcto é POST /documents/{id}/subscribe (DocumentSubscriptionService),
-   * não /access-requests (que trata do gate por access_level_id e nunca
-   * desbloqueia conteúdo com subscrição, já que canReadDocument() trata os
-   * dois mecanismos como mutuamente exclusivos). Requer documentId.
-   * "access-level" (default): fluxo actual via accessService.createRequest.
-   */
-  mode?: "subscription" | "access-level";
 }
 
 type ModalState = "idle" | "submitting" | "success" | "already_requested" | "error";
@@ -40,10 +27,8 @@ type ModalState = "idle" | "submitting" | "success" | "already_requested" | "err
 export function AccessRequestModal({
   visible,
   documentId,
-  accessLevelId,
   documentTitle,
   onClose,
-  mode = "access-level",
 }: AccessRequestModalProps) {
   const [justification, setJustification] = useState("");
   const [modalState, setModalState] = useState<ModalState>("idle");
@@ -57,24 +42,10 @@ export function AccessRequestModal({
   const handleSubmit = async () => {
     setModalState("submitting");
     try {
-      if (mode === "subscription") {
-        if (!documentId) {
-          setModalState("error");
-          return;
-        }
-        // POST /documents/{id}/subscribe nunca devolve 409 — responde 200 com
-        // already_exists=true quando já há um pedido ACTIVE/PENDING.
-        const result = await documentService.subscribe(documentId);
-        setModalState(result.already_exists ? "already_requested" : "success");
-        return;
-      }
-
-      await accessService.createRequest(
-        documentId
-          ? { document_id: documentId, justification: justification.trim() || undefined }
-          : { access_level_id: accessLevelId, justification: justification.trim() || undefined }
-      );
-      setModalState("success");
+      // POST /documents/{id}/subscribe nunca devolve 409 — responde 200 com
+      // already_exists=true quando já há um pedido ACTIVE/PENDING.
+      const result = await documentService.subscribe(documentId);
+      setModalState(result.already_exists ? "already_requested" : "success");
     } catch (err: any) {
       if (err?.response?.status === 409) {
         setModalState("already_requested");
@@ -123,28 +94,22 @@ export function AccessRequestModal({
       );
     }
 
-    const isJindungo = accessLevelId === "jindungo";
-    const modalTitle = isJindungo ? "Conteúdo Jindungo" : "Acesso Restrito";
-    const modalDescription = isJindungo
-      ? (documentTitle
-          ? `"${documentTitle}" é exclusivo para membros Jindungo.`
-          : "Este conteúdo é exclusivo para membros Jindungo.")
-      : (documentTitle
-          ? `"${documentTitle}" está disponível apenas para utilizadores com acesso aprovado.`
-          : "Este conteúdo está disponível apenas para utilizadores com acesso aprovado.");
+    const modalDescription = documentTitle
+      ? `"${documentTitle}" pertence a uma colecção que requer subscrição.`
+      : "Este documento pertence a uma colecção que requer subscrição.";
 
     return (
       <>
         <View style={styles.iconWrap}>
-          <View style={[styles.iconCircle, { backgroundColor: isJindungo ? appTheme.colors.badgeYellowBg : appTheme.colors.debateHighlightBg }]}>
-            <Feather name={isJindungo ? "zap" : "lock"} size={28} color={isJindungo ? appTheme.colors.badgeYellowText : appTheme.colors.primary} />
+          <View style={[styles.iconCircle, { backgroundColor: appTheme.colors.debateHighlightBg }]}>
+            <Feather name="lock" size={28} color={appTheme.colors.primary} />
           </View>
         </View>
-        <Text style={styles.title}>{modalTitle}</Text>
+        <Text style={styles.title}>Acesso por Subscrição</Text>
         <Text style={styles.description}>
           {modalDescription}
           {"\n\n"}
-          Submete um pedido de acesso e a nossa equipa irá analisar a tua solicitação em breve.
+          Submete um pedido de subscrição e a nossa equipa irá analisar a tua solicitação em breve.
         </Text>
 
         <Text style={styles.inputLabel}>Justificação (opcional)</Text>

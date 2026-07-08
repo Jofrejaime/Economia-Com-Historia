@@ -63,7 +63,6 @@ class MediaUploadTest extends TestCase
             'summary'         => 'Resumo de teste.',
             'document_type'   => 'article',
             'academic_level'  => 'intro',
-            'access_level_id' => 'public',
         ];
     }
 

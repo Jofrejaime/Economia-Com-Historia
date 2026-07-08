@@ -47,7 +47,6 @@ class QuizCrudTest extends TestCase
             'difficulty' => 'Intermédio',
             'base_points' => 150,
             'time_limit_secs' => 300,
-            'access_level_id' => 'public',
             'status' => QuizStatus::PUBLISHED->value,
             'questions' => [
                 [

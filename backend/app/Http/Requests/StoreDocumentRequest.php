@@ -20,7 +20,6 @@ class StoreDocumentRequest extends FormRequest
             'content'          => ['nullable', 'string'],
             'document_type'    => ['required', 'in:manuscript,article,report,thesis,archive'],
             'academic_level'   => ['required', 'in:intro,advanced,doctorate'],
-            'access_level_id'  => ['required', 'exists:access_levels,id'],
             'category_id'      => ['nullable', 'exists:document_categories,id'],
             'institution'      => ['nullable', 'string', 'max:255'],
             'publication_date' => ['nullable', 'date'],

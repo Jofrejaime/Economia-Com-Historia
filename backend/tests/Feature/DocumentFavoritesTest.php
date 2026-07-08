@@ -42,7 +42,6 @@ class DocumentFavoritesTest extends TestCase
             'summary' => 'Summary',
             'document_type' => 'article',
             'academic_level' => 'intro',
-            'access_level_id' => $accessLevelId,
             'status' => 'published',
             'created_by' => User::factory()->create()->id,
             'published_at' => now(),
@@ -115,12 +114,15 @@ class DocumentFavoritesTest extends TestCase
         $this->assertSame($doc1, $data[1]['id']);
     }
 
-    public function test_favorites_are_filtered_by_access_gate(): void
+    public function test_favorites_list_all_documents_regardless_of_subscription(): void
     {
+        // As listagens mostram todos os documentos (o acesso ao conteúdo é
+        // controlado no detalhe), pelo que os favoritos listam tanto públicos
+        // como restritos.
         $student = $this->registerStudent();
 
         $publicDoc = $this->seedPublishedDocument('Public Doc', 'public');
-        $restrictedDoc = $this->seedPublishedDocument('Restricted Doc', 'jindungo');
+        $restrictedDoc = $this->seedPublishedDocument('Restricted Doc', 'restricted');
 
         DB::table('user_favorites')->insert([
             [
@@ -143,22 +145,6 @@ class DocumentFavoritesTest extends TestCase
 
         $ids = collect($response->json('data'))->pluck('id')->all();
         $this->assertContains($publicDoc, $ids);
-        $this->assertNotContains($restrictedDoc, $ids);
-
-        DB::table('user_access_grants')->insert([
-            'id' => (string) Str::uuid(),
-            'user_id' => $student['user']->id,
-            'access_level_id' => 'jindungo',
-            'granted_at' => now(),
-            'is_active' => true,
-        ]);
-
-        $response2 = $this->withHeader('Authorization', "Bearer {$student['token']}")
-            ->getJson('/api/me/favorites')
-            ->assertOk();
-
-        $ids2 = collect($response2->json('data'))->pluck('id')->all();
-        $this->assertContains($publicDoc, $ids2);
-        $this->assertContains($restrictedDoc, $ids2);
+        $this->assertContains($restrictedDoc, $ids);
     }
 }

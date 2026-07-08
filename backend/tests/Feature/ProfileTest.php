@@ -45,7 +45,6 @@ class ProfileTest extends TestCase
         $response->assertJsonStructure([
             'user' => ['id', 'email', 'email_verified', 'is_active', 'role'],
             'profile' => ['id', 'user_id', 'display_name', 'created_at'],
-            'access_grants' => [],
             'user_level' => ['current_level', 'total_points'],
             'badges',
         ]);
@@ -193,25 +192,6 @@ class ProfileTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['avatar']);
-    }
-
-    /** @test */
-    public function test_get_me_with_access_grants()
-    {
-        // Grant access level to user
-        DB::table('user_access_grants')->insert([
-            'id' => (string) \Illuminate\Support\Str::uuid(),
-            'user_id' => $this->user['id'],
-            'access_level_id' => 'public',
-            'granted_at' => now(),
-        ]);
-
-        $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
-            ->getJson('/api/me');
-
-        $response->assertStatus(200);
-        $this->assertCount(1, $response->json('access_grants'));
-        $this->assertEquals('public', $response->json('access_grants.0.access_level_id'));
     }
 
     /** @test */

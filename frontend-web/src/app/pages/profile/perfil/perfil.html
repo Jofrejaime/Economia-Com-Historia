@@ -143,20 +143,6 @@
         </div>
       </div>
 
-      <!-- Meus Acessos -->
-      <div class="profile-access">
-        <h2 class="section-title">Meus Acessos</h2>
-        <div class="profile-access-list" *ngIf="accessGrants.length > 0; else noAccessGrants">
-          <div class="profile-access-chip" *ngFor="let grant of accessGrants">
-            <span class="profile-badge">{{ grant.access_level_name }}</span>
-            <span class="profile-access-date">concedido em {{ grant.granted_at | date:'dd/MM/yyyy' }}</span>
-          </div>
-        </div>
-        <ng-template #noAccessGrants>
-          <p class="profile-empty-text">Sem níveis de acesso especiais concedidos até ao momento.</p>
-        </ng-template>
-      </div>
-
       <!-- Méritos e Distinções -->
       <div class="profile-merits">
         <div class="profile-merits-header">

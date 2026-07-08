@@ -14,7 +14,6 @@ import { ScreenContainer } from "../../components/ScreenContainer";
 import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
-import { AccessRequestModal } from "../../components/AccessRequestModal";
 import { quizService } from "../../services/api/quizService";
 import type { QuizQuestion, QuizOption, GamificationResult } from "../../types/api";
 import { MainStackParamList } from "../../types/navigation";
@@ -24,7 +23,7 @@ type QuizRouteProp = RouteProp<MainStackParamList, "Quiz">;
 export function QuizScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<QuizRouteProp>();
-  const { quizId, attemptId: routeAttemptId, accessLevelId } = route.params;
+  const { quizId, attemptId: routeAttemptId } = route.params;
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
@@ -35,8 +34,6 @@ export function QuizScreen() {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [initError, setInitError] = useState(false);
-  const [accessDenied, setAccessDenied] = useState(false);
-  const [accessModalVisible, setAccessModalVisible] = useState(false);
 
   const quizStartTimeRef = useRef<number>(0);
   const questionStartTimeRef = useRef<number>(Date.now());
@@ -44,7 +41,6 @@ export function QuizScreen() {
   const initQuiz = useCallback(async () => {
     setLoading(true);
     setInitError(false);
-    setAccessDenied(false);
     try {
       let activeAttemptId = routeAttemptId ?? null;
       if (!activeAttemptId) {
@@ -57,12 +53,8 @@ export function QuizScreen() {
       quizStartTimeRef.current = Date.now();
       questionStartTimeRef.current = Date.now();
     } catch (error: any) {
-      if (error?.response?.status === 403) {
-        setAccessDenied(true);
-      } else {
-        console.warn("Erro ao iniciar quiz", error);
-        setInitError(true);
-      }
+      console.warn("Erro ao iniciar quiz", error);
+      setInitError(true);
     } finally {
       setLoading(false);
     }
@@ -135,42 +127,6 @@ export function QuizScreen() {
           <ActivityIndicator size="large" color={appTheme.colors.primary} />
           <Text style={styles.loadingText}>A preparar o quiz...</Text>
         </View>
-      </ScreenContainer>
-    );
-  }
-
-  if (!loading && accessDenied) {
-    return (
-      <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
-        <HeaderBar title="Quiz" />
-        <View style={styles.centerContainer}>
-          <Feather name="lock" size={40} color={appTheme.colors.textMuted} />
-          <Text style={[styles.errorText, { marginTop: 16 }]}>
-            Este quiz requer acesso especial aprovado.
-          </Text>
-          <TouchableOpacity
-            style={[styles.retryBtn, { flexDirection: "row", alignItems: "center" }]}
-            onPress={() => {
-              if (!user) {
-                navigation.navigate("LoginPrompt", { type: "quiz" });
-              } else {
-                setAccessModalVisible(true);
-              }
-            }}
-          >
-            <Feather name="send" size={15} color={appTheme.colors.surface} style={{ marginRight: 6 }} />
-            <Text style={styles.retryBtnText}>Solicitar Acesso</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 12 }}>
-            <Text style={styles.errorText}>Voltar</Text>
-          </TouchableOpacity>
-        </View>
-
-        <AccessRequestModal
-          visible={accessModalVisible}
-          accessLevelId={accessLevelId ?? "restricted"}
-          onClose={() => setAccessModalVisible(false)}
-        />
       </ScreenContainer>
     );
   }

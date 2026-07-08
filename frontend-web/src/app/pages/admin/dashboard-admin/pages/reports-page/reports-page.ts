@@ -462,7 +462,6 @@ export class ReportsPageComponent implements OnInit {
       updated_at: document.updated_at,
       extra: {
         category: document.category_name || document.category_id,
-        access_level: document.access_level_name || document.access_level_id,
       },
     };
   }

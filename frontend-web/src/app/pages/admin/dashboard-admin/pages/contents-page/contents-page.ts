@@ -3,7 +3,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import {
-  AccessLevel,
   Document,
   DocumentCategory,
   DocumentListFilters,
@@ -45,7 +44,6 @@ export class ContentsPageComponent implements OnInit {
   currentPage = 1;
 
   categories: DocumentCategory[] = [];
-  accessLevels: AccessLevel[] = [];
   documents: DocumentView[] = [];
   selectedDocumentId: string | null = null;
   selectedDocumentIds: Set<string> = new Set<string>();
@@ -67,7 +65,6 @@ export class ContentsPageComponent implements OnInit {
     content: string;
     document_type: string;
     academic_level: string;
-    access_level_id: string;
     category_id: string | null;
     institution: string | null;
     publication_date: string | null;
@@ -137,18 +134,13 @@ export class ContentsPageComponent implements OnInit {
     this.loading = true;
     this.errorMessage = null;
 
-    const [documentsResult, categoriesResult, accessLevelsResult] = await Promise.allSettled([
+    const [documentsResult, categoriesResult] = await Promise.allSettled([
       firstValueFrom(this.documentAdmin.getDocuments(this.getServerFilters())),
       firstValueFrom(this.documentAdmin.getCategories()),
-      firstValueFrom(this.documentAdmin.getAccessLevels()),
     ]);
 
     if (categoriesResult.status === 'fulfilled' && categoriesResult.value.ok && categoriesResult.value.data) {
       this.categories = categoriesResult.value.data;
-    }
-
-    if (accessLevelsResult.status === 'fulfilled' && accessLevelsResult.value.ok && accessLevelsResult.value.data) {
-      this.accessLevels = accessLevelsResult.value.data;
     }
 
     if (documentsResult.status !== 'fulfilled' || !documentsResult.value.ok || !documentsResult.value.data) {
@@ -218,7 +210,6 @@ export class ContentsPageComponent implements OnInit {
       content: detailedDocument.content || '',
       document_type: detailedDocument.document_type,
       academic_level: detailedDocument.academic_level,
-      access_level_id: detailedDocument.access_level_id,
       category_id: detailedDocument.category_id,
       institution: detailedDocument.institution,
       publication_date: detailedDocument.publication_date,
@@ -283,10 +274,6 @@ export class ContentsPageComponent implements OnInit {
       return;
     }
 
-    if (!this.documentForm.access_level_id.trim()) {
-      this.errorMessage = 'Selecione um nível de acesso.';
-      return;
-    }
 
     this.saving = true;
     this.errorMessage = null;
@@ -299,7 +286,6 @@ export class ContentsPageComponent implements OnInit {
       content: this.documentForm.content.trim() || null,
       document_type: this.documentForm.document_type,
       academic_level: this.documentForm.academic_level,
-      access_level_id: this.documentForm.access_level_id,
       category_id: this.documentForm.category_id || null,
       institution: this.documentForm.institution || null,
       publication_date: this.documentForm.publication_date || null,
@@ -430,7 +416,6 @@ export class ContentsPageComponent implements OnInit {
       content: '',
       document_type: 'article',
       academic_level: 'intro',
-      access_level_id: 'public',
       category_id: null as string | null,
       institution: null as string | null,
       publication_date: null as string | null,
@@ -440,10 +425,6 @@ export class ContentsPageComponent implements OnInit {
       pdf_url: null as string | null,
       status: 'draft' as const,
     };
-  }
-
-  getAccessLevelName(accessLevelId: string): string {
-    return this.accessLevels.find((accessLevel) => accessLevel.id === accessLevelId)?.name || accessLevelId;
   }
 
   // ===== SELECTION AND BULK ACTIONS =====

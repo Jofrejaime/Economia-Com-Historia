@@ -8,7 +8,6 @@ export interface DocumentFilters {
   category_id?: string;
   document_type?: string;
   academic_level?: string;
-  access_level_id?: string;
   sort?: 'recent' | 'popular';
   page?: number;
   per_page?: number;
@@ -80,8 +79,7 @@ export const documentService = {
     return data;
   },
 
-  // Subscrição de documentos cuja categoria tem requires_subscription=true —
-  // ver o comentário em constants/api.ts sobre a distinção com /access-requests.
+  // Subscrição de documentos cuja categoria tem requires_subscription=true.
   async subscribe(id: string): Promise<{ status: string; already_exists: boolean }> {
     const { data } = await httpClient.post(API_ENDPOINTS.DOCUMENTS.SUBSCRIBE(id));
     return data;

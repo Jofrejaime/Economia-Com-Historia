@@ -71,17 +71,7 @@ class AdminDocumentsTest extends TestCase
     {
         $id = (string) Str::uuid();
         $title = $attributes['title'] ?? 'Test Document';
-        $accessLevelId = $attributes['access_level_id'] ?? 'public';
 
-        DB::table('access_levels')->updateOrInsert(
-            ['id' => $accessLevelId],
-            [
-                'name' => ucfirst($accessLevelId),
-                'color_bg' => '#000000',
-                'color_text' => '#ffffff'
-            ]
-        );
-        
         DB::table('documents')->insert(array_merge([
             'id' => $id,
             'title' => $title,
@@ -90,7 +80,6 @@ class AdminDocumentsTest extends TestCase
             'summary' => 'Document Summary',
             'document_type' => 'article',
             'academic_level' => 'intro',
-            'access_level_id' => $accessLevelId,
             'status' => 'draft',
             'created_by' => User::factory()->create()->id,
             'created_at' => now(),
@@ -170,18 +159,6 @@ class AdminDocumentsTest extends TestCase
                  ->assertJsonFragment(['title' => 'Author Doc']);
     }
 
-    public function test_search_respects_access_level()
-    {
-        $student = $this->createStudent();
-        $doc = $this->seedDocument(['title' => 'Secret Doc', 'status' => 'published', 'access_level_id' => 'premium']);
-
-        $response = $this->auth($student)->getJson('/api/documents');
-
-        $response->assertStatus(200);
-        $ids = collect($response->json('data'))->pluck('id')->all();
-        $this->assertNotContains($doc->id, $ids);
-    }
-
     // --- CRUD ---
 
     public function test_admin_can_create_document()
@@ -199,7 +176,6 @@ class AdminDocumentsTest extends TestCase
             'summary' => 'Sumário do documento',
             'document_type' => 'article',
             'academic_level' => 'intro',
-            'access_level_id' => 'public',
             'category_id' => $category->id,
             'tags' => ['Macroeconomia', 'Angola']
         ]);

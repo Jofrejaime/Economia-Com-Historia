@@ -5,7 +5,6 @@ import type { Quiz, QuizQuestion, QuizAttempt, Document, PaginatedResponse, Gami
 export interface QuizFilters {
   difficulty?: 'Básico' | 'Intermédio' | 'Avançado';
   category_id?: string;
-  access_level_id?: string;
   is_featured?: boolean;
   page?: number;
   per_page?: number;
