@@ -128,14 +128,6 @@ export class HeaderComponent implements OnInit {
     HeaderComponent.cachedAvatarUrl = '';
   }
 
-  goToHome(): void {
-  if (this.isAuthenticated) {
-    this.router.navigate(['/home']);
-  } else {
-    this.router.navigate(['/landing']);
-  }
-}
-
   goToNotifications(): void {
     void this.router.navigate(['/notificacoes']);
   }

@@ -70,6 +70,10 @@ Route::middleware(OptionalAuthenticateApiSession::class)->group(function (): voi
     // Províncias e Áreas de Interesse públicas
     Route::get('/provinces', [ProvinceController::class, 'publicList']);
     Route::get('/interest-areas', [InterestAreaController::class, 'publicList']);
+
+    // Ranking — pré-visualização pública (top 3); o ranking completo
+    // (/leaderboard/national) continua a exigir sessão.
+    Route::get('/leaderboard/top', [LeaderboardController::class, 'top']);
 });
 
 // ─── Authenticated routes (any logged-in user) ─────────────────────────────

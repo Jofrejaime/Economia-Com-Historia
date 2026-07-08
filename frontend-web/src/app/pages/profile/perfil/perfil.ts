@@ -6,30 +6,18 @@ import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
-import { ProfileService } from '../../../services/profile.service';
+import { ProfileService, AccessGrant, Badge, InterestAreaRef, UserLevel } from '../../../services/profile.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvinceAdminService } from '../../../services/province-admin.service';
+import { InterestAreaAdminService } from '../../../services/interest-area-admin.service';
 import { AuthService } from '../../../services/auth.service';
 import { environment } from '../../../../environments/environment';
 
-interface Merit {
-  iconPath: string;
-  iconViewBox: string;
-  title: string;
-  description: string[];
-  id?: string;
-  progress?: string;
-  isActive: boolean;
-}
-
-interface Content {
-  id: string;
-  title: string;
-  type: string;
-  date: string;
-  views: number;
-  category: string;
-  description: string;
+interface PointTransaction {
+  points: number;
+  reason: string;
+  description: string | null;
+  created_at: string;
 }
 
 interface UiState {
@@ -101,11 +89,12 @@ export class PerfilComponent implements OnInit {
     return name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
   }
 
-  // Lista de províncias de Angola
+  // Lista de províncias de Angola — lista canónica (AngolaProvinces::all() no
+  // backend); só usada como fallback se GET /provinces falhar.
   angolasProvinces = [
-    'Luanda', 'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
-    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla', 'Kuando Kubango',
-    'Kwanza Norte', 'Kwanza Sul', 'Malanje', 'Moxico', 'Namibe', 'Uíge', 'Zaire'
+    'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango',
+    'Cuanza Norte', 'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla', 'Luanda',
+    'Lunda Norte', 'Lunda Sul', 'Malanje', 'Moxico', 'Namibe', 'Uíge', 'Zaire'
   ].sort();
 
   // Dados do perfil (carregados do backend)
@@ -115,6 +104,8 @@ export class PerfilComponent implements OnInit {
   profileAvatarUrl = '';
   profileEmail = '';
   profileRole = '';
+  profileFullName = '';
+  profileWebsite = '';
 
   // Dados brutos do backend
   userData: any = null;
@@ -124,17 +115,25 @@ export class PerfilComponent implements OnInit {
   // Estatísticas (carregadas do backend)
   stats: Stat[] = [];
 
-  // Méritos e Distinções (dinâmicos do backend - aguardando endpoint)
-  merits: Merit[] = [];
+  // Registo bruto de gamificação — usado para os contadores secundários
+  // (tópicos criados, respostas, pontos da semana/mês) que não cabem nos
+  // 4 cartões principais.
+  userLevel: UserLevel | null = null;
 
-  // Configurações de conta (dinâmicas do backend - aguardando endpoint)
-  settings: { privacy: Array<{label: string; checked: boolean}>; notifications: Array<{label: string; checked: boolean}> } = {
-    privacy: [],
-    notifications: []
-  };
+  // Níveis de acesso concedidos ao utilizador (categorias/documentos com subscrição)
+  accessGrants: AccessGrant[] = [];
 
-  // Conteúdos criados (dinâmicos do backend - aguardando endpoint)
-  userContents: Content[] = [];
+  // Distinções realmente conquistadas (user_badges)
+  badges: Badge[] = [];
+
+  // Áreas de interesse seleccionadas (catálogo estruturado, distinto do
+  // campo livre research_areas)
+  interestAreas: InterestAreaRef[] = [];
+  interestAreaCatalog: InterestAreaRef[] = [];
+  selectedInterestAreaIds = new Set<string>();
+
+  // Últimas transações de pontos (GET /me/point-transactions)
+  recentActivity: PointTransaction[] = [];
 
   constructor(
     private router: Router,
@@ -143,15 +142,18 @@ export class PerfilComponent implements OnInit {
     private fb: FormBuilder,
     private toastService: ToastService,
     private provinceAdmin: ProvinceAdminService,
+    private interestAreaAdmin: InterestAreaAdminService,
     private http: HttpClient,
     private authService: AuthService
   ) {
     // Inicializar formulário vazio
     this.editForm = this.fb.group({
       display_name: ['', [Validators.required, Validators.maxLength(100)]],
+      full_name: ['', [Validators.maxLength(255)]],
       bio: ['', [Validators.maxLength(2000)]],
       institution: [''],
       province: [''],
+      website_url: ['', [Validators.maxLength(500)]],
       research_areas: ['']  // ← String, não array
     });
 
@@ -166,6 +168,35 @@ export class PerfilComponent implements OnInit {
   ngOnInit(): void {
     void this.loadProfile();
     void this.loadProvinces();
+    void this.loadInterestAreaCatalog();
+  }
+
+  private async loadInterestAreaCatalog(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.interestAreaAdmin.getPublicInterestAreas());
+      if (result.ok && result.data) {
+        this.interestAreaCatalog = result.data;
+        this.cdr.detectChanges();
+      }
+    } catch {
+      // Sem catálogo disponível — o picker no modal fica simplesmente vazio.
+    }
+  }
+
+  isInterestAreaSelected(id: string): boolean {
+    return this.selectedInterestAreaIds.has(id);
+  }
+
+  toggleInterestArea(id: string): void {
+    if (this.selectedInterestAreaIds.has(id)) {
+      this.selectedInterestAreaIds.delete(id);
+    } else {
+      if (this.selectedInterestAreaIds.size >= 10) {
+        this.toastService.info('Pode seleccionar no máximo 10 áreas de interesse.');
+        return;
+      }
+      this.selectedInterestAreaIds.add(id);
+    }
   }
 
   private async loadProvinces(): Promise<void> {
@@ -193,22 +224,27 @@ export class PerfilComponent implements OnInit {
       // Mapear dados do perfil para exibição
       this.mapProfileData(profile, user);
 
-      // Mapear dados do utilizador para estatísticas (base: /me)
-      if (user) {
-        this.mapUserDataToStats(user);
-      }
+      // Dados de gamificação vêm numa chave irmã de /me (me.user_level),
+      // não dentro de me.user — user_level é o registo da tabela user_levels.
+      this.userLevel = me?.user_level ?? null;
+      this.mapUserDataToStats(this.userLevel);
       this.buildStats();
 
-      // Carregar dados adicionais (méritos, conteúdos, configurações)
-      await this.loadAdditionalData();
+      // Dados adicionais que já vêm na mesma resposta de /me
+      this.accessGrants = me?.access_grants ?? [];
+      this.badges = me?.badges ?? [];
+      this.interestAreas = me?.interest_areas ?? [];
+      this.selectedInterestAreaIds = new Set(this.interestAreas.map(a => a.id));
 
       // Pré-preencher formulário com dados atuais
       if (profile) {
         this.editForm.patchValue({
           display_name: profile.display_name || '',
+          full_name: profile.full_name || '',
           bio: profile.bio || '',
           institution: profile.institution || '',
           province: profile.province || '',
+          website_url: profile.website_url || '',
           research_areas: Array.isArray(profile.research_areas)
             ? profile.research_areas.join(', ')
             : ''
@@ -220,6 +256,15 @@ export class PerfilComponent implements OnInit {
       this.profileData = profile;
 
       this.state.error = null;
+
+      // user_level só falta para um utilizador recém-criado sem registo de
+      // gamificação ainda — nesse caso, e só nesse, tenta reconstruir os
+      // números a partir do histórico bruto (/me/point-transactions,
+      // /me/quiz-attempts).
+      if (!me?.user_level) {
+        void this.loadRealStats();
+      }
+      void this.loadRecentActivity();
     } catch (error) {
       this.profileError = this.getErrorMessage(error);
       this.state.error = this.profileError;
@@ -227,10 +272,6 @@ export class PerfilComponent implements OnInit {
       this.state.isLoadingProfile = false;
       this.cdr.detectChanges();
     }
-
-    // Depois do render inicial, busca os números reais aos endpoints /me/*
-    // (não bloqueia o carregamento do perfil).
-    void this.loadRealStats();
   }
 
   /**
@@ -266,29 +307,50 @@ export class PerfilComponent implements OnInit {
     // Email e role (para referência interna)
     this.profileEmail = (user?.['email'] as string) || '';
     this.profileRole = (user?.['role'] as string) || '';
+
+    this.profileFullName = (profile?.full_name as string) || '';
+    this.profileWebsite = (profile?.website_url as string) || '';
   }
 
   /**
-   * Extrai os números de gamificação do objeto user devolvido por /me.
-   * Suporta as várias formas possíveis do payload (user_levels, user_level,
-   * levels, gamification), porque o nome da relação varia consoante o
-   * controller a incluir ou não.
+   * Extrai os números de gamificação de me.user_level — chave irmã de
+   * me.user na resposta de /me, não um campo dentro de "user".
    */
-  private mapUserDataToStats(user: any): void {
-    const levels = user.user_levels ?? user.user_level ?? user.levels ?? user.gamification ?? {};
-
-    this.statTotalPoints      = Number(levels.total_points ?? levels.points ?? 0) || 0;
-    this.statCurrentLevel     = Number(levels.current_level ?? levels.level ?? 1) || 1;
-    this.statQuizzesCompleted = Number(levels.quizzes_completed ?? 0) || 0;
-    this.statDocumentsRead    = Number(levels.documents_read ?? 0) || 0;
+  private mapUserDataToStats(userLevel: UserLevel | null): void {
+    this.statTotalPoints      = Number(userLevel?.total_points ?? 0) || 0;
+    this.statCurrentLevel     = Number(userLevel?.current_level ?? 1) || 1;
+    this.statQuizzesCompleted = Number(userLevel?.quizzes_completed ?? 0) || 0;
+    this.statDocumentsRead    = Number(userLevel?.documents_read ?? 0) || 0;
   }
 
   /**
-   * Complementa os números com dados reais dos endpoints "me":
-   * - GET /api/me/point-transactions → total de pontos (soma das transações)
-   * - GET /api/me/quiz-attempts      → tentativas concluídas
-   * Só substitui o valor base quando este está a zero (evita "regredir"
-   * valores corretos vindos de /me com contagens de páginas parciais).
+   * Últimas 5 transações de pontos, para a secção "Atividade Recente" —
+   * pedido independente do fallback de estatísticas, chamado sempre (não só
+   * quando falta user_level).
+   */
+  private async loadRecentActivity(): Promise<void> {
+    const token = this.authService.getToken();
+    const headers = token ? this.authService.getAuthHeaders(token) : {};
+
+    try {
+      const res: any = await firstValueFrom(
+        this.http.get(`${environment.apiBaseUrl}/api/me/point-transactions`, { headers, params: { per_page: 5 } })
+      );
+      const list: any[] = Array.isArray(res) ? res : (res?.data?.data ?? res?.data ?? []);
+
+      this.recentActivity = list.slice(0, 5).map(t => ({
+        points: Number(t.points) || 0,
+        reason: t.reason ?? '',
+        description: t.description ?? null,
+        created_at: t.created_at,
+      }));
+      this.cdr.detectChanges();
+    } catch { /* sem histórico disponível — secção fica com o estado vazio */ }
+  }
+
+  /**
+   * Reconstrói os números a partir do histórico bruto, só usado quando
+   * /me não trouxe user_level (utilizador ainda sem registo de gamificação).
    */
   private async loadRealStats(): Promise<void> {
     const token = this.authService.getToken();
@@ -386,25 +448,6 @@ export class PerfilComponent implements OnInit {
   }
 
   /**
-   * Carrega dados adicionais do backend (méritos, conteúdos, configurações)
-   */
-  private async loadAdditionalData(): Promise<void> {
-    try {
-      // TODO: Implementar endpoints no backend para:
-      // 1. GET /api/profile/merits - Retornar méritos do utilizador
-      // 2. GET /api/profile/contents - Retornar conteúdos criados
-      this.merits = [];
-      this.userContents = [];
-      this.settings = {
-        privacy: [],
-        notifications: []
-      };
-    } catch (error) {
-      // Falhar silenciosamente se não conseguir carregar dados adicionais
-    }
-  }
-
-  /**
    * Retorna mensagem de erro apropriada
    */
   private getErrorMessage(error: any): string {
@@ -468,6 +511,21 @@ export class PerfilComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  /**
+   * Requisitos de complexidade que o backend exige (Password::min(8)
+   * ->mixedCase()->numbers()->symbols()) — mostrados em tempo real para que
+   * o utilizador não descubra só depois de submeter.
+   */
+  get passwordRequirements(): { label: string; met: boolean }[] {
+    const value: string = this.passwordForm?.get('password')?.value || '';
+    return [
+      { label: 'Pelo menos 8 caracteres', met: value.length >= 8 },
+      { label: 'Uma letra maiúscula e uma minúscula', met: /[a-z]/.test(value) && /[A-Z]/.test(value) },
+      { label: 'Pelo menos um número', met: /[0-9]/.test(value) },
+      { label: 'Pelo menos um símbolo (ex: ! @ # $)', met: /[^A-Za-z0-9]/.test(value) },
+    ];
+  }
+
   async submitPasswordChange(): Promise<void> {
     this.passwordError = null;
 
@@ -490,22 +548,19 @@ export class PerfilComponent implements OnInit {
     this.cdr.detectChanges();
 
     try {
-      const token = this.authService.getToken();
-      const headers = token ? this.authService.getAuthHeaders(token) : {};
-
-      await firstValueFrom(
-        this.http.put(
-          `${environment.apiBaseUrl}/api/profile/password`,
-          { current_password, password, password_confirmation },
-          { headers }
-        )
-      );
+      await this.profileService.updatePassword({ current_password, password, password_confirmation });
 
       this.toastService.success('Palavra-passe alterada com sucesso!');
       this.closePasswordModal();
     } catch (error: any) {
-      this.passwordError = error?.error?.message
-        ?? (error?.status === 422 ? 'Palavra-passe atual incorreta ou nova palavra-passe inválida.' : 'Erro ao alterar a palavra-passe.');
+      // error.errors (adicionado por ProfileService.normalizeError) traz as
+      // mensagens específicas por campo que o Laravel devolve — sem isto só
+      // víamos o texto genérico "The given data was invalid."
+      const fieldErrors: Record<string, string[]> | undefined = error?.errors;
+      this.passwordError = fieldErrors?.['current_password']?.[0]
+        ?? fieldErrors?.['password']?.[0]
+        ?? error?.message
+        ?? 'Erro ao alterar a palavra-passe.';
     } finally {
       this.savingPassword = false;
       this.cdr.detectChanges();
@@ -514,7 +569,7 @@ export class PerfilComponent implements OnInit {
 
   /** Navega para a página de preferências de notificações. */
   goToNotificationPreferences(): void {
-    this.router.navigate(['/auth/perfil/notificacoes']);
+    this.router.navigate(['/auth/notification-preferences']);
   }
 
   /**
@@ -547,8 +602,13 @@ export class PerfilComponent implements OnInit {
         updates.research_areas = updates.research_areas.slice(0, 10);
       }
 
+      updates.interest_area_ids = Array.from(this.selectedInterestAreaIds);
+
       // Salvar dados do perfil
-      await this.profileService.updateProfile(updates);
+      const result = await this.profileService.updateProfile(updates);
+      if (result.interest_areas) {
+        this.interestAreas = result.interest_areas;
+      }
 
       // Se houver novo avatar, fazer upload
       if (this.avatarFile) {
@@ -589,12 +649,17 @@ export class PerfilComponent implements OnInit {
     if (this.profileData) {
       this.editForm.patchValue({
         display_name: this.profileData.display_name || '',
+        full_name: this.profileData.full_name || '',
         bio: this.profileData.bio || '',
         institution: this.profileData.institution || '',
         province: this.profileData.province || '',
-        research_areas: this.profileData.research_areas || []
+        website_url: this.profileData.website_url || '',
+        research_areas: Array.isArray(this.profileData.research_areas)
+          ? this.profileData.research_areas.join(', ')
+          : ''
       });
     }
+    this.selectedInterestAreaIds = new Set(this.interestAreas.map(a => a.id));
     this.avatarPreview = null;
     this.avatarFile = null;
     this.avatarError = null;
@@ -668,57 +733,6 @@ export class PerfilComponent implements OnInit {
     this.avatarError = null;
     this.avatarPreviewTime = 0;
     this.cdr.detectChanges();
-  }
-
-  /**
-   * Descarregar portfólio
-   */
-  downloadPortfolio(): void {
-    // TODO: Implementar download de portfólio
-    this.toastService.info('Funcionalidade de download em desenvolvimento.');
-  }
-
-  /**
-   * Desativar conta
-   */
-  deactivateAccount(): void {
-    const confirm = window.confirm(
-      'Tem certeza que deseja desativar sua conta? Esta ação é irreversível.'
-    );
-
-    if (confirm) {
-      // TODO: Implementar desativação de conta
-      this.toastService.info('Funcionalidade de desativação em desenvolvimento.');
-    }
-  }
-
-  /**
-   * Toggle de configuração de privacidade
-   */
-  togglePrivacySetting(index: number): void {
-    this.settings.privacy[index].checked = !this.settings.privacy[index].checked;
-    this.cdr.detectChanges();
-    // TODO: Salvar no backend via SettingsService
-  }
-
-  /**
-   * Toggle de configuração de notificações
-   */
-  toggleNotificationSetting(index: number): void {
-    this.settings.notifications[index].checked = !this.settings.notifications[index].checked;
-    this.cdr.detectChanges();
-    // TODO: Salvar no backend via SettingsService
-  }
-
-  /**
-   * Toggle genérico de configuração
-   */
-  toggleSetting(settingType: string, index: number): void {
-    if (settingType === 'privacy') {
-      this.togglePrivacySetting(index);
-    } else if (settingType === 'notifications') {
-      this.toggleNotificationSetting(index);
-    }
   }
 
   /**

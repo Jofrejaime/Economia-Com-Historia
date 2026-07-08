@@ -67,7 +67,7 @@ export class HomeVisitorComponent implements OnInit {
     try {
       const [docs, scholars, topicsResult] = await Promise.all([
         this.documentService.getDocuments().catch(() => ({ data: [] } as any)),
-        this.quizService.getNationalLeaderboard().catch(() => []),
+        this.quizService.getNationalLeaderboardTop().catch(() => []),
         firstValueFrom(this.communityService.getTopics()).catch(() => ({ ok: false, data: null } as any)),
       ]);
 

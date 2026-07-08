@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
@@ -52,17 +53,48 @@ export class ContentsViewComponent implements OnInit {
     private route: ActivatedRoute,
     private documentService: DocumentService,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private destroyRef: DestroyRef
   ) {}
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.isAuthenticated = this.authService.isAuthenticated();
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.router.navigate(['/contents']);
-      return;
-    }
-    await this.loadDocument(id);
+
+    // Ao navegar entre dois documentos (ex.: a partir de "Conteúdos
+    // Relacionados"), a rota /contents/view/:id é a mesma configuração —
+    // o Angular reaproveita esta instância do componente em vez de a
+    // recriar, pelo que ngOnInit() só corre uma vez. Sem esta subscrição a
+    // paramMap, um clique num relacionado mudava o URL mas nunca recarregava
+    // o documento novo. takeUntilDestroyed() precisa do DestroyRef explícito
+    // porque ngOnInit() não é um contexto de injecção (ao contrário do
+    // construtor) — sem isto, lançava NG0203 e o componente nunca chegava a
+    // renderizar.
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const id = params.get('id');
+      if (!id) {
+        this.router.navigate(['/contents']);
+        return;
+      }
+      this.resetForNewDocument();
+      void this.loadDocument(id);
+    });
+  }
+
+  /** Limpa o estado do documento anterior antes de carregar o seguinte. */
+  private resetForNewDocument(): void {
+    this.doc = null;
+    this.error = null;
+    this.accessDenied = false;
+    this.subscriptionRequired = false;
+    this.requiredAccessLevelId = null;
+    this.accessRequesting = false;
+    this.accessRequestDone = false;
+    this.accessRequestError = null;
+    this.relatedContents = [];
+    this.relatedQuizzes = [];
+    this.relatedTopics = [];
+    this.loadingRelated = true;
+    this.cdr.detectChanges();
   }
 
   private async loadDocument(id: string): Promise<void> {

@@ -115,7 +115,9 @@ export class QuizListComponent implements OnInit {
 
   private async loadLeaderboard(): Promise<void> {
     try {
-      const leaderboard = await this.quizService.getNationalLeaderboard();
+      // Preview pública (top 3) — acessível a visitantes, ao contrário de
+      // getNationalLeaderboard() (ranking completo, exige sessão).
+      const leaderboard = await this.quizService.getNationalLeaderboardTop();
       this.topPlayers = leaderboard.slice(0, 3);
       this.cdr.detectChanges();
     } catch {}

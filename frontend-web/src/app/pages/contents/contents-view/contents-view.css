@@ -47,6 +47,182 @@ p, span, div, button {
 }
 
 /* ============================================
+   ACESSO NEGADO (403 — subscrição / nível de acesso)
+   ============================================ */
+
+.contents-view-access-denied {
+  display: flex;
+  justify-content: center;
+  padding: 80px 24px;
+}
+
+.contents-view-access-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  border-top: 4px solid #8B1E2D;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  max-width: 480px;
+  width: 100%;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.contents-view-access-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  background: rgba(139, 30, 45, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.contents-view-access-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #1F2937;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+
+.contents-view-access-subtitle {
+  color: #6B7280;
+  font-size: 15px;
+  line-height: 1.6;
+  font-family: 'Source Sans 3', sans-serif;
+  margin-bottom: 20px;
+}
+
+.contents-view-access-text {
+  color: #1F2937;
+  font-size: 14px;
+  line-height: 1.7;
+  font-family: 'Source Sans 3', sans-serif;
+  margin-bottom: 8px;
+}
+
+.contents-view-access-error {
+  color: #991B1B;
+  font-size: 13px;
+  font-family: 'Source Sans 3', sans-serif;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.contents-view-access-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.contents-view-access-btn-primary,
+.contents-view-access-btn-secondary {
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  padding: 12px 24px;
+  min-height: 44px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  transition: all 0.2s;
+}
+
+.contents-view-access-btn-primary {
+  background: #8B1E2D;
+  color: #FFFFFF;
+}
+
+.contents-view-access-btn-primary:hover:not(:disabled) {
+  background: #6B0119;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 30, 45, 0.3);
+}
+
+.contents-view-access-btn-secondary {
+  background: transparent;
+  border: 1px solid #E5E7EB;
+  color: #1F2937;
+}
+
+.contents-view-access-btn-secondary:hover:not(:disabled) {
+  border-color: #8B1E2D;
+  background: rgba(139, 30, 45, 0.04);
+  color: #8B1E2D;
+}
+
+.contents-view-access-btn-primary:disabled,
+.contents-view-access-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.contents-view-access-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  background: rgba(21, 128, 61, 0.06);
+  border: 1px solid rgba(21, 128, 61, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  width: 100%;
+}
+
+.contents-view-access-success svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.contents-view-access-success-title {
+  font-weight: 700;
+  color: #15803D;
+  font-size: 14px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.contents-view-access-success-text {
+  color: #1F2937;
+  font-size: 13px;
+  line-height: 1.6;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+@media (max-width: 480px) {
+  .contents-view-access-denied {
+    padding: 48px 16px;
+  }
+
+  .contents-view-access-card {
+    padding: 28px 20px;
+  }
+
+  .contents-view-access-actions {
+    flex-direction: column;
+  }
+
+  .contents-view-access-actions .contents-view-access-btn-primary,
+  .contents-view-access-actions .contents-view-access-btn-secondary {
+    width: 100%;
+  }
+}
+
+/* ============================================
    BREADCRUMBS
    ============================================ */
 

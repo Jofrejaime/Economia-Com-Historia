@@ -209,6 +209,12 @@ class DocumentController extends Controller
             'data' => collect($paginator->items())
                 ->map(fn ($doc) => (new DocumentResource($doc))->toArray($request))
                 ->all(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page'    => $paginator->lastPage(),
+                'per_page'     => $paginator->perPage(),
+                'total'        => $paginator->total(),
+            ],
         ]);
     }
 

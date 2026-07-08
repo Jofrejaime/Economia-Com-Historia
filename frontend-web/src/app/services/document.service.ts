@@ -14,6 +14,18 @@ export interface DocumentCategory {
   icon: string | null;
   parent_id: string | null;
   sort_order: number;
+  requires_subscription: boolean;
+}
+
+/** Objecto de categoria aninhado devolvido em Document.category (DocumentResource). */
+export interface DocumentCategoryRef {
+  id: string;
+  name: string;
+  slug: string | null;
+  color_bg: string | null;
+  color_text: string | null;
+  icon: string | null;
+  requires_subscription: boolean;
 }
 
 export interface DocumentTag {
@@ -33,6 +45,8 @@ export interface Document {
   category_slug: string | null;
   category_color_bg: string | null;
   category_icon: string | null;
+  /** Objecto aninhado (inclui requires_subscription) — usar em preferência aos campos category_* acima. */
+  category?: DocumentCategoryRef | null;
   document_type: string;
   media_type: string | null;
   media_url: string | null;
@@ -64,9 +78,18 @@ export interface DocumentDetail extends Document {
   author_avatar_url: string | null;
 }
 
-// Sem paginação real — backend usa limit(50)
+// GET /documents pagina de facto (DocumentSearchService::paginate(), 15/página,
+// tecto 50) — ver PageMeta/getDocumentsPage abaixo. Só GET /me/favorites usa um
+// limit(50) simples sem paginação real.
 export interface DocumentsResponse {
   data: Document[];
+}
+
+export interface PageMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
 }
 
 /**
@@ -147,6 +170,39 @@ export class DocumentService {
     return res.data;
   }
 
+  /**
+   * Igual a getDocuments(), mas devolve também a meta de paginação real do
+   * backend (DocumentSearchService::paginate()) — usar quando for preciso
+   * "carregar mais" em vez de assumir que a primeira página é tudo.
+   */
+  async getDocumentsPage(params: {
+    category_id?: string;
+    access_level_id?: string;
+    academic_level?: string;
+    document_type?: string;
+    media_type?: string;
+    status?: string;
+    per_page?: number;
+    page?: number;
+  } = {}): Promise<{ data: Document[]; meta: PageMeta }> {
+    let httpParams = new HttpParams();
+    if (params.category_id)     httpParams = httpParams.set('category_id', params.category_id);
+    if (params.access_level_id) httpParams = httpParams.set('access_level_id', params.access_level_id);
+    if (params.academic_level)  httpParams = httpParams.set('academic_level', params.academic_level);
+    if (params.document_type)   httpParams = httpParams.set('document_type', params.document_type);
+    if (params.media_type)      httpParams = httpParams.set('media_type', params.media_type);
+    if (params.status)          httpParams = httpParams.set('status', params.status);
+    if (params.per_page)        httpParams = httpParams.set('per_page', String(params.per_page));
+    if (params.page)            httpParams = httpParams.set('page', String(params.page));
+
+    return firstValueFrom(
+      this.http.get<{ data: Document[]; meta: PageMeta }>(`${this.base}/documents`, {
+        headers: this.headers,
+        params: httpParams,
+      })
+    );
+  }
+
   async searchDocuments(params: {
     q?: string;
     category_id?: string;
@@ -166,6 +222,31 @@ export class DocumentService {
       })
     );
     return res.data;
+  }
+
+  /** Igual a searchDocuments(), mas devolve também a meta de paginação real do backend. */
+  async searchDocumentsPage(params: {
+    q?: string;
+    category_id?: string;
+    document_type?: string;
+    media_type?: string;
+    per_page?: number;
+    page?: number;
+  } = {}): Promise<{ data: Document[]; meta: PageMeta }> {
+    let httpParams = new HttpParams();
+    if (params.q)             httpParams = httpParams.set('q', params.q);
+    if (params.category_id)   httpParams = httpParams.set('category_id', params.category_id);
+    if (params.document_type) httpParams = httpParams.set('document_type', params.document_type);
+    if (params.media_type)    httpParams = httpParams.set('media_type', params.media_type);
+    if (params.per_page)      httpParams = httpParams.set('per_page', String(params.per_page));
+    if (params.page)          httpParams = httpParams.set('page', String(params.page));
+
+    return firstValueFrom(
+      this.http.get<{ data: Document[]; meta: PageMeta }>(`${this.base}/documents/search`, {
+        headers: this.headers,
+        params: httpParams,
+      })
+    );
   }
 
   /**
@@ -284,6 +365,16 @@ export class DocumentService {
       })
     );
     return res.data ?? (res as any);
+  }
+
+  /** Documentos guardados pelo utilizador — GET /me/favorites (limit(50) simples, sem paginação). */
+  async getFavorites(): Promise<Document[]> {
+    const res = await firstValueFrom(
+      this.http.get<{ data: Document[] } | Document[]>(`${this.base}/me/favorites`, {
+        headers: this.headers,
+      })
+    );
+    return Array.isArray(res) ? res : (res?.data ?? []);
   }
 
   async likeDocument(id: string): Promise<void> {

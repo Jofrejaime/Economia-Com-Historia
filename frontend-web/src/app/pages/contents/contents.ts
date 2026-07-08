@@ -1,10 +1,10 @@
-import { Component, HostListener, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FooterComponent } from '../../components/footer/footer';
 import { HeaderComponent } from '../../components/header/header';
-import { DocumentService, Document, DocumentCategory } from '../../services/document.service';
+import { DocumentService, Document, DocumentCategory, PageMeta } from '../../services/document.service';
 import { AuthService } from '../../services/auth.service';
 
 type AccessCategory = 'all' | 'public' | 'jindungo' | 'restricted';
@@ -34,7 +34,10 @@ interface SimpleOption { id: string; label: string; }
   templateUrl: './contents.html',
   styleUrls: ['./contents.css']
 })
-export class ContentsComponent implements OnInit, OnDestroy {
+export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  @ViewChild('scrollAnchor') scrollAnchor?: ElementRef<HTMLElement>;
+  private intersectionObserver?: IntersectionObserver;
 
   searchQuery = '';
   selectedTheme: string | null = null;
@@ -51,6 +54,7 @@ export class ContentsComponent implements OnInit, OnDestroy {
   hasMore = false;
   isLoading = false;
   totalDocuments = 0;
+  private currentPage = 1;
 
   categories: DocumentCategory[] = [];
   themes: string[] = [];
@@ -128,8 +132,20 @@ export class ContentsComponent implements OnInit, OnDestroy {
     await this.loadFacets();
   }
 
+  ngAfterViewInit(): void {
+    if (!this.scrollAnchor) return;
+
+    this.intersectionObserver = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting && this.hasMore && !this.isLoading) {
+        void this.loadMoreDocuments();
+      }
+    });
+    this.intersectionObserver.observe(this.scrollAnchor.nativeElement);
+  }
+
   ngOnDestroy(): void {
     clearTimeout(this.searchTimer);
+    this.intersectionObserver?.disconnect();
   }
 
   async loadCategories(): Promise<void> {
@@ -176,43 +192,76 @@ export class ContentsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Busca uma página de resultados, decidindo internamente pesquisa vs listagem/filtros. */
+  private async fetchPage(page: number): Promise<{ data: Document[]; meta: PageMeta }> {
+    const hasSearch = this.searchQuery.trim().length > 0;
+
+    if (hasSearch) {
+      const params: any = { q: this.searchQuery.trim(), page };
+      if (this.selectedFormat) params.document_type = this.selectedFormat;
+      if (this.selectedMediaType) params.media_type = this.selectedMediaType;
+      if (this.selectedTheme) {
+        const cat = this.categories.find(c => c.name === this.selectedTheme);
+        if (cat) params.category_id = cat.id;
+      }
+      return this.documentService.searchDocumentsPage(params);
+    }
+
+    const params: any = { page };
+    if (this.selectedAccessCategory !== 'all') params.access_level_id = this.selectedAccessCategory;
+    if (this.selectedFormat)    params.document_type  = this.selectedFormat;
+    if (this.selectedMediaType) params.media_type     = this.selectedMediaType;
+    if (this.selectedLevel)     params.academic_level = this.selectedLevel;
+    if (this.selectedTheme) {
+      const cat = this.categories.find(c => c.name === this.selectedTheme);
+      if (cat) params.category_id = cat.id;
+    }
+    return this.documentService.getDocumentsPage(params);
+  }
+
+  /** Carrega a primeira página — chamado ao mudar filtros/pesquisa, substitui a lista actual. */
   async loadDocuments(): Promise<void> {
     if (this.isLoading) return;
     this.isLoading = true;
     this.cdr.detectChanges();
 
     try {
-      const hasSearch = this.searchQuery.trim().length > 0;
+      const { data, meta } = await this.fetchPage(1);
 
-      if (hasSearch) {
-        const params: any = { q: this.searchQuery.trim() };
-        if (this.selectedFormat) params.document_type = this.selectedFormat;
-        if (this.selectedMediaType) params.media_type = this.selectedMediaType;
-        if (this.selectedTheme) {
-          const cat = this.categories.find(c => c.name === this.selectedTheme);
-          if (cat) params.category_id = cat.id;
-        }
-        this.displayedDocuments = await this.documentService.searchDocuments(params);
-      } else {
-        const params: any = {};
-        if (this.selectedAccessCategory !== 'all') params.access_level_id = this.selectedAccessCategory;
-        if (this.selectedFormat)    params.document_type  = this.selectedFormat;
-        if (this.selectedMediaType) params.media_type     = this.selectedMediaType;
-        if (this.selectedLevel)     params.academic_level = this.selectedLevel;
-        if (this.selectedTheme) {
-          const cat = this.categories.find(c => c.name === this.selectedTheme);
-          if (cat) params.category_id = cat.id;
-        }
-        this.displayedDocuments = await this.documentService.getDocuments(params);
-      }
+      this.displayedDocuments = data;
+      this.currentPage = meta.current_page;
+      this.totalDocuments = meta.total;
+      this.hasMore = meta.current_page < meta.last_page;
 
-      this.totalDocuments = this.displayedDocuments.length;
-      this.hasMore = false;
-
-      this.mergeFacetsFromDocuments(this.displayedDocuments);
+      this.mergeFacetsFromDocuments(data);
     } catch {
       this.displayedDocuments = [];
       this.totalDocuments = 0;
+      this.hasMore = false;
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  /** Acrescenta a página seguinte — chamado pelo IntersectionObserver do scroll infinito. */
+  async loadMoreDocuments(): Promise<void> {
+    if (this.isLoading || !this.hasMore) return;
+    this.isLoading = true;
+    this.cdr.detectChanges();
+
+    try {
+      const { data, meta } = await this.fetchPage(this.currentPage + 1);
+
+      this.displayedDocuments = [...this.displayedDocuments, ...data];
+      this.currentPage = meta.current_page;
+      this.totalDocuments = meta.total;
+      this.hasMore = meta.current_page < meta.last_page;
+
+      this.mergeFacetsFromDocuments(data);
+    } catch {
+      // Mantém a lista já carregada; simplesmente não avança mais.
+      this.hasMore = false;
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -328,6 +377,19 @@ export class ContentsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Badge/label únicos por documento — verifica primeiro o gate por
+   * subscrição (categoria com requires_subscription), que é independente de
+   * access_level_id e por isso invisível para getAccessLabel/getAccessBadgeStyle
+   * sozinhos; só depois cai para o gate por nível de acesso.
+   */
+  getDocBadge(doc: Document): { label: string; bg: string; text: string } {
+    if (doc.category?.requires_subscription === true) {
+      return { label: 'Subscrição', bg: '#e0d4f7', text: '#3b1f6b' };
+    }
+    return { label: this.getAccessLabel(doc.access_level_id), ...this.getAccessBadgeStyle(doc.access_level_id) };
+  }
+
   getFormatLabel(format: string): string {
     return this.documentTypeLabels[format] ?? format;
   }
@@ -350,12 +412,17 @@ export class ContentsComponent implements OnInit, OnDestroy {
   // ==========================================
 
   /**
-   * Um documento precisa de pedido de acesso quando é jindungo/restrito E o
-   * utilizador ainda não tem acesso. Se o backend enviar has_access ou
-   * is_subscribed no documento, respeitamos; admins nunca são bloqueados.
+   * Um documento precisa de pedido de acesso quando a sua categoria exige
+   * subscrição OU (na ausência disso) quando é jindungo/restrito — os dois
+   * mecanismos são mutuamente exclusivos no backend (canReadDocument):
+   * requires_subscription manda sempre que presente, access_level_id só é
+   * consultado quando a categoria não exige subscrição.
    */
   private needsAccessRequest(doc: Document): boolean {
-    if (doc.access_level_id !== 'jindungo' && doc.access_level_id !== 'restricted') {
+    const gated = doc.category?.requires_subscription === true
+      ? true
+      : (doc.access_level_id === 'jindungo' || doc.access_level_id === 'restricted');
+    if (!gated) {
       return false;
     }
     const anyDoc = doc as any;
@@ -384,9 +451,10 @@ export class ContentsComponent implements OnInit, OnDestroy {
     this.accessRequesting = false;
     this.accessRequestDone = false;
     this.accessRequestError = null;
-    // Default: bloqueio por nível de acesso (o modal abriu por causa do
-    // access_level_id). O check abaixo corrige para 'subscription' se for o caso.
-    this.accessMode = 'access-request';
+    // Determinado de imediato a partir dos dados já carregados na listagem —
+    // essencial para visitantes, que nunca recebem a confirmação em segundo
+    // plano abaixo (GET /documents/{id}/subscription exige sessão).
+    this.accessMode = doc.category?.requires_subscription === true ? 'subscription' : 'access-request';
     this.cdr.detectChanges();
 
     // Se autenticado, verifica em background o mecanismo real de acesso e se

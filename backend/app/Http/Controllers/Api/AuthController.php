@@ -375,6 +375,13 @@ class AuthController extends Controller
             ->orderByDesc('ub.earned_at')
             ->get();
 
+        $interestAreas = DB::table('user_interest_areas as uia')
+            ->join('interest_areas as ia', 'uia.interest_area_id', '=', 'ia.id')
+            ->where('uia.user_id', $userId)
+            ->select('ia.id', 'ia.name', 'ia.slug')
+            ->orderBy('ia.name')
+            ->get();
+
         return response()->json([
             'user' => $user,
             'profile' => ProfilePresenter::presentProfile($profile),
@@ -382,6 +389,7 @@ class AuthController extends Controller
             'user_level' => $userLevel,
             'level_definition' => $levelDefinition,
             'badges' => $badges,
+            'interest_areas' => $interestAreas,
         ]);
     }
 

@@ -3,12 +3,12 @@
    ============================================ -->
 
 <div class="profile-page">
-  
+
   <app-header></app-header>
 
   <main class="profile-main">
     <div class="profile-container">
-      
+
       <!-- Loading State -->
       <div *ngIf="state.isLoadingProfile" class="profile-loading">
         <div class="profile-loading-content">
@@ -19,7 +19,7 @@
 
       <!-- Conteúdo do Perfil -->
       <div [style.display]="state.isLoadingProfile ? 'none' : 'block'">
-      
+
       <!-- Profile Header -->
       <div class="profile-header">
         <div class="profile-avatar-wrapper">
@@ -35,6 +35,9 @@
           <h1 class="profile-name">{{ profileName }}</h1>
           <p class="profile-status">{{ profileStatus }}</p>
           <p *ngFor="let line of profileBio" class="profile-bio-line">{{ line }}</p>
+          <p *ngIf="profileWebsite" class="profile-bio-line">
+            <a [href]="profileWebsite" target="_blank" rel="noopener" class="link-button">{{ profileWebsite }}</a>
+          </p>
           <div class="profile-actions">
             <button (click)="openEditProfileModal()" class="btn btn-primary">Editar Perfil</button>
           </div>
@@ -43,7 +46,7 @@
 
       <!-- Stats Grid -->
       <div class="profile-stats">
-        <div *ngFor="let stat of stats" 
+        <div *ngFor="let stat of stats"
              class="profile-stat-card"
              [style.background-color]="stat.bgColor || 'var(--color-white)'"
              [style.color]="stat.color">
@@ -60,6 +63,26 @@
             <div class="profile-stat-progress-fill" [style.width]="stat.progress + '%'"></div>
           </div>
           <p *ngIf="stat.rankBadge" class="profile-stat-rank">{{ stat.rankBadge }}</p>
+        </div>
+      </div>
+
+      <!-- Estatísticas secundárias (tópicos, respostas, pontos semana/mês) -->
+      <div class="profile-secondary-stats" *ngIf="userLevel">
+        <div class="profile-secondary-stat">
+          <span class="profile-secondary-stat-value">{{ userLevel.topics_created }}</span>
+          <span class="profile-secondary-stat-label">Tópicos criados</span>
+        </div>
+        <div class="profile-secondary-stat">
+          <span class="profile-secondary-stat-value">{{ userLevel.replies_posted }}</span>
+          <span class="profile-secondary-stat-label">Respostas dadas</span>
+        </div>
+        <div class="profile-secondary-stat">
+          <span class="profile-secondary-stat-value">{{ userLevel.weekly_points }}</span>
+          <span class="profile-secondary-stat-label">Pontos esta semana</span>
+        </div>
+        <div class="profile-secondary-stat">
+          <span class="profile-secondary-stat-value">{{ userLevel.monthly_points }}</span>
+          <span class="profile-secondary-stat-label">Pontos este mês</span>
         </div>
       </div>
 
@@ -100,38 +123,94 @@
             </div>
           </div>
 
+          <div class="profile-security-card profile-security-card-risk">
+            <div class="profile-security-icon profile-security-icon-risk">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <div class="profile-security-content">
+              <h3 class="profile-security-title">Zona de Risco</h3>
+              <p class="profile-security-desc">Desativar a conta do arquivo de forma permanente.</p>
+              <button type="button" class="btn btn-secondary profile-security-btn profile-security-btn-risk" disabled title="Brevemente disponível">
+                Desativar Conta — Brevemente
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <!-- Méritos e Distinções -->
-      <div class="profile-merits" *ngIf="merits.length > 0">
-        <div class="profile-merits-header">
-          <h2 class="section-title">Méritos e Distinções</h2>
-          <button class="link-button">Ver Todos os Certificados →</button>
+      <!-- Meus Acessos -->
+      <div class="profile-access">
+        <h2 class="section-title">Meus Acessos</h2>
+        <div class="profile-access-list" *ngIf="accessGrants.length > 0; else noAccessGrants">
+          <div class="profile-access-chip" *ngFor="let grant of accessGrants">
+            <span class="profile-badge">{{ grant.access_level_name }}</span>
+            <span class="profile-access-date">concedido em {{ grant.granted_at | date:'dd/MM/yyyy' }}</span>
+          </div>
         </div>
-        <div class="profile-merits-grid">
-          <div *ngFor="let merit of merits" 
-               class="profile-merit-card"
-               [class.profile-merit-card-inactive]="!merit.isActive">
+        <ng-template #noAccessGrants>
+          <p class="profile-empty-text">Sem níveis de acesso especiais concedidos até ao momento.</p>
+        </ng-template>
+      </div>
+
+      <!-- Méritos e Distinções -->
+      <div class="profile-merits">
+        <div class="profile-merits-header">
+          <h2 class="section-title">Distinções</h2>
+        </div>
+        <div class="profile-merits-grid" *ngIf="badges.length > 0; else noBadges">
+          <div *ngFor="let badge of badges" class="profile-merit-card">
             <div class="profile-merit-icon">
-              <svg width="32" height="32" [attr.viewBox]="merit.iconViewBox" fill="none">
-                <path [attr.d]="merit.iconPath" [style.fill]="merit.isActive ? 'var(--color-bordeaux)' : 'var(--color-medium-grey)'"/>
+              <img *ngIf="badge.icon_url" [src]="badge.icon_url" [alt]="badge.name" width="28" height="28">
+              <svg *ngIf="!badge.icon_url" width="26" height="26" viewBox="0 0 24 24" fill="none" [attr.stroke]="badge.color_hex || '#8B1E2D'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="6"/>
+                <path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.12"/>
               </svg>
             </div>
             <div class="profile-merit-content">
-              <h3 class="profile-merit-title"
-                  [class.profile-merit-title-active]="merit.isActive"
-                  [class.profile-merit-title-inactive]="!merit.isActive">
-                {{ merit.title }}
-              </h3>
-              <p *ngFor="let line of merit.description" 
-                 class="profile-merit-description"
-                 [class.profile-merit-description-active]="merit.isActive"
-                 [class.profile-merit-description-inactive]="!merit.isActive">
-                {{ line }}
-              </p>
-              <p class="profile-merit-progress">{{ merit.id || merit.progress }}</p>
+              <h3 class="profile-merit-title profile-merit-title-active">{{ badge.name }}</h3>
+              <p class="profile-merit-description profile-merit-description-active">{{ badge.description }}</p>
+              <p class="profile-merit-progress">Conquistado em {{ badge.earned_at | date:'dd/MM/yyyy' }}</p>
             </div>
+          </div>
+        </div>
+        <ng-template #noBadges>
+          <p class="profile-empty-text">Ainda não conquistou nenhuma distinção. Continue a ler documentos e a completar questionários para desbloquear as primeiras.</p>
+        </ng-template>
+      </div>
+
+      <!-- Áreas de Interesse -->
+      <div class="profile-interests">
+        <div class="profile-merits-header">
+          <h2 class="section-title">Áreas de Interesse</h2>
+        </div>
+        <div class="profile-interest-chips" *ngIf="interestAreas.length > 0; else noInterestAreas">
+          <span class="profile-badge" *ngFor="let area of interestAreas">{{ area.name }}</span>
+        </div>
+        <ng-template #noInterestAreas>
+          <p class="profile-empty-text">
+            Ainda não seleccionou áreas de interesse.
+            <button type="button" class="link-button" (click)="openEditProfileModal()">Adicionar no perfil →</button>
+          </p>
+        </ng-template>
+      </div>
+
+      <!-- Atividade Recente -->
+      <div class="profile-activity" *ngIf="recentActivity.length > 0">
+        <div class="profile-merits-header">
+          <h2 class="section-title">Atividade Recente</h2>
+        </div>
+        <div class="profile-activity-list">
+          <div class="profile-activity-item" *ngFor="let activity of recentActivity">
+            <span class="profile-activity-desc">{{ activity.description || activity.reason }}</span>
+            <span class="profile-activity-points" [class.profile-activity-points-negative]="activity.points < 0">
+              {{ activity.points > 0 ? '+' : '' }}{{ activity.points }} pts
+            </span>
+            <span class="profile-activity-date">{{ activity.created_at | date:'dd/MM/yyyy' }}</span>
           </div>
         </div>
       </div>
@@ -139,7 +218,7 @@
       <!-- MODAL: Editar Perfil -->
       <div *ngIf="state.isEditingProfile" class="profile-modal-overlay">
         <div class="profile-modal">
-          
+
           <!-- Header do Modal -->
           <div class="profile-modal-header">
             <h2 class="profile-modal-title">Editar Perfil</h2>
@@ -148,20 +227,20 @@
 
           <!-- Formulário -->
           <form [formGroup]="editForm" class="profile-form">
-            
+
             <!-- Avatar Upload -->
             <div class="profile-form-group">
               <label class="profile-form-label">Foto de Perfil</label>
-              
-              <input #avatarInput 
-                     type="file" 
+
+              <input #avatarInput
+                     type="file"
                      accept="image/jpeg,image/png,image/webp"
                      (change)="onAvatarSelected($event)"
                      class="profile-avatar-input">
 
               <div class="profile-avatar-upload">
                 <div class="profile-avatar-container">
-                  <img *ngIf="avatarPreview || profileAvatarUrl" [src]="getAvatarSrc()" 
+                  <img *ngIf="avatarPreview || profileAvatarUrl" [src]="getAvatarSrc()"
      alt="Avatar de perfil"
      class="profile-avatar-preview"
      (error)="onAvatarLoadError($event)">
@@ -188,49 +267,71 @@
                 </button>
               </div>
             </div>
-            
+
             <!-- Nome de Exibição -->
             <div class="profile-form-group">
               <label class="profile-form-label">
                 Nome de Exibição <span class="profile-form-label-required">*</span>
               </label>
-              <input formControlName="display_name" 
-                     type="text" 
-                     placeholder="Seu nome completo"
+              <input formControlName="display_name"
+                     type="text"
+                     placeholder="Como quer ser identificado na plataforma"
                      class="profile-form-input">
-              <p *ngIf="editForm.get('display_name')?.hasError('required') && editForm.get('display_name')?.touched" 
+              <p *ngIf="editForm.get('display_name')?.hasError('required') && editForm.get('display_name')?.touched"
                  class="profile-form-error">Campo obrigatório</p>
-              <p *ngIf="editForm.get('display_name')?.hasError('maxlength') && editForm.get('display_name')?.touched" 
+              <p *ngIf="editForm.get('display_name')?.hasError('maxlength') && editForm.get('display_name')?.touched"
                  class="profile-form-error">Máximo 100 caracteres</p>
+            </div>
+
+            <!-- Nome Completo -->
+            <div class="profile-form-group">
+              <label class="profile-form-label">Nome Completo</label>
+              <input formControlName="full_name"
+                     type="text"
+                     placeholder="Seu nome completo (para fins formais)"
+                     class="profile-form-input">
+              <p *ngIf="editForm.get('full_name')?.hasError('maxlength') && editForm.get('full_name')?.touched"
+                 class="profile-form-error">Máximo 255 caracteres</p>
             </div>
 
             <!-- Bio -->
             <div class="profile-form-group">
               <label class="profile-form-label">
-                Bio Académica 
+                Bio Académica
                 <span class="profile-form-hint">({{ editForm.get('bio')?.value?.length || 0 }}/2000)</span>
               </label>
-              <textarea formControlName="bio" 
+              <textarea formControlName="bio"
                         placeholder="Descreva sua área de pesquisa e interesses académicos..."
                         class="profile-form-textarea">
               </textarea>
-              <p *ngIf="editForm.get('bio')?.hasError('maxlength') && editForm.get('bio')?.touched" 
+              <p *ngIf="editForm.get('bio')?.hasError('maxlength') && editForm.get('bio')?.touched"
                  class="profile-form-error">Máximo 2000 caracteres</p>
             </div>
 
             <!-- Instituição -->
             <div class="profile-form-group">
               <label class="profile-form-label">Instituição</label>
-              <input formControlName="institution" 
-                     type="text" 
+              <input formControlName="institution"
+                     type="text"
                      placeholder="Sua universidade ou organização"
                      class="profile-form-input">
+            </div>
+
+            <!-- Website -->
+            <div class="profile-form-group">
+              <label class="profile-form-label">Website / Portefólio</label>
+              <input formControlName="website_url"
+                     type="url"
+                     placeholder="https://..."
+                     class="profile-form-input">
+              <p *ngIf="editForm.get('website_url')?.hasError('maxlength') && editForm.get('website_url')?.touched"
+                 class="profile-form-error">Máximo 500 caracteres</p>
             </div>
 
             <!-- Província -->
             <div class="profile-form-group">
               <label class="profile-form-label">Província</label>
-              <select formControlName="province" 
+              <select formControlName="province"
                       class="profile-form-select">
                 <option value="">Selecione uma província...</option>
                 <option *ngFor="let province of angolasProvinces" [value]="province">{{ province }}</option>
@@ -244,22 +345,38 @@
                 <span class="profile-form-hint"> (máximo 10)</span>
               </label>
               <p class="profile-form-hint">Separe as áreas com vírgula</p>
-              <input formControlName="research_areas" 
-                     type="text" 
+              <input formControlName="research_areas"
+                     type="text"
                      placeholder="Ex: História Económica, Análise de Dados, Economia Social"
                      class="profile-form-input">
-              <p class="profile-form-hint">Máx 2000 caracteres</p>
+            </div>
+
+            <!-- Áreas de Interesse (catálogo estruturado) -->
+            <div class="profile-form-group" *ngIf="interestAreaCatalog.length > 0">
+              <label class="profile-form-label">
+                Áreas de Interesse
+                <span class="profile-form-hint"> ({{ selectedInterestAreaIds.size }}/10)</span>
+              </label>
+              <div class="profile-interest-picker">
+                <button type="button"
+                        *ngFor="let area of interestAreaCatalog"
+                        class="profile-interest-picker-chip"
+                        [class.selected]="isInterestAreaSelected(area.id)"
+                        (click)="toggleInterestArea(area.id)">
+                  {{ area.name }}
+                </button>
+              </div>
             </div>
 
             <!-- Botões de Ação -->
             <div class="profile-form-actions">
-              <button (click)="saveProfileChanges()" 
+              <button (click)="saveProfileChanges()"
                       [disabled]="!editForm.valid || state.isLoadingStats"
                       class="btn btn-save"
                       [style.opacity]="!editForm.valid || state.isLoadingStats ? '0.6' : '1'">
                 {{ state.isLoadingStats ? 'Salvando...' : 'Salvar Mudanças' }}
               </button>
-              <button (click)="discardChanges()" 
+              <button (click)="discardChanges()"
                       type="button"
                       class="btn btn-discard">
                 Descartar
@@ -302,10 +419,11 @@
                      autocomplete="new-password"
                      placeholder="Mínimo 8 caracteres"
                      class="profile-form-input">
-              <p *ngIf="passwordForm.get('password')?.hasError('required') && passwordForm.get('password')?.touched"
-                 class="profile-form-error">Campo obrigatório</p>
-              <p *ngIf="passwordForm.get('password')?.hasError('minlength') && passwordForm.get('password')?.touched"
-                 class="profile-form-error">A palavra-passe deve ter pelo menos 8 caracteres</p>
+              <ul class="profile-password-requirements">
+                <li *ngFor="let req of passwordRequirements" [class.met]="req.met">
+                  <span class="profile-password-requirement-dot"></span>{{ req.label }}
+                </li>
+              </ul>
             </div>
 
             <div class="profile-form-group">
@@ -337,62 +455,6 @@
               </button>
             </div>
           </form>
-        </div>
-      </div>
-
-      <!-- Controles de Conta -->
-      <div class="profile-settings" *ngIf="settings.privacy.length > 0 || settings.notifications.length > 0">
-        <h2 class="section-title">Controlos de Conta</h2>
-        <div class="profile-settings-card">
-          
-          <div class="profile-settings-section" *ngIf="settings.privacy.length > 0">
-            <p class="profile-settings-section-title">PRIVACIDADE E SEGURANÇA</p>
-            <div *ngFor="let setting of settings.privacy; let i = index" class="profile-settings-item">
-              <span class="profile-settings-label">{{ setting.label }}</span>
-              <button (click)="togglePrivacySetting(i)" 
-                      class="profile-settings-toggle"
-                      [class.profile-settings-toggle-on]="setting.checked"
-                      [class.profile-settings-toggle-off]="!setting.checked"></button>
-            </div>
-          </div>
-
-          <div class="profile-settings-section" *ngIf="settings.notifications.length > 0">
-            <p class="profile-settings-section-title">NOTIFICAÇÕES</p>
-            <div *ngFor="let setting of settings.notifications; let i = index" class="profile-settings-item">
-              <span class="profile-settings-label">{{ setting.label }}</span>
-              <button (click)="toggleNotificationSetting(i)" 
-                      class="profile-settings-toggle"
-                      [class.profile-settings-toggle-on]="setting.checked"
-                      [class.profile-settings-toggle-off]="!setting.checked"></button>
-            </div>
-          </div>
-
-          <button (click)="deactivateAccount()" class="profile-settings-deactivate">Desativar Conta do Arquivo</button>
-        </div>
-      </div>
-
-      <!-- Conteúdos Criados -->
-      <div *ngIf="userContents.length > 0">
-        <div class="profile-contents-header">
-          <h2 class="section-title">Conteúdos Criados</h2>
-          <span class="profile-contents-count">{{ userContents.length }} publicações</span>
-        </div>
-        <div class="profile-contents-list">
-          <div *ngFor="let content of userContents" class="profile-content-item">
-            <div class="profile-content-item-header">
-              <span class="profile-content-item-type">{{ content.type }}</span>
-              <span class="profile-content-item-date">{{ content.date }}</span>
-            </div>
-            <h3 class="profile-content-item-title">{{ content.title }}</h3>
-            <p class="profile-content-item-desc">{{ content.description }}</p>
-            <div class="profile-content-item-footer">
-              <div class="profile-content-item-meta">
-                <span>{{ content.category }}</span>
-                <span>{{ content.views }} visualizações</span>
-              </div>
-              <span class="profile-content-item-link">Ler mais →</span>
-            </div>
-          </div>
         </div>
       </div>
 
