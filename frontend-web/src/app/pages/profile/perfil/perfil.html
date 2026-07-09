@@ -12,7 +12,7 @@
       <!-- Loading State -->
       <div *ngIf="state.isLoadingProfile" class="profile-loading">
         <div class="profile-loading-content">
-          <p class="profile-loading-text">Carregando seu perfil...</p>
+          <p class="profile-loading-text">A carregar o seu perfil...</p>
           <div class="profile-spinner"></div>
         </div>
       </div>
@@ -64,6 +64,11 @@
           </div>
           <p *ngIf="stat.rankBadge" class="profile-stat-rank">{{ stat.rankBadge }}</p>
         </div>
+      </div>
+
+      <!-- Sem pontos ainda -->
+      <div *ngIf="totalPoints === 0" class="profile-no-points" style="background: rgba(163, 114, 55, 0.05); color: #a37237; padding: 16px; border-radius: 8px; margin-bottom: 24px; font-size: 14px; border: 1px dashed rgba(163, 114, 55, 0.2); font-family: 'Source Sans 3', sans-serif;">
+        Ainda sem pontos — comece por explorar um documento ou responder a um quiz.
       </div>
 
       <!-- Estatísticas secundárias (tópicos, respostas, pontos semana/mês) -->
@@ -165,7 +170,7 @@
           </div>
         </div>
         <ng-template #noBadges>
-          <p class="profile-empty-text">Ainda não conquistou nenhuma distinção. Continue a ler documentos e a completar questionários para desbloquear as primeiras.</p>
+          <p class="profile-empty-text">As suas primeiras medalhas estão à espera — explore, responda e participe para as desbloquear.</p>
         </ng-template>
       </div>
 
@@ -179,7 +184,7 @@
         </div>
         <ng-template #noInterestAreas>
           <p class="profile-empty-text">
-            Ainda não seleccionou áreas de interesse.
+            Ainda não selecionou áreas de interesse.
             <button type="button" class="link-button" (click)="openEditProfileModal()">Adicionar no perfil →</button>
           </p>
         </ng-template>
@@ -360,7 +365,7 @@
                       [disabled]="!editForm.valid || state.isLoadingStats"
                       class="btn btn-save"
                       [style.opacity]="!editForm.valid || state.isLoadingStats ? '0.6' : '1'">
-                {{ state.isLoadingStats ? 'Salvando...' : 'Salvar Mudanças' }}
+                {{ state.isLoadingStats ? 'A guardar...' : 'Guardar Mudanças' }}
               </button>
               <button (click)="discardChanges()"
                       type="button"

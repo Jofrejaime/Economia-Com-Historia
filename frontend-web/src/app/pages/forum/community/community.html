@@ -35,7 +35,7 @@
             <div>
               <h2 class="community-section-title">Categorias de Acesso</h2>
               <div class="community-section-divider"></div>
-              <p class="community-section-subtitle">Solicite acesso às categorias para participar em discussões especializadas</p>
+              <p class="community-section-subtitle">Peça acesso às categorias para participar em discussões especializadas</p>
             </div>
             <button class="community-link-btn" (click)="navigateTo('/forum/categorias')">
               Ver todas
@@ -198,7 +198,10 @@
 
               <!-- Empty state -->
               <div *ngIf="filteredDiscussions.length === 0" class="community-empty">
-                <p>Nenhuma discussão encontrada nesta categoria</p>
+                <p>Seja a primeira pessoa a abrir esta conversa.</p>
+                <button (click)="navigateTo('/forum/comunidade/criar-topico')" class="btn-primary small" style="margin-top: 12px; font-size: 13px; padding: 6px 12px; border-radius: 4px; background: #8B1E2D; color: white; border: none; cursor: pointer;">
+                  Criar Tópico
+                </button>
               </div>
             </div>
           </div>

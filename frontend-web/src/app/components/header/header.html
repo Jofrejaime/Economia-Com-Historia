@@ -21,7 +21,7 @@
 
       <nav class="app-header-links" [class.mobile-open]="mobileMenuOpen">
         <a [routerLink]="isAuthenticated ? '/home' : '/landing'" routerLinkActive="active" (click)="closeMobileMenu()">Início</a>
-        <a routerLink="/contents" routerLinkActive="active" (click)="closeMobileMenu()">Conteúdos</a>
+        <a routerLink="/contents" routerLinkActive="active" (click)="closeMobileMenu()">Arquivo</a>
         <a routerLink="/forum/community" routerLinkActive="active" (click)="closeMobileMenu()">Comunidade</a>
         <a routerLink="/quiz" routerLinkActive="active" (click)="closeMobileMenu()">Quiz</a>
 
@@ -51,7 +51,7 @@
                 Entrar
               </button>
               <button class="app-header-auth-btn app-header-auth-btn--solid" (click)="goToRegister(); closeMobileMenu()">
-                Criar conta
+                Criar Conta
               </button>
             </div>
           </ng-template>
@@ -100,9 +100,9 @@
             type="button"
             class="app-header-auth-btn app-header-auth-btn--solid"
             (click)="goToRegister()"
-            title="Criar conta"
-            aria-label="Criar conta">
-            Criar conta
+            title="Criar Conta"
+            aria-label="Criar Conta">
+            Criar Conta
           </button>
         </div>
       </ng-template>

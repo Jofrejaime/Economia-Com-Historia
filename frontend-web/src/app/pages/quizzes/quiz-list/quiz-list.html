@@ -7,7 +7,7 @@
       
       <div class="quizzes-header">
         <h1 class="quizzes-title">Quizzes</h1>
-        <p class="quizzes-subtitle">Teste os seus conhecimentos sobre a história económica de Angola</p>
+        <p class="quizzes-subtitle">Teste os seus conhecimentos sobre economia e história angolana.</p>
       </div>
 
       <div *ngIf="error" style="background:rgba(239,68,68,0.08);color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:24px;font-size:14px;border:1px solid rgba(239,68,68,0.15)">
@@ -43,11 +43,11 @@
           <div class="quizzes-level-grid">
             <div>
               <p class="quizzes-level-label">ESTATUTO VISITANTE</p>
-              <h3 class="quizzes-level-name">Inicie Sessão para Acompanhar o seu Progresso</h3>
+              <h3 class="quizzes-level-name">Entre para Acompanhar o seu Progresso</h3>
               <p class="quizzes-level-info">Responda a quizzes, acumule pontos académicos e suba de nível para obter insígnias exclusivas e destacar-se na comunidade.</p>
             </div>
             <div style="display: flex; align-items: center; justify-content: flex-end;">
-              <button class="btn-primary small" style="background-color: #8B1E2D; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: 600; font-family: 'Source Sans 3', sans-serif;">Iniciar Sessão</button>
+              <button class="btn-primary small" style="background-color: #8B1E2D; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: 600; font-family: 'Source Sans 3', sans-serif;">Entrar</button>
             </div>
           </div>
         </div>
@@ -90,7 +90,7 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <polygon points="5 3 19 12 5 21 5 3"/>
                   </svg>
-                  Iniciar Quizz
+                  Iniciar Quiz
                 </button>
               </div>
             </div>
@@ -273,12 +273,12 @@
               <circle cx="11" cy="11" r="8"/>
               <line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <p style="font-weight:600;margin-bottom:4px">Nenhum quiz encontrado</p>
-            <p style="font-size:14px">Tente ajustar os filtros da pesquisa</p>
+            <p style="font-weight:600;margin-bottom:4px;color:#1F2937">Nada por aqui ainda</p>
+            <p style="font-size:14px;color:#4B5563">Não encontrámos quizzes com estes filtros. Experimente limpar os filtros ou pesquisar por outro tema.</p>
           </div>
 
           <div *ngIf="allQuizzes.length === 0" style="text-align:center;padding:60px;color:#64748b">
-            <p>Nenhum quiz disponível de momento.</p>
+            <p>Ainda não há quizzes para este tema. Volte em breve.</p>
           </div>
         </div>
 

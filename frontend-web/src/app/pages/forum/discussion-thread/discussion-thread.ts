@@ -29,6 +29,8 @@ export class DiscussionThreadComponent implements OnInit {
   topic: DiscussionTopic | null = null;
   replies: TopicReply[] = [];
   error: string | null = null;
+  actionSuccess: string | null = null;
+  actionError: string | null = null;
   isAuthenticated = false;
   currentUserId: string | null = null;
 
@@ -497,12 +499,14 @@ export class DiscussionThreadComponent implements OnInit {
         this.replyText = '';
         this.showReplyForm = false;
         if (this.topic) this.topic.replies_count++;
+        this.actionSuccess = 'Resposta enviada. Obrigado por participar.';
         this.cdr.detectChanges();
+        setTimeout(() => { this.actionSuccess = null; this.cdr.detectChanges(); }, 4000);
       }
     } catch {
-      this.error = 'Erro ao publicar resposta.';
+      this.actionError = 'Erro ao publicar resposta. Tente novamente.';
       this.cdr.detectChanges();
-      setTimeout(() => { this.error = null; this.cdr.detectChanges(); }, 4000);
+      setTimeout(() => { this.actionError = null; this.cdr.detectChanges(); }, 4000);
     }
   }
 
@@ -522,12 +526,14 @@ export class DiscussionThreadComponent implements OnInit {
         this.showReplyFormForReply[index] = false;
         this.replyReplyText[index] = '';
         if (this.topic) this.topic.replies_count++;
+        this.actionSuccess = 'Resposta enviada. Obrigado por participar.';
         this.cdr.detectChanges();
+        setTimeout(() => { this.actionSuccess = null; this.cdr.detectChanges(); }, 4000);
       }
     } catch {
-      this.error = 'Erro ao publicar resposta.';
+      this.actionError = 'Erro ao publicar resposta. Tente novamente.';
       this.cdr.detectChanges();
-      setTimeout(() => { this.error = null; this.cdr.detectChanges(); }, 4000);
+      setTimeout(() => { this.actionError = null; this.cdr.detectChanges(); }, 4000);
     }
   }
 

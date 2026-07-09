@@ -20,15 +20,15 @@
         <h2 class="contents-view-access-title">Conteúdo {{ getRequiredAccessLabel() }}</h2>
         <p class="contents-view-access-subtitle">
           {{ subscriptionRequired
-              ? 'Este documento pertence a uma colecção que requer subscrição.'
-              : 'Este documento requer um nível de acesso superior.' }}
+              ? 'Este conteúdo faz parte de uma colecção especial. Peça acesso e a equipa do arquivo trata do resto.'
+              : 'Este documento requer um nível de acesso superior. Envie um pedido — é rápido.' }}
         </p>
 
         <!-- Estado: por pedir -->
         <ng-container *ngIf="!accessRequestDone">
           <p class="contents-view-access-text">
             Para consultar este conteúdo, envie um pedido de acesso —
-            a equipa do arquivo irá analisá-lo e será notificado(a) da decisão.
+            a equipa do arquivo trata do resto e você será notificado(a) da decisão.
           </p>
 
           <p *ngIf="accessRequestError" class="contents-view-access-error">{{ accessRequestError }}</p>
@@ -50,8 +50,8 @@
               <path d="M20 6L9 17l-5-5"/>
             </svg>
             <div>
-              <p class="contents-view-access-success-title">Pedido de acesso enviado</p>
-              <p class="contents-view-access-success-text">Será notificado(a) quando o acesso for concedido.</p>
+              <p class="contents-view-access-success-title">Pedido enviado!</p>
+              <p class="contents-view-access-success-text">Vai ser notificado(a) assim que o acesso for aprovado.</p>
             </div>
           </div>
 
@@ -80,7 +80,7 @@
       <!-- Breadcrumbs -->
       <div class="contents-view-breadcrumbs">
         <div class="contents-view-breadcrumbs-inner">
-          <button (click)="navigateTo('/contents')" class="contents-view-breadcrumb-btn">Conteúdos</button>
+          <button (click)="navigateTo('/contents')" class="contents-view-breadcrumb-btn">Arquivo</button>
           <span class="contents-view-breadcrumb-separator">
             <svg width="3" height="5" viewBox="0 0 3 5" fill="none"><path d="M0.5 0.5L2.5 2.5L0.5 4.5" stroke="#9CA3AF" stroke-linecap="round"/></svg>
           </span>

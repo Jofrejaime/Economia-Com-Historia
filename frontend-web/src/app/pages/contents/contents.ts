@@ -452,6 +452,10 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(['/contents/saved']);
   }
 
+  hasActiveFilters(): boolean {
+    return !!(this.searchQuery.trim() || this.selectedTheme || this.selectedMediaType);
+  }
+
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: Event): void {
     const target = event.target as HTMLElement;
