@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../../components/header/header';
 import { FooterComponent } from '../../components/footer/footer';
 import { NotificationService, AppNotification } from '../../services/notification.service';
@@ -33,8 +33,43 @@ export class UserNotificationsComponent implements OnInit {
 
   constructor(
     private notificationService: NotificationService,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
+
+  /**
+   * Destino de uma notificação, conforme o recurso referenciado. Sem isto, um
+   * convite para fórum privado (topic_invitation) não tinha como levar o
+   * utilizador convidado até à discussão.
+   */
+  private notificationLink(notif: AppNotification): string[] | null {
+    if (notif.reference_id) {
+      switch (notif.reference_type) {
+        case 'discussion_topic': return ['/forum/community/discussao', notif.reference_id];
+        case 'document':         return ['/contents/view', notif.reference_id];
+      }
+    }
+    // Alguns tipos não trazem reference_type mas são inequívocos.
+    switch (notif.type) {
+      case 'topic_invitation':
+      case 'topic_reply':
+      case 'reply_accepted':
+        return notif.reference_id ? ['/forum/community/discussao', notif.reference_id] : null;
+      default:
+        return null;
+    }
+  }
+
+  isClickable(notif: AppNotification): boolean {
+    return this.notificationLink(notif) !== null;
+  }
+
+  async openNotification(notif: AppNotification): Promise<void> {
+    const link = this.notificationLink(notif);
+    if (!link) return;
+    if (!notif.is_read) { void this.markAsRead(notif.id); }
+    this.router.navigate(link);
+  }
 
   async ngOnInit(): Promise<void> {
     this.loadNotifications();

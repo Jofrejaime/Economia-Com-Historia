@@ -55,8 +55,8 @@ function HomeTabScreen() {
       onViewCommunity={() => navigation.navigate("Community")}
       onViewContent={() => navigation.navigate("Content")}
       onViewQuiz={() => navigation.navigate("QuizList")}
-      onViewVideo={() => navigation.navigate("Content", { document_type: "video" })}
-      onViewAudio={() => navigation.navigate("Content", { document_type: "audio" })}
+      onViewVideo={() => navigation.navigate("Content", { media_type: "VIDEO" })}
+      onViewAudio={() => navigation.navigate("Content", { media_type: "AUDIO" })}
     />
   );
 }

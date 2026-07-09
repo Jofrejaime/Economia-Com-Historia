@@ -115,6 +115,15 @@
     </div>
 
     <div class="filter-select">
+      <select [(ngModel)]="filterMediaType" class="select" (ngModelChange)="onFilterChange()">
+        <option value="todos">Todos os tipos</option>
+        <option value="TEXT">Texto</option>
+        <option value="VIDEO">Vídeo</option>
+        <option value="AUDIO">Podcast</option>
+      </select>
+    </div>
+
+    <div class="filter-select">
       <input
         type="text"
         [(ngModel)]="filterAuthor"

@@ -1511,10 +1511,12 @@ tr.selected {
 }
 /* ─── Editor de conteúdo (CMS) ─────────────────────────────────────────── */
 .modal-editor {
-  width: 96%;
-  max-width: 1200px;
-  height: 94vh;
-  max-height: 94vh;
+  width: 92%;
+  max-width: 1080px;
+  /* Sem altura fixa: o modal cresce com o conteúdo até ao tecto de 90vh e faz
+     scroll no corpo. Antes tinha height:94vh, o que esticava o modal de criação
+     (form curto) para o ecrã inteiro — daí parecer desproporcional. */
+  max-height: 90vh;
 }
 
 .editor-grid {
@@ -1586,7 +1588,6 @@ tr.selected {
   }
   .modal-editor {
     width: 100%;
-    height: 96vh;
-    max-height: 96vh;
+    max-height: 94vh;
   }
 }

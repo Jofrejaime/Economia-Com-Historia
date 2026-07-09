@@ -205,8 +205,12 @@ h1, h2, h3, h4 {
   margin-bottom: 8px;
   border: 1px solid #F0F0F0;
   transition: all 0.15s;
-  cursor: pointer;
+  cursor: default;
   position: relative;
+}
+
+.notification-item-clickable {
+  cursor: pointer;
 }
 
 .notification-item:hover {

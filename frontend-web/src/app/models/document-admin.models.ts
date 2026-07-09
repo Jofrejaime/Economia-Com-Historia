@@ -35,6 +35,7 @@ export interface Document {
   institution: string | null;
   category_id: string | null;
   document_type: DocumentType;
+  media_type?: 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF' | null;
   academic_level: AcademicLevel;
   publication_date: string | null;
   period_start: number | null;

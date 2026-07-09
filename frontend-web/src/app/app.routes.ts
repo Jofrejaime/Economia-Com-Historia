@@ -29,6 +29,7 @@ import { ContentsPageComponent } from './pages/admin/dashboard-admin/pages/conte
 import { CommunityPageComponent } from './pages/admin/dashboard-admin/pages/community-page/community-page';
 import { SettingsPageComponent } from './pages/admin/dashboard-admin/pages/settings-page/settings-page';
 import { ReportsPageComponent } from './pages/admin/dashboard-admin/pages/reports-page/reports-page';
+import { SubscriptionsPageComponent } from './pages/admin/dashboard-admin/pages/subscriptions-page/subscriptions-page';
 import { QuizzesManagerPageComponent } from './pages/admin/dashboard-admin/pages/quizzes-manager-page/quizzes-manager-page';
 import { LevelsPageComponent } from './pages/admin/dashboard-admin/pages/levels-page/levels-page';
 import { BadgesPageComponent } from './pages/admin/dashboard-admin/pages/badges-page/badges-page';
@@ -82,6 +83,7 @@ export const routes: Routes = [
       { path: 'comunidade', component: CommunityPageComponent },
       { path: 'configuracoes', component: SettingsPageComponent },
       { path: 'denuncias', component: ReportsPageComponent },
+      { path: 'solicitacoes-acesso', component: SubscriptionsPageComponent },
       { path: 'quizzes', component: QuizzesManagerPageComponent },
       // ===== NOVAS ROTAS =====
       { path: 'gamificacao', component: GamificationPageComponent },

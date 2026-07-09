@@ -38,6 +38,7 @@ export class ContentsPageComponent implements OnInit {
   searchQuery = '';
   filterStatus: DocumentStatusFilter = 'todos';
   filterCategory = 'todos';
+  filterMediaType = 'todos';
   filterAuthor = '';
   pageSize = 10;
   pageSizeOptions = [10, 20, 50];
@@ -96,7 +97,8 @@ export class ContentsPageComponent implements OnInit {
         (document.author_display_name || '').toLowerCase().includes(authorSearch);
       const matchCategory = this.filterCategory === 'todos' || document.category_id === this.filterCategory;
       const matchStatus = this.filterStatus === 'todos' || document.status === this.filterStatus;
-      return matchSearch && matchAuthor && matchCategory && matchStatus;
+      const matchMediaType = this.filterMediaType === 'todos' || this.normalizeMediaType(document.media_type) === this.filterMediaType;
+      return matchSearch && matchAuthor && matchCategory && matchStatus && matchMediaType;
     });
   }
 
@@ -374,6 +376,19 @@ export class ContentsPageComponent implements OnInit {
       archived: '🗂️',
     };
     return icons[status] || '📄';
+  }
+
+  /** Normaliza o media_type para os 3 tipos de conteúdo do domínio (Texto/Vídeo/Podcast). */
+  normalizeMediaType(mediaType: string | null | undefined): 'TEXT' | 'VIDEO' | 'AUDIO' {
+    const t = (mediaType || 'TEXT').toUpperCase();
+    if (t === 'VIDEO') return 'VIDEO';
+    if (t === 'AUDIO') return 'AUDIO';
+    return 'TEXT'; // TEXT, PDF, IMAGE ou vazio → tratados como conteúdo de leitura
+  }
+
+  getMediaTypeLabel(mediaType: string | null | undefined): string {
+    const labels: Record<string, string> = { TEXT: 'Texto', VIDEO: 'Vídeo', AUDIO: 'Podcast' };
+    return labels[this.normalizeMediaType(mediaType)];
   }
 
   getCategoryOptions(): DocumentCategory[] {
