@@ -7,7 +7,7 @@ import { HeaderComponent } from '../../components/header/header';
 import { DocumentService, Document, DocumentCategory, PageMeta } from '../../services/document.service';
 import { AuthService } from '../../services/auth.service';
 
-type DropdownKey = 'theme' | 'level' | 'format' | 'mediaType';
+type DropdownKey = 'theme' | 'mediaType';
 
 interface SimpleOption { id: string; label: string; }
 
@@ -25,8 +25,6 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   searchQuery = '';
   selectedTheme: string | null = null;
-  selectedLevel: string | null = null;
-  selectedFormat: string | null = null;
   selectedMediaType: string | null = null;
 
   // Único dropdown aberto de cada vez — abrir um fecha automaticamente
@@ -61,26 +59,19 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
   };
 
   private mediaTypeLabels: Record<string, string> = {
-    text:  'Texto',
-    audio: 'Áudio',
-    video: 'Vídeo',
-    image: 'Imagem',
+    TEXT:  'Texto',
+    PDF:   'Texto',
+    VIDEO: 'Vídeo',
+    AUDIO: 'Podcast',
+    IMAGE: 'Imagem',
   };
 
-  formats: SimpleOption[] = [];
   mediaTypes: SimpleOption[] = [];
   facetsLoadFailed = false;
-
-  levels = [
-    { id: 'intro',     label: 'Introdutório' },
-    { id: 'advanced',  label: 'Investigação Avançada' },
-    { id: 'doctorate', label: 'Arquivo de Doutoramento' },
-  ];
 
   private searchTimer: any = null;
   private preselectedCategoryId: string | null = null;
 
-  private seenFormatIds = new Set<string>();
   private seenMediaTypeIds = new Set<string>();
 
   constructor(
@@ -149,10 +140,6 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private mergeFacetsFromDocuments(docs: Document[]): void {
     for (const d of docs) {
-      if (d.document_type && !this.seenFormatIds.has(d.document_type)) {
-        this.seenFormatIds.add(d.document_type);
-        this.formats.push({ id: d.document_type, label: this.documentTypeLabels[d.document_type] ?? d.document_type });
-      }
       if (d.media_type && !this.seenMediaTypeIds.has(d.media_type)) {
         this.seenMediaTypeIds.add(d.media_type);
         this.mediaTypes.push({ id: d.media_type, label: this.mediaTypeLabels[d.media_type] ?? d.media_type });
@@ -166,7 +153,6 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (hasSearch) {
       const params: any = { q: this.searchQuery.trim(), page };
-      if (this.selectedFormat) params.document_type = this.selectedFormat;
       if (this.selectedMediaType) params.media_type = this.selectedMediaType;
       if (this.selectedTheme) {
         const cat = this.categories.find(c => c.name === this.selectedTheme);
@@ -176,9 +162,7 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const params: any = { page };
-    if (this.selectedFormat)    params.document_type  = this.selectedFormat;
-    if (this.selectedMediaType) params.media_type     = this.selectedMediaType;
-    if (this.selectedLevel)     params.academic_level = this.selectedLevel;
+    if (this.selectedMediaType) params.media_type = this.selectedMediaType;
     if (this.selectedTheme) {
       const cat = this.categories.find(c => c.name === this.selectedTheme);
       if (cat) params.category_id = cat.id;
@@ -252,13 +236,9 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   toggleThemeDropdown(): void { this.toggleDropdown('theme'); }
-  toggleLevelDropdown(): void { this.toggleDropdown('level'); }
-  toggleFormatDropdown(): void { this.toggleDropdown('format'); }
   toggleMediaTypeDropdown(): void { this.toggleDropdown('mediaType'); }
 
   get showThemeDropdown(): boolean { return this.isDropdownOpen('theme'); }
-  get showLevelDropdown(): boolean { return this.isDropdownOpen('level'); }
-  get showFormatDropdown(): boolean { return this.isDropdownOpen('format'); }
   get showMediaTypeDropdown(): boolean { return this.isDropdownOpen('mediaType'); }
 
   getSelectedThemeLabel(): string { return this.selectedTheme ?? 'Todos os Temas'; }
@@ -271,30 +251,8 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isThemeSelected(theme: string): boolean { return this.selectedTheme === theme; }
 
-  getSelectedLevelLabel(): string {
-    return this.levels.find(l => l.id === this.selectedLevel)?.label ?? 'Todos os Níveis';
-  }
-
-  selectLevel(level: string): void {
-    this.selectedLevel = this.selectedLevel === level ? null : level;
-    this.openDropdown = null;
-    this.loadDocuments();
-  }
-
-  getSelectedFormatLabel(): string {
-    return this.formats.find(f => f.id === this.selectedFormat)?.label ?? 'Todos os Tipos';
-  }
-
-  selectFormat(format: string): void {
-    this.selectedFormat = this.selectedFormat === format ? null : format;
-    this.openDropdown = null;
-    this.loadDocuments();
-  }
-
-  isFormatSelected(format: string): boolean { return this.selectedFormat === format; }
-
   getSelectedMediaTypeLabel(): string {
-    return this.mediaTypes.find(m => m.id === this.selectedMediaType)?.label ?? 'Todos os Formatos';
+    return this.mediaTypes.find(m => m.id === this.selectedMediaType)?.label ?? 'Todos os Tipos';
   }
 
   selectMediaType(mediaType: string): void {
@@ -307,8 +265,6 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   clearFilters(): void {
     this.selectedTheme = null;
-    this.selectedLevel = null;
-    this.selectedFormat = null;
     this.selectedMediaType = null;
     this.searchQuery = '';
     this.openDropdown = null;

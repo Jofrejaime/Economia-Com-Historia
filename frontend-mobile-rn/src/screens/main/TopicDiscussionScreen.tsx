@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+﻿import React, { useEffect, useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   terminatedBannerText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.surface,
     fontSize: 14,
     fontWeight: "600",
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   topicCategory: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   topicTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 26,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -771,13 +771,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   authorName: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   authorMeta: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textMuted,
   },
@@ -790,7 +790,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   blockquoteText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textSecondary,
     lineHeight: 22,
@@ -810,7 +810,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   commentCountText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   likeCountText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     fontWeight: "600",
     color: appTheme.colors.textMuted,
@@ -847,7 +847,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   topicActionBtnText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 13,
     fontWeight: "600",
     color: appTheme.colors.textSecondary,
@@ -899,18 +899,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   commentAuthor: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   commentTime: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textMuted,
   },
   commentText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     lineHeight: 20,
@@ -926,7 +926,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   actionLinkText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     fontWeight: "600",
     color: appTheme.colors.textMuted,
@@ -1125,7 +1125,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   menuItemText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     fontWeight: "600",
     color: appTheme.colors.textPrimary,
@@ -1144,7 +1144,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   reportTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -1152,7 +1152,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   reportSubtitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textMuted,
     marginBottom: 16,
@@ -1176,7 +1176,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.dangerLight,
   },
   reasonChipText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     fontWeight: "600",
     color: appTheme.colors.textSecondary,
@@ -1192,11 +1192,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: appTheme.colors.textPrimary,
     minHeight: 100,
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     backgroundColor: appTheme.colors.background,
   },
   reportCharCount: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textMuted,
     textAlign: "right",
@@ -1213,7 +1213,7 @@ const styles = StyleSheet.create({
   },
   reportSubmitBtnText: {
     color: appTheme.colors.surface,
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     fontWeight: "700",
   },
@@ -1223,7 +1223,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   reportCancelBtnText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     fontWeight: "600",
     color: appTheme.colors.textMuted,

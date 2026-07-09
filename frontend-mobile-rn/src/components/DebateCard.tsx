@@ -43,16 +43,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.bodySemiBold,
     fontSize: 15,
-    fontWeight: "600",
     color: appTheme.colors.textPrimary,
     marginBottom: 4,
-    lineHeight: 20,
   },
   meta: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
+    ...appTheme.typography.micro,
     color: appTheme.colors.textMuted,
   },
 });

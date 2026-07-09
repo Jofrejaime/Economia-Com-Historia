@@ -146,25 +146,24 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.border,
   },
   avatarFallbackText: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.body,
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.primary,
     fontWeight: "700",
-    fontSize: 16,
   },
   profileDetails: {
     flex: 1,
   },
   profileName: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.body,
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.textPrimary,
-    fontSize: 16,
     fontWeight: "700",
     marginBottom: 4,
   },
   profileUsername: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.caption,
     color: appTheme.colors.textSecondary,
-    fontSize: 14,
   },
   addButton: {
     flexDirection: "row",
@@ -181,9 +180,8 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.successLight,
   },
   addButtonText: {
+    ...appTheme.typography.labelBold,
     color: appTheme.colors.primary,
-    fontSize: 14,
-    fontWeight: "700",
     marginLeft: 8,
   },
   addedButtonText: {
@@ -195,18 +193,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.titleSmall,
     marginTop: 14,
-    fontSize: 17,
-    fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   emptySubtitle: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.caption,
     marginTop: 8,
     color: appTheme.colors.textSecondary,
-    fontSize: 14,
     textAlign: "center",
-    lineHeight: 20,
   },
 });

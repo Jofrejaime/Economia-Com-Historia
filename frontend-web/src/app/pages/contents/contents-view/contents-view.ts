@@ -218,6 +218,17 @@ export class ContentsViewComponent implements OnInit {
     return this.doc?.media_url ?? this.doc?.pdf_url ?? null;
   }
 
+  /**
+   * Divide o conteúdo em parágrafos (por linhas em branco ou quebras simples),
+   * para leitura com separação real de parágrafos em vez de um bloco único.
+   */
+  get contentParagraphs(): string[] {
+    return (this.doc?.content ?? '')
+      .split(/\n{2,}|\r?\n/)
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
+  }
+
   // ─── Acções sobre o documento (já existentes) ─────────────────────────────
 
   async toggleLike(): Promise<void> {

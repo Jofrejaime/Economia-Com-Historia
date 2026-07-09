@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   ScrollView,
   View,
@@ -280,19 +280,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   appTitle: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 22,
     fontWeight: '700',
     color: appTheme.colors.surface,
     lineHeight: 28,
   },
   appSubtitle: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 14,
     color: 'rgba(255,255,255,0.7)',
   },
   headerLead: {
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: 'rgba(255,255,255,0.9)',
     lineHeight: 22,
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 11,
     fontWeight: '700',
     color: appTheme.colors.textMuted,
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   smallSectionTitle: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 11,
     fontWeight: '700',
     color: appTheme.colors.textMuted,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.pill,
   },
   tagIntermédioText: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 11,
     fontWeight: '500',
     color: appTheme.colors.badgeYellowText,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.pill,
   },
   tagJindungoText: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 11,
     fontWeight: '500',
     color: appTheme.colors.surface,
@@ -384,14 +384,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   featuredTitle: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: '700',
     color: appTheme.colors.surface,
     marginBottom: 8,
   },
   featuredDesc: {
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: 'rgba(255,255,255,0.9)',
     marginBottom: 12,
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   metaText: {
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     color: 'rgba(255,255,255,0.8)',
   },
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
   },
   readButtonText: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
     fontWeight: '600',
     fontSize: 14,
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   recentTitle: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 11,
     fontWeight: '700',
     color: appTheme.colors.textMuted,
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   seeAll: {
     color: appTheme.colors.primary,
     fontSize: 14,
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
   },
   debateButton: {
     width: '100%',
@@ -454,13 +454,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   debateButtonText: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.textSecondary,
     fontWeight: '600',
     fontSize: 14,
   },
   rankingTitle: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 28,
     fontWeight: '700',
     color: appTheme.colors.textPrimary,
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rankNumberTextFirst: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 20,
     fontWeight: '700',
     color: appTheme.colors.surface,
@@ -503,20 +503,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarEmoji: {
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 28,
   },
   rankInfo: {
     flex: 1,
   },
   rankNameFirst: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontWeight: '700',
     fontSize: 16,
     color: appTheme.colors.surface,
   },
   rankTitleFirst: {
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: 'rgba(255,255,255,0.8)',
   },
@@ -524,13 +524,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   rankPointsValueFirst: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 20,
     fontWeight: '700',
     color: appTheme.colors.surface,
   },
   rankPointsLabelFirst: {
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: 'rgba(255,255,255,0.7)',
   },
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rankNumberText: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: '700',
     color: appTheme.colors.rankingCardGray,
@@ -568,19 +568,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarInitials: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: '700',
     color: appTheme.colors.primary,
   },
   rankName: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontWeight: '700',
     fontSize: 16,
     color: appTheme.colors.textPrimary,
   },
   rankTitle: {
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.rankingCardGray,
   },
@@ -588,13 +588,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   rankPointsValue: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 20,
     fontWeight: '700',
     color: appTheme.colors.textSecondary,
   },
   rankPointsLabel: {
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textMuted,
   },
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   rankingButtonText: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 15,
     fontWeight: '700',
     color: appTheme.colors.textSecondary,
@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaTitle: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 22,
     fontWeight: '700',
     color: appTheme.colors.surface,
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   ctaSubtitle: {
-    fontFamily: 'Source_Sans_3',
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   ctaRegisterText: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.primary,
     fontWeight: '700',
     fontSize: 16,
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
   },
   ctaLoginText: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
     fontWeight: '600',
     fontSize: 16,

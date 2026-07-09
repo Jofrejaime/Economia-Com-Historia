@@ -1192,8 +1192,8 @@ class CommunityController extends Controller
                 $this->notificationService->send(
                     $topic->author,
                     'topic_reply',
-                    'New reply on your topic',
-                    "Someone replied to your topic: {$topic->title}",
+                    'Nova resposta no seu tópico',
+                    "Alguém respondeu ao seu tópico: {$topic->title}",
                     $reply->id,
                     'topic_reply'
                 );
@@ -1580,8 +1580,8 @@ class CommunityController extends Controller
             $this->notificationService->send(
                 $reply->author,
                 'reply_accepted',
-                'Your reply was accepted',
-                "Your reply was marked as accepted on topic: {$topic->title}",
+                'A sua resposta foi aceite',
+                "A sua resposta foi marcada como aceite no tópico: {$topic->title}",
                 $reply->id,
                 'topic_reply'
             );

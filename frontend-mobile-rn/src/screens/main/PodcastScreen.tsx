@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   trackTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 22,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   trackNarrator: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textSecondary,
   },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   timeText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     fontWeight: "600",
     color: appTheme.colors.textMuted,
@@ -307,13 +307,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   speedText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   secondaryBtnLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 10,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   transcriptLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   transcriptActiveText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 17,
     color: appTheme.colors.textPrimary,
     lineHeight: 26,
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   transcriptInactiveText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 17,
     color: appTheme.colors.textMuted,
     lineHeight: 26,
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
   },
   activitiesLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.textMuted,
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.textPrimary,
   },
   activityButtonText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.surface,
     fontSize: 15,
     fontWeight: "600",

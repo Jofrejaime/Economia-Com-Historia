@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+﻿import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.lg,
   },
   sectionLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.sm,
   },
   title: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 32,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   description: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: appTheme.typography.body.fontSize,
     color: appTheme.colors.textSecondary,
     lineHeight: appTheme.typography.body.lineHeight,
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   filterLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     fontWeight: "700",
   },
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   avatarText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontWeight: "700",
   },
   avatarTextPinned: {
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   badgeText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontWeight: "700",
     fontSize: 11,
   },
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.background,
   },
   cardTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   cardDescription: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     marginBottom: appTheme.spacing.sm,
     lineHeight: 22,
@@ -414,13 +414,13 @@ const styles = StyleSheet.create({
     paddingTop: appTheme.spacing.sm,
   },
   authorText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textMuted,
     fontSize: appTheme.typography.caption.fontSize,
     flex: 1,
   },
   authorName: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     fontWeight: "700",
   },
@@ -435,13 +435,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   statText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     fontWeight: "700",
     fontSize: 13,
   },
   resultsCount: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textMuted,
     marginBottom: appTheme.spacing.md,
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   emptyStateText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textMuted,
   },
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.xl,
   },
   viewMoreLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     fontWeight: "700",
     color: appTheme.colors.primary,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   // States
   centerWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32 },
   errorTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 17,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   errorSub: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textMuted,
     textAlign: "center",
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
   },
   retryBtnText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
     fontWeight: "700",
     fontSize: 14,
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   levelUpTitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   levelUpDesc: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 15,
     fontWeight: "700",
     color: appTheme.colors.primaryDark,
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   badgesSectionTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 15,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   badgeName: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -396,14 +396,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 28,
     fontWeight: "700",
     color: appTheme.colors.primary,
     marginBottom: 4,
   },
   heroQuizTitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     marginBottom: 20,
@@ -422,14 +422,14 @@ const styles = StyleSheet.create({
   },
   scoreInnerCircle: { alignItems: "center" },
   scoreValue: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 34,
     fontWeight: "700",
     color: appTheme.colors.primary,
     lineHeight: 36,
   },
   scoreLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 9,
     fontWeight: "700",
     color: appTheme.colors.primaryDark,
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.primary,
   },
   statValue: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -465,19 +465,19 @@ const styles = StyleSheet.create({
   },
   statValueLight: { color: appTheme.colors.surface },
   statDesc: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textMuted,
     textAlign: "center",
   },
   statDescLight: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.progressBackground,
     textAlign: "center",
   },
   statBonus: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 10,
     fontWeight: "700",
     color: appTheme.colors.success,
@@ -500,12 +500,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   breakdownLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textSecondary,
   },
   breakdownValue: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 13,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   primaryBtnText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.surface,
     fontSize: 15,
     fontWeight: "700",
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   secondaryBtnText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.primary,
     fontSize: 15,
     fontWeight: "700",
@@ -566,13 +566,13 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   relatedTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   relatedSub: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textMuted,
     marginBottom: 16,
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   },
   docCardLeft: { flex: 1 },
   docType: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   docTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 15,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   docAuthor: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     color: appTheme.colors.textMuted,
   },

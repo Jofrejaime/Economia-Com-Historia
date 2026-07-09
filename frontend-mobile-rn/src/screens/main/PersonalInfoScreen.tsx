@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   subtitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textSecondary,
     marginBottom: 24,
@@ -182,14 +182,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   readOnlyLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     fontWeight: "600",
     color: appTheme.colors.textSecondary,
     marginBottom: 4,
   },
   readOnlyValue: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textPrimary,
     backgroundColor: appTheme.colors.background,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   readOnlyHint: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textMuted,
     marginTop: 4,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   fieldLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     fontWeight: "600",
     color: appTheme.colors.textSecondary,
@@ -231,12 +231,12 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
   },
   selectValue: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textPrimary,
   },
   selectPlaceholder: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textMuted,
   },
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveButtonText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 17,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.debateHighlightBg,
   },
   modalOptionText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textPrimary,
   },

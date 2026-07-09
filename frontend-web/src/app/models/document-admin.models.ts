@@ -23,6 +23,8 @@ export interface DocumentCategory {
   color_bg?: string | null;
   color_text?: string | null;
   sort_order?: number;
+  // Categoria restrita → os seus documentos exigem subscrição por-documento.
+  requires_subscription?: boolean;
 }
 
 export interface Document {

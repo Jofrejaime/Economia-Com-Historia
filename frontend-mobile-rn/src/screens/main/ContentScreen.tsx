@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+﻿import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   searchIcon: { marginRight: 8 },
   searchInput: {
     flex: 1,
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textPrimary,
     // @ts-ignore
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.primary,
   },
   filterButtonText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     fontWeight: "600",
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   filterBadgeText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     borderBottomColor: appTheme.colors.border,
   },
   filterLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     fontWeight: "700",
     color: appTheme.colors.textSecondary,
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.primary,
   },
   chipText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textSecondary,
     fontWeight: "500",
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   resultsCount: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textMuted,
     marginTop: 12,
@@ -443,10 +443,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
   },
   emptyStateText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textMuted,
     textAlign: "center",
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.primary,
   },
   clearFiltersText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.primary,
     fontWeight: "600",

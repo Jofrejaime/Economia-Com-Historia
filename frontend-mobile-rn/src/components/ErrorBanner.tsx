@@ -47,10 +47,8 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    fontFamily: "Source_Sans_3",
-    fontSize: 14,
+    ...appTheme.typography.caption,
     color: appTheme.colors.danger,
-    lineHeight: 20,
   },
   dismiss: {
     marginTop: 1,

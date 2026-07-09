@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+﻿import React, { useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     borderBottomColor: appTheme.colors.border,
   },
   unreadLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     fontWeight: "600",
     color: appTheme.colors.textSecondary,
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   markAllText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   cardTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 15,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -256,14 +256,14 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   cardBody: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.rankingCardGray,
     lineHeight: 18,
     marginBottom: 8,
   },
   cardTime: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textMuted,
   },
@@ -274,20 +274,20 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   emptyText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textMuted,
     textAlign: "center",
     lineHeight: 22,
   },
   footerText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     textAlign: "center",
     color: appTheme.colors.textMuted,
     fontSize: 13,

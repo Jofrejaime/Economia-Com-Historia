@@ -277,13 +277,13 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   metaTypeLabel: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 0.5,
   },
   metaCategoryLabel: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 10,
     fontWeight: "600",
     letterSpacing: 0.4,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   metaSep: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 10,
     color: appTheme.colors.border,
     lineHeight: 14,
@@ -318,15 +318,12 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   compactTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 14,
-    fontWeight: "600",
+    ...appTheme.typography.labelBold,
     color: appTheme.colors.textPrimary,
     lineHeight: 18,
   },
   compactMeta: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
+    ...appTheme.typography.micro,
     color: appTheme.colors.textMuted,
   },
 
@@ -347,17 +344,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   listTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.bodySemiBold,
     fontSize: 15,
-    fontWeight: "600",
     color: appTheme.colors.textPrimary,
-    lineHeight: 20,
   },
   listSummary: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.caption,
     fontSize: 13,
     color: appTheme.colors.textSecondary,
-    lineHeight: 18,
   },
   listFooter: {
     flexDirection: "row",
@@ -366,14 +360,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   listAuthor: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
+    ...appTheme.typography.micro,
     color: appTheme.colors.textMuted,
     flex: 1,
   },
   listDate: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 11,
+    ...appTheme.typography.tiny,
     color: appTheme.colors.textMuted,
   },
 
@@ -400,17 +392,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   heroTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
-    fontWeight: "700",
+    ...appTheme.typography.titleSmall,
     color: appTheme.colors.surface,
-    lineHeight: 24,
   },
   heroStatText: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
+    ...appTheme.typography.microSemiBold,
     color: "rgba(255,255,255,0.8)",
-    fontWeight: "600",
   },
 
   // ── Shared ────────────────────────────────────────────────────────────────
@@ -425,8 +412,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   statText: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 11,
+    ...appTheme.typography.tiny,
     color: appTheme.colors.textMuted,
     fontWeight: "600",
   },

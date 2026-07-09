@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+﻿import React, { useState, useCallback } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.background,
   },
   avatarInitials: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 40,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   userName: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 26,
     fontWeight: "700",
     color: appTheme.colors.primaryDark,
@@ -387,13 +387,13 @@ const styles = StyleSheet.create({
     lineHeight: 32,
   },
   userOccupation: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textSecondary,
     textAlign: "center",
   },
   userProvince: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textMuted,
     textAlign: "center",
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.pill,
   },
   pillBadgeText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 10,
     fontWeight: "700",
     color: appTheme.colors.primaryDark,
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     ...appTheme.shadow.sm,
   },
   bentoCardLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 1.2,
@@ -436,21 +436,21 @@ const styles = StyleSheet.create({
   },
   scoreCard: { backgroundColor: appTheme.colors.badgeLightBg },
   scoreValue: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 32,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     letterSpacing: -1.2,
   },
   scoreMeta: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textSecondary,
     marginTop: 4,
   },
   quizCard: {},
   quizValue: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 32,
     fontWeight: "700",
     letterSpacing: -1.2,
@@ -468,14 +468,14 @@ const styles = StyleSheet.create({
   },
   rankCard: { backgroundColor: appTheme.colors.badgeLightBg },
   rankValue: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 32,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     letterSpacing: -1.2,
   },
   rankMeta: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textSecondary,
     marginTop: 4,
@@ -491,14 +491,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     letterSpacing: -0.5,
   },
   seeAllText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     fontWeight: "700",
     color: appTheme.colors.primaryDark,
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   meritLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 10,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -562,14 +562,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   settingsItemTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     marginBottom: 2,
   },
   settingsItemDesc: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textSecondary,
   },
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   },
   logoutIcon: { marginRight: 16 },
   logoutText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.danger,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   subtitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textSecondary,
     marginBottom: 24,
@@ -131,14 +131,14 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   preferenceTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 15,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     marginBottom: 2,
   },
   preferenceDesc: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.rankingCardGray,
   },

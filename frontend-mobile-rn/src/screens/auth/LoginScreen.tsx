@@ -261,19 +261,14 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   title: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.heading,
     color: appTheme.colors.textPrimary,
-    fontSize: 26,
-    fontWeight: "700",
     marginBottom: 8,
-    letterSpacing: -0.5,
   },
   subtitle: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.body,
     color: appTheme.colors.textSecondary,
-    fontSize: 16,
     marginBottom: 32,
-    lineHeight: 22,
   },
   forgotRow: {
     alignItems: "flex-end",
@@ -281,10 +276,8 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
   forgotText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.label,
     color: appTheme.colors.primary,
-    fontSize: 14,
-    fontWeight: "600",
   },
   submitButton: {
     minHeight: 52,
@@ -297,9 +290,9 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.rankingCardSecondary,
   },
   submitLabel: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.body,
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
-    fontSize: 16,
     fontWeight: "700",
   },
   submitLabelDisabled: {
@@ -312,14 +305,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   registerText: {
-    fontFamily: "Source_Sans_3",
-    color: appTheme.colors.textSecondary,
+    ...appTheme.typography.body,
     fontSize: 15,
+    color: appTheme.colors.textSecondary,
   },
   registerLink: {
-    fontFamily: "Source_Sans_3",
-    color: appTheme.colors.primary,
+    ...appTheme.typography.body,
     fontSize: 15,
+    color: appTheme.colors.primary,
     fontWeight: "700",
   },
   pressed: {
@@ -350,9 +343,7 @@ const styles = StyleSheet.create({
     borderBottomColor: appTheme.colors.border,
   },
   modalTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
-    fontWeight: "700",
+    ...appTheme.typography.titleSmall,
     color: appTheme.colors.textPrimary,
   },
   modalCloseButton: {
@@ -363,10 +354,8 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   modalDescription: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 14,
+    ...appTheme.typography.caption,
     color: appTheme.colors.textSecondary,
-    lineHeight: 20,
     marginBottom: 20,
   },
   modalEmailHighlight: {
@@ -382,9 +371,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   modalSubmitLabel: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.body,
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
-    fontSize: 16,
     fontWeight: "700",
   },
   modalSecondaryButton: {
@@ -394,9 +383,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   modalSecondaryLabel: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.caption,
     color: appTheme.colors.textMuted,
-    fontSize: 14,
     fontWeight: "600",
   },
 });

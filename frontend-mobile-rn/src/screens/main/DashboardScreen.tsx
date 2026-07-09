@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+﻿import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -387,22 +387,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greeting: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 14,
+    ...appTheme.typography.caption,
     color: appTheme.colors.textMuted,
-    lineHeight: 22,
   },
   userName: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 20,
-    fontWeight: "700",
+    ...appTheme.typography.title,
     color: appTheme.colors.textPrimary,
-    letterSpacing: -0.4,
     marginVertical: 4,
   },
   date: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
+    ...appTheme.typography.micro,
     color: appTheme.colors.textMuted,
   },
   notificationBell: {
@@ -424,9 +418,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   badgeText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.tiny,
     color: appTheme.colors.surface,
-    fontSize: 11,
     fontWeight: "700",
   },
   searchBar: {
@@ -449,7 +442,7 @@ const styles = StyleSheet.create({
     height: "100%",
     fontSize: 15,
     color: appTheme.colors.textPrimary,
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     // @ts-ignore — remove focus outline on web/new arch
     outlineWidth: 0,
     // @ts-ignore
@@ -464,26 +457,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
-    fontWeight: "700",
+    ...appTheme.typography.titleSmall,
     color: appTheme.colors.textPrimary,
-    letterSpacing: -0.36,
     marginLeft: 8,
   },
   sectionSubTitle: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 14,
+    ...appTheme.typography.caption,
     color: appTheme.colors.textSecondary,
-    lineHeight: 22,
     marginBottom: 16,
   },
   mediaSectionTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 18,
-    fontWeight: "700",
+    ...appTheme.typography.titleSmall,
     color: appTheme.colors.textPrimary,
-    letterSpacing: -0.36,
     marginBottom: 4,
   },
   recentHeader: {
@@ -498,9 +483,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   seeAllText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.caption,
     color: appTheme.colors.primary,
-    fontSize: 14,
     fontWeight: "600",
   },
   // Jindungo cards
@@ -531,32 +515,27 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   jindungoBadgeText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.tiny,
     color: appTheme.colors.surface,
-    fontSize: 10,
     fontWeight: "700",
     letterSpacing: 0.5,
   },
   jindungoCategoryText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.micro,
     color: "rgba(255,255,255,0.6)",
-    fontSize: 12,
-    lineHeight: 18,
   },
   jindungoCardTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 16,
     fontWeight: "700",
     color: appTheme.colors.surface,
-    lineHeight: 20,
     letterSpacing: -0.3,
     marginBottom: 6,
   },
   jindungoCardDesc: {
-    fontFamily: "Source_Sans_3",
-    color: "rgba(255,255,255,0.7)",
+    ...appTheme.typography.caption,
     fontSize: 13,
-    lineHeight: 22,
+    color: "rgba(255,255,255,0.7)",
     marginBottom: 12,
   },
   jindungoMeta: {
@@ -565,9 +544,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   jindungoMetaText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.micro,
     color: "rgba(255,255,255,0.5)",
-    fontSize: 12,
   },
   exploreButtonOuter: {
     marginTop: 8,
@@ -581,20 +559,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   exploreButtonText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.micro,
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.surface,
     fontWeight: "600",
-    fontSize: 14,
     letterSpacing: 0.2,
   },
   // Ranking
   rankingHeaderTitle: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 24,
-    fontWeight: "700",
+    ...appTheme.typography.subheading,
     color: appTheme.colors.textPrimary,
-    letterSpacing: -0.48,
-    lineHeight: 31,
     marginBottom: 4,
   },
   rankingItem: {
@@ -667,26 +641,24 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   userNameText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 16,
     fontWeight: "700",
   },
   userRoleText: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
+    ...appTheme.typography.micro,
     marginTop: 2,
   },
   pointsContainer: {
     alignItems: "flex-end",
   },
   pointsNumberText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
   },
   pointsLabelText: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 10,
+    ...appTheme.typography.tiny,
   },
   rankingFullButton: {
     flexDirection: "row",
@@ -699,10 +671,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   rankingFullButtonText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.micro,
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     fontWeight: "600",
-    fontSize: 14,
   },
   compactSkeleton: {
     flexDirection: "row",

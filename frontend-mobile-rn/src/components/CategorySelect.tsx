@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Modal,
@@ -143,14 +143,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   controlLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textMuted,
     fontSize: 13,
     marginBottom: 4,
     fontWeight: "600",
   },
   controlValue: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     fontSize: 16,
     fontWeight: "600",
@@ -178,14 +178,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.textPrimary,
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 4,
   },
   modalSubtitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     fontSize: 14,
     lineHeight: 20,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.lg,
   },
   groupTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.primary,
     fontSize: 13,
     fontWeight: "700",
@@ -217,13 +217,13 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.border,
   },
   optionLabel: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.textPrimary,
     fontSize: 15,
     fontWeight: "700",
   },
   optionDescription: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     marginTop: 4,
     color: appTheme.colors.textSecondary,
     fontSize: 13,

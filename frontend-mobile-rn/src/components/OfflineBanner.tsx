@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNetwork } from "../context/NetworkContext";
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     marginHorizontal: -appTheme.spacing.md,
   },
   text: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     color: appTheme.colors.surface,
     fontWeight: "600",

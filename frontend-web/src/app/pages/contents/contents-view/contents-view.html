@@ -125,8 +125,8 @@
           <div class="contents-view-main-content">
 
             <section class="contents-view-section">
-              <h2 class="contents-view-section-title">Resumo Executivo</h2>
-              <p class="contents-view-section-text">{{ doc.summary }}</p>
+              <h2 class="contents-view-section-title">Resumo</h2>
+              <p class="contents-view-summary">{{ doc.summary }}</p>
             </section>
 
             <!-- Conteúdo — renderização condicional por tipo de media -->
@@ -134,22 +134,30 @@
               <h2 class="contents-view-section-title">Conteúdo</h2>
 
               <!-- TEXT -->
-              <p *ngIf="mediaKind === 'text' && doc.content" class="contents-view-section-text" style="white-space: pre-line;">{{ doc.content }}</p>
+              <ng-container *ngIf="mediaKind === 'text'">
+                <p *ngFor="let p of contentParagraphs" class="contents-view-section-text contents-view-para">{{ p }}</p>
+              </ng-container>
 
               <!-- IMAGE (já mostrada no hero; mostra descrição se existir conteúdo textual associado) -->
-              <p *ngIf="mediaKind === 'image' && doc.content" class="contents-view-section-text" style="white-space: pre-line;">{{ doc.content }}</p>
+              <ng-container *ngIf="mediaKind === 'image'">
+                <p *ngFor="let p of contentParagraphs" class="contents-view-section-text contents-view-para">{{ p }}</p>
+              </ng-container>
 
-              <!-- AUDIO -->
+              <!-- AUDIO (podcast) -->
               <div *ngIf="mediaKind === 'audio' && mediaUrl" style="background:#F5F5F5;border-radius:8px;padding:24px;">
                 <audio [src]="mediaUrl" controls style="width:100%;"></audio>
-                <p *ngIf="doc.content" class="contents-view-section-text" style="margin-top:16px;white-space: pre-line;">{{ doc.content }}</p>
               </div>
+              <ng-container *ngIf="mediaKind === 'audio'">
+                <p *ngFor="let p of contentParagraphs" class="contents-view-section-text contents-view-para" style="margin-top:16px;">{{ p }}</p>
+              </ng-container>
 
               <!-- VIDEO -->
               <div *ngIf="mediaKind === 'video' && mediaUrl" style="background:#000;border-radius:8px;overflow:hidden;">
                 <video [src]="mediaUrl" controls style="width:100%;display:block;"></video>
               </div>
-              <p *ngIf="mediaKind === 'video' && doc.content" class="contents-view-section-text" style="margin-top:16px;white-space: pre-line;">{{ doc.content }}</p>
+              <ng-container *ngIf="mediaKind === 'video'">
+                <p *ngFor="let p of contentParagraphs" class="contents-view-section-text contents-view-para" style="margin-top:16px;">{{ p }}</p>
+              </ng-container>
 
               <!-- PDF -->
               <div *ngIf="mediaKind === 'pdf' && mediaUrl" style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">

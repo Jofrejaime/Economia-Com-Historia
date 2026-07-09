@@ -40,10 +40,8 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.primary,
   },
   text: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.label,
     color: appTheme.colors.textSecondary,
-    fontSize: 14,
-    fontWeight: "600",
   },
   textSelected: {
     color: appTheme.colors.primary,

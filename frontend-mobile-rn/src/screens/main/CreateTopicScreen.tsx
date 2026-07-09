@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -381,14 +381,14 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   introTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 32,
     fontWeight: "700",
     color: appTheme.colors.primary,
     marginBottom: 12,
   },
   introDesc: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textSecondary,
     lineHeight: 24,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   sectionTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   inputLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     fontWeight: "600",
     color: appTheme.colors.textSecondary,
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     color: appTheme.colors.textPrimary,
     fontSize: 16,
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
   },
   inputFocused: {
     borderColor: appTheme.colors.primary,
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.debateHighlightBg,
   },
   accessCardTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textSecondary,
@@ -460,12 +460,12 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primary,
   },
   accessCardDesc: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textMuted,
   },
   membersHint: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textMuted,
     marginBottom: 8,
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   membersWarningText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.badgeYellowText,
     flex: 1,
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   memberChipText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     fontWeight: "600",
     color: appTheme.colors.primary,
@@ -542,13 +542,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   selectFieldText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textPrimary,
     flex: 1,
   },
   selectPlaceholder: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textMuted,
     flex: 1,
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 17,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   modalOptionText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     fontWeight: "600",
     color: appTheme.colors.textPrimary,
@@ -618,13 +618,13 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primary,
   },
   modalOptionDesc: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     color: appTheme.colors.textMuted,
     marginTop: 2,
   },
   categoryEmptyText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textMuted,
     paddingHorizontal: 20,
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   publishBtnText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
     fontSize: 17,
     fontWeight: "700",
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   cancelBtnText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.primary,
     fontSize: 14,
     fontWeight: "600",

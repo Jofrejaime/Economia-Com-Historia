@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   StyleSheet,
   Text,
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   feedbackLabel: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.success,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   statusTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 38,
     fontWeight: "700",
   },
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primaryDark,
   },
   explanationText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textSecondary,
     lineHeight: 24,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     ...appTheme.shadow.md,
   },
   nextBtnLabel: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",

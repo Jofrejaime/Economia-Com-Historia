@@ -65,10 +65,8 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   label: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.bodySemiBold,
     color: appTheme.colors.surface,
-    fontSize: appTheme.typography.body.fontSize,
-    fontWeight: "600",
     letterSpacing: 0.2,
   },
   labelSecondary: {

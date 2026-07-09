@@ -981,3 +981,11 @@ textarea.form-input {
   color: #8B1E2D;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
+
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6B7280;
+  line-height: 1.4;
+}

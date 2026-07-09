@@ -21,6 +21,8 @@ interface CategoryFormState {
   cover_image_url: string | null;
   is_active: boolean;
   sort_order: number;
+  // Só para categorias de documentos: restrita = exige subscrição.
+  requires_subscription: boolean;
 }
 
 @Component({
@@ -161,6 +163,7 @@ export class CategoriesPageComponent implements OnInit {
       cover_image_url: category.cover_image_url || null,
       is_active: category.is_active ?? true,
       sort_order: category.sort_order || 0,
+      requires_subscription: category.requires_subscription ?? false,
     };
     this.showCategoryModal = true;
     this.errorMessage = null;
@@ -216,6 +219,7 @@ export class CategoriesPageComponent implements OnInit {
       color_text: this.categoryForm.color_text,
       icon: this.categoryForm.icon,
       sort_order: this.categoryForm.sort_order,
+      requires_subscription: this.categoryForm.requires_subscription,
     };
 
     return firstValueFrom(
@@ -281,6 +285,7 @@ export class CategoriesPageComponent implements OnInit {
       cover_image_url: null,
       is_active: true,
       sort_order: 0,
+      requires_subscription: false,
     };
   }
 

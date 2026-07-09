@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   text: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontWeight: "700",
     letterSpacing: 0.4,
   },

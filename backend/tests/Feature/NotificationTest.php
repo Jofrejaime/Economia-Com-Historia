@@ -306,7 +306,7 @@ class NotificationTest extends TestCase
         $this->assertDatabaseHas('notifications', [
             'user_id' => $this->admin->id,
             'type' => 'topic_reply',
-            'title' => 'New reply on your topic',
+            'title' => 'Nova resposta no seu tópico',
         ]);
     }
 
@@ -356,7 +356,7 @@ class NotificationTest extends TestCase
         $this->assertDatabaseHas('notifications', [
             'user_id' => $this->user->id,
             'type' => 'reply_accepted',
-            'title' => 'Your reply was accepted',
+            'title' => 'A sua resposta foi aceite',
         ]);
     }
 

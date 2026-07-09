@@ -55,43 +55,24 @@
             </div>
           </div>
 
-          <!-- Level -->
+          <!-- Tipo de conteúdo (Texto / Vídeo / Podcast) -->
           <div class="contents-filter-group">
-            <label class="contents-filter-label">Nível</label>
+            <label class="contents-filter-label">Tipo de conteúdo</label>
             <div class="contents-filter-dropdown">
-              <button (click)="toggleLevelDropdown()" class="contents-filter-btn">
-                <span>{{ getSelectedLevelLabel() }}</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" [class.rotated]="showLevelDropdown">
+              <button (click)="toggleMediaTypeDropdown()" class="contents-filter-btn">
+                <span>{{ getSelectedMediaTypeLabel() }}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" [class.rotated]="showMediaTypeDropdown">
                   <polyline points="6 9 12 15 18 9"/>
                 </svg>
               </button>
-              <div *ngIf="showLevelDropdown" class="contents-filter-dropdown-menu">
-                <button *ngFor="let level of levels" (click)="selectLevel(level.id)" 
-                        class="contents-filter-option" [class.selected]="selectedLevel === level.id">
-                  {{ level.label }}
+              <div *ngIf="showMediaTypeDropdown" class="contents-filter-dropdown-menu">
+                <button *ngFor="let media of mediaTypes" (click)="selectMediaType(media.id)"
+                        class="contents-filter-option" [class.selected]="isMediaTypeSelected(media.id)">
+                  {{ media.label }}
                 </button>
               </div>
             </div>
           </div>
-
-          <!-- Format (Tipo de Documento) -->
-<div class="contents-filter-group">
-  <label class="contents-filter-label">Tipo de Documento</label>
-  <div class="contents-filter-dropdown">
-    <button (click)="toggleFormatDropdown()" class="contents-filter-btn">
-      <span>{{ getSelectedFormatLabel() }}</span>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" [class.rotated]="showFormatDropdown">
-        <polyline points="6 9 12 15 18 9"/>
-      </svg>
-    </button>
-    <div *ngIf="showFormatDropdown" class="contents-filter-dropdown-menu">
-      <button *ngFor="let format of formats" (click)="selectFormat(format.id)" 
-              class="contents-filter-option" [class.selected]="isFormatSelected(format.id)">
-        {{ format.label }}
-      </button>
-    </div>
-  </div>
-</div>
 
           <!-- Clear Filters -->
           <button class="contents-filters-clear" (click)="clearFilters()">

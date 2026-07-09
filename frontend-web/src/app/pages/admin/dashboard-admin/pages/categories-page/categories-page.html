@@ -105,6 +105,11 @@
         <div class="stat-item">
           <span>Ordem: {{ cat.sort_order || 0 }}</span>
         </div>
+        <div class="stat-item" *ngIf="!isForum">
+          <span [style.color]="cat.requires_subscription ? '#B45309' : '#0F766E'">
+            {{ cat.requires_subscription ? '🔒 Restrita' : 'Pública' }}
+          </span>
+        </div>
         <div class="stat-item" *ngIf="isForum">
           <span>{{ cat.topics_count || 0 }} tópicos</span>
         </div>
@@ -184,6 +189,16 @@
               <option [ngValue]="false">Inativa</option>
             </select>
           </div>
+        </div>
+
+        <!-- Documentos: acesso (pública vs restrita/subscrição) -->
+        <div class="form-group" *ngIf="!isForum">
+          <label>Acesso</label>
+          <select [(ngModel)]="categoryForm.requires_subscription" class="form-input">
+            <option [ngValue]="false">Pública — acesso livre a todos</option>
+            <option [ngValue]="true">Restrita — os documentos exigem subscrição</option>
+          </select>
+          <small class="field-hint">Numa categoria restrita, cada documento é desbloqueado individualmente por subscrição (aprovada por um admin).</small>
         </div>
 
         <!-- Fórum: imagem de capa (upload via MediaService) -->

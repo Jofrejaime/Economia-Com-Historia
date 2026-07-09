@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+﻿import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   tabText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     fontWeight: "600",
     color: appTheme.colors.textSecondary,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.success,
   },
   filterChipText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textSecondary,
     fontWeight: "500",
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   completedBadgeText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     fontWeight: "700",
     color: appTheme.colors.success,
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   resultsCount: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textMuted,
     marginBottom: 8,
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   quizCategory: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     fontWeight: "600",
     color: appTheme.colors.primary,
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   diffBadgeText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     fontWeight: "700",
   },
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   featuredText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.warning,
     fontWeight: "600",
@@ -501,17 +501,17 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textPrimary,
     lineHeight: 22,
     marginBottom: 4,
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
   },
   quizModule: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.primary,
     fontWeight: "600",
     marginBottom: 4,
   },
   quizDesc: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     color: appTheme.colors.textSecondary,
     lineHeight: 18,
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   quizStatText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     color: appTheme.colors.textMuted,
   },
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
   },
   startBtnText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.surface,
     fontWeight: "600",
     fontSize: 14,
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   rankNumber: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.textSecondary,
@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   rankAvatarText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.primary,
@@ -604,13 +604,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rankName: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 15,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   rankProvince: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     color: appTheme.colors.textMuted,
     marginTop: 2,
@@ -619,13 +619,13 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   rankPointsValue: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 16,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
   },
   rankPointsLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 10,
     color: appTheme.colors.textMuted,
   },
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyStateText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textMuted,
   },
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   errorStateTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 17,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   errorStateSub: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textMuted,
     textAlign: "center",
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   retryBtnText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
     fontWeight: "700",
     fontSize: 14,

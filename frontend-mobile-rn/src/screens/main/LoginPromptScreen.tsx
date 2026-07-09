@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   contentTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 26,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     lineHeight: 32,
   },
   contentDesc: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textSecondary,
     lineHeight: 24,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     ...appTheme.shadow.sm,
   },
   benefitsTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 16,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   benefitText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     flex: 1,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   primaryButtonText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   secondaryButtonText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     fontSize: 16,
     fontWeight: "600",

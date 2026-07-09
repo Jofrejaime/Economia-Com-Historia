@@ -44,6 +44,15 @@ class NotificationController extends Controller
             ->get()
             ->map(function ($n) {
                 $n->data = isset($n->data) && $n->data !== null ? json_decode($n->data, true) : null;
+                // Normalizar datas para ISO8601 (UTC) — a query crua devolve
+                // strings MySQL ("Y-m-d H:i:s") que o JS interpreta mal em
+                // alguns browsers, gerando "datas irreais".
+                $n->created_at = isset($n->created_at) && $n->created_at !== null
+                    ? \Illuminate\Support\Carbon::parse($n->created_at)->toISOString()
+                    : null;
+                $n->read_at = isset($n->read_at) && $n->read_at !== null
+                    ? \Illuminate\Support\Carbon::parse($n->read_at)->toISOString()
+                    : null;
                 return $n;
             });
 

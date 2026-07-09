@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { appTheme } from "../constants/theme";
 import { DevSettings } from "react-native";
@@ -61,20 +61,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 22,
     fontWeight: "700",
     color: appTheme.colors.primary,
     marginBottom: 12,
   },
   message: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textPrimary,
     marginBottom: 8,
   },
   stack: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     color: appTheme.colors.textMuted,
     marginBottom: 20,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   buttonText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: "white",
     fontWeight: "700",
   },
