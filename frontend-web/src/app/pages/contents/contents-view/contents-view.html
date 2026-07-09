@@ -174,6 +174,19 @@
               </p>
             </section>
 
+            <!-- Galeria de fotos (slides) — só quando existem imagens na coleção -->
+            <section class="contents-view-section" *ngIf="galleryImages.length > 0">
+              <h2 class="contents-view-section-title">Galeria</h2>
+              <div class="contents-view-gallery">
+                <button type="button" class="contents-view-gallery-item"
+                        *ngFor="let img of galleryImages; let i = index"
+                        (click)="openLightbox(i)"
+                        [attr.aria-label]="'Ampliar imagem ' + (i + 1)">
+                  <img [src]="img.thumbnail || img.url" [alt]="img.filename || ('Imagem ' + (i + 1))" loading="lazy" />
+                </button>
+              </div>
+            </section>
+
             <section class="contents-view-section" *ngIf="doc.tags && doc.tags.length > 0">
               <h2 class="contents-view-section-title">Temas</h2>
               <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
@@ -236,21 +249,10 @@
                   </div>
                 </div>
 
-                <div class="contents-view-metadata-item">
-                  <div class="contents-view-metadata-label">TIPO DE DOCUMENTO</div>
-                  <div class="contents-view-metadata-value">{{ doc.document_type ?? '—' }}</div>
-                </div>
-
                 <div class="contents-view-metadata-item" *ngIf="doc.record_type">
                   <div class="contents-view-metadata-label">TIPO DE REGISTO</div>
                   <div class="contents-view-metadata-value">{{ doc.record_type }}</div>
                 </div>
-
-                <div class="contents-view-metadata-item">
-                  <div class="contents-view-metadata-label">NÍVEL ACADÉMICO</div>
-                  <div class="contents-view-metadata-value">{{ getAcademicLevelLabel() }}</div>
-                </div>
-
 
                 <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.physical_location">
                   <div class="contents-view-metadata-label">LOCALIZAÇÃO FÍSICA</div>
@@ -410,6 +412,21 @@
           </div>
 
         </div>
+      </div>
+
+      <!-- Lightbox da galeria — ecrã cheio, navegável -->
+      <div class="contents-view-lightbox" *ngIf="lightboxIndex >= 0 && galleryImages[lightboxIndex] as active"
+           (click)="closeLightbox()">
+        <button type="button" class="contents-view-lightbox-close" (click)="closeLightbox()" aria-label="Fechar">&times;</button>
+        <button type="button" class="contents-view-lightbox-nav contents-view-lightbox-prev"
+                *ngIf="galleryImages.length > 1"
+                (click)="$event.stopPropagation(); lightboxPrev()" aria-label="Anterior">&#8249;</button>
+        <img class="contents-view-lightbox-img" [src]="active.url" [alt]="active.filename || 'Imagem'"
+             (click)="$event.stopPropagation()" />
+        <button type="button" class="contents-view-lightbox-nav contents-view-lightbox-next"
+                *ngIf="galleryImages.length > 1"
+                (click)="$event.stopPropagation(); lightboxNext()" aria-label="Seguinte">&#8250;</button>
+        <div class="contents-view-lightbox-counter">{{ lightboxIndex + 1 }} / {{ galleryImages.length }}</div>
       </div>
 
     </ng-container>
