@@ -158,8 +158,8 @@ export function RegisterScreen({ navigation }: Props) {
       >
         {step === 1 ? (
           <>
-            <Text style={styles.title}>Cria a tua conta</Text>
-            <Text style={styles.subtitle}>Preenche os teus dados para começar</Text>
+            <Text style={styles.title}>Crie a sua conta</Text>
+            <Text style={styles.subtitle}>Preencha os seus dados para começar</Text>
 
             <ErrorBanner message={registerError} onDismiss={() => setRegisterError(null)} />
 
@@ -187,7 +187,7 @@ export function RegisterScreen({ navigation }: Props) {
                 validateEmail(text);
                 if (registerError) setRegisterError(null);
               }}
-              placeholder="o.teu@email.com"
+              placeholder="o.seu@email.com"
               error={emailError}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -227,7 +227,7 @@ export function RegisterScreen({ navigation }: Props) {
 
             <View style={styles.termsWrap}>
               <Text style={styles.termsText}>
-                Ao continuar, aceitas os{" "}
+                Ao continuar, aceita os{" "}
                 <Text style={styles.termsLink}>Termos de Uso</Text> e{" "}
                 <Text style={styles.termsLink}>Política de Privacidade</Text>
               </Text>
@@ -235,9 +235,9 @@ export function RegisterScreen({ navigation }: Props) {
           </>
         ) : (
           <>
-            <Text style={styles.title}>O teu perfil</Text>
+            <Text style={styles.title}>O seu perfil</Text>
             <Text style={styles.subtitle}>
-              Personaliza a tua experiência de aprendizagem
+              Personalize a sua experiência de aprendizagem
             </Text>
 
             <ErrorBanner message={registerError} onDismiss={() => setRegisterError(null)} />

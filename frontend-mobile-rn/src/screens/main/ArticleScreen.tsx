@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,9 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Image,
+  Modal,
+  Dimensions,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
@@ -16,6 +19,7 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { documentService } from "../../services/api/documentService";
 import { AccessRequestModal } from "../../components/AccessRequestModal";
+import { SectionAccentLine } from "../../components/SectionAccentLine";
 import type { Document, DocumentQuizPreview, DocumentTopicPreview } from "../../types/api";
 
 
@@ -56,6 +60,8 @@ export function ArticleScreen() {
   const [likesCount, setLikesCount] = useState(0);
   const [errorType, setErrorType] = useState<"not_found" | "subscription_required" | "network_error" | null>(null);
   const [accessModalVisible, setAccessModalVisible] = useState(false);
+  const [lightboxVisible, setLightboxVisible] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(-1);
 
   // Dados embebidos no documento — sem chamadas extra
   const relatedQuizzes: DocumentQuizPreview[] = document?.quizzes ?? [];
@@ -131,18 +137,18 @@ export function ArticleScreen() {
     const errorConfig = {
       not_found: {
         icon: "x-circle" as const,
-        title: "Documento não encontrado",
-        message: "Este documento pode ter sido removido ou o link está incorrecto.",
+        title: "Não encontrámos esta página",
+        message: "Talvez tenha sido movida ou já não exista.",
       },
       subscription_required: {
         icon: "lock" as const,
         title: "Acesso por Subscrição",
-        message: "Este documento pertence a uma colecção que requer subscrição. Solicita acesso e o administrador aprovará o teu pedido.",
+        message: "Este conteúdo faz parte de uma colecção especial. Peça acesso e a equipa do arquivo trata do resto.",
       },
       network_error: {
         icon: "wifi-off" as const,
         title: "Falha de ligação",
-        message: "Não foi possível carregar o documento.\nVerifica a tua ligação.",
+        message: "Algo correu mal. Tente novamente.",
       },
     }[errorType];
 
@@ -166,12 +172,12 @@ export function ArticleScreen() {
               }}
             >
               <Feather name="send" size={15} color={appTheme.colors.surface} style={{ marginRight: 6 }} />
-              <Text style={styles.errorButtonText}>Solicitar Acesso</Text>
+              <Text style={styles.errorButtonText}>Pedir Acesso</Text>
             </TouchableOpacity>
           )}
           {isNetworkError && (
             <TouchableOpacity style={styles.errorButton} onPress={() => void loadDocument()}>
-              <Text style={styles.errorButtonText}>Tentar novamente</Text>
+              <Text style={styles.errorButtonText}>Tentar Novamente</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 12 }}>
@@ -206,6 +212,11 @@ export function ArticleScreen() {
       <HeaderBar title="Documento" />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Cover Image */}
+        {document.cover_image_url && (
+          <Image source={{ uri: document.cover_image_url }} style={styles.coverImage} resizeMode="cover" />
+        )}
+
         {/* Type & Access Badges */}
         <View style={styles.badgeContainer}>
           <View style={styles.docTypeBadge}>
@@ -259,11 +270,13 @@ export function ArticleScreen() {
         {/* Article Content */}
         {document.content && (
           <View style={styles.articleBody}>
-            {document.content.split("\n\n").map((paragraph, idx) =>
-              paragraph.trim() ? (
-                <Text key={idx} style={styles.paragraph}>{paragraph.trim()}</Text>
-              ) : null
-            )}
+            {document.content
+              .split(/\n{2,}|\r?\n/)
+              .map((p) => p.trim())
+              .filter((p) => p.length > 0)
+              .map((paragraph, idx) => (
+                <Text key={idx} style={styles.paragraph}>{paragraph}</Text>
+              ))}
           </View>
         )}
 
@@ -283,12 +296,47 @@ export function ArticleScreen() {
           </View>
         </View>
 
+        {/* ── Galeria de Fotos ── */}
+        {document.gallery && document.gallery.length > 0 && (
+          <>
+            <View style={styles.sectionDivider} />
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionLabel}>GALERIA</Text>
+              <View style={{ paddingHorizontal: appTheme.spacing.lg, marginBottom: 12 }}>
+                <SectionAccentLine />
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.galleryList}
+              >
+                {document.gallery.map((img, idx) => (
+                  <TouchableOpacity
+                    key={img.id}
+                    style={styles.galleryThumbContainer}
+                    onPress={() => {
+                      setLightboxIndex(idx);
+                      setLightboxVisible(true);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Image source={{ uri: img.thumbnail || img.url }} style={styles.galleryThumb} />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </>
+        )}
+
         {/* ── Quizzes relacionados ── */}
         {relatedQuizzes.length > 0 && (
           <>
             <View style={styles.sectionDivider} />
             <View style={styles.sectionBlock}>
               <Text style={styles.sectionLabel}>QUIZZES RELACIONADOS</Text>
+              <View style={{ paddingHorizontal: appTheme.spacing.lg, marginBottom: 12 }}>
+                <SectionAccentLine />
+              </View>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -332,6 +380,9 @@ export function ArticleScreen() {
             <View style={styles.sectionDivider} />
             <View style={styles.sectionBlock}>
               <Text style={styles.sectionLabel}>DISCUSSÕES RELACIONADAS</Text>
+              <View style={{ paddingHorizontal: appTheme.spacing.lg, marginBottom: 12 }}>
+                <SectionAccentLine />
+              </View>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -364,7 +415,7 @@ export function ArticleScreen() {
         <View style={styles.actionsBlock}>
           <Text style={styles.actionsLabel}>ACTIVIDADES</Text>
           <TouchableOpacity onPress={handleOpenForum} style={styles.forumBtn}>
-            <Text style={styles.actionBtnLabel}>Debater no Fórum</Text>
+            <Text style={styles.actionBtnLabel}>Debater na Comunidade</Text>
             <Ionicons name="people-outline" size={20} color="white" />
           </TouchableOpacity>
         </View>
@@ -387,6 +438,56 @@ export function ArticleScreen() {
         )}
 
       </ScrollView>
+
+      {/* Lightbox Modal */}
+      <Modal
+        visible={lightboxVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setLightboxVisible(false)}
+      >
+        <View style={styles.lightboxContainer}>
+          <TouchableOpacity style={styles.lightboxClose} onPress={() => setLightboxVisible(false)}>
+            <Ionicons name="close" size={32} color="white" />
+          </TouchableOpacity>
+
+          {lightboxIndex >= 0 && document.gallery && document.gallery[lightboxIndex] && (
+            <View style={styles.lightboxContent}>
+              {document.gallery.length > 1 && (
+                <TouchableOpacity
+                  style={[styles.lightboxNav, styles.lightboxNavLeft]}
+                  onPress={() => {
+                    setLightboxIndex((prev) => (prev > 0 ? prev - 1 : document.gallery!.length - 1));
+                  }}
+                >
+                  <Ionicons name="chevron-back" size={36} color="white" />
+                </TouchableOpacity>
+              )}
+
+              <Image
+                source={{ uri: document.gallery[lightboxIndex].url }}
+                style={styles.lightboxImage}
+                resizeMode="contain"
+              />
+
+              {document.gallery.length > 1 && (
+                <TouchableOpacity
+                  style={[styles.lightboxNav, styles.lightboxNavRight]}
+                  onPress={() => {
+                    setLightboxIndex((prev) => (prev < document.gallery!.length - 1 ? prev + 1 : 0));
+                  }}
+                >
+                  <Ionicons name="chevron-forward" size={36} color="white" />
+                </TouchableOpacity>
+              )}
+
+              <Text style={styles.lightboxCounter}>
+                {lightboxIndex + 1} / {document.gallery.length}
+              </Text>
+            </View>
+          )}
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -556,22 +657,32 @@ const styles = StyleSheet.create({
     color: appTheme.colors.textSecondary,
     fontWeight: "500",
   },
+  coverImage: {
+    width: "100%",
+    height: 220,
+    marginBottom: 12,
+  },
   summaryBlock: {
-    paddingHorizontal: appTheme.spacing.lg,
-    marginBottom: appTheme.spacing.md,
+    backgroundColor: "rgba(163, 114, 55, 0.05)",
+    borderRadius: 12,
+    padding: 18,
+    marginHorizontal: appTheme.spacing.lg,
+    marginBottom: 24,
+    borderLeftWidth: 4,
+    borderLeftColor: appTheme.colors.primary,
   },
   summaryLabel: {
     fontFamily: appTheme.fontFamily.heading,
     fontSize: 11,
     fontWeight: "700",
-    color: appTheme.colors.textMuted,
+    color: appTheme.colors.primary,
     letterSpacing: 1.2,
     marginBottom: 8,
   },
   summaryText: {
     fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
-    color: appTheme.colors.textSecondary,
+    color: appTheme.colors.textPrimary,
     lineHeight: 22,
     fontStyle: "italic",
   },
@@ -581,10 +692,11 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontFamily: appTheme.fontFamily.body,
-    fontSize: 16,
-    color: appTheme.colors.textPrimary,
-    lineHeight: 26,
-    marginBottom: 16,
+    fontSize: 17,
+    color: appTheme.colors.textSecondary,
+    lineHeight: 31,
+    marginBottom: 18,
+    textAlign: "justify",
   },
   statsRow: {
     flexDirection: "row",
@@ -758,5 +870,75 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
+  },
+  // Gallery styles
+  galleryList: {
+    paddingHorizontal: appTheme.spacing.lg,
+    paddingBottom: 8,
+    gap: 12,
+  },
+  galleryThumbContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: appTheme.colors.background,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+  },
+  galleryThumb: {
+    width: "100%",
+    height: "100%",
+  },
+  // Lightbox
+  lightboxContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.95)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lightboxClose: {
+    position: "absolute",
+    top: 48,
+    right: 24,
+    zIndex: 10,
+    padding: 8,
+  },
+  lightboxContent: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lightboxImage: {
+    width: Dimensions.get("window").width - 16,
+    height: Dimensions.get("window").width * 1.3,
+    maxHeight: "75%",
+  },
+  lightboxNav: {
+    position: "absolute",
+    top: "50%",
+    marginTop: -25,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 5,
+  },
+  lightboxNavLeft: {
+    left: 16,
+  },
+  lightboxNavRight: {
+    right: 16,
+  },
+  lightboxCounter: {
+    fontFamily: appTheme.fontFamily.body,
+    position: "absolute",
+    bottom: 48,
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

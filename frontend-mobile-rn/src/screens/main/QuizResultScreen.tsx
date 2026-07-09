@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,6 +15,7 @@ import { Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { quizService } from "../../services/api/quizService";
 import type { QuizAttempt, Quiz, Document } from "../../types/api";
+import { isMediaDocument } from "../../utils/mediaKind";
 import type { MainStackParamList } from "../../types/navigation";
 
 type RouteProps = RouteProp<MainStackParamList, "QuizResult">;
@@ -91,10 +92,10 @@ export function QuizResultScreen() {
         <HeaderBar title="Resultado Final" onBackPress={() => navigation.navigate("MainTabs", { screen: "QuizList" })} />
         <View style={styles.centerWrap}>
           <Feather name="wifi-off" size={40} color={appTheme.colors.textMuted} />
-          <Text style={styles.errorTitle}>Não foi possível carregar o resultado</Text>
-          <Text style={styles.errorSub}>Verifica a tua ligação e tenta novamente.</Text>
+          <Text style={styles.errorTitle}>Algo correu mal. Tente novamente.</Text>
+          <Text style={styles.errorSub}>Verifique a sua ligação e tente novamente.</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={() => void load()}>
-            <Text style={styles.retryBtnText}>Tentar novamente</Text>
+            <Text style={styles.retryBtnText}>Tentar Novamente</Text>
           </TouchableOpacity>
         </View>
       </ScreenContainer>
@@ -123,7 +124,7 @@ export function QuizResultScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.levelUpTitle}>NÍVEL ALCANÇADO!</Text>
               <Text style={styles.levelUpDesc}>
-                Subiste do Nível {gamification?.previous_level} para o Nível {gamification?.current_level}
+                Subiu do Nível {gamification?.previous_level} para o Nível {gamification?.current_level}
               </Text>
             </View>
           </View>
@@ -135,7 +136,7 @@ export function QuizResultScreen() {
             <View style={styles.badgesSectionHeader}>
               <Feather name="award" size={16} color={appTheme.colors.primary} />
               <Text style={styles.badgesSectionTitle}>
-                {newBadges.length === 1 ? "Novo badge desbloqueado!" : `${newBadges.length} badges desbloqueados!`}
+                {newBadges.length === 1 ? "Novo badge (medalha) desbloqueado!" : `${newBadges.length} medalhas (badges) desbloqueadas!`}
               </Text>
             </View>
             <View style={styles.badgesRow}>
@@ -241,7 +242,7 @@ export function QuizResultScreen() {
                 key={doc.id}
                 style={styles.docCard}
                 onPress={() => {
-                  const isMedia = doc.document_type === "video" || doc.document_type === "audio";
+                  const isMedia = isMediaDocument(doc);
                   navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: doc.id });
                 }}
               >

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   ScrollView,
   View,
@@ -49,12 +49,12 @@ export function HomeScreen({
               <Ionicons name="book-outline" size={24} color="white" />
             </View>
             <View>
-              <Text style={styles.appTitle}>Economia com História</Text>
-              <Text style={styles.appSubtitle}>Angola</Text>
+              <Text style={styles.appSubtitle}>ECONOMIA COM HISTÓRIA</Text>
+              <Text style={styles.appTitle}>Angola explicada pela sua própria economia.</Text>
             </View>
           </View>
           <Text style={styles.headerLead}>
-            Aprende a história económica do teu país com conteúdo académico sério e acessível
+            Um arquivo vivo de documentos, quizzes e debates sobre a história económica angolana — para estudar, questionar e participar.
           </Text>
         </View>
 
@@ -136,8 +136,8 @@ export function HomeScreen({
         {/* Active Debates */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Feather name="message-circle" size={20} color={appTheme.colors.primary} />
-            <Text style={styles.smallSectionTitle}>DEBATES ACTIVOS</Text>
+            <Ionicons name="chatbubbles-outline" size={20} color={appTheme.colors.primary} />
+            <Text style={styles.smallSectionTitle}>DEBATES ATIVOS</Text>
           </View>
 
           <DebateCard
@@ -156,7 +156,7 @@ export function HomeScreen({
           />
 
           <TouchableOpacity style={styles.debateButton} onPress={onViewCommunity}>
-            <Text style={styles.debateButtonText}>Ver todos os debates</Text>
+            <Text style={styles.debateButtonText}>Explorar a Comunidade</Text>
           </TouchableOpacity>
         </View>
 
@@ -232,12 +232,12 @@ export function HomeScreen({
 
         {/* CTA Section */}
         <View style={styles.ctaContainer}>
-          <Text style={styles.ctaTitle}>Pronto para aprender?</Text>
+          <Text style={styles.ctaTitle}>A economia é feita por pessoas.</Text>
           <Text style={styles.ctaSubtitle}>
-            Cria a tua conta e começa a explorar a história económica de Angola
+            Participe, comente e ajude a construir conhecimento colectivo sobre a Angola que somos e a que queremos ser.
           </Text>
           <TouchableOpacity style={styles.ctaRegisterButton} onPress={onRegister}>
-            <Text style={styles.ctaRegisterText}>Criar conta</Text>
+            <Text style={styles.ctaRegisterText}>Criar Conta Gratuita</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.ctaLoginButton} onPress={onLogin}>
             <Text style={styles.ctaLoginText}>Já tenho conta · Entrar</Text>

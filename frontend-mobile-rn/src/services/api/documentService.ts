@@ -7,6 +7,7 @@ export interface DocumentFilters {
   q?: string;
   category_id?: string;
   document_type?: string;
+  media_type?: string;
   academic_level?: string;
   sort?: 'recent' | 'popular';
   page?: number;
@@ -40,6 +41,9 @@ export const documentService = {
         doc.is_favorited   = data.is_favorited ?? false;
         doc.tags           = data.tags ?? [];
         doc.topics_preview = data.topics_preview ?? [];
+        // A galeria de fotos vem no bloco `media` agrupado por coleção; a
+        // coleção 'gallery' é sempre uma lista. Normalizamos para [].
+        doc.gallery        = Array.isArray(data.media?.gallery) ? data.media.gallery : [];
       }
       void documentCache.save(doc);
       return doc;

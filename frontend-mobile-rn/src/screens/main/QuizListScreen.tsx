@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -284,11 +284,11 @@ export function QuizListScreen() {
           ) : quizError ? (
             <View style={styles.errorState}>
               <Feather name="wifi-off" size={40} color={appTheme.colors.textMuted} />
-              <Text style={styles.errorStateTitle}>Não foi possível carregar os quizzes</Text>
-              <Text style={styles.errorStateSub}>Verifica a tua ligação à internet.</Text>
+              <Text style={styles.errorStateTitle}>Algo correu mal. Tente novamente.</Text>
+              <Text style={styles.errorStateSub}>Verifique a sua ligação à internet.</Text>
               <TouchableOpacity style={styles.retryBtn} onPress={() => void fetchQuizzes()}>
                 <Feather name="refresh-cw" size={14} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.retryBtnText}>Tentar novamente</Text>
+                <Text style={styles.retryBtnText}>Tentar Novamente</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -309,7 +309,7 @@ export function QuizListScreen() {
                 <View style={styles.emptyState}>
                   <Ionicons name="help-circle-outline" size={48} color={appTheme.colors.textMuted} />
                   <Text style={styles.emptyStateText}>
-                    {showCompleted ? "Ainda não realizaste nenhum quiz" : "Nenhum quiz encontrado"}
+                    {showCompleted ? "Ainda não realizou nenhum quiz" : "Nenhum quiz encontrado"}
                   </Text>
                 </View>
               )}
@@ -325,11 +325,11 @@ export function QuizListScreen() {
           ) : rankingError ? (
             <View style={styles.errorState}>
               <Feather name="wifi-off" size={40} color={appTheme.colors.textMuted} />
-              <Text style={styles.errorStateTitle}>Não foi possível carregar o ranking</Text>
-              <Text style={styles.errorStateSub}>Verifica a tua ligação à internet.</Text>
+              <Text style={styles.errorStateTitle}>Algo correu mal. Tente novamente.</Text>
+              <Text style={styles.errorStateSub}>Verifique a sua ligação à internet.</Text>
               <TouchableOpacity style={styles.retryBtn} onPress={() => void fetchRanking()}>
                 <Feather name="refresh-cw" size={14} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.retryBtnText}>Tentar novamente</Text>
+                <Text style={styles.retryBtnText}>Tentar Novamente</Text>
               </TouchableOpacity>
             </View>
           ) : (

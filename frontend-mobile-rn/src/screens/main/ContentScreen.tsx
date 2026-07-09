@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -17,7 +17,8 @@ import { SkeletonLoader } from "../../components/SkeletonLoader";
 import { appTheme } from "../../constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { documentService } from "../../services/api/documentService";
-import type { Document, DocumentType } from "../../types/api";
+import { isMediaDocument } from "../../utils/mediaKind";
+import type { Document, DocumentType, MediaType } from "../../types/api";
 import type { ContentParams } from "../../types/navigation";
 
 type SortType = "recent" | "popular";
@@ -28,8 +29,13 @@ const DOCUMENT_TYPES: { label: string; value: DocumentType }[] = [
   { label: "Relatório", value: "report" },
   { label: "Manuscrito", value: "manuscript" },
   { label: "Arquivo", value: "archive" },
-  { label: "Vídeo", value: "video" },
-  { label: "Áudio", value: "audio" },
+];
+
+// Tipo de conteúdo (determinado pelo ficheiro) — coerente com o filtro do web.
+const MEDIA_TYPES: { label: string; value: MediaType }[] = [
+  { label: "Texto", value: "TEXT" },
+  { label: "Vídeo", value: "VIDEO" },
+  { label: "Podcast", value: "AUDIO" },
 ];
 
 
@@ -71,7 +77,7 @@ export function ContentScreen() {
 
   const [draftSearch, setDraftSearch] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState<DocumentType | undefined>(undefined);
+  const [selectedMediaType, setSelectedMediaType] = useState<MediaType | undefined>(undefined);
   const [sortBy, setSortBy] = useState<SortType>("recent");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -85,15 +91,16 @@ export function ContentScreen() {
 
   useEffect(() => {
     const params = route.params as ContentParams | undefined;
-    const hasAny = !!(params?.document_type || params?.searchQuery);
+    const hasAny = !!(params?.document_type || params?.media_type || params?.searchQuery);
     if (!hasAny) return;
 
-    if (params!.document_type) { setSelectedType(params!.document_type); }
+    if (params!.media_type) { setSelectedMediaType(params!.media_type); }
     if (params!.searchQuery) { setSearchQuery(params!.searchQuery); setDraftSearch(params!.searchQuery); }
     setShowFilters(true);
 
     navigation.setParams({
       document_type: undefined,
+      media_type: undefined,
       academic_level: undefined,
       searchQuery: undefined,
     });
@@ -111,7 +118,7 @@ export function ContentScreen() {
     try {
       const response = await documentService.list({
         q: searchQuery.trim() || undefined,
-        document_type: selectedType,
+        media_type: selectedMediaType,
         sort: sortBy,
         page: currentPage,
         per_page: 15,
@@ -125,7 +132,7 @@ export function ContentScreen() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedType, sortBy]);
+  }, [searchQuery, selectedMediaType, sortBy]);
 
   useEffect(() => {
     void fetchDocuments(true);
@@ -157,7 +164,7 @@ export function ContentScreen() {
       likesCount={item.likes_count}
       publishedAt={item.published_at ?? item.created_at}
       onPress={() => {
-        const isMedia = item.document_type === "video" || item.document_type === "audio";
+        const isMedia = isMediaDocument(item);
         navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: item.id });
       }}
     />
@@ -165,7 +172,11 @@ export function ContentScreen() {
 
   return (
     <ScreenContainer style={{ paddingHorizontal: 0 }}>
-      <HeaderBar title="Documentos" showBackButton={false} />
+      <HeaderBar title="Arquivo de Conteúdos" showBackButton={false} />
+
+      <View style={styles.introHeader}>
+        <Text style={styles.introText}>Documentos, vídeos, áudios e artigos sobre a história económica de Angola.</Text>
+      </View>
 
       <View style={styles.header}>
         <View style={styles.searchContainer}>
@@ -192,10 +203,10 @@ export function ContentScreen() {
           style={[styles.filterButton, showFilters && styles.filterButtonActive]}
         >
           <Feather name="filter" size={16} color={showFilters ? "white" : appTheme.colors.textSecondary} />
-          {[selectedType].filter(Boolean).length > 0 ? (
+          {[selectedMediaType].filter(Boolean).length > 0 ? (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>
-                {[selectedType].filter(Boolean).length}
+                {[selectedMediaType].filter(Boolean).length}
               </Text>
             </View>
           ) : (
@@ -206,21 +217,21 @@ export function ContentScreen() {
 
       {showFilters && (
         <View style={styles.filtersPanel}>
-          <Text style={styles.filterLabel}>Tipo de Documento</Text>
+          <Text style={styles.filterLabel}>Tipo de conteúdo</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
             <TouchableOpacity
-              onPress={() => setSelectedType(undefined)}
-              style={[styles.chip, !selectedType && styles.chipActive]}
+              onPress={() => setSelectedMediaType(undefined)}
+              style={[styles.chip, !selectedMediaType && styles.chipActive]}
             >
-              <Text style={[styles.chipText, !selectedType && styles.chipTextActive]}>Todos</Text>
+              <Text style={[styles.chipText, !selectedMediaType && styles.chipTextActive]}>Todos</Text>
             </TouchableOpacity>
-            {DOCUMENT_TYPES.map((t) => (
+            {MEDIA_TYPES.map((t) => (
               <TouchableOpacity
                 key={t.value}
-                onPress={() => setSelectedType(selectedType === t.value ? undefined : t.value)}
-                style={[styles.chip, selectedType === t.value && styles.chipActive]}
+                onPress={() => setSelectedMediaType(selectedMediaType === t.value ? undefined : t.value)}
+                style={[styles.chip, selectedMediaType === t.value && styles.chipActive]}
               >
-                <Text style={[styles.chipText, selectedType === t.value && styles.chipTextActive]}>
+                <Text style={[styles.chipText, selectedMediaType === t.value && styles.chipTextActive]}>
                   {t.label}
                 </Text>
               </TouchableOpacity>
@@ -275,32 +286,26 @@ export function ContentScreen() {
               </View>
             );
           }
-          const hasFilters = !!(searchQuery || selectedType);
+          const hasFilters = !!(searchQuery || selectedMediaType);
           return (
             <View style={styles.emptyState}>
               <Feather name="inbox" size={52} color={appTheme.colors.textMuted} />
-              <Text style={styles.emptyStateTitle}>Nenhum documento encontrado</Text>
-              {hasFilters ? (
-                <>
-                  <Text style={styles.emptyStateText}>
-                    {searchQuery
-                      ? `Não há resultados para "${searchQuery}"${selectedType ? ` do tipo ${DOCUMENT_TYPES.find((t) => t.value === selectedType)?.label}` : ""}.`
-                      : "Não há documentos que correspondam aos filtros seleccionados."}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.clearFiltersButton}
-                    onPress={() => {
-                      setSearchQuery("");
-                      setDraftSearch("");
-                      setSelectedType(undefined);
-                    }}
-                  >
-                    <Feather name="x-circle" size={15} color={appTheme.colors.primary} />
-                    <Text style={styles.clearFiltersText}>Limpar filtros</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <Text style={styles.emptyStateText}>Ainda não há documentos publicados.</Text>
+              <Text style={styles.emptyStateTitle}>Nada por aqui ainda</Text>
+              <Text style={styles.emptyStateText}>
+                Não encontrámos documentos com estes filtros. Experimente limpar a pesquisa ou escolher outro tema.
+              </Text>
+              {hasFilters && (
+                <TouchableOpacity
+                  style={styles.clearFiltersButton}
+                  onPress={() => {
+                    setSearchQuery("");
+                    setDraftSearch("");
+                    setSelectedMediaType(undefined);
+                  }}
+                >
+                  <Feather name="x-circle" size={15} color={appTheme.colors.primary} />
+                  <Text style={styles.clearFiltersText}>Limpar Filtros</Text>
+                </TouchableOpacity>
               )}
             </View>
           );
@@ -468,5 +473,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: appTheme.colors.primary,
     fontWeight: "600",
+  },
+  introHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 2,
+  },
+  introText: {
+    ...appTheme.typography.caption,
+    color: appTheme.colors.textSecondary,
+    lineHeight: 18,
   },
 });

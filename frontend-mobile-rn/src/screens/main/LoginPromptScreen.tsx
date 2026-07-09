@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -16,15 +16,15 @@ export function LoginPromptScreen() {
   const prompts = {
     "create-topic": {
       title: "Quer debater sobre um tema?",
-      description: "Faça login para criar tópicos e participar das discussões da comunidade.",
+      description: "Entre para criar tópicos e participar nas discussões da comunidade.",
     },
     comment: {
       title: "Quer deixar a sua opinião?",
-      description: "Faça login para comentar e participar activamente nas discussões.",
+      description: "Entre para comentar e participar ativamente nas discussões.",
     },
     quiz: {
       title: "Quer testar os seus conhecimentos?",
-      description: "Faça login para realizar quizzes e acompanhar o seu progresso académico.",
+      description: "Entre para realizar quizzes e acompanhar o seu progresso académico.",
     },
   };
 
@@ -39,7 +39,7 @@ export function LoginPromptScreen() {
 
   return (
     <ScreenContainer style={styles.screen}>
-      <HeaderBar title="Login Necessário" />
+      <HeaderBar title="Sessão Necessária" />
 
       <ScrollView
         style={styles.container}
@@ -62,7 +62,7 @@ export function LoginPromptScreen() {
 
           {/* Benefits Box */}
           <View style={styles.benefitsCard}>
-            <Text style={styles.benefitsTitle}>Com uma conta podes:</Text>
+            <Text style={styles.benefitsTitle}>Com uma conta pode:</Text>
             <View style={styles.benefitsList}>
               {benefits.map((benefit, index) => (
                 <View key={index} style={styles.benefitItem}>
@@ -82,7 +82,7 @@ export function LoginPromptScreen() {
               onPress={() => navigation.navigate("Login")}
             >
               <Feather name="log-in" size={18} color="white" style={styles.btnIcon} />
-              <Text style={styles.primaryButtonText}>Fazer Login</Text>
+              <Text style={styles.primaryButtonText}>Entrar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.goBack()}>

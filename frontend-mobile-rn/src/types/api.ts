@@ -124,8 +124,21 @@ export interface Tag {
   created_at: string;
 }
 
-export type DocumentType = 'article' | 'thesis' | 'report' | 'manuscript' | 'archive' | 'video' | 'audio';
+export type DocumentType = 'article' | 'thesis' | 'report' | 'manuscript' | 'archive';
 export type AcademicLevel = 'intro' | 'advanced' | 'doctorate';
+/** Tipo de conteúdo determinado pelo ficheiro carregado (fonte de verdade da apresentação). */
+export type MediaType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF';
+
+/** Item de media (galeria de fotos) devolvido em GET /documents/{id} → media.gallery. */
+export interface DocumentMediaItem {
+  id: string;
+  url: string;
+  thumbnail: string | null;
+  preview: string | null;
+  filename: string | null;
+  width: number | null;
+  height: number | null;
+}
 
 export interface DocumentQuizPreview {
   id: string;
@@ -164,9 +177,11 @@ export interface Document {
   summary: string;
   content: string | null;
   cover_image_url: string | null;
-  media_type: 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF' | null;
+  media_type: MediaType | null;
   media_url: string | null;
   pdf_url: string | null;
+  /** Galeria de fotos (coleção 'gallery'); presente no detalhe do documento. */
+  gallery?: DocumentMediaItem[];
   status: 'draft' | 'published';
   created_by: string;
   published_at: string | null;

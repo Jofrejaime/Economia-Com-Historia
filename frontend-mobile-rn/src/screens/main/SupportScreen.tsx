@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -131,7 +131,7 @@ export function SupportScreen() {
             <View style={styles.faqCard}>
               <Text style={styles.faqQuestion}>Como posso aceder a documentos restritos?</Text>
               <Text style={styles.faqAnswer}>
-                Alguns documentos pertencem a colecções que requerem subscrição. Pode solicitar acesso através do botão presente em cada documento; um administrador aprova o pedido.
+                Alguns documentos pertencem a colecções que requerem subscrição. Pode pedir acesso através do botão presente em cada documento; um administrador aprova o pedido.
               </Text>
             </View>
 

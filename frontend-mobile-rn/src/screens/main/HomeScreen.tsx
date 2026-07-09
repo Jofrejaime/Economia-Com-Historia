@@ -15,6 +15,7 @@ import { MediaFormatCards } from "../../components/MediaFormatCards";
 import { appTheme } from "../../constants/theme";
 import { documentService } from "../../services/api/documentService";
 import type { Document } from "../../types/api";
+import { isMediaDocument } from "../../utils/mediaKind";
 import { CoverImage } from "../../components/CoverImage";
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
@@ -65,7 +66,7 @@ export function HomeScreen() {
             </View>
           </View>
           <Text style={styles.headerLead}>
-            Aprende a história económica do teu país com conteúdo académico sério e acessível
+            Aprenda a história económica do seu país com conteúdo académico sério e acessível
           </Text>
         </View>
 
@@ -84,7 +85,7 @@ export function HomeScreen() {
                   style={styles.featuredCard}
                   activeOpacity={0.9}
                   onPress={() => {
-                    const isMedia = featuredDoc.document_type === "video" || featuredDoc.document_type === "audio";
+                    const isMedia = isMediaDocument(featuredDoc);
                     navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: featuredDoc.id });
                   }}
                 >
@@ -156,7 +157,7 @@ export function HomeScreen() {
                     key={doc.id}
                     style={styles.card}
                     onPress={() => {
-                      const isMedia = doc.document_type === "video" || doc.document_type === "audio";
+                      const isMedia = isMediaDocument(doc);
                       navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: doc.id });
                     }}
                   >
@@ -185,8 +186,8 @@ export function HomeScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitleSmall}>Vídeos e Áudios</Text>
               <MediaFormatCards
-                onPressVideo={() => navigation.navigate("Content", { document_type: "video" })}
-                onPressAudio={() => navigation.navigate("Content", { document_type: "audio" })}
+                onPressVideo={() => navigation.navigate("Content", { media_type: "VIDEO" })}
+                onPressAudio={() => navigation.navigate("Content", { media_type: "AUDIO" })}
               />
             </View>
 

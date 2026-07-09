@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -148,7 +148,7 @@ export function ManageMembersScreen() {
         <View style={styles.introHeader}>
           <Text style={styles.introTitle}>Círculo de Diálogo</Text>
           <Text style={styles.introDesc}>
-            Gerencie os membros da discussão{topicTitle ? ` "${topicTitle}"` : ""}. Apenas os membros deste círculo poderão participar ativamente se o fórum for privado.
+            Gerencie os membros da discussão{topicTitle ? ` "${topicTitle}"` : ""}. Apenas os membros deste círculo poderão participar ativamente se o tópico for privado.
           </Text>
         </View>
 
