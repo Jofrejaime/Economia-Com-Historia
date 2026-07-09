@@ -25,3 +25,6 @@ storage/*.key
 # OS
 .DS_Store
 Thumbs.db
+
+# Database documentation (local/auxiliary)
+docs/database/RELACIONAMENTO_E_PROPRIEDADES_TABELAS.md
