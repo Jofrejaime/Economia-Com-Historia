@@ -78,23 +78,38 @@ export function ContentScreen() {
   const [draftSearch, setDraftSearch] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMediaType, setSelectedMediaType] = useState<MediaType | undefined>(undefined);
+  const [selectedDocumentType, setSelectedDocumentType] = useState<DocumentType | undefined>(undefined);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
   const [sortBy, setSortBy] = useState<SortType>("recent");
   const [showFilters, setShowFilters] = useState(false);
 
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
-  // Usar ref para página evita que fetchDocuments seja recriado a cada fetch,
-  // eliminando o ciclo useCallback → setPage → novo fetchDocuments → re-render.
   const pageRef = useRef(1);
 
   useEffect(() => {
+    const loadCats = async () => {
+      try {
+        const cats = await documentService.categories();
+        setCategories(cats);
+      } catch (err) {
+        console.warn("Erro ao obter categorias", err);
+      }
+    };
+    void loadCats();
+  }, []);
+
+  useEffect(() => {
     const params = route.params as ContentParams | undefined;
-    const hasAny = !!(params?.document_type || params?.media_type || params?.searchQuery);
+    const hasAny = !!(params?.document_type || params?.media_type || params?.searchQuery || params?.category_id);
     if (!hasAny) return;
 
     if (params!.media_type) { setSelectedMediaType(params!.media_type); }
+    if (params!.document_type) { setSelectedDocumentType(params!.document_type); }
+    if (params!.category_id) { setSelectedCategoryId(params!.category_id); }
     if (params!.searchQuery) { setSearchQuery(params!.searchQuery); setDraftSearch(params!.searchQuery); }
     setShowFilters(true);
 
@@ -102,6 +117,7 @@ export function ContentScreen() {
       document_type: undefined,
       media_type: undefined,
       academic_level: undefined,
+      category_id: undefined,
       searchQuery: undefined,
     });
   }, [route.params]);
@@ -119,6 +135,8 @@ export function ContentScreen() {
       const response = await documentService.list({
         q: searchQuery.trim() || undefined,
         media_type: selectedMediaType,
+        document_type: selectedDocumentType,
+        category_id: selectedCategoryId,
         sort: sortBy,
         page: currentPage,
         per_page: 15,
@@ -132,7 +150,7 @@ export function ContentScreen() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedMediaType, sortBy]);
+  }, [searchQuery, selectedMediaType, selectedDocumentType, selectedCategoryId, sortBy]);
 
   useEffect(() => {
     void fetchDocuments(true);
@@ -203,10 +221,10 @@ export function ContentScreen() {
           style={[styles.filterButton, showFilters && styles.filterButtonActive]}
         >
           <Feather name="filter" size={16} color={showFilters ? "white" : appTheme.colors.textSecondary} />
-          {[selectedMediaType].filter(Boolean).length > 0 ? (
+          {[selectedMediaType, selectedDocumentType, selectedCategoryId].filter(Boolean).length > 0 ? (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>
-                {[selectedMediaType].filter(Boolean).length}
+                {[selectedMediaType, selectedDocumentType, selectedCategoryId].filter(Boolean).length}
               </Text>
             </View>
           ) : (
@@ -237,6 +255,52 @@ export function ContentScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
+
+          <Text style={[styles.filterLabel, { marginTop: 12 }]}>Formato de documento</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+            <TouchableOpacity
+              onPress={() => setSelectedDocumentType(undefined)}
+              style={[styles.chip, !selectedDocumentType && styles.chipActive]}
+            >
+              <Text style={[styles.chipText, !selectedDocumentType && styles.chipTextActive]}>Todos</Text>
+            </TouchableOpacity>
+            {DOCUMENT_TYPES.map((t) => (
+              <TouchableOpacity
+                key={t.value}
+                onPress={() => setSelectedDocumentType(selectedDocumentType === t.value ? undefined : t.value)}
+                style={[styles.chip, selectedDocumentType === t.value && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, selectedDocumentType === t.value && styles.chipTextActive]}>
+                  {t.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {categories.length > 0 && (
+            <>
+              <Text style={[styles.filterLabel, { marginTop: 12 }]}>Categorias</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+                <TouchableOpacity
+                  onPress={() => setSelectedCategoryId(undefined)}
+                  style={[styles.chip, !selectedCategoryId && styles.chipActive]}
+                >
+                  <Text style={[styles.chipText, !selectedCategoryId && styles.chipTextActive]}>Todas</Text>
+                </TouchableOpacity>
+                {categories.map((c) => (
+                  <TouchableOpacity
+                    key={c.id}
+                    onPress={() => setSelectedCategoryId(selectedCategoryId === c.id ? undefined : c.id)}
+                    style={[styles.chip, selectedCategoryId === c.id && styles.chipActive]}
+                  >
+                    <Text style={[styles.chipText, selectedCategoryId === c.id && styles.chipTextActive]}>
+                      {c.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </>
+          )}
 
           <Text style={[styles.filterLabel, { marginTop: 12 }]}>Ordenar por</Text>
           <View style={styles.chipsRow}>
@@ -286,7 +350,7 @@ export function ContentScreen() {
               </View>
             );
           }
-          const hasFilters = !!(searchQuery || selectedMediaType);
+          const hasFilters = !!(searchQuery || selectedMediaType || selectedDocumentType || selectedCategoryId);
           return (
             <View style={styles.emptyState}>
               <Feather name="inbox" size={52} color={appTheme.colors.textMuted} />
@@ -301,6 +365,8 @@ export function ContentScreen() {
                     setSearchQuery("");
                     setDraftSearch("");
                     setSelectedMediaType(undefined);
+                    setSelectedDocumentType(undefined);
+                    setSelectedCategoryId(undefined);
                   }}
                 >
                   <Feather name="x-circle" size={15} color={appTheme.colors.primary} />

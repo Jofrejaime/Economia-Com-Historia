@@ -140,9 +140,10 @@ export class ContentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private mergeFacetsFromDocuments(docs: Document[]): void {
     for (const d of docs) {
-      if (d.media_type && !this.seenMediaTypeIds.has(d.media_type)) {
-        this.seenMediaTypeIds.add(d.media_type);
-        this.mediaTypes.push({ id: d.media_type, label: this.mediaTypeLabels[d.media_type] ?? d.media_type });
+      const type = d.media_type || 'TEXT';
+      if (!this.seenMediaTypeIds.has(type)) {
+        this.seenMediaTypeIds.add(type);
+        this.mediaTypes.push({ id: type, label: this.mediaTypeLabels[type] ?? type });
       }
     }
   }

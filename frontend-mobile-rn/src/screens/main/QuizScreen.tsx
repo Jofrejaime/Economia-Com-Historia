@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -35,6 +35,12 @@ export function QuizScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [initError, setInitError] = useState(false);
 
+  const [answered, setAnswered] = useState(false);
+  const [isCorrectAnswer, setIsCorrectAnswer] = useState<boolean | null>(null);
+  const [feedbackExplanation, setFeedbackExplanation] = useState<string | null>(null);
+  const [correctOptionId, setCorrectOptionId] = useState<string | null>(null);
+  const [gamificationResult, setGamificationResult] = useState<GamificationResult | null>(null);
+
   const quizStartTimeRef = useRef<number>(0);
   const questionStartTimeRef = useRef<number>(Date.now());
 
@@ -68,7 +74,7 @@ export function QuizScreen() {
   const totalQuestions = questions.length;
 
   const handleConfirm = async () => {
-    if (!selectedOptionId || !attemptId || !currentQuestion) return;
+    if (!selectedOptionId || !attemptId || !currentQuestion || submitting) return;
     setSubmitting(true);
 
     const timeSpentSecs = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
@@ -82,34 +88,19 @@ export function QuizScreen() {
 
       const isLast = currentIndex === totalQuestions - 1;
 
+      setAnswered(true);
+      setIsCorrectAnswer(result.is_correct);
+      setFeedbackExplanation(result.explanation ?? null);
+      setCorrectOptionId(result.correct_option_id ?? (result.is_correct ? selectedOptionId : null));
+
       if (isLast) {
         const totalSecs = Math.round((Date.now() - quizStartTimeRef.current) / 1000);
-        let gamification: GamificationResult | undefined;
         try {
           const completion = await quizService.completeAttempt(attemptId, totalSecs);
-          gamification = completion.gamification ?? undefined;
+          setGamificationResult(completion.gamification ?? null);
         } catch {
-          // attempt may already be completed (409); proceed to result without gamification
+          // attempt may already be completed (409)
         }
-        navigation.navigate("QuizFeedback", {
-          isCorrect: result.is_correct,
-          explanation: result.explanation ?? null,
-          isLast: true,
-          attemptId,
-          quizId,
-          gamification,
-        });
-      } else {
-        setCurrentIndex((i) => i + 1);
-        setSelectedOptionId(null);
-        questionStartTimeRef.current = Date.now();
-        navigation.navigate("QuizFeedback", {
-          isCorrect: result.is_correct,
-          explanation: result.explanation ?? null,
-          isLast: false,
-          attemptId,
-          quizId,
-        });
       }
     } catch (error) {
       console.warn("Erro ao submeter resposta", error);
@@ -117,6 +108,74 @@ export function QuizScreen() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleNext = () => {
+    const isLast = currentIndex === totalQuestions - 1;
+
+    if (isLast) {
+      navigation.navigate("QuizResult", {
+        attemptId,
+        quizId,
+        gamification: gamificationResult ?? undefined,
+      });
+    } else {
+      setSelectedOptionId(null);
+      setAnswered(false);
+      setIsCorrectAnswer(null);
+      setFeedbackExplanation(null);
+      setCorrectOptionId(null);
+      setCurrentIndex((i) => i + 1);
+      questionStartTimeRef.current = Date.now();
+    }
+  };
+
+  const getOptionStyles = (optionId: string) => {
+    if (answered) {
+      if (optionId === correctOptionId) {
+        return {
+          btn: [styles.optionBtn, styles.optionBtnCorrect],
+          letter: [styles.optionLetter, styles.optionLetterCorrect],
+          text: [styles.optionText, styles.optionTextCorrect],
+          iconName: "check" as const,
+          iconColor: appTheme.colors.success,
+        };
+      }
+      if (optionId === selectedOptionId && !isCorrectAnswer) {
+        return {
+          btn: [styles.optionBtn, styles.optionBtnIncorrect],
+          letter: [styles.optionLetter, styles.optionLetterIncorrect],
+          text: [styles.optionText, styles.optionTextIncorrect],
+          iconName: "x" as const,
+          iconColor: appTheme.colors.danger ?? appTheme.colors.primary,
+        };
+      }
+      return {
+        btn: [styles.optionBtn, styles.optionBtnDefault, { opacity: 0.6 }],
+        letter: [styles.optionLetter, styles.optionLetterDefault],
+        text: [styles.optionText, styles.optionTextDefault],
+        iconName: null,
+        iconColor: null,
+      };
+    }
+
+    const isSelected = selectedOptionId === optionId;
+    return {
+      btn: [
+        styles.optionBtn,
+        isSelected ? styles.optionBtnSelected : styles.optionBtnDefault,
+      ],
+      letter: [
+        styles.optionLetter,
+        isSelected ? styles.optionLetterSelected : styles.optionLetterDefault,
+      ],
+      text: [
+        styles.optionText,
+        isSelected ? styles.optionTextSelected : styles.optionTextDefault,
+      ],
+      iconName: isSelected ? ("check" as const) : null,
+      iconColor: appTheme.colors.primaryDark,
+    };
   };
 
   if (loading) {
@@ -189,35 +248,23 @@ export function QuizScreen() {
         {/* Options */}
         <View style={styles.optionsContainer}>
           {(currentQuestion.options ?? []).map((option: QuizOption) => {
-            const isSelected = selectedOptionId === option.id;
+            const stylesInfo = getOptionStyles(option.id);
             return (
               <TouchableOpacity
                 key={option.id}
                 onPress={() => setSelectedOptionId(option.id)}
-                style={[
-                  styles.optionBtn,
-                  isSelected ? styles.optionBtnSelected : styles.optionBtnDefault,
-                ]}
+                disabled={answered}
+                style={stylesInfo.btn}
               >
                 <View style={styles.optionRow}>
-                  <Text
-                    style={[
-                      styles.optionLetter,
-                      isSelected ? styles.optionLetterSelected : styles.optionLetterDefault,
-                    ]}
-                  >
+                  <Text style={stylesInfo.letter}>
                     {option.option_key}
                   </Text>
-                  <Text
-                    style={[
-                      styles.optionText,
-                      isSelected ? styles.optionTextSelected : styles.optionTextDefault,
-                    ]}
-                  >
+                  <Text style={stylesInfo.text}>
                     {option.option_text}
                   </Text>
-                  {isSelected && (
-                    <Feather name="check" size={20} color={appTheme.colors.primaryDark} style={styles.checkIcon} />
+                  {stylesInfo.iconName && (
+                    <Feather name={stylesInfo.iconName} size={20} color={stylesInfo.iconColor ?? undefined} style={styles.checkIcon} />
                   )}
                 </View>
               </TouchableOpacity>
@@ -225,9 +272,40 @@ export function QuizScreen() {
           })}
         </View>
 
+        {/* Bloco de Feedback Inline */}
+        {answered && (
+          <View style={[
+            styles.feedbackCard,
+            isCorrectAnswer ? styles.feedbackCardCorrect : styles.feedbackCardIncorrect
+          ]}>
+            <View style={styles.feedbackCardBody}>
+              <View style={styles.feedbackTitleRow}>
+                <Feather
+                  name={isCorrectAnswer ? "check" : "info"}
+                  size={16}
+                  color={isCorrectAnswer ? appTheme.colors.success : appTheme.colors.primary}
+                />
+                <Text style={[
+                  styles.feedbackTitle,
+                  isCorrectAnswer ? styles.feedbackTitleCorrect : styles.feedbackTitleIncorrect
+                ]}>
+                  {isCorrectAnswer ? "Resposta certa! 🎉" : "Não foi desta vez — mas aprendeu algo novo:"}
+                </Text>
+              </View>
+              <Text style={styles.feedbackExplanationText}>
+                {feedbackExplanation
+                  ? feedbackExplanation
+                  : isCorrectAnswer
+                    ? "Excelente raciocínio. Continue assim!"
+                    : "Analise a resposta para compreender melhor o tema e continue a praticar."}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Hint and Submit */}
         <View style={styles.submitSection}>
-          {currentQuestion.hint_quote && (
+          {currentQuestion.hint_quote && !answered && (
             <View style={styles.hintRow}>
               <Feather name="help-circle" size={14} color={appTheme.colors.textMuted} style={{ marginTop: 2 }} />
               <Text style={styles.hintText}>{currentQuestion.hint_quote}</Text>
@@ -235,19 +313,42 @@ export function QuizScreen() {
           )}
 
           <TouchableOpacity
-            onPress={() => void handleConfirm()}
+            onPress={() => {
+              if (answered) {
+                handleNext();
+              } else {
+                void handleConfirm();
+              }
+            }}
             disabled={!selectedOptionId || submitting}
             style={[
               styles.submitBtn,
               (!selectedOptionId || submitting) && styles.submitBtnDisabled,
+              (answered && isCorrectAnswer) && { backgroundColor: appTheme.colors.success },
             ]}
           >
             {submitting ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
               <>
-                <Text style={styles.submitBtnLabel}>Confirmar Resposta</Text>
-                <Feather name="check-circle" size={18} color="white" />
+                <Text style={styles.submitBtnLabel}>
+                  {answered
+                    ? currentIndex === totalQuestions - 1
+                      ? "Ver Resultados"
+                      : "Seguinte"
+                    : "Confirmar Resposta"}
+                </Text>
+                <Feather
+                  name={
+                    answered
+                      ? currentIndex === totalQuestions - 1
+                        ? "award"
+                        : "chevron-right"
+                      : "check-circle"
+                  }
+                  size={18}
+                  color="white"
+                />
               </>
             )}
           </TouchableOpacity>
@@ -467,5 +568,66 @@ const styles = StyleSheet.create({
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",
+  },
+  optionBtnCorrect: {
+    backgroundColor: "rgba(16, 185, 129, 0.08)",
+    borderColor: appTheme.colors.success ?? "#10b981",
+  },
+  optionBtnIncorrect: {
+    backgroundColor: "rgba(139, 30, 45, 0.08)",
+    borderColor: appTheme.colors.primary ?? "#dc2626",
+  },
+  optionLetterCorrect: {
+    color: appTheme.colors.success ?? "#10b981",
+  },
+  optionLetterIncorrect: {
+    color: appTheme.colors.primary ?? "#dc2626",
+  },
+  optionTextCorrect: {
+    color: appTheme.colors.success ?? "#10b981",
+    fontWeight: "600",
+  },
+  optionTextIncorrect: {
+    color: appTheme.colors.primary ?? "#dc2626",
+    fontWeight: "600",
+  },
+  feedbackCard: {
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    backgroundColor: appTheme.colors.badgeLightBg ?? "#f9fafb",
+    marginBottom: 24,
+    padding: 16,
+    ...appTheme.shadow.sm,
+  },
+  feedbackCardCorrect: {
+    borderLeftColor: appTheme.colors.success ?? "#10b981",
+  },
+  feedbackCardIncorrect: {
+    borderLeftColor: appTheme.colors.primary ?? "#8b1e2d",
+  },
+  feedbackCardBody: {
+    gap: 8,
+  },
+  feedbackTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  feedbackTitle: {
+    fontFamily: appTheme.fontFamily.heading,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  feedbackTitleCorrect: {
+    color: appTheme.colors.success ?? "#10b981",
+  },
+  feedbackTitleIncorrect: {
+    color: appTheme.colors.primary ?? "#8b1e2d",
+  },
+  feedbackExplanationText: {
+    fontFamily: appTheme.fontFamily.body,
+    fontSize: 15,
+    color: appTheme.colors.textSecondary ?? "#4b5563",
+    lineHeight: 22,
   },
 });
