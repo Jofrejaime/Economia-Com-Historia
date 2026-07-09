@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -159,7 +159,7 @@ export function PodcastScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity onPress={handleDebate} style={[styles.activityButton, styles.activityButtonSecondary]}>
-              <Text style={styles.activityButtonText}>Debater no Fórum</Text>
+              <Text style={styles.activityButtonText}>Debater na Comunidade</Text>
               <Ionicons name="people" size={18} color="white" />
             </TouchableOpacity>
           </View>

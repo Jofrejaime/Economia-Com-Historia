@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -222,7 +222,7 @@ export function CommunityScreen() {
             contentContainerStyle={{ paddingBottom: 24 }}
             ListEmptyComponent={() => (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>Nenhum tópico disponível</Text>
+                <Text style={styles.emptyStateText}>Seja a primeira pessoa a abrir esta conversa.</Text>
               </View>
             )}
           />

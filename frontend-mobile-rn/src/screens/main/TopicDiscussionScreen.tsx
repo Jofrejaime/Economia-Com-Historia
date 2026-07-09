@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -97,7 +97,7 @@ export function TopicDiscussionScreen() {
 
     Alert.alert(
       "Encerrar Discussão",
-      "Tem a certeza que deseja encerrar esta discussão? Esta ação é definitiva e não tem retorno. O fórum passará a funcionar apenas em modo de leitura.",
+      "Tem a certeza que deseja encerrar esta discussão? Esta ação é definitiva e não tem retorno. O tópico passará a funcionar apenas em modo de leitura.",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -119,8 +119,8 @@ export function TopicDiscussionScreen() {
 
   const handleLeaveTopic = () => {
     Alert.alert(
-      "Abandonar fórum",
-      "Tens a certeza que queres sair deste fórum? Perderás o acesso a esta discussão privada.",
+      "Sair do tópico",
+      "Tem a certeza que deseja sair deste tópico? Perderá o acesso a esta discussão privada.",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -131,7 +131,7 @@ export function TopicDiscussionScreen() {
               await communityService.leaveTopic(topicId);
               navigation.navigate("MainTabs", { screen: "Community" });
             } catch {
-              Alert.alert("Erro", "Não foi possível sair do fórum. Tente novamente.");
+              Alert.alert("Erro", "Não foi possível sair do tópico. Tente novamente.");
             }
           },
         },
@@ -237,8 +237,8 @@ export function TopicDiscussionScreen() {
         setTopic({ ...topic, replies_count: topic.replies_count + 1 });
       }
     } catch (error) {
-      console.warn("Erro ao publicar comentário", error);
-      Alert.alert("Erro", "Não foi possível enviar o comentário. Verifique se tem acesso a esta discussão e tente novamente.");
+      console.warn("Erro ao publicar resposta", error);
+      Alert.alert("Erro", "Não foi possível enviar a resposta. Verifique se tem acesso a esta discussão e tente novamente.");
     } finally {
       setSubmitting(false);
     }
@@ -266,7 +266,7 @@ export function TopicDiscussionScreen() {
   if (loading) {
     return (
       <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
-        <HeaderBar title="Discussão do Fórum" />
+        <HeaderBar title="Discussão do Tópico" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={appTheme.colors.primary} />
         </View>
@@ -277,9 +277,9 @@ export function TopicDiscussionScreen() {
   if (!topic) {
     return (
       <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
-        <HeaderBar title="Discussão do Fórum" />
+        <HeaderBar title="Discussão do Tópico" />
         <View style={styles.notFoundContainer}>
-          <Text style={styles.notFoundTitle}>Discussão não encontrada</Text>
+          <Text style={styles.notFoundTitle}>Tópico não encontrado</Text>
           <Text style={styles.notFoundText}>O tópico solicitado não existe ou foi removido.</Text>
           <TouchableOpacity style={styles.backHomeButton} onPress={() => navigation.goBack()}>
             <Text style={styles.backHomeButtonText}>Voltar</Text>
@@ -302,7 +302,7 @@ export function TopicDiscussionScreen() {
     >
       <ScreenContainer style={[styles.container, { paddingHorizontal: 0 }]}>
         <HeaderBar
-          title="Discussão do Fórum"
+          title="Discussão do Tópico"
           onBackPress={() => navigation.navigate("MainTabs", { screen: "Community" })}
           rightElement={
             isAuthor && !isTerminated ? (
@@ -363,7 +363,7 @@ export function TopicDiscussionScreen() {
             <View style={styles.statsBar}>
               <View style={styles.statsLeft}>
                 <Feather name="message-circle" size={18} color={appTheme.colors.primary} />
-                <Text style={styles.commentCountText}>{topic.replies_count} COMENTÁRIOS</Text>
+                <Text style={styles.commentCountText}>{topic.replies_count} RESPOSTAS</Text>
               </View>
               <View style={styles.likeStatsRow}>
                 <Feather
@@ -654,7 +654,7 @@ export function TopicDiscussionScreen() {
               </View>
 
               <TextInput
-                placeholder={user ? "Escreva um comentário..." : "Entre para comentar..."}
+                placeholder={user ? "Escreva uma resposta..." : "Entre para responder..."}
                 placeholderTextColor={appTheme.colors.textMuted}
                 value={newCommentText}
                 onChangeText={setNewCommentText}

@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ import { documentService } from "../../services/api/documentService";
 import { leaderboardService } from "../../services/api/leaderboardService";
 import { communityService } from "../../services/api/communityService";
 import type { Document, DiscussionTopic, LeaderboardEntry } from "../../types/api";
+import { isMediaDocument } from "../../utils/mediaKind";
 import { useNotifications } from "../../context/NotificationContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { MediaFormatCards } from "../../components/MediaFormatCards";
@@ -102,7 +103,7 @@ export function DashboardScreen() {
   };
 
   const handleOpenDocument = (doc: Document) => {
-    const isMedia = doc.document_type === "video" || doc.document_type === "audio";
+    const isMedia = isMediaDocument(doc);
     navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: doc.id });
   };
 
@@ -246,8 +247,8 @@ export function DashboardScreen() {
           <Text style={styles.mediaSectionTitle}>Vídeos e Áudios</Text>
           <SectionAccentLine />
           <MediaFormatCards
-            onPressVideo={() => (navigation as any).navigate("Content", { document_type: "video" })}
-            onPressAudio={() => (navigation as any).navigate("Content", { document_type: "audio" })}
+            onPressVideo={() => (navigation as any).navigate("Content", { media_type: "VIDEO" })}
+            onPressAudio={() => (navigation as any).navigate("Content", { media_type: "AUDIO" })}
           />
         </View>
 

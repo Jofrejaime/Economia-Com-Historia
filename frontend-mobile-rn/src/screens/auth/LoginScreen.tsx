@@ -122,7 +122,7 @@ export function LoginScreen({ navigation }: Props) {
             validateEmail(text);
             if (loginError) setLoginError(null);
           }}
-          placeholder="o.teu@email.com"
+          placeholder="o.seu@email.com"
           error={emailError}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -166,9 +166,9 @@ export function LoginScreen({ navigation }: Props) {
         </Pressable>
 
         <View style={styles.registerWrap}>
-          <Text style={styles.registerText}>Não tens conta? </Text>
+          <Text style={styles.registerText}>Não tem conta? </Text>
           <Pressable onPress={() => navigation.navigate("Register")}>
-            <Text style={styles.registerLink}>Regista-te</Text>
+            <Text style={styles.registerLink}>Criar Conta</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -193,7 +193,7 @@ export function LoginScreen({ navigation }: Props) {
               {!isRecoverySuccess ? (
                 <>
                   <Text style={styles.modalDescription}>
-                    Introduz o email com o qual fizeste a abertura de conta para receberes um link de redefinição.
+                    Introduza o email com o qual fez a abertura de conta para receber um link de redefinição.
                   </Text>
 
                   <FormInput
@@ -203,7 +203,7 @@ export function LoginScreen({ navigation }: Props) {
                       setRecoveryEmail(text);
                       if (recoveryEmailError) setRecoveryEmailError("");
                     }}
-                    placeholder="o.teu@email.com"
+                    placeholder="o.seu@email.com"
                     error={recoveryEmailError}
                     keyboardType="email-address"
                     autoCapitalize="none"

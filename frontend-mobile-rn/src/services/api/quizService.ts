@@ -39,7 +39,7 @@ export const quizService = {
   async submitAnswer(
     attemptId: string,
     payload: { question_id: string; selected_option_id: string; time_spent_secs?: number }
-  ): Promise<{ is_correct: boolean; points_earned: number; explanation: string | null }> {
+  ): Promise<{ is_correct: boolean; points_earned: number; explanation: string | null; correct_option_id?: string | null }> {
     const { data } = await httpClient.post(API_ENDPOINTS.QUIZ_ATTEMPTS.ANSWER(attemptId), payload);
     return data.data ?? data;
   },

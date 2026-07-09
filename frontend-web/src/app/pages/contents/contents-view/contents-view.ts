@@ -7,6 +7,7 @@ import { FooterComponent } from '../../../components/footer/footer';
 import {
   DocumentService,
   DocumentDetail,
+  DocumentMediaItem,
   Document,
   RelatedQuiz,
   RelatedTopic,
@@ -227,6 +228,34 @@ export class ContentsViewComponent implements OnInit {
       .split(/\n{2,}|\r?\n/)
       .map(p => p.trim())
       .filter(p => p.length > 0);
+  }
+
+  // ─── Galeria de fotos (slides) ────────────────────────────────────────────
+  // Lightbox: índice da imagem aberta em ecrã cheio (-1 = fechado).
+  lightboxIndex = -1;
+
+  get galleryImages(): DocumentMediaItem[] {
+    return this.doc?.gallery ?? [];
+  }
+
+  openLightbox(index: number): void {
+    this.lightboxIndex = index;
+  }
+
+  closeLightbox(): void {
+    this.lightboxIndex = -1;
+  }
+
+  lightboxPrev(): void {
+    const n = this.galleryImages.length;
+    if (n === 0) return;
+    this.lightboxIndex = (this.lightboxIndex - 1 + n) % n;
+  }
+
+  lightboxNext(): void {
+    const n = this.galleryImages.length;
+    if (n === 0) return;
+    this.lightboxIndex = (this.lightboxIndex + 1) % n;
   }
 
   // ─── Acções sobre o documento (já existentes) ─────────────────────────────

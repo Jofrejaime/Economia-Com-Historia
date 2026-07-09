@@ -68,11 +68,24 @@ export interface Document {
   tags: DocumentTag[];
 }
 
+/** Item de media (galeria de fotos) devolvido em GET /documents/{id} → media.gallery. */
+export interface DocumentMediaItem {
+  id: string;
+  url: string;
+  thumbnail: string | null;
+  preview: string | null;
+  filename: string | null;
+  width: number | null;
+  height: number | null;
+}
+
 export interface DocumentDetail extends Document {
   content: string | null;
   pdf_url: string | null;
   author_display_name: string | null;
   author_avatar_url: string | null;
+  /** Galeria de fotos (coleção 'gallery'); [] quando não há. */
+  gallery: DocumentMediaItem[];
 }
 
 // GET /documents pagina de facto (DocumentSearchService::paginate(), 15/página,
@@ -312,17 +325,28 @@ export class DocumentService {
 
   async getDocument(id: string): Promise<DocumentDetail> {
     const res = await firstValueFrom(
-      this.http.get<{ data: any; tags: DocumentTag[]; is_liked: boolean; is_favorited: boolean }>(
+      this.http.get<{
+        data: any;
+        media?: { gallery?: DocumentMediaItem[] } | null;
+        tags: DocumentTag[];
+        is_liked: boolean;
+        is_favorited: boolean;
+      }>(
         `${this.base}/documents/${id}`,
         { headers: this.headers }
       )
     );
+
+    // A galeria vem no bloco `media` (agrupado por coleção no backend); a
+    // coleção 'gallery' é sempre uma lista. Normalizamos para [] se ausente.
+    const gallery = Array.isArray(res.media?.gallery) ? res.media!.gallery! : [];
 
     return {
       ...res.data,
       tags: res.tags,
       is_liked: res.is_liked,
       is_favorited: res.is_favorited,
+      gallery,
     };
   }
 

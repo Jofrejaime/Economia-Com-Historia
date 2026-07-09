@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,6 +9,7 @@ import {
   Image,
   Dimensions,
   Alert,
+  Modal,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Audio, AVPlaybackStatus } from "expo-av";
@@ -20,6 +21,8 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import { HeaderBar } from "../../components/HeaderBar";
 import { documentService } from "../../services/api/documentService";
 import { AccessRequestModal } from "../../components/AccessRequestModal";
+import { SectionAccentLine } from "../../components/SectionAccentLine";
+import { isMediaDocument } from "../../utils/mediaKind";
 import type { Document, DocumentQuizPreview, DocumentTopicPreview } from "../../types/api";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -43,7 +46,7 @@ function formatDuration(seconds: number): string {
 }
 
 function navigateToDocument(navigation: any, doc: Document) {
-  const isMedia = doc.document_type === "video" || doc.document_type === "audio";
+  const isMedia = isMediaDocument(doc);
   navigation.navigate(isMedia ? "MediaDetail" : "Article", { id: doc.id });
 }
 
@@ -146,6 +149,8 @@ export function MediaDetailScreen() {
   const [descExpanded, setDescExpanded] = useState(false);
   const [relatedDocs, setRelatedDocs] = useState<Document[]>([]);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [lightboxVisible, setLightboxVisible] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(-1);
 
   // Dados embebidos no documento — sem chamadas extra
   const relatedQuizzes: DocumentQuizPreview[] = doc?.quizzes ?? [];
@@ -241,18 +246,18 @@ export function MediaDetailScreen() {
     const errorConfig = {
       not_found: {
         icon: "x-circle" as const,
-        title: "Conteúdo não encontrado",
-        message: "Este conteúdo pode ter sido removido ou o link está incorrecto.",
+        title: "Não encontrámos esta página",
+        message: "Talvez tenha sido movida ou já não exista.",
       },
       subscription_required: {
         icon: "lock" as const,
         title: "Acesso por Subscrição",
-        message: "Este conteúdo pertence a uma colecção que requer subscrição. Solicita acesso e o administrador aprovará o teu pedido.",
+        message: "Este conteúdo faz parte de uma colecção especial. Peça acesso e a equipa do arquivo trata do resto.",
       },
       network_error: {
         icon: "wifi-off" as const,
         title: "Falha de ligação",
-        message: "Não foi possível carregar o conteúdo. Verifica a tua ligação.",
+        message: "Algo correu mal. Tente novamente.",
       },
     }[errorType];
 
@@ -275,12 +280,12 @@ export function MediaDetailScreen() {
               }}
             >
               <Feather name="send" size={15} color={appTheme.colors.surface} style={{ marginRight: 6 }} />
-              <Text style={styles.errorButtonText}>Solicitar Acesso</Text>
+              <Text style={styles.errorButtonText}>Pedir Acesso</Text>
             </TouchableOpacity>
           )}
           {errorType === "network_error" && (
             <TouchableOpacity style={styles.errorButton} onPress={() => void loadDocument()}>
-              <Text style={styles.errorButtonText}>Tentar novamente</Text>
+              <Text style={styles.errorButtonText}>Tentar Novamente</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.errorLink}>
@@ -299,8 +304,8 @@ export function MediaDetailScreen() {
 
   if (!doc) return null;
 
-  const isVideo = doc.document_type === "video";
-  const isAudio = doc.document_type === "audio";
+  const isVideo = doc.media_type === "VIDEO";
+  const isAudio = doc.media_type === "AUDIO";
   const hasMedia = !!doc.media_url;
   const summary = doc.summary ?? "";
   const SUMMARY_LIMIT = 180;
@@ -554,6 +559,38 @@ export function MediaDetailScreen() {
           </View>
         )}
 
+        {/* ── Galeria de Fotos ── */}
+        {doc.gallery && doc.gallery.length > 0 && (
+          <>
+            <View style={styles.divider} />
+            <View style={styles.relatedBlock}>
+              <Text style={styles.sectionLabel}>GALERIA</Text>
+              <View style={{ paddingHorizontal: appTheme.spacing.lg, marginBottom: 12 }}>
+                <SectionAccentLine />
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.galleryList}
+              >
+                {doc.gallery.map((img, idx) => (
+                  <TouchableOpacity
+                    key={img.id}
+                    style={styles.galleryThumbContainer}
+                    onPress={() => {
+                      setLightboxIndex(idx);
+                      setLightboxVisible(true);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Image source={{ uri: img.thumbnail || img.url }} style={styles.galleryThumb} />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </>
+        )}
+
         {/* ── Conteúdos relacionados ── */}
         {relatedDocs.length > 0 && (
           <>
@@ -575,7 +612,7 @@ export function MediaDetailScreen() {
                     ) : (
                       <View style={styles.relatedThumbFallback}>
                         <Ionicons
-                          name={item.document_type === "video" ? "play-circle-outline" : "musical-notes-outline"}
+                          name={item.media_type === "VIDEO" ? "play-circle-outline" : "musical-notes-outline"}
                           size={24}
                           color={appTheme.colors.textMuted}
                         />
@@ -583,7 +620,7 @@ export function MediaDetailScreen() {
                     )}
                     <View style={styles.relatedTypeTag}>
                       <Ionicons
-                        name={item.document_type === "video" ? "play" : "musical-note"}
+                        name={item.media_type === "VIDEO" ? "play" : "musical-note"}
                         size={8}
                         color="white"
                       />
@@ -670,6 +707,56 @@ export function MediaDetailScreen() {
 
         <View style={{ height: 32 }} />
       </ScrollView>
+
+      {/* Lightbox Modal */}
+      <Modal
+        visible={lightboxVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setLightboxVisible(false)}
+      >
+        <View style={styles.lightboxContainer}>
+          <TouchableOpacity style={styles.lightboxClose} onPress={() => setLightboxVisible(false)}>
+            <Ionicons name="close" size={32} color="white" />
+          </TouchableOpacity>
+
+          {lightboxIndex >= 0 && doc.gallery && doc.gallery[lightboxIndex] && (
+            <View style={styles.lightboxContent}>
+              {doc.gallery.length > 1 && (
+                <TouchableOpacity
+                  style={[styles.lightboxNav, styles.lightboxNavLeft]}
+                  onPress={() => {
+                    setLightboxIndex((prev) => (prev > 0 ? prev - 1 : doc.gallery!.length - 1));
+                  }}
+                >
+                  <Ionicons name="chevron-back" size={36} color="white" />
+                </TouchableOpacity>
+              )}
+
+              <Image
+                source={{ uri: doc.gallery[lightboxIndex].url }}
+                style={styles.lightboxImage}
+                resizeMode="contain"
+              />
+
+              {doc.gallery.length > 1 && (
+                <TouchableOpacity
+                  style={[styles.lightboxNav, styles.lightboxNavRight]}
+                  onPress={() => {
+                    setLightboxIndex((prev) => (prev < doc.gallery!.length - 1 ? prev + 1 : 0));
+                  }}
+                >
+                  <Ionicons name="chevron-forward" size={36} color="white" />
+                </TouchableOpacity>
+              )}
+
+              <Text style={styles.lightboxCounter}>
+                {lightboxIndex + 1} / {doc.gallery.length}
+              </Text>
+            </View>
+          )}
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -1230,5 +1317,75 @@ const styles = StyleSheet.create({
     fontFamily: appTheme.fontFamily.body,
     fontSize: 11,
     color: appTheme.colors.textMuted,
+  },
+  // Gallery styles
+  galleryList: {
+    paddingHorizontal: appTheme.spacing.lg,
+    paddingBottom: 8,
+    gap: 12,
+  },
+  galleryThumbContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: appTheme.colors.background,
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+  },
+  galleryThumb: {
+    width: "100%",
+    height: "100%",
+  },
+  // Lightbox
+  lightboxContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.95)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lightboxClose: {
+    position: "absolute",
+    top: 48,
+    right: 24,
+    zIndex: 10,
+    padding: 8,
+  },
+  lightboxContent: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lightboxImage: {
+    width: Dimensions.get("window").width - 16,
+    height: Dimensions.get("window").width * 1.3,
+    maxHeight: "75%",
+  },
+  lightboxNav: {
+    position: "absolute",
+    top: "50%",
+    marginTop: -25,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 5,
+  },
+  lightboxNavLeft: {
+    left: 16,
+  },
+  lightboxNavRight: {
+    right: 16,
+  },
+  lightboxCounter: {
+    fontFamily: appTheme.fontFamily.body,
+    position: "absolute",
+    bottom: 48,
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

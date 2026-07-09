@@ -8,7 +8,7 @@
       <!-- Page Header -->
 <div class="contents-header">
   <h1 class="contents-header-title">Arquivo de Conteúdos</h1>
-  <p class="contents-header-subtitle">Explore a nossa colecção de documentos históricos e económicos</p>
+  <p class="contents-header-subtitle">Documentos, vídeos, áudios e artigos sobre a história económica de Angola.</p>
 
   <button type="button" class="contents-saved-btn" (click)="goToSaved()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -164,7 +164,7 @@
         <!-- Loading mais -->
         <div *ngIf="isLoading && displayedDocuments.length > 0" class="contents-loading">
           <div class="contents-spinner"></div>
-          <span>Carregando mais conteúdos...</span>
+          <span>A carregar conteúdos…</span>
         </div>
 
         <!-- End of results -->
@@ -178,8 +178,11 @@
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <p class="contents-empty-title">Nenhum documento encontrado</p>
-          <p class="contents-empty-subtitle">Tente ajustar os filtros da pesquisa</p>
+          <p class="contents-empty-title">Nada por aqui ainda</p>
+          <p class="contents-empty-subtitle">Não encontrámos documentos com estes filtros. Experimente limpar a pesquisa ou escolher outro tema.</p>
+          <button (click)="clearFilters()" class="btn-primary small" style="margin-top: 16px; font-size: 13px; padding: 8px 16px; border-radius: 4px; background: #8B1E2D; color: white; border: none; cursor: pointer;">
+            Limpar Filtros
+          </button>
         </div>
 
       </div>
@@ -201,7 +204,7 @@
         </div>
         <div>
           <h2 class="access-modal-title">Conteúdo {{ getDocBadge(accessModalDoc).label }}</h2>
-          <p class="access-modal-subtitle">Este documento requer subscrição de acesso</p>
+          <p class="access-modal-subtitle">Este conteúdo faz parte de uma colecção especial. Peça acesso e a equipa do arquivo trata do resto.</p>
         </div>
         <button class="access-modal-close" (click)="closeAccessModal()" aria-label="Fechar">&times;</button>
       </div>
@@ -223,8 +226,8 @@
         <ng-container *ngIf="!accessRequestDone">
           <p class="access-modal-text">
             Este documento pertence a uma colecção que requer subscrição.
-            Para o consultar, envie um pedido de subscrição — a equipa do
-            arquivo irá analisá-lo.
+            Para o consultar, envie um pedido de acesso — a equipa do
+            arquivo trata do resto.
           </p>
 
           <p *ngIf="accessRequestError" class="access-modal-error">{{ accessRequestError }}</p>
@@ -246,8 +249,8 @@
               <path d="M20 6L9 17l-5-5"/>
             </svg>
             <div>
-              <p class="access-modal-success-title">Pedido de acesso enviado</p>
-              <p class="access-modal-success-text">Será notificado(a) quando o acesso for concedido.</p>
+              <p class="access-modal-success-title">Pedido enviado!</p>
+              <p class="access-modal-success-text">Vai ser notificado(a) assim que o acesso for aprovado.</p>
             </div>
           </div>
 

@@ -32,7 +32,7 @@
             </div>
             <h1 class="quiz-result-score">{{ score }}%</h1>
             <p class="quiz-result-performance">{{ performance }}</p>
-            <p class="quiz-result-summary">{{ correctAnswers }} de {{ totalQuestions }} questões corretas • {{ timeSpent }}</p>
+            <p class="quiz-result-summary">Você acertou {{ correctAnswers }} de {{ totalQuestions }}. Continue a explorar e a participar na Comunidade. • {{ timeSpent }}</p>
           </div>
         </div>
 
@@ -144,7 +144,7 @@
             ← Voltar aos Quizzes
           </button>
           <button (click)="nextQuiz()" class="btn-primary" [disabled]="isLoadingNext">
-  {{ isLoadingNext ? 'A carregar...' : 'Próximo Quizz →' }}
+  {{ isLoadingNext ? 'A carregar...' : 'Próximo Quiz →' }}
 </button>
           <button (click)="goToRanking()" class="btn-primary">
             Ir para o Ranking

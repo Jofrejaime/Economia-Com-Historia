@@ -66,7 +66,7 @@ export function AccessRequestModal({
           </View>
           <Text style={styles.title}>Pedido Enviado!</Text>
           <Text style={styles.description}>
-            O teu pedido foi enviado com sucesso. A nossa equipa irá analisá-lo e serás notificado quando for revisto.
+            O seu pedido foi enviado com sucesso. A nossa equipa irá analisá-lo e será notificado quando for revisto.
           </Text>
           <TouchableOpacity style={styles.primaryButton} onPress={handleClose}>
             <Text style={styles.primaryButtonText}>Fechar</Text>
@@ -85,7 +85,7 @@ export function AccessRequestModal({
           </View>
           <Text style={styles.title}>Pedido em Análise</Text>
           <Text style={styles.description}>
-            Já tens um pedido pendente para este nível de acesso. Aguarda a revisão da nossa equipa — serás notificado assim que for processado.
+            Já tem um pedido pendente para este nível de acesso. Aguarde a revisão da nossa equipa — será notificado assim que for processado.
           </Text>
           <TouchableOpacity style={styles.primaryButton} onPress={handleClose}>
             <Text style={styles.primaryButtonText}>Fechar</Text>
@@ -109,7 +109,7 @@ export function AccessRequestModal({
         <Text style={styles.description}>
           {modalDescription}
           {"\n\n"}
-          Submete um pedido de subscrição e a nossa equipa irá analisar a tua solicitação em breve.
+          Submeta um pedido de subscrição e a nossa equipa irá analisar a sua solicitação em breve.
         </Text>
 
         <Text style={styles.inputLabel}>Justificação (opcional)</Text>
@@ -128,7 +128,7 @@ export function AccessRequestModal({
 
         {modalState === "error" && (
           <Text style={styles.errorText}>
-            Não foi possível enviar o pedido. Verifica a tua ligação e tenta novamente.
+            Não foi possível enviar o pedido. Verifique a sua ligação e tente novamente.
           </Text>
         )}
 
@@ -144,7 +144,7 @@ export function AccessRequestModal({
           {modalState === "submitting" ? (
             <ActivityIndicator size="small" color={appTheme.colors.surface} />
           ) : (
-            <Text style={styles.primaryButtonText}>Solicitar Acesso</Text>
+            <Text style={styles.primaryButtonText}>Pedir Acesso</Text>
           )}
         </TouchableOpacity>
       </>

@@ -15,8 +15,8 @@ export function MediaFormatCards({ onPressVideo, onPressAudio }: Props) {
 
   useEffect(() => {
     Promise.allSettled([
-      documentService.list({ document_type: "video", per_page: 1 }),
-      documentService.list({ document_type: "audio", per_page: 1 }),
+      documentService.list({ media_type: "VIDEO", per_page: 1 }),
+      documentService.list({ media_type: "AUDIO", per_page: 1 }),
     ]).then(([videoRes, audioRes]) => {
       if (videoRes.status === "fulfilled") setVideoCount(videoRes.value.meta.total);
       if (audioRes.status === "fulfilled") setAudioCount(audioRes.value.meta.total);

@@ -1,4 +1,4 @@
-import type { DocumentType, AcademicLevel, GamificationResult } from "./api";
+import type { DocumentType, MediaType, GamificationResult } from "./api";
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -9,7 +9,8 @@ export type AuthStackParamList = {
 export interface ContentParams {
   searchQuery?: string;
   document_type?: DocumentType;
-  academic_level?: AcademicLevel;
+  // Filtro por tipo de conteúdo (Texto/Vídeo/Podcast) — coerente com o web.
+  media_type?: MediaType;
   category_id?: string;
 }
 

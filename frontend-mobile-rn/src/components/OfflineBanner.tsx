@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNetwork } from "../context/NetworkContext";
@@ -11,7 +11,7 @@ export function OfflineBanner() {
   return (
     <View style={styles.banner}>
       <Feather name="wifi-off" size={12} color={appTheme.colors.surface} />
-      <Text style={styles.text}>Sem ligação — a mostrar conteúdo guardado</Text>
+      <Text style={styles.text}>Está offline. Alguns conteúdos podem não estar disponíveis até recuperar a ligação.</Text>
     </View>
   );
 }

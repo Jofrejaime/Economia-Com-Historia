@@ -84,6 +84,10 @@ export class PerfilComponent implements OnInit {
     return !!this.profileAvatarUrl;
   }
 
+  get totalPoints(): number {
+    return this.statTotalPoints;
+  }
+
   get profileInitials(): string {
     const name = this.profileName || '?';
     return name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();

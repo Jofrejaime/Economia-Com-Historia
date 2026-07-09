@@ -14,25 +14,25 @@
         <!-- Left Content -->
         <div style="display: flex; flex-direction: column; gap: 28px;">
           <div>
-            <span class="home-hero-badge">ARQUIVO DIGITAL</span>
+            <span class="home-hero-badge">ECONOMIA COM HISTÓRIA</span>
           </div>
 
           <div>
             <h1 class="home-hero-title">
-              Arquivo Digital do<br>
-              <span class="home-hero-title-highlight">Pensamento Económico</span> de Angola
+              Angola explicada pela<br>
+              <span class="home-hero-title-highlight">sua própria economia.</span>
             </h1>
-            <p class="home-hero-description">Preservando décadas de história económica. Explore, pesquise e contribua. O conhecimento agora tem morada.</p>
+            <p class="home-hero-description">Um arquivo vivo de documentos, quizzes e debates sobre a história económica angolana — para estudar, questionar e participar.</p>
           </div>
 
           <div class="home-hero-actions">
-            <button (click)="navigateTo('/auth/login')" class="btn-primary">
-              Aceder ao Arquivo
+            <button (click)="navigateTo('/contents')" class="btn-primary">
+              Explorar o Arquivo
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
 
             <button (click)="navigateTo('/auth/criar-conta')" class="btn-secondary">
-              Saiba Mais
+              Criar Conta Gratuita
             </button>
           </div>
 
@@ -139,7 +139,7 @@
       <div class="home-features-header">
 
         <div class="home-features-header-content">
-          <span class="home-features-badge">PORQUE JUNTAR-SE</span>
+          <span class="home-features-badge">O QUE VAI ENCONTRAR</span>
           <h2 class="home-features-title">Uma plataforma completa para<br>investigadores e académicos</h2>
           <p class="home-features-subtitle">Explore a história económica de Angola com ferramentas poderosas e uma comunidade ativa.</p>
         </div>
@@ -148,13 +148,28 @@
 
           <div class="home-feature-card">
             <div class="home-feature-icon">
-              <svg width="28" height="28" viewBox="0 0 30 22" fill="#8B1E2D">
-                <path d="M4 8L15 1L26 8L15 15L4 8Z"/>
-                <path d="M4 8V16L15 23L26 16V8" fill="none" stroke="#8B1E2D" stroke-width="2"/>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
               </svg>
             </div>
-            <h3 class="home-feature-title">Acesso Académico Completo</h3>
-            <p class="home-feature-description">Milhões de documentos digitalizados, organizados e pesquisáveis para a sua investigação.</p>
+            <h3 class="home-feature-title">Um arquivo para explorar</h3>
+            <p class="home-feature-description">Vídeos, podcasts e textos sobre inflação, reformas monetárias, comércio colonial e muito mais. Filtre por tema, período ou formato.</p>
+          </div>
+
+          <div class="home-feature-card">
+            <div class="home-feature-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <h3 class="home-feature-title">Ponha à prova o que sabe</h3>
+            <p class="home-feature-description">Quizzes curtos sobre economia e história angolana. Ganhe pontos, suba no ranking e desafie-se a saber mais.</p>
           </div>
 
           <div class="home-feature-card">
@@ -164,18 +179,19 @@
                 <path d="M1 28C1 22 7 17 15 17C23 17 29 22 29 28"/>
               </svg>
             </div>
-            <h3 class="home-feature-title">Comunidade Académica</h3>
-            <p class="home-feature-description">Conecte-se com outros investigadores, partilhe descobertas e colabore em projectos.</p>
+            <h3 class="home-feature-title">Um espaço para debater</h3>
+            <p class="home-feature-description">Crie tópicos, responda a outros participantes e construa conhecimento em conjunto com a comunidade.</p>
           </div>
 
           <div class="home-feature-card">
             <div class="home-feature-icon">
-              <svg width="28" height="28" viewBox="0 0 20 25" fill="none" stroke="#8B1E2D" stroke-width="2">
-                <path d="M1 1H19V23L10 19L1 23V1Z"/>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B1E2D" stroke-width="2">
+                <circle cx="12" cy="8" r="7"></circle>
+                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
               </svg>
             </div>
-            <h3 class="home-feature-title">Preservação Histórica</h3>
-            <p class="home-feature-description">Contribua para a preservação e disseminação do conhecimento económico angolano.</p>
+            <h3 class="home-feature-title">O seu progresso, sempre visível</h3>
+            <p class="home-feature-description">Acompanhe o seu nível, as suas medalhas e o seu percurso de aprendizagem num só lugar.</p>
           </div>
         </div>
       </div>
@@ -254,8 +270,8 @@
           </div>
 
           <div>
-            <h2 class="home-access-title">Explore sem Restrições</h2>
-            <strong><p class="home-access-description">Não precisa de criar conta para começar a explorar. Todo o conteúdo do arquivo está disponível para leitura pública.</p></strong>
+            <h2 class="home-access-title">A economia é feita por pessoas.</h2>
+            <strong><p class="home-access-description">Participe, comente e ajude a construir conhecimento colectivo sobre a Angola que somos e a que queremos ser.</p></strong>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 20px;">
@@ -349,7 +365,7 @@
           <span class="home-footer-logo">Economia com História</span>
           <p class="home-footer-copy">© 2026 Todos os direitos reservados.</p>
         </div>
-        <p class="home-footer-restricted">Arquivo restrito a investigadores e académicos</p>
+        <p class="home-footer-restricted">Economia com História — aprender o passado para compreender o presente.</p>
       </div>
     </div>
   </footer>
@@ -367,7 +383,7 @@
         </div>
         <div>
           <h2 class="access-modal-title">Conteúdo {{ getContentBadge(accessModalDoc).label }}</h2>
-          <p class="access-modal-subtitle">Este documento requer subscrição de acesso</p>
+          <p class="access-modal-subtitle">Este conteúdo faz parte de uma colecção especial. Peça acesso e a equipa do arquivo trata do resto.</p>
         </div>
         <button class="access-modal-close" (click)="closeAccessModal()" aria-label="Fechar">&times;</button>
       </div>
@@ -385,9 +401,8 @@
         </div>
 
         <p class="access-modal-text">
-          Este documento pertence a uma colecção que requer subscrição. Inicie
-          sessão e envie um pedido de subscrição — a equipa do arquivo irá
-          analisá-lo.
+          Este documento pertence a uma colecção que requer subscrição. Entre e envie
+          um pedido de acesso — a equipa do arquivo trata do resto.
         </p>
 
         <div class="access-modal-actions">
@@ -395,7 +410,7 @@
             Agora não
           </button>
           <button type="button" class="access-modal-btn-primary" (click)="requestAccess()">
-            Iniciar Sessão para Pedir Acesso
+            Entrar para Pedir Acesso
           </button>
         </div>
 

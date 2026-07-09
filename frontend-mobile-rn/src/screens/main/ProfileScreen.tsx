@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -193,8 +193,12 @@ export function ProfileScreen() {
               <View style={[styles.bentoCard, styles.scoreCard]}>
                 <Text style={styles.bentoCardLabel}>PONTUAÇÃO TOTAL</Text>
                 <Text style={styles.scoreValue}>{(rankEntry?.total_points ?? level?.total_points ?? 0).toLocaleString()}</Text>
-                {rankEntry && rankEntry.weekly_points > 0 && (
-                  <Text style={styles.scoreMeta}>+{rankEntry.weekly_points} esta semana</Text>
+                {(rankEntry?.total_points ?? level?.total_points ?? 0) === 0 ? (
+                  <Text style={styles.scoreMetaZero}>Ainda sem pontos — comece por explorar um documento ou responder a um quiz.</Text>
+                ) : (
+                  rankEntry && rankEntry.weekly_points > 0 && (
+                    <Text style={styles.scoreMeta}>+{rankEntry.weekly_points} esta semana</Text>
+                  )
                 )}
               </View>
             )}
@@ -229,18 +233,20 @@ export function ProfileScreen() {
           </View>
         )}
 
-        {/* Badges section — shown only when available */}
-        {badges.length > 0 && (
-          <View style={styles.meritsSection}>
-            <View style={styles.sectionHeader}>
-              <View>
-                <Text style={styles.sectionTitle}>Méritos e Distinções</Text>
-                <SectionAccentLine marginBottom={0} />
-              </View>
+        {/* Badges section */}
+        <View style={styles.meritsSection}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Badges (medalhas)</Text>
+              <SectionAccentLine marginBottom={0} />
+            </View>
+            {badges.length > 0 && (
               <TouchableOpacity>
                 <Text style={styles.seeAllText}>Ver Todos</Text>
               </TouchableOpacity>
-            </View>
+            )}
+          </View>
+          {badges.length > 0 ? (
             <View style={styles.meritsGrid}>
               {badges.slice(0, 4).map((ub) => (
                 <View key={ub.id} style={styles.meritCard}>
@@ -251,8 +257,15 @@ export function ProfileScreen() {
                 </View>
               ))}
             </View>
-          </View>
-        )}
+          ) : (
+            <View style={styles.emptyMerits}>
+              <Feather name="award" size={32} color={appTheme.colors.textMuted} style={{ marginBottom: 8 }} />
+              <Text style={styles.emptyMeritsText}>
+                As suas primeiras medalhas estão à espera — explore, responda e participe para as desbloquear.
+              </Text>
+            </View>
+          )}
+        </View>
 
         {/* Settings & Navigation */}
         <View style={styles.settingsPanel}>
@@ -591,5 +604,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: appTheme.colors.danger,
+  },
+  emptyMerits: {
+    backgroundColor: appTheme.colors.surface,
+    borderRadius: appTheme.radius.md,
+    padding: appTheme.spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: appTheme.colors.border,
+    borderStyle: "dashed",
+  },
+  emptyMeritsText: {
+    fontFamily: appTheme.fontFamily.body,
+    fontSize: 13,
+    color: appTheme.colors.textMuted,
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  scoreMetaZero: {
+    fontFamily: appTheme.fontFamily.body,
+    fontSize: 11,
+    color: appTheme.colors.textMuted,
+    marginTop: 4,
+    textAlign: "center",
   },
 });

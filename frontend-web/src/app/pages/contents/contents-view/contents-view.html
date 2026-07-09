@@ -20,15 +20,15 @@
         <h2 class="contents-view-access-title">Conteúdo {{ getRequiredAccessLabel() }}</h2>
         <p class="contents-view-access-subtitle">
           {{ subscriptionRequired
-              ? 'Este documento pertence a uma colecção que requer subscrição.'
-              : 'Este documento requer um nível de acesso superior.' }}
+              ? 'Este conteúdo faz parte de uma colecção especial. Peça acesso e a equipa do arquivo trata do resto.'
+              : 'Este documento requer um nível de acesso superior. Envie um pedido — é rápido.' }}
         </p>
 
         <!-- Estado: por pedir -->
         <ng-container *ngIf="!accessRequestDone">
           <p class="contents-view-access-text">
             Para consultar este conteúdo, envie um pedido de acesso —
-            a equipa do arquivo irá analisá-lo e será notificado(a) da decisão.
+            a equipa do arquivo trata do resto e você será notificado(a) da decisão.
           </p>
 
           <p *ngIf="accessRequestError" class="contents-view-access-error">{{ accessRequestError }}</p>
@@ -50,8 +50,8 @@
               <path d="M20 6L9 17l-5-5"/>
             </svg>
             <div>
-              <p class="contents-view-access-success-title">Pedido de acesso enviado</p>
-              <p class="contents-view-access-success-text">Será notificado(a) quando o acesso for concedido.</p>
+              <p class="contents-view-access-success-title">Pedido enviado!</p>
+              <p class="contents-view-access-success-text">Vai ser notificado(a) assim que o acesso for aprovado.</p>
             </div>
           </div>
 
@@ -80,7 +80,7 @@
       <!-- Breadcrumbs -->
       <div class="contents-view-breadcrumbs">
         <div class="contents-view-breadcrumbs-inner">
-          <button (click)="navigateTo('/contents')" class="contents-view-breadcrumb-btn">Conteúdos</button>
+          <button (click)="navigateTo('/contents')" class="contents-view-breadcrumb-btn">Arquivo</button>
           <span class="contents-view-breadcrumb-separator">
             <svg width="3" height="5" viewBox="0 0 3 5" fill="none"><path d="M0.5 0.5L2.5 2.5L0.5 4.5" stroke="#9CA3AF" stroke-linecap="round"/></svg>
           </span>
@@ -174,6 +174,19 @@
               </p>
             </section>
 
+            <!-- Galeria de fotos (slides) — só quando existem imagens na coleção -->
+            <section class="contents-view-section" *ngIf="galleryImages.length > 0">
+              <h2 class="contents-view-section-title">Galeria</h2>
+              <div class="contents-view-gallery">
+                <button type="button" class="contents-view-gallery-item"
+                        *ngFor="let img of galleryImages; let i = index"
+                        (click)="openLightbox(i)"
+                        [attr.aria-label]="'Ampliar imagem ' + (i + 1)">
+                  <img [src]="img.thumbnail || img.url" [alt]="img.filename || ('Imagem ' + (i + 1))" loading="lazy" />
+                </button>
+              </div>
+            </section>
+
             <section class="contents-view-section" *ngIf="doc.tags && doc.tags.length > 0">
               <h2 class="contents-view-section-title">Temas</h2>
               <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
@@ -236,21 +249,10 @@
                   </div>
                 </div>
 
-                <div class="contents-view-metadata-item">
-                  <div class="contents-view-metadata-label">TIPO DE DOCUMENTO</div>
-                  <div class="contents-view-metadata-value">{{ doc.document_type ?? '—' }}</div>
-                </div>
-
                 <div class="contents-view-metadata-item" *ngIf="doc.record_type">
                   <div class="contents-view-metadata-label">TIPO DE REGISTO</div>
                   <div class="contents-view-metadata-value">{{ doc.record_type }}</div>
                 </div>
-
-                <div class="contents-view-metadata-item">
-                  <div class="contents-view-metadata-label">NÍVEL ACADÉMICO</div>
-                  <div class="contents-view-metadata-value">{{ getAcademicLevelLabel() }}</div>
-                </div>
-
 
                 <div class="contents-view-metadata-item contents-view-metadata-item--full" *ngIf="doc.physical_location">
                   <div class="contents-view-metadata-label">LOCALIZAÇÃO FÍSICA</div>
@@ -410,6 +412,21 @@
           </div>
 
         </div>
+      </div>
+
+      <!-- Lightbox da galeria — ecrã cheio, navegável -->
+      <div class="contents-view-lightbox" *ngIf="lightboxIndex >= 0 && galleryImages[lightboxIndex] as active"
+           (click)="closeLightbox()">
+        <button type="button" class="contents-view-lightbox-close" (click)="closeLightbox()" aria-label="Fechar">&times;</button>
+        <button type="button" class="contents-view-lightbox-nav contents-view-lightbox-prev"
+                *ngIf="galleryImages.length > 1"
+                (click)="$event.stopPropagation(); lightboxPrev()" aria-label="Anterior">&#8249;</button>
+        <img class="contents-view-lightbox-img" [src]="active.url" [alt]="active.filename || 'Imagem'"
+             (click)="$event.stopPropagation()" />
+        <button type="button" class="contents-view-lightbox-nav contents-view-lightbox-next"
+                *ngIf="galleryImages.length > 1"
+                (click)="$event.stopPropagation(); lightboxNext()" aria-label="Seguinte">&#8250;</button>
+        <div class="contents-view-lightbox-counter">{{ lightboxIndex + 1 }} / {{ galleryImages.length }}</div>
       </div>
 
     </ng-container>

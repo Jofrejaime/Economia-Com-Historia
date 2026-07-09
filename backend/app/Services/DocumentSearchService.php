@@ -136,7 +136,14 @@ class DocumentSearchService
             $query->where('d.academic_level', $params['academic_level']);
         }
         if (!empty($params['media_type'])) {
-            $query->where('d.media_type', $params['media_type']);
+            if ($params['media_type'] === 'TEXT') {
+                $query->where(function ($q) {
+                    $q->whereNull('d.media_type')
+                      ->orWhereIn('d.media_type', ['TEXT', 'PDF']);
+                });
+            } else {
+                $query->where('d.media_type', $params['media_type']);
+            }
         }
 
         // Year filter
