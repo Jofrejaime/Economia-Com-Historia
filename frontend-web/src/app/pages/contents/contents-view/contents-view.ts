@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../components/header/header';
 import { FooterComponent } from '../../../components/footer/footer';
@@ -50,6 +51,7 @@ export class ContentsViewComponent implements OnInit {
     private route: ActivatedRoute,
     private documentService: DocumentService,
     private authService: AuthService,
+    private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private destroyRef: DestroyRef
   ) {}
@@ -217,6 +219,17 @@ export class ContentsViewComponent implements OnInit {
 
   get mediaUrl(): string | null {
     return this.doc?.media_url ?? this.doc?.pdf_url ?? null;
+  }
+
+  /**
+   * URL do PDF já sanitizado para uso no `src` de um <iframe>. O Angular
+   * bloqueia strings simples em contexto de resource URL (iframe/embed) e
+   * lança durante o change detection — o que era apanhado pelo catch do
+   * loadDocument e mostrava "Erro ao carregar documento" em qualquer PDF.
+   */
+  get safeMediaUrl(): SafeResourceUrl | null {
+    const url = this.mediaUrl;
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
   }
 
   /**
