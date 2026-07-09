@@ -93,10 +93,8 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.md,
   },
   label: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.label,
     color: appTheme.colors.textPrimary,
-    fontSize: 14,
-    fontWeight: "600",
     marginBottom: 8,
   },
   inputWrap: {
@@ -115,8 +113,7 @@ const styles = StyleSheet.create({
   input: {
     minHeight: 52,
     paddingHorizontal: appTheme.spacing.md,
-    fontFamily: "Source_Sans_3",
-    fontSize: 16,
+    ...appTheme.typography.body,
     color: appTheme.colors.textPrimary,
   },
   inputWithIcon: {
@@ -137,9 +134,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   errorText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.caption,
     color: appTheme.colors.danger,
-    fontSize: 13,
     fontWeight: "500",
   },
 });

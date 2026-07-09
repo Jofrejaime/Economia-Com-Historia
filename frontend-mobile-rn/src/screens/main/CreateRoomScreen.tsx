@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+﻿import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   subtitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     fontSize: 15,
     lineHeight: 22,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.lg,
   },
   sectionTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -203,14 +203,14 @@ const styles = StyleSheet.create({
     ...appTheme.shadow.sm,
   },
   controlLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textMuted,
     fontSize: 13,
     fontWeight: "600",
     marginBottom: 8,
   },
   controlValue: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.textPrimary,
     fontSize: 16,
     fontWeight: "700",
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sectionMeta: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textMuted,
     fontSize: 14,
   },
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.border,
   },
   saveButtonText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",

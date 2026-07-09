@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+﻿import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -268,12 +268,12 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textMuted,
   },
   errorText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textMuted,
     textAlign: "center",
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
   },
   retryBtnText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
     fontWeight: "700",
     fontSize: 14,
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   progressLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 13,
     fontWeight: "700",
     color: appTheme.colors.textSecondary,
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   moduleLabel: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 12,
     fontWeight: "700",
     color: appTheme.colors.primaryDark,
@@ -341,14 +341,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   questionSubtitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     textAlign: "center",
     marginBottom: 8,
   },
   questionText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 22,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -368,14 +368,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   readingTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 13,
     fontWeight: "700",
     color: appTheme.colors.textSecondary,
     marginBottom: 8,
   },
   readingText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.textSecondary,
     lineHeight: 22,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   optionLetter: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 18,
     fontWeight: "700",
   },
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primaryDark,
   },
   optionText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     flex: 1,
     fontSize: 15,
     lineHeight: 22,
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   hintText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     flex: 1,
     fontStyle: "italic",
     fontSize: 13,
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   submitBtnLabel: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "700",

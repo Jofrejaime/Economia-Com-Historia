@@ -268,7 +268,7 @@ class DocumentAdminService
 
             $url = $this->media->buildPublicUrl($media->path);
             $columns['media_url'] = $url;
-            $columns['media_type'] = $media->extension === 'pdf' ? 'PDF' : 'TEXT';
+            $columns['media_type'] = $this->media->mediaTypeForExtension($media->extension);
 
             if ($media->extension === 'pdf') {
                 $columns['pdf_url'] = $url; // legacy

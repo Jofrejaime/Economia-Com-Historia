@@ -285,20 +285,17 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   appTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.title,
     color: appTheme.colors.surface,
-    fontSize: 20,
-    fontWeight: "700",
   },
   appSubtitle: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.micro,
     color: "rgba(255,255,255,0.85)",
-    fontSize: 12,
   },
   headerLead: {
-    fontFamily: "Source_Sans_3",
-    color: "rgba(255,255,255,0.9)",
+    ...appTheme.typography.body,
     fontSize: 14,
+    color: "rgba(255,255,255,0.9)",
     lineHeight: 22,
   },
 
@@ -314,7 +311,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   sectionTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.textSecondary,
     fontSize: 12,
     fontWeight: "700",
@@ -327,13 +324,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitleSmall: {
-    fontFamily: "Source_Sans_3",
-    color: appTheme.colors.textSecondary,
-    fontSize: 11,
+    ...appTheme.typography.tiny,
+    fontFamily: appTheme.fontFamily.body,
     fontWeight: "700",
+    color: appTheme.colors.textSecondary,
   },
   linkText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.micro,
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.primary,
     fontWeight: "600",
   },
@@ -358,7 +356,8 @@ const styles = StyleSheet.create({
     padding: appTheme.spacing.md,
   },
   featuredTag: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.tiny,
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.surface,
     backgroundColor: "rgba(255,255,255,0.06)",
     alignSelf: "flex-start",
@@ -366,17 +365,15 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     fontWeight: "700",
-    fontSize: 11,
     letterSpacing: 0.5,
     marginBottom: 8,
     overflow: "hidden",
   },
   featuredTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.body,
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
-    fontSize: 16,
     fontWeight: "700",
-    lineHeight: 22,
     marginBottom: 12,
   },
   featuredButton: {
@@ -387,7 +384,7 @@ const styles = StyleSheet.create({
     borderRadius: appTheme.radius.button,
   },
   featuredButtonText: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.primary,
     fontWeight: "700",
     fontSize: 13,
@@ -400,7 +397,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   emptyText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textMuted,
     fontSize: 14,
   },
@@ -429,13 +426,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardTag: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.tiny,
     color: appTheme.colors.textSecondary,
-    fontSize: 11,
     marginBottom: 4,
   },
   cardTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.textPrimary,
     fontWeight: "700",
     fontSize: 14,
@@ -443,9 +439,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   cardMeta: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.micro,
     color: appTheme.colors.textMuted,
-    fontSize: 12,
   },
 
   // Format cards
@@ -471,15 +466,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   formatTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.textPrimary,
     fontWeight: "700",
     fontSize: 14,
     marginBottom: 2,
   },
   formatDesc: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.micro,
     color: appTheme.colors.textMuted,
-    fontSize: 12,
   },
 });

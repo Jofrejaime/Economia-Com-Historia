@@ -79,15 +79,14 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   label: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.body,
+    fontFamily: appTheme.fontFamily.heading,
     fontWeight: "700",
-    fontSize: 16,
     color: appTheme.colors.surface,
     marginBottom: 4,
   },
   count: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
+    ...appTheme.typography.micro,
     color: "rgba(255,255,255,0.7)",
   },
 });

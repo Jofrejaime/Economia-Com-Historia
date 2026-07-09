@@ -35,10 +35,9 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.surface,
   },
   label: {
-    fontFamily: "IBM_Plex_Sans",
-    color: appTheme.colors.textPrimary,
+    ...appTheme.typography.bodySemiBold,
     fontSize: 15,
-    fontWeight: "600",
+    color: appTheme.colors.textPrimary,
   },
   pressed: {
     opacity: 0.85,

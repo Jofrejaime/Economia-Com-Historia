@@ -33,15 +33,22 @@ class MediaService
     public const KIND_DOCUMENT = 'document';
 
     /** Tamanhos máximos por tipo (KB). */
-    public const MAX_IMAGE_KB    = 4096;    // 4 MB
-    public const MAX_DOCUMENT_KB = 51200;   // 50 MB
+    public const MAX_IMAGE_KB    = 4096;     // 4 MB
+    public const MAX_DOCUMENT_KB = 512000;   // 500 MB (acomoda vídeo/áudio/podcast)
 
     private const THUMBNAIL_MAX_WIDTH = 400;
 
     /** Extensões permitidas por tipo (contrato da sprint). */
     private const ALLOWED_EXTENSIONS = [
         self::KIND_IMAGE    => ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif'],
-        self::KIND_DOCUMENT => ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'csv', 'txt', 'zip', 'rar', 'odt'],
+        self::KIND_DOCUMENT => [
+            // Texto / documentos
+            'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'csv', 'txt', 'zip', 'rar', 'odt',
+            // Vídeo
+            'mp4', 'webm', 'mov', 'm4v', 'ogv',
+            // Áudio (podcast)
+            'mp3', 'wav', 'm4a', 'aac', 'ogg', 'oga', 'flac',
+        ],
     ];
 
     /** Extensões executáveis/perigosas — recusadas em QUALQUER segmento do nome. */
@@ -71,7 +78,25 @@ class MediaService
         'zip'  => ['application/zip', 'application/x-zip-compressed'],
         'rar'  => ['application/vnd.rar', 'application/x-rar-compressed', 'application/x-rar'],
         'odt'  => ['application/vnd.oasis.opendocument.text', 'application/zip'],
+        // Vídeo
+        'mp4'  => ['video/mp4'],
+        'webm' => ['video/webm'],
+        'mov'  => ['video/quicktime'],
+        'm4v'  => ['video/x-m4v', 'video/mp4'],
+        'ogv'  => ['video/ogg'],
+        // Áudio (podcast)
+        'mp3'  => ['audio/mpeg', 'audio/mp3'],
+        'wav'  => ['audio/wav', 'audio/x-wav', 'audio/wave'],
+        'm4a'  => ['audio/mp4', 'audio/x-m4a', 'audio/aac'],
+        'aac'  => ['audio/aac', 'audio/x-aac'],
+        'ogg'  => ['audio/ogg', 'application/ogg'],
+        'oga'  => ['audio/ogg', 'application/ogg'],
+        'flac' => ['audio/flac', 'audio/x-flac'],
     ];
+
+    /** Extensões de vídeo e áudio, para derivar o media_type do documento. */
+    private const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v', 'ogv'];
+    private const AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'oga', 'flac'];
 
     public function __construct(private readonly PreviewGenerator $previewGenerator) {}
 
@@ -368,6 +393,27 @@ class MediaService
      *
      * @throws ValidationException
      */
+    /**
+     * media_type do documento a partir da extensão do ficheiro principal:
+     * VIDEO | AUDIO | PDF | TEXT (o front serve <video>/<audio>/<iframe>/texto).
+     */
+    public function mediaTypeForExtension(string $extension): string
+    {
+        $ext = strtolower($extension);
+
+        if (in_array($ext, self::VIDEO_EXTENSIONS, true)) {
+            return 'VIDEO';
+        }
+        if (in_array($ext, self::AUDIO_EXTENSIONS, true)) {
+            return 'AUDIO';
+        }
+        if ($ext === 'pdf') {
+            return 'PDF';
+        }
+
+        return 'TEXT';
+    }
+
     public function validateUploadedFile(UploadedFile $file, string $kind, ?int $maxKb = null): void
     {
         if (! $file->isValid()) {

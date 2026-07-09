@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -nA20 \"fillable\" app/Models/DocumentCategory.php)",
+      "Bash(php -r \"echo 'upload_max_filesize='.ini_get\\('upload_max_filesize'\\).' post_max_size='.ini_get\\('post_max_size'\\).PHP_EOL;\")",
+      "Bash(php -l backend/app/Services/MediaService.php)",
+      "Bash(php -l backend/app/Services/DocumentAdminService.php)",
+      "Bash(grep -nA25 \"fillable\\\\|guarded\" app/Models/Report.php)",
+      "Bash(grep -nA6 \"executeAction\" services/moderation-admin.service.ts)",
+      "Bash(grep -iE \"notif|send\\\\\\(|title|'[A-Za-z ]{6,}'\")",
+      "Bash(grep -nA6 \"mediaTypeLabels\" contents.ts)",
+      "Bash(cd \"c:/Users/BeeFlex Studio/Documents/ISPTEC/3 º ano/2º Semestre/ESII/Economia-Com-Historia/frontend-web/src/app/pages/forum\" && grep -rnE \"isAuthenticated|navigate\\\\\\(\\\\['/auth|login|Guest|convidado|redirect|authService|401|Unauthorized\" community/community.ts category-view/category-view.ts 2>/dev/null | head -20; echo \"=== como o header/home liga ao forum p/ convidado ===\"; grep -rnE \"forum|Forum|Comunidade|community\" ../../components/header/header.html ../home/home-visitor/home-visitor.html 2>/dev/null | head)",
+      "Read(//c/Users/BeeFlex Studio/Documents/ISPTEC/3 º ano/2º Semestre/components/header/**)",
+      "Bash(grep -nA12 \"ensureSession\" services/auth.service.ts)",
+      "Bash(grep -nA10 \"\\\\.contents-view-section-text\\\\b\\\\|\\\\.contents-view-section-title\\\\b\\\\|\\\\.contents-view-section\\\\b\" contents-view.css)"
+    ]
+  }
+}

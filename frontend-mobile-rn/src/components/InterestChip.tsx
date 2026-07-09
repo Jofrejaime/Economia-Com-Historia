@@ -39,9 +39,8 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.primary,
   },
   text: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.label,
     color: appTheme.colors.textSecondary,
-    fontSize: 14,
     fontWeight: "500",
   },
   textSelected: {

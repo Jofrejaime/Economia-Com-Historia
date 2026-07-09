@@ -218,9 +218,9 @@
   </div>
 
   <div class="modal-overlay" *ngIf="showDocumentModal" (click)="closeDocumentModal()">
-    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-content" [class.modal-editor]="documentModalMode === 'edit'" [class.modal-large]="documentModalMode === 'view'" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ documentModalMode === 'edit' ? 'Editar Documento' : 'Detalhes do Documento' }}</h2>
+        <h2>{{ documentModalMode === 'edit' ? (editingDocument ? 'Editar conteúdo' : 'Novo conteúdo') : 'Detalhes do Documento' }}</h2>
         <button class="modal-close" type="button" (click)="closeDocumentModal()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m6 6 12 12M18 6 6 18"></path>
@@ -289,125 +289,114 @@
         </div>
 
         <ng-container *ngIf="documentModalMode === 'edit'">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Título</label>
-              <input type="text" [(ngModel)]="documentForm.title" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label>Autor</label>
-              <input type="text" [(ngModel)]="documentForm.author" class="form-input" />
-            </div>
-          </div>
+          <div class="editor-grid">
 
-          <div class="form-group">
-            <label>Resumo</label>
-            <textarea [(ngModel)]="documentForm.summary" rows="4" class="form-input"></textarea>
-          </div>
+            <!-- Coluna principal: o conteúdo em si -->
+            <div class="editor-main">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Título</label>
+                  <input type="text" [(ngModel)]="documentForm.title" class="form-input" placeholder="Título do conteúdo" />
+                </div>
+                <div class="form-group">
+                  <label>Autor</label>
+                  <input type="text" [(ngModel)]="documentForm.author" class="form-input" placeholder="Nome do autor" />
+                </div>
+              </div>
 
-          <div class="form-group">
-            <label>Conteúdo</label>
-            <textarea [(ngModel)]="documentForm.content" rows="8" class="form-input"></textarea>
-          </div>
+              <div class="form-group">
+                <label>Resumo</label>
+                <textarea [(ngModel)]="documentForm.summary" rows="3" class="form-input" placeholder="Breve descrição do conteúdo"></textarea>
+              </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Tipo de documento</label>
-              <select [(ngModel)]="documentForm.document_type" class="form-input">
-                <option value="manuscript">manuscript</option>
-                <option value="article">article</option>
-                <option value="report">report</option>
-                <option value="thesis">thesis</option>
-                <option value="archive">archive</option>
-              </select>
+              <div class="form-group editor-content">
+                <label>Conteúdo (texto)</label>
+                <textarea [(ngModel)]="documentForm.content" rows="18" class="form-input"
+                  placeholder="Escreva o texto do artigo aqui. Para vídeo ou podcast, basta carregar o ficheiro na coluna ao lado — o tipo é detetado automaticamente pelo ficheiro."></textarea>
+              </div>
             </div>
-            <div class="form-group">
-              <label>Nível académico</label>
-              <select [(ngModel)]="documentForm.academic_level" class="form-input">
-                <option value="intro">intro</option>
-                <option value="advanced">advanced</option>
-                <option value="doctorate">doctorate</option>
-              </select>
-            </div>
-          </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Categoria</label>
-              <select [(ngModel)]="documentForm.category_id" class="form-input">
-                <option [ngValue]="null">Sem categoria</option>
-                <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
-              </select>
-            </div>
-          </div>
+            <!-- Barra lateral: classificação e ficheiros -->
+            <aside class="editor-side">
+              <section class="editor-section">
+                <h3 class="editor-section-title">Classificação</h3>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Instituição</label>
-              <input type="text" [(ngModel)]="documentForm.institution" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label>Status</label>
-              <select [(ngModel)]="documentForm.status" class="form-input">
-                <option value="draft">draft</option>
-                <option value="published">published</option>
-                <option value="archived">archived</option>
-              </select>
-            </div>
-          </div>
+                <div class="form-group">
+                  <label>Categoria</label>
+                  <select [(ngModel)]="documentForm.category_id" class="form-input">
+                    <option [ngValue]="null">Sem categoria</option>
+                    <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
+                  </select>
+                </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Data de publicação</label>
-              <input type="date" [(ngModel)]="documentForm.publication_date" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label>Período inicial</label>
-              <input type="number" [(ngModel)]="documentForm.period_start" class="form-input" />
-            </div>
-          </div>
+                <div class="form-group">
+                  <label>Estado</label>
+                  <select [(ngModel)]="documentForm.status" class="form-input">
+                    <option value="draft">Rascunho</option>
+                    <option value="published">Publicado</option>
+                    <option value="archived">Arquivado</option>
+                  </select>
+                </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Período final</label>
-              <input type="number" [(ngModel)]="documentForm.period_end" class="form-input" />
-            </div>
-          </div>
+                <div class="form-group">
+                  <label>Data de publicação</label>
+                  <input type="date" [(ngModel)]="documentForm.publication_date" class="form-input" />
+                </div>
 
-          <!-- Sprint 18.4 — uploads via pipeline único de media -->
-          <div class="form-group">
-            <app-file-upload
-              label="Ficheiro principal"
-              hint="PDF, DOCX, PPT, PPTX, XLSX, CSV, TXT, ZIP, RAR ou ODT — máx. 50 MB"
-              [media]="documentMedia?.file ?? null"
-              [existingUrl]="documentForm.pdf_url"
-              [disabled]="saving"
-              (fileChange)="onMainFileChange($event)" />
-          </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Período — início</label>
+                    <input type="number" [(ngModel)]="documentForm.period_start" class="form-input" placeholder="1899" />
+                  </div>
+                  <div class="form-group">
+                    <label>Período — fim</label>
+                    <input type="number" [(ngModel)]="documentForm.period_end" class="form-input" placeholder="1975" />
+                  </div>
+                </div>
+              </section>
 
-          <div class="form-group">
-            <app-image-upload
-              label="Imagem de capa"
-              [media]="documentMedia?.cover ?? null"
-              [existingUrl]="documentForm.cover_image_url"
-              [disabled]="saving"
-              (fileChange)="onCoverFileChange($event)" />
-          </div>
+              <section class="editor-section">
+                <h3 class="editor-section-title">Ficheiros</h3>
 
-          <div class="form-group">
-            <app-gallery-upload
-              [existing]="documentMedia?.gallery ?? []"
-              [files]="galleryFiles"
-              [disabled]="saving"
-              (filesChange)="galleryFiles = $event" />
-          </div>
+                <div class="form-group">
+                  <app-file-upload
+                    label="Ficheiro principal"
+                    hint="Texto (PDF, DOCX, TXT…), vídeo (MP4, WEBM, MOV) ou podcast/áudio (MP3, M4A, WAV) — máx. 500 MB"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.zip,.rar,.odt,.mp4,.webm,.mov,.m4v,.ogv,.mp3,.wav,.m4a,.aac,.ogg,.oga,.flac"
+                    [maxSizeMb]="500"
+                    [media]="documentMedia?.file ?? null"
+                    [existingUrl]="documentForm.pdf_url"
+                    [disabled]="saving"
+                    (fileChange)="onMainFileChange($event)" />
+                </div>
 
-          <div class="form-group" *ngIf="uploadProgress !== null">
-            <label>A carregar ficheiros… {{ uploadProgress }}%</label>
-            <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-              <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb); transition: width .2s;"
-                [style.width.%]="uploadProgress"></div>
-            </div>
+                <div class="form-group">
+                  <app-image-upload
+                    label="Imagem de capa"
+                    [media]="documentMedia?.cover ?? null"
+                    [existingUrl]="documentForm.cover_image_url"
+                    [disabled]="saving"
+                    (fileChange)="onCoverFileChange($event)" />
+                </div>
+
+                <div class="form-group">
+                  <app-gallery-upload
+                    [existing]="documentMedia?.gallery ?? []"
+                    [files]="galleryFiles"
+                    [disabled]="saving"
+                    (filesChange)="galleryFiles = $event" />
+                </div>
+
+                <div class="form-group" *ngIf="uploadProgress !== null">
+                  <label>A carregar ficheiros… {{ uploadProgress }}%</label>
+                  <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb); transition: width .2s;"
+                      [style.width.%]="uploadProgress"></div>
+                  </div>
+                </div>
+              </section>
+            </aside>
+
           </div>
         </ng-container>
       </div>

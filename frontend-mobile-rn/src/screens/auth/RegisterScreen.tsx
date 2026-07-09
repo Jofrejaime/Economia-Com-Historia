@@ -352,10 +352,8 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.border,
   },
   progressText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.microSemiBold,
     color: appTheme.colors.textMuted,
-    fontSize: 12,
-    fontWeight: "600",
   },
   content: {
     flex: 1,
@@ -366,34 +364,27 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   title: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.heading,
     color: appTheme.colors.textPrimary,
-    fontSize: 26,
-    fontWeight: "700",
     marginBottom: 8,
-    letterSpacing: -0.5,
   },
   subtitle: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.body,
     color: appTheme.colors.textSecondary,
-    fontSize: 16,
     marginBottom: 32,
-    lineHeight: 22,
   },
   formGroup: {
     marginBottom: appTheme.spacing.lg,
   },
   groupLabel: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.label,
     color: appTheme.colors.textPrimary,
-    fontSize: 14,
-    fontWeight: "600",
     marginBottom: 12,
   },
   groupHint: {
-    fontFamily: "Source_Sans_3",
-    color: appTheme.colors.textMuted,
+    ...appTheme.typography.caption,
     fontSize: 13,
+    color: appTheme.colors.textMuted,
     marginBottom: 12,
   },
   primaryButton: {
@@ -407,9 +398,9 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.rankingCardSecondary,
   },
   primaryButtonText: {
-    fontFamily: "IBM_Plex_Sans",
+    ...appTheme.typography.body,
+    fontFamily: appTheme.fontFamily.heading,
     color: appTheme.colors.surface,
-    fontSize: 16,
     fontWeight: "700",
   },
   primaryButtonTextDisabled: {
@@ -419,11 +410,10 @@ const styles = StyleSheet.create({
     marginTop: appTheme.spacing.lg,
   },
   termsText: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.caption,
+    fontSize: 13,
     textAlign: "center",
     color: appTheme.colors.textMuted,
-    fontSize: 13,
-    lineHeight: 20,
   },
   termsLink: {
     color: appTheme.colors.primary,
@@ -456,9 +446,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarInitials: {
-    fontFamily: "IBM_Plex_Sans",
-    fontSize: 26,
-    fontWeight: "700",
+    ...appTheme.typography.heading,
     color: appTheme.colors.primary,
     opacity: 0.6,
   },
@@ -476,7 +464,7 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.surface,
   },
   avatarHint: {
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.caption,
     fontSize: 13,
     color: appTheme.colors.textMuted,
   },

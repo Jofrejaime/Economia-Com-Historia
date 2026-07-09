@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'IBM_Plex_Sans',
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 17,
     fontWeight: '700',
     color: appTheme.colors.textPrimary,

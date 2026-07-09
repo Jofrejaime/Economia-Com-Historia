@@ -1,8 +1,17 @@
 import { DefaultTheme as NavigationDefaultTheme } from "@react-navigation/native";
 import { colors } from "./colors";
 
+/** Nomes canónicos das famílias tipográficas do projeto. */
+export const fontFamily = {
+  /** IBM Plex Sans — títulos, labels, botões, pesos 600–700 */
+  heading: "IBM_Plex_Sans",
+  /** Source Sans 3 — corpo de texto, meta, pesos 400–600 */
+  body: "Source_Sans_3",
+} as const;
+
 export const appTheme = {
   colors,
+  fontFamily,
   spacing: {
     xs: 4,
     sm: 8,
@@ -43,31 +52,93 @@ export const appTheme = {
     },
   },
   typography: {
+    /** Título principal de ecrã — 26 / IBM / 700 */
     heading: {
-      fontFamily: "IBM_Plex_Sans",
+      fontFamily: fontFamily.heading,
       fontSize: 26,
       fontWeight: "700" as const,
       letterSpacing: -0.52,
       lineHeight: 34,
     },
+    /** Subtítulo destacado — 22 / IBM / 700 */
+    subheading: {
+      fontFamily: fontFamily.heading,
+      fontSize: 22,
+      fontWeight: "700" as const,
+      letterSpacing: -0.44,
+      lineHeight: 29,
+    },
+    /** Título de secção ou card — 20 / IBM / 700 */
     title: {
-      fontFamily: "IBM_Plex_Sans",
+      fontFamily: fontFamily.heading,
       fontSize: 20,
       fontWeight: "700" as const,
       letterSpacing: -0.4,
       lineHeight: 26,
     },
+    /** Título menor — 18 / IBM / 700 */
+    titleSmall: {
+      fontFamily: fontFamily.heading,
+      fontSize: 18,
+      fontWeight: "700" as const,
+      letterSpacing: -0.36,
+      lineHeight: 24,
+    },
+    /** Corpo de texto padrão — 16 / Source / 400 */
     body: {
-      fontFamily: "Source_Sans_3",
+      fontFamily: fontFamily.body,
       fontSize: 16,
       fontWeight: "400" as const,
       lineHeight: 27,
     },
+    /** Corpo semi-bold (subtítulos de item) — 16 / Source / 600 */
+    bodySemiBold: {
+      fontFamily: fontFamily.body,
+      fontSize: 16,
+      fontWeight: "600" as const,
+      lineHeight: 24,
+    },
+    /** Texto secundário / legenda — 14 / Source / 400 */
     caption: {
-      fontFamily: "Source_Sans_3",
+      fontFamily: fontFamily.body,
       fontSize: 14,
       fontWeight: "400" as const,
       lineHeight: 24,
+    },
+    /** Label de campo ou botão — 14 / IBM / 600 */
+    label: {
+      fontFamily: fontFamily.heading,
+      fontSize: 14,
+      fontWeight: "600" as const,
+      lineHeight: 20,
+    },
+    /** Label negrito — 14 / IBM / 700 */
+    labelBold: {
+      fontFamily: fontFamily.heading,
+      fontSize: 14,
+      fontWeight: "700" as const,
+      lineHeight: 20,
+    },
+    /** Texto auxiliar pequeno — 12 / Source / 400 */
+    micro: {
+      fontFamily: fontFamily.body,
+      fontSize: 12,
+      fontWeight: "400" as const,
+      lineHeight: 18,
+    },
+    /** Texto micro semi-bold (badges, chips) — 12 / Source / 600 */
+    microSemiBold: {
+      fontFamily: fontFamily.body,
+      fontSize: 12,
+      fontWeight: "600" as const,
+      lineHeight: 18,
+    },
+    /** Texto mínimo (11px) — etiquetas internas */
+    tiny: {
+      fontFamily: fontFamily.body,
+      fontSize: 11,
+      fontWeight: "400" as const,
+      lineHeight: 16,
     },
   },
 };

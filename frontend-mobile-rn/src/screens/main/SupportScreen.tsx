@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   subtitle: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textSecondary,
     marginBottom: 24,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textSecondary,
     fontSize: 14,
     fontWeight: "600",
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   dropdownButtonText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 16,
     color: appTheme.colors.textPrimary,
   },
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.debateHighlightBg,
   },
   dropdownItemText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 15,
     color: appTheme.colors.textSecondary,
   },
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   textArea: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     borderWidth: 1,
     borderColor: appTheme.colors.border,
     borderRadius: 8,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   sendButtonText: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.surface,
     fontSize: 16,
     fontWeight: "600",
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   faqTitle: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 20,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
@@ -283,14 +283,14 @@ const styles = StyleSheet.create({
     borderColor: appTheme.colors.border,
   },
   faqQuestion: {
-    fontFamily: "IBM_Plex_Sans",
+    fontFamily: appTheme.fontFamily.heading,
     fontSize: 15,
     fontWeight: "700",
     color: appTheme.colors.textPrimary,
     marginBottom: 8,
   },
   faqAnswer: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     fontSize: 14,
     color: appTheme.colors.rankingCardGray,
     lineHeight: 20,

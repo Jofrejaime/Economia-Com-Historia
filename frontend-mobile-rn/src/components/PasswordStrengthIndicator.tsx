@@ -53,9 +53,7 @@ const styles = StyleSheet.create({
   barMedium: { backgroundColor: appTheme.colors.warning },
   barStrong: { backgroundColor: appTheme.colors.success },
   label: {
-    fontFamily: "Source_Sans_3",
-    fontSize: 12,
-    fontWeight: "600",
+    ...appTheme.typography.microSemiBold,
   },
   textWeak: { color: appTheme.colors.danger },
   textMedium: { color: appTheme.colors.warning },

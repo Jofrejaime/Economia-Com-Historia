@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { appTheme } from "../constants/theme";
 
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.border,
   },
   text: {
-    fontFamily: "Source_Sans_3",
+    fontFamily: appTheme.fontFamily.body,
     color: appTheme.colors.textMuted,
     fontSize: 14,
   },

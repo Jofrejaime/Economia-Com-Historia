@@ -71,9 +71,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     marginLeft: 10,
-    fontFamily: "Source_Sans_3",
+    ...appTheme.typography.bodySemiBold,
     color: appTheme.colors.textPrimary,
-    fontSize: 16,
-    fontWeight: "500",
   },
 });
