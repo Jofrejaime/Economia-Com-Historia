@@ -148,6 +148,10 @@
       </div>
 
       <div class="modal-body">
+        <!-- Feedback dentro do modal: em caso de erro o modal continua aberto,
+             por isso a mensagem tem de ser visível aqui. -->
+        <div *ngIf="errorMessage" class="modal-inline-banner modal-inline-banner--error">{{ errorMessage }}</div>
+
         <div class="form-row">
           <div class="form-group">
             <label>Nome da Categoria <span class="required">*</span></label>

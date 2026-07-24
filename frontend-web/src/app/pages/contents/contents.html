@@ -115,7 +115,7 @@
               </div>
             </div>
             <div class="contents-doc-item-body">
-              <span class="contents-doc-item-category">{{ doc.document_type | uppercase }}</span>
+              <span class="contents-doc-item-category">{{ (getMediaTypeLabel(doc.media_type) || 'Texto') | uppercase }}</span>
               <h3 class="contents-doc-item-title">{{ doc.title }}</h3>
               <p class="contents-doc-item-description">{{ doc.summary }}</p>
               <div class="contents-doc-item-footer">
@@ -213,7 +213,7 @@
 
         <!-- Documento em causa -->
         <div class="access-modal-doc">
-          <span class="access-modal-doc-type">{{ accessModalDoc.document_type | uppercase }}</span>
+          <span class="access-modal-doc-type">{{ (getMediaTypeLabel(accessModalDoc.media_type) || 'Texto') | uppercase }}</span>
           <h3 class="access-modal-doc-title">{{ accessModalDoc.title }}</h3>
           <span class="access-modal-doc-badge"
                 [style.background]="getDocBadge(accessModalDoc).bg"

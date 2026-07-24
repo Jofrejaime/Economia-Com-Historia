@@ -72,7 +72,7 @@
             </div>
 
             <div class="saved-card-body">
-              <span class="saved-card-type">{{ item.document_type || 'Documento' }}</span>
+              <span class="saved-card-type">{{ getContentTypeLabel(item.media_type) }}</span>
               <h4 class="saved-card-title">{{ item.title }}</h4>
               <div class="saved-card-meta">
                 <span *ngIf="item.category_name">{{ item.category_name }}</span>

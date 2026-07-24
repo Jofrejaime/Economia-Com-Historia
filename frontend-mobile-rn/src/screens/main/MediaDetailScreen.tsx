@@ -12,7 +12,7 @@ import {
   Modal,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Audio, AVPlaybackStatus } from "expo-av";
+import { Audio, AVPlaybackStatus, Video, ResizeMode } from "expo-av";
 import WebView from "react-native-webview";
 import { useAuth } from "../../hooks/useAuth";
 import { ScreenContainer } from "../../components/ScreenContainer";
@@ -331,18 +331,18 @@ export function MediaDetailScreen() {
                   />
                 );
               }
-              // URL directa (mp4) — thumbnail com fallback
+              // URL directa (mp4/webm/mov…) — reproduzida pelo player nativo
+              // do expo-av (o mesmo módulo já usado para o áudio).
               return (
-                <View style={styles.videoPlayer}>
-                  {doc.cover_image_url ? (
-                    <Image source={{ uri: doc.cover_image_url }} style={styles.videoThumbnail} resizeMode="cover" />
-                  ) : (
-                    <View style={styles.videoThumbnailFallback} />
-                  )}
-                  <View style={styles.videoPlayOverlay}>
-                    <Text style={styles.noMediaText}>Formato de vídeo não suportado no player</Text>
-                  </View>
-                </View>
+                <Video
+                  source={{ uri: doc.media_url! }}
+                  style={styles.videoPlayer}
+                  useNativeControls
+                  resizeMode={ResizeMode.CONTAIN}
+                  usePoster={!!doc.cover_image_url}
+                  posterSource={doc.cover_image_url ? { uri: doc.cover_image_url } : undefined}
+                  posterStyle={{ resizeMode: "cover" }}
+                />
               );
             })()
           ) : (

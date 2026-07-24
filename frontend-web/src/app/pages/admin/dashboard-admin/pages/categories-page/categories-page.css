@@ -989,3 +989,17 @@ textarea.form-input {
   color: #6B7280;
   line-height: 1.4;
 }
+
+/* Banner de feedback dentro do modal (visível mesmo com o modal aberto) */
+.modal-inline-banner {
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.modal-inline-banner--error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}

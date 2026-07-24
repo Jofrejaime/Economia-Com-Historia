@@ -13,6 +13,7 @@ interface RelatedDocument {
   id: string;
   title: string;
   document_type?: string | null;
+  media_type?: string | null;
   cover_image_url?: string | null;
   summary?: string | null;
 }
@@ -89,6 +90,7 @@ export class QuizResultComponent implements OnInit {
         id: d.id,
         title: d.title,
         document_type: d.document_type ?? null,
+        media_type: d.media_type ?? null,
         cover_image_url: d.cover_image_url ?? null,
         summary: d.summary ?? null,
       }));
@@ -102,6 +104,15 @@ export class QuizResultComponent implements OnInit {
 
   navigateToDocument(id: string): void {
     this.router.navigate(['/contents/view', id]);
+  }
+
+  /** Rótulo do tipo de conteúdo, derivado do ficheiro (media_type): Texto/Vídeo/Podcast. */
+  getContentTypeLabel(mediaType: string | null | undefined): string {
+    const t = (mediaType || 'TEXT').toUpperCase();
+    if (t === 'VIDEO') return 'Vídeo';
+    if (t === 'AUDIO') return 'Podcast';
+    if (t === 'IMAGE') return 'Imagem';
+    return 'Texto';
   }
 
   get score(): number {

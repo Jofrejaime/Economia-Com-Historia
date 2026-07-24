@@ -1,12 +1,13 @@
 <div class="subs-container">
 
+  <div *ngIf="loading" class="banner banner-info"><p>A carregar pedidos...</p></div>
   <div *ngIf="errorMessage" class="banner banner-error"><p>{{ errorMessage }}</p></div>
   <div *ngIf="successMessage" class="banner banner-success"><p>{{ successMessage }}</p></div>
 
   <div class="page-header">
     <div>
       <h1 class="page-title">Solicitações de Acesso</h1>
-      <p class="page-subtitle">Pedidos de subscrição a documentos de categorias restritas. Aprove para conceder acesso ao documento pedido.</p>
+      <p class="page-subtitle">Pedidos de subscrição a documentos de categorias restritas. Aprovar concede acesso ao documento pedido.</p>
     </div>
     <div class="page-actions">
       <button class="btn-secondary" type="button" (click)="load()" [disabled]="loading">Actualizar</button>
@@ -16,80 +17,123 @@
   <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card">
-      <p class="stat-label">TOTAL</p>
-      <p class="stat-number">{{ stats.total }}</p>
+      <div class="stat-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18M3 12h18M3 18h18"></path>
+        </svg>
+      </div>
+      <div>
+        <p class="stat-label">TOTAL</p>
+        <p class="stat-number">{{ stats.total }}</p>
+      </div>
     </div>
-    <div class="stat-card stat-card--warn">
-      <p class="stat-label">PENDENTES</p>
-      <p class="stat-number">{{ stats.pending }}</p>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v5l3.5 2"></path>
+        </svg>
+      </div>
+      <div>
+        <p class="stat-label">PENDENTES</p>
+        <p class="stat-number">{{ stats.pending }}</p>
+      </div>
     </div>
-    <div class="stat-card stat-card--ok">
-      <p class="stat-label">APROVADAS</p>
-      <p class="stat-number">{{ stats.active }}</p>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="m8.5 12.5 2.5 2.5 4.5-5"></path>
+        </svg>
+      </div>
+      <div>
+        <p class="stat-label">APROVADAS</p>
+        <p class="stat-number">{{ stats.active }}</p>
+      </div>
     </div>
-    <div class="stat-card stat-card--bad">
-      <p class="stat-label">REJEITADAS</p>
-      <p class="stat-number">{{ stats.rejected }}</p>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M15 9l-6 6M9 9l6 6"></path>
+        </svg>
+      </div>
+      <div>
+        <p class="stat-label">REJEITADAS</p>
+        <p class="stat-number">{{ stats.rejected }}</p>
+      </div>
     </div>
   </div>
 
   <!-- Filtros -->
-  <div class="toolbar">
-    <input class="search-input" type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar por utilizador, documento ou categoria..." />
-    <div class="status-tabs">
-      <button type="button" class="tab" [class.active]="filterStatus === 'PENDING'" (click)="filterStatus = 'PENDING'">Pendentes</button>
-      <button type="button" class="tab" [class.active]="filterStatus === 'ACTIVE'" (click)="filterStatus = 'ACTIVE'">Aprovadas</button>
-      <button type="button" class="tab" [class.active]="filterStatus === 'REJECTED'" (click)="filterStatus = 'REJECTED'">Rejeitadas</button>
-      <button type="button" class="tab" [class.active]="filterStatus === 'CANCELLED'" (click)="filterStatus = 'CANCELLED'">Canceladas</button>
-      <button type="button" class="tab" [class.active]="filterStatus === 'todos'" (click)="filterStatus = 'todos'">Todas</button>
+  <div class="filters-bar">
+    <div class="search-wrapper">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.5-3.5"></path>
+      </svg>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Pesquisar por utilizador, documento ou categoria..." class="search-input" />
+    </div>
+
+    <div class="filter-select">
+      <select [(ngModel)]="filterStatus" class="select">
+        <option value="PENDING">Pendentes</option>
+        <option value="ACTIVE">Aprovadas</option>
+        <option value="REJECTED">Rejeitadas</option>
+        <option value="CANCELLED">Canceladas</option>
+        <option value="todos">Todos os estados</option>
+      </select>
     </div>
   </div>
 
-  <div *ngIf="loading" class="empty-state"><p>A carregar pedidos...</p></div>
-
-  <div *ngIf="!loading && filtered.length === 0" class="empty-state">
-    <p>Não há pedidos {{ filterStatus === 'todos' ? '' : getStatusLabel(filterStatus).toLowerCase() + 's' }} de momento.</p>
-  </div>
-
-  <!-- Lista -->
-  <div class="subs-list" *ngIf="!loading && filtered.length > 0">
-    <div class="sub-card" *ngFor="let sub of filtered">
-      <div class="sub-main">
-        <div class="sub-user">
-          <div class="sub-avatar">{{ (sub.user_display_name || sub.user_email).charAt(0) | uppercase }}</div>
-          <div>
-            <p class="sub-user-name">{{ sub.user_display_name || sub.user_email }}</p>
-            <p class="sub-user-email">{{ sub.user_email }}</p>
-          </div>
-        </div>
-        <div class="sub-doc">
-          <p class="sub-doc-title">{{ sub.document_title }}</p>
-          <p class="sub-doc-cat" *ngIf="sub.category_name">Categoria: {{ sub.category_name }}</p>
-          <p class="sub-doc-date">Pedido em {{ formatDate(sub.created_at || sub.started_at) }}</p>
-        </div>
-        <div class="sub-status">
-          <span class="badge" [class.badge--pending]="sub.status === 'PENDING'"
-                [class.badge--active]="sub.status === 'ACTIVE'"
-                [class.badge--rejected]="sub.status === 'REJECTED'"
-                [class.badge--cancelled]="sub.status === 'CANCELLED'">
-            {{ getStatusLabel(sub.status) }}
-          </span>
-        </div>
-      </div>
-
-      <div class="sub-actions">
-        <ng-container *ngIf="sub.status === 'PENDING'">
-          <button type="button" class="btn-approve" (click)="approve(sub)" [disabled]="actingId === sub.id">
-            {{ actingId === sub.id ? 'A processar...' : 'Aprovar' }}
-          </button>
-          <button type="button" class="btn-reject" (click)="reject(sub)" [disabled]="actingId === sub.id">Rejeitar</button>
-        </ng-container>
-        <button type="button" class="btn-reject" *ngIf="sub.status === 'ACTIVE'" (click)="cancel(sub)" [disabled]="actingId === sub.id">
-          Cancelar acesso
-        </button>
-        <span class="sub-final" *ngIf="sub.status === 'REJECTED' || sub.status === 'CANCELLED'">Sem acções disponíveis</span>
-      </div>
-    </div>
+  <!-- Tabela -->
+  <div class="table-wrapper">
+    <table class="subs-table">
+      <thead>
+        <tr>
+          <th>Utilizador</th>
+          <th>Documento</th>
+          <th>Categoria</th>
+          <th>Estado</th>
+          <th>Pedido em</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="!loading && filtered.length === 0">
+          <td colspan="6" class="empty-row">Não há pedidos para o filtro seleccionado.</td>
+        </tr>
+        <tr *ngFor="let sub of filtered">
+          <td class="content-cell">
+            <div class="content-title">{{ sub.user_display_name || sub.user_email }}</div>
+            <div class="content-meta">{{ sub.user_email }}</div>
+          </td>
+          <td>
+            <div class="content-title">{{ sub.document_title }}</div>
+          </td>
+          <td>
+            <span class="reason-badge" *ngIf="sub.category_name">{{ sub.category_name }}</span>
+            <span *ngIf="!sub.category_name" class="content-meta">—</span>
+          </td>
+          <td>
+            <span class="status-badge" [attr.data-status]="sub.status.toLowerCase()">{{ getStatusLabel(sub.status) }}</span>
+          </td>
+          <td>{{ formatDate(sub.created_at || sub.started_at) }}</td>
+          <td class="actions-cell">
+            <ng-container *ngIf="sub.status === 'PENDING'">
+              <button class="action-btn" type="button" (click)="approve(sub)" [disabled]="actingId === sub.id">
+                {{ actingId === sub.id ? 'A processar...' : 'Aprovar' }}
+              </button>
+              <button class="action-btn action-btn--danger" type="button" (click)="reject(sub)" [disabled]="actingId === sub.id">Rejeitar</button>
+            </ng-container>
+            <button *ngIf="sub.status === 'ACTIVE'" class="action-btn action-btn--danger" type="button" (click)="cancel(sub)" [disabled]="actingId === sub.id">
+              Cancelar acesso
+            </button>
+            <span *ngIf="sub.status === 'REJECTED' || sub.status === 'CANCELLED'" class="content-meta">Sem acções</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
 </div>

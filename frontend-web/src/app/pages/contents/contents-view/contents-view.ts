@@ -217,6 +217,15 @@ export class ContentsViewComponent implements OnInit {
     return 'text';
   }
 
+  /** Rótulo do tipo de conteúdo (por media_type), para cartões relacionados. */
+  contentTypeLabel(mediaType: string | null | undefined): string {
+    const t = (mediaType || 'TEXT').toUpperCase();
+    if (t === 'VIDEO') return 'Vídeo';
+    if (t === 'AUDIO') return 'Podcast';
+    if (t === 'IMAGE') return 'Imagem';
+    return 'Texto';
+  }
+
   get mediaUrl(): string | null {
     return this.doc?.media_url ?? this.doc?.pdf_url ?? null;
   }

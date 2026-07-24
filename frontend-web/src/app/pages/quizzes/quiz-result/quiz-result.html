@@ -130,7 +130,7 @@
                 <div *ngIf="!docItem.cover_image_url" class="quiz-result-related-placeholder"></div>
               </div>
               <div class="quiz-result-related-body">
-                <span class="quiz-result-related-type">{{ docItem.document_type || 'Documento' }}</span>
+                <span class="quiz-result-related-type">{{ getContentTypeLabel(docItem.media_type) }}</span>
                 <h4 class="quiz-result-related-name">{{ docItem.title }}</h4>
                 <span class="quiz-result-related-link">Ler Conteúdo →</span>
               </div>

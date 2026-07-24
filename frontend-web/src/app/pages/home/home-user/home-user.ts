@@ -123,6 +123,15 @@ export class HomeUser implements OnInit {
     return labels[type] ?? type.toUpperCase();
   }
 
+  /** Rótulo do tipo de conteúdo, derivado do ficheiro (media_type): Texto/Vídeo/Podcast. */
+  getContentTypeLabel(mediaType: string | null | undefined): string {
+    const t = (mediaType || 'TEXT').toUpperCase();
+    if (t === 'VIDEO') return 'VÍDEO';
+    if (t === 'AUDIO') return 'PODCAST';
+    if (t === 'IMAGE') return 'IMAGEM';
+    return 'TEXTO';
+  }
+
   formatReplies(count: number): string {
     return count === 1 ? '1 resposta' : `${count} respostas`;
   }

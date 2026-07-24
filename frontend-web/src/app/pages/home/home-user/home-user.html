@@ -56,7 +56,7 @@
       </div>
     </div>
     <div class="contents-doc-item-body">
-  <span class="contents-doc-item-category">{{ getFormatLabel(doc.document_type) }}</span>
+  <span class="contents-doc-item-category">{{ getContentTypeLabel(doc.media_type) }}</span>
   <span class="contents-doc-item-access"
         [style.background]="getDocBadge(doc).bg"
         [style.color]="getDocBadge(doc).text"
@@ -211,7 +211,7 @@
       <div class="access-modal-body">
 
         <div class="access-modal-doc">
-          <span class="access-modal-doc-type">{{ accessModalDoc.document_type | uppercase }}</span>
+          <span class="access-modal-doc-type">{{ getContentTypeLabel(accessModalDoc.media_type) }}</span>
           <h3 class="access-modal-doc-title">{{ accessModalDoc.title }}</h3>
           <span class="access-modal-doc-badge"
                 [style.background]="getDocBadge(accessModalDoc).bg"

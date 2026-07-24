@@ -193,21 +193,25 @@ export class CategoriesPageComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const result = this.isForum
-      ? await this.saveForumCategory()
-      : await this.saveDocumentCategory();
+    // try/finally garante que o botão sai sempre do estado "A guardar...",
+    // mesmo que o recarregamento da lista falhe.
+    try {
+      const result = this.isForum
+        ? await this.saveForumCategory()
+        : await this.saveDocumentCategory();
 
-    if (!result.ok || !result.data) {
-      this.errorMessage = result.message || 'Não foi possível salvar a categoria.';
+      if (!result.ok || !result.data) {
+        this.errorMessage = result.message || 'Não foi possível salvar a categoria.';
+        return;
+      }
+
+      this.successMessage = this.editingCategory ? 'Categoria actualizada com sucesso.' : 'Categoria criada com sucesso.';
+      this.showCategoryModal = false;
+      this.editingCategory = null;
+      await this.loadCurrentType();
+    } finally {
       this.saving = false;
-      return;
     }
-
-    this.successMessage = this.editingCategory ? 'Categoria actualizada com sucesso.' : 'Categoria criada com sucesso.';
-    this.showCategoryModal = false;
-    this.editingCategory = null;
-    await this.loadCurrentType();
-    this.saving = false;
   }
 
   private saveDocumentCategory() {

@@ -95,6 +95,11 @@ export class DocumentAdminService {
       observe: 'events',
       reportProgress: true,
     }).pipe(
+      // Timeout de inatividade: cada evento (progresso do upload ou resposta)
+      // reinicia o contador. Se passarem 2 min sem qualquer evento — upload
+      // concluído mas o backend não responde — falha em vez de ficar preso a
+      // carregar para sempre. Uploads longos continuam a emitir progresso.
+      timeout({ each: 120000 }),
       map((event) => {
         if (event.type === HttpEventType.UploadProgress) {
           const progress = event.total ? Math.round((event.loaded / event.total) * 100) : 0;
@@ -112,7 +117,10 @@ export class DocumentAdminService {
             },
           };
         }
-        return { state: 'progress' as const, progress: 0 };
+        // Outros eventos (Sent, ResponseHeader, DownloadProgress) não têm
+        // percentagem útil — emitem -1 para o componente ignorar, em vez de
+        // repor a barra a 0% depois de já ter chegado a 100%.
+        return { state: 'progress' as const, progress: -1 };
       }),
       catchError((error: unknown) => of({
         state: 'done' as const,

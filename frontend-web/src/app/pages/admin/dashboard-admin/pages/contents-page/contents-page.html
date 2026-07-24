@@ -238,6 +238,11 @@
       </div>
 
       <div class="modal-body">
+        <!-- Feedback dentro do modal: quando a gravação falha o modal continua
+             aberto, por isso a mensagem tem de aparecer aqui (e não só no topo
+             da página, atrás do overlay). -->
+        <div *ngIf="errorMessage" class="modal-inline-banner modal-inline-banner--error">{{ errorMessage }}</div>
+
         <div *ngIf="documentModalMode === 'view' && editingDocument" class="detail-grid">
           <div class="detail-card">
             <div class="detail-label">Título</div>
@@ -329,6 +334,16 @@
             <aside class="editor-side">
               <section class="editor-section">
                 <h3 class="editor-section-title">Classificação</h3>
+
+                <div class="form-group">
+                  <label>Tipo de conteúdo</label>
+                  <select [(ngModel)]="documentForm.media_type" class="form-input">
+                    <option value="TEXT">Texto</option>
+                    <option value="VIDEO">Vídeo</option>
+                    <option value="AUDIO">Podcast</option>
+                  </select>
+                  <small class="field-hint">Define em que ecrã o conteúdo abre (leitura vs. player) na web e no mobile. Se carregar um ficheiro de vídeo/áudio, o tipo é ajustado automaticamente a partir do ficheiro.</small>
+                </div>
 
                 <div class="form-group">
                   <label>Categoria</label>

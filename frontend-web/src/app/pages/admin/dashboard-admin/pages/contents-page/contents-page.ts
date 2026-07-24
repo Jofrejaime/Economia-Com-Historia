@@ -65,6 +65,7 @@ export class ContentsPageComponent implements OnInit {
     summary: string;
     content: string;
     document_type: string;
+    media_type: string;
     academic_level: string;
     category_id: string | null;
     institution: string | null;
@@ -211,6 +212,7 @@ export class ContentsPageComponent implements OnInit {
       summary: detailedDocument.summary,
       content: detailedDocument.content || '',
       document_type: detailedDocument.document_type,
+      media_type: detailedDocument.media_type || 'TEXT',
       academic_level: detailedDocument.academic_level,
       category_id: detailedDocument.category_id,
       institution: detailedDocument.institution,
@@ -287,6 +289,7 @@ export class ContentsPageComponent implements OnInit {
       summary: this.documentForm.summary.trim(),
       content: this.documentForm.content.trim() || null,
       document_type: this.documentForm.document_type,
+      media_type: this.documentForm.media_type,
       academic_level: this.documentForm.academic_level,
       category_id: this.documentForm.category_id || null,
       institution: this.documentForm.institution || null,
@@ -300,43 +303,53 @@ export class ContentsPageComponent implements OnInit {
 
     const hasFiles = this.coverFile !== null || this.mainFile !== null || this.galleryFiles.length > 0;
 
-    let result;
-    if (hasFiles) {
-      // Sprint 18.4 — envio multipart com progresso; os ficheiros passam
-      // pelo pipeline único do MediaService no backend.
-      this.uploadProgress = 0;
-      result = await new Promise<any>((resolve) => {
-        this.documentAdmin.saveDocumentWithFiles(
-          this.editingDocument?.id ?? null,
-          payload as unknown as Record<string, unknown>,
-          { file: this.mainFile, cover_image: this.coverFile, gallery: this.galleryFiles },
-        ).subscribe((event) => {
-          if (event.state === 'progress') {
-            this.uploadProgress = event.progress;
-          } else {
-            resolve(event.result);
-          }
+    // try/finally garante que o botão sai sempre do estado "A guardar..." e a
+    // barra de progresso é limpa, mesmo que o recarregamento da lista falhe.
+    try {
+      let result;
+      if (hasFiles) {
+        // Sprint 18.4 — envio multipart com progresso; os ficheiros passam
+        // pelo pipeline único do MediaService no backend.
+        this.uploadProgress = 0;
+        result = await new Promise<any>((resolve) => {
+          this.documentAdmin.saveDocumentWithFiles(
+            this.editingDocument?.id ?? null,
+            payload as unknown as Record<string, unknown>,
+            { file: this.mainFile, cover_image: this.coverFile, gallery: this.galleryFiles },
+          ).subscribe({
+            next: (event) => {
+              if (event.state === 'progress') {
+                // -1 = evento sem percentagem útil (ver serviço); ignorar.
+                if (event.progress >= 0) this.uploadProgress = event.progress;
+              } else {
+                resolve(event.result);
+              }
+            },
+            // Sem este handler, um erro no observable deixava a Promise (e o
+            // modal) presa para sempre em "A guardar...".
+            error: () => resolve({ ok: false, message: 'Não foi possível enviar os ficheiros. Verifique a ligação e tente novamente.' }),
+          });
         });
-      });
-      this.uploadProgress = null;
-    } else if (this.editingDocument) {
-      result = await firstValueFrom(this.documentAdmin.updateDocument(this.editingDocument.id, payload));
-    } else {
-      result = await firstValueFrom(this.documentAdmin.createDocument(payload));
-    }
+      } else if (this.editingDocument) {
+        result = await firstValueFrom(this.documentAdmin.updateDocument(this.editingDocument.id, payload));
+      } else {
+        result = await firstValueFrom(this.documentAdmin.createDocument(payload));
+      }
 
-    if (!result.ok || !result.data) {
-      this.errorMessage = result.message || 'Não foi possível salvar o documento.';
+      if (!result.ok || !result.data) {
+        this.errorMessage = result.message || 'Não foi possível salvar o documento.';
+        return;
+      }
+
+      this.successMessage = this.editingDocument ? 'Documento actualizado com sucesso.' : 'Documento criado com sucesso.';
+      this.showDocumentModal = false;
+      this.editingDocument = null;
+      this.resetFileSelection();
+      await this.loadInitialData();
+    } finally {
       this.saving = false;
-      return;
+      this.uploadProgress = null;
     }
-
-    this.successMessage = this.editingDocument ? 'Documento actualizado com sucesso.' : 'Documento criado com sucesso.';
-    this.showDocumentModal = false;
-    this.editingDocument = null;
-    this.resetFileSelection();
-    await this.loadInitialData();
-    this.saving = false;
   }
 
   async deleteDocument(document: DocumentView): Promise<void> {
@@ -430,6 +443,7 @@ export class ContentsPageComponent implements OnInit {
       summary: '',
       content: '',
       document_type: 'article',
+      media_type: 'TEXT',
       academic_level: 'intro',
       category_id: null as string | null,
       institution: null as string | null,

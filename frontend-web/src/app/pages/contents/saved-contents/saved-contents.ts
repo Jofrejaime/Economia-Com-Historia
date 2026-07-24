@@ -35,6 +35,15 @@ export class SavedContentsComponent implements OnInit {
     await this.loadFavorites();
   }
 
+  /** Rótulo do tipo de conteúdo, derivado do ficheiro (media_type): Texto/Vídeo/Podcast. */
+  getContentTypeLabel(mediaType: string | null | undefined): string {
+    const t = (mediaType || 'TEXT').toUpperCase();
+    if (t === 'VIDEO') return 'Vídeo';
+    if (t === 'AUDIO') return 'Podcast';
+    if (t === 'IMAGE') return 'Imagem';
+    return 'Texto';
+  }
+
   private async loadFavorites(): Promise<void> {
     this.loading = true;
     this.error = null;
