@@ -74,6 +74,14 @@ Route::middleware(OptionalAuthenticateApiSession::class)->group(function (): voi
 
 // ─── Authenticated routes (any logged-in user) ─────────────────────────────
 Route::middleware(AuthenticateApiSession::class)->group(function (): void {
+    // Autorização de canais privados do Reverb (tempo real). Corre pelo
+    // middleware de token da plataforma — o utilizador é resolvido a partir do
+    // Bearer/X-Session-Token e o Broadcast::auth valida os canais de
+    // routes/channels.php. O Echo (web/mobile) aponta authEndpoint para aqui.
+    Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
+        return \Illuminate\Support\Facades\Broadcast::auth($request);
+    });
+
     Route::middleware('role:admin')->prefix('admin')->group(function (): void {
         Route::get('/dashboard/summary', [AdminController::class, 'summary']);
 

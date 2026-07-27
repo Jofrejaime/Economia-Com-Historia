@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Events\Domain\Moderation\ModerationActionTaken;
+
 class ReportModerationService
 {
+    // Sprint 18.9 (EDA) — não cria notificações diretamente; emite eventos de
+    // domínio tratados pelo ModerationNotificationListener.
     public function __construct(
         private readonly ReportService $reportService,
-        private readonly NotificationService $notificationService
     ) {}
 
     public function contentExists(string $contentType, string $contentId): bool
@@ -34,19 +37,16 @@ class ReportModerationService
     public function warnUser(object $report): ?string
     {
         $ownerId = $this->reportService->getContentOwnerId($report->content_type, $report->content_id);
-        if ($ownerId) {
-            $owner = \App\Models\User::find($ownerId);
-            if ($owner) {
-                $this->notificationService->send(
-                    $owner,
-                    'user_warning',
-                    'Aviso de Moderação',
-                    "Você recebeu um aviso de moderação relativo ao seu conteúdo de tipo {$report->content_type}.",
-                    $report->id,
-                    'report'
-                );
-            }
-        }
+
+        // Notificação via evento (EDA) — o dono é notificado pelo
+        // ModerationNotificationListener.
+        ModerationActionTaken::dispatch($report->id, null, [
+            'owner_id'     => $ownerId,
+            'action'       => 'warn',
+            'content_type' => $report->content_type,
+            'reason'       => null,
+        ]);
+
         return $ownerId;
     }
 

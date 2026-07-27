@@ -12,7 +12,25 @@
       "Bash(cd \"c:/Users/BeeFlex Studio/Documents/ISPTEC/3 º ano/2º Semestre/ESII/Economia-Com-Historia/frontend-web/src/app/pages/forum\" && grep -rnE \"isAuthenticated|navigate\\\\\\(\\\\['/auth|login|Guest|convidado|redirect|authService|401|Unauthorized\" community/community.ts category-view/category-view.ts 2>/dev/null | head -20; echo \"=== como o header/home liga ao forum p/ convidado ===\"; grep -rnE \"forum|Forum|Comunidade|community\" ../../components/header/header.html ../home/home-visitor/home-visitor.html 2>/dev/null | head)",
       "Read(//c/Users/BeeFlex Studio/Documents/ISPTEC/3 º ano/2º Semestre/components/header/**)",
       "Bash(grep -nA12 \"ensureSession\" services/auth.service.ts)",
-      "Bash(grep -nA10 \"\\\\.contents-view-section-text\\\\b\\\\|\\\\.contents-view-section-title\\\\b\\\\|\\\\.contents-view-section\\\\b\" contents-view.css)"
+      "Bash(grep -nA10 \"\\\\.contents-view-section-text\\\\b\\\\|\\\\.contents-view-section-title\\\\b\\\\|\\\\.contents-view-section\\\\b\" contents-view.css)",
+      "Bash(php -l app/Listeners/AbstractNotificationListener.php)",
+      "Bash(php -l app/Listeners/Documents/DocumentNotificationListener.php)",
+      "Bash(grep -nE \"^use App\\\\\\\\\\\\\\\\\" app/Http/Controllers/Api/CommunityController.php)",
+      "Bash(php -l app/Http/Controllers/Api/CommunityController.php)",
+      "Bash(php -l app/Subscribers/CommunitySubscriber.php)",
+      "Bash(php -l app/Listeners/Community/CommunityNotificationListener.php)",
+      "Bash(php -l app/Listeners/Access/AccessNotificationListener.php)",
+      "Bash(php -l app/Subscribers/AccessSubscriber.php)",
+      "Bash(php -l app/Services/ReportService.php)",
+      "Bash(php -l app/Services/ReportModerationService.php)",
+      "Bash(php -l app/Listeners/Moderation/ModerationNotificationListener.php)",
+      "Bash(php -l app/Subscribers/ModerationSubscriber.php)",
+      "Bash(php -l app/Services/GamificationService.php)",
+      "Bash(php -l app/Listeners/Gamification/GamificationNotificationListener.php)",
+      "Bash(php -l app/Subscribers/GamificationSubscriber.php)",
+      "Bash(php -r 'echo \"PHP \".PHP_VERSION.\"\\\\n\";')",
+      "Bash(composer require *)",
+      "Bash(composer show *)"
     ]
   }
 }

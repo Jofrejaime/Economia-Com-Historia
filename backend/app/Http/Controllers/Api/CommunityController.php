@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\Domain\Community\ReplyAccepted;
+use App\Events\Domain\Community\TopicMemberInvited;
+use App\Events\Domain\Community\TopicMemberRemoved;
+use App\Events\Domain\Community\TopicReplied;
 use App\Http\Controllers\Controller;
 use App\Models\CommunityCategory;
 use App\Models\DiscussionTopic;
@@ -13,7 +17,6 @@ use App\Models\TopicFollower;
 use App\Models\Document;
 use App\Services\CommunityAuthorizationService;
 use App\Services\GamificationService;
-use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +27,6 @@ class CommunityController extends Controller
     public function __construct(
         private readonly CommunityAuthorizationService $communityAuthorization,
         private readonly GamificationService $gamification,
-        private readonly NotificationService $notificationService,
     ) {}
 
     // ─── CATEGORIES ────────────────────────────────────────────────────────
@@ -372,16 +374,13 @@ class CommunityController extends Controller
                         'updated_at' => now(),
                     ]);
 
-                    $member = \App\Models\User::find($memberId);
-
-                    if ($member) {
-                        $this->notificationService->sendTopicInvitation(
-                            $member,
-                            $topic->title,
-                            $request->user()->display_name,
-                            $topic->id
-                        );
-                    }
+                    // Notificação via evento (EDA). ShouldDispatchAfterCommit
+                    // garante entrega só após o commit desta transação.
+                    TopicMemberInvited::dispatch($topic->id, $request->user()->id, [
+                        'topic_title'     => $topic->title,
+                        'invited_user_id' => $memberId,
+                        'inviter_name'    => $request->user()->display_name,
+                    ]);
                 }
             }
 
@@ -707,16 +706,13 @@ class CommunityController extends Controller
 
         $member->load(['user.profile']);
 
-        $targetUser = \App\Models\User::find($validated['user_id']);
-
-        if ($targetUser) {
-            $this->notificationService->sendTopicInvitation(
-                $targetUser,
-                $topic->title,
-                $request->user()->display_name,
-                $topic->id
-            );
-        }
+        // Notificação via evento (EDA) — o convidado é notificado pelo
+        // CommunityNotificationListener.
+        TopicMemberInvited::dispatch($topic->id, $request->user()->id, [
+            'topic_title'     => $topic->title,
+            'invited_user_id' => $validated['user_id'],
+            'inviter_name'    => $request->user()->display_name,
+        ]);
 
         return response()->json([
             'message' => 'Member invited successfully.',
@@ -759,9 +755,12 @@ class CommunityController extends Controller
         $memberUser = $member->user;
         $member->delete();
 
-        if ($memberUser) {
-            $this->notificationService->sendTopicRemoved($memberUser, $topic->title, $topic->id);
-        }
+        // Notificação via evento (EDA) — o removido é notificado pelo
+        // CommunityNotificationListener.
+        TopicMemberRemoved::dispatch($topic->id, $request->user()->id, [
+            'topic_title'     => $topic->title,
+            'removed_user_id' => $userId,
+        ]);
 
         return response()->json(['message' => 'Member removed successfully.']);
     }
@@ -1187,42 +1186,23 @@ class CommunityController extends Controller
             // Increment counter
             $this->gamification->incrementCounters($request->user(), ['replies_posted' => 1]);
 
-            // Send notification to topic author (if not the same user)
-            if ($topic->author_id !== $request->user()->id) {
-                $this->notificationService->send(
-                    $topic->author,
-                    'topic_reply',
-                    'Nova resposta no seu tópico',
-                    "Alguém respondeu ao seu tópico: {$topic->title}",
-                    $reply->id,
-                    'topic_reply'
-                );
-            }
-
-            // Notify the author of the parent reply when someone answers it
-            // (skip self and skip the topic author who was already notified).
-            $parentReplyId = $validated['parent_reply_id'] ?? null;
-            if ($parentReplyId !== null) {
-                $parentAuthorId = TopicReply::where('id', $parentReplyId)->value('author_id');
-                if ($parentAuthorId !== null
-                    && $parentAuthorId !== $request->user()->id
-                    && $parentAuthorId !== $topic->author_id) {
-                    $parentAuthor = \App\Models\User::find($parentAuthorId);
-                    if ($parentAuthor !== null) {
-                        $this->notificationService->send(
-                            $parentAuthor,
-                            'reply_reply',
-                            'Nova resposta à sua mensagem',
-                            "Alguém respondeu à sua mensagem no tópico: {$topic->title}",
-                            $reply->id,
-                            'topic_reply'
-                        );
-                    }
-                }
-            }
-
             return $reply->load(['author.profile']);
         });
+
+        // Notificações via evento (EDA) — o autor do tópico e, se aplicável, o
+        // autor da resposta-pai são notificados pelo CommunityNotificationListener.
+        $parentReplyId = $validated['parent_reply_id'] ?? null;
+        $parentAuthorId = $parentReplyId !== null
+            ? TopicReply::where('id', $parentReplyId)->value('author_id')
+            : null;
+
+        TopicReplied::dispatch($topic->id, $request->user()->id, [
+            'topic_title'      => $topic->title,
+            'topic_author_id'  => $topic->author_id,
+            'reply_id'         => $reply->id,
+            'parent_reply_id'  => $parentReplyId,
+            'parent_author_id' => $parentAuthorId,
+        ]);
 
         return response()->json([
             'message' => 'Reply created successfully.',
@@ -1575,17 +1555,15 @@ class CommunityController extends Controller
                 'topic_reply',
                 'Reply marked as accepted solution'
             );
-
-            // Send notification to reply author
-            $this->notificationService->send(
-                $reply->author,
-                'reply_accepted',
-                'A sua resposta foi aceite',
-                "A sua resposta foi marcada como aceite no tópico: {$topic->title}",
-                $reply->id,
-                'topic_reply'
-            );
         });
+
+        // Notificação via evento (EDA) — o autor da resposta é notificado pelo
+        // CommunityNotificationListener.
+        ReplyAccepted::dispatch($topic->id, $request->user()->id, [
+            'topic_title'     => $topic->title,
+            'reply_id'        => $reply->id,
+            'reply_author_id' => $reply->author_id,
+        ]);
 
         return response()->json([
             'message' => 'Reply marked as accepted.',

@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Events\Domain\Gamification\BadgeEarned;
+use App\Events\Domain\Gamification\LevelUp;
 use App\Models\User;
 use App\Services\Gamification\GamificationResult;
-use App\Services\NotificationService;
-use App\Services\LeaderboardService;
 use App\Support\PointTransactionReason;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,9 +15,8 @@ use InvalidArgumentException;
 
 class GamificationService
 {
-    public function __construct(
-        private readonly NotificationService $notificationService,
-    ) {}
+    // Sprint 18.9 (EDA) — não cria notificações diretamente; emite eventos de
+    // domínio (LevelUp/BadgeEarned) tratados pelo GamificationNotificationListener.
 
     /**
      * Award points (positive) and sync level / badges.
@@ -99,15 +98,12 @@ class GamificationService
                     'updated_at' => now(),
                 ]);
 
-            // Send notification for level up
-            $this->notificationService->send(
-                $user,
-                'level_up',
-                'Level Up!',
-                "Congratulations! You have reached Level {$newLevel}. Keep going!",
-                (string) $newLevel,
-                'level'
-            );
+            // Notificação via evento (EDA).
+            LevelUp::dispatch($user->id, $user->id, [
+                'user_id'        => $user->id,
+                'new_level'      => $newLevel,
+                'previous_level' => $previousLevel,
+            ]);
         }
 
         $badgesEarned = $this->evaluateBadges($user);
@@ -154,15 +150,12 @@ class GamificationService
 
             $earned[] = $badge;
 
-            // Send notification for badge earned
-            $this->notificationService->send(
-                $user,
-                'badge_earned',
-                'New Badge Earned!',
-                "You have earned the badge: {$badge->name}",
-                $badge->id,
-                'badge'
-            );
+            // Notificação via evento (EDA).
+            BadgeEarned::dispatch($user->id, $user->id, [
+                'user_id'    => $user->id,
+                'badge_id'   => $badge->id,
+                'badge_name' => $badge->name,
+            ]);
         }
 
         return $earned;

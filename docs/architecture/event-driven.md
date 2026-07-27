@@ -105,7 +105,7 @@ DocumentCreated::dispatch($id, $actorId, ['title' => $title, 'created_by' => $id
 ## Eventos do domínio Documentos (piloto desta sprint)
 
 `DocumentCreated`, `DocumentUpdated`, `DocumentDeleted`, `DocumentPublished`,
-`DocumentPinned`, `DocumentUnpinned`, `DocumentViewed`, `DocumentDownloaded`,
+`DocumentPinned`, `DocumentUnpinned`, `DocumentViewed`,
 `DocumentFavorited`, `DocumentUnfavorited`, `DocumentLiked`, `DocumentUnliked`.
 
 Os eventos de interação (viewed/liked/…) são emitidos mesmo quando ainda não têm
@@ -127,14 +127,47 @@ listener — o contrato fica pronto para a Sprint 19.0.
   listeners são testados por invocação direta, e o comportamento afterCommit é
   validado no rollback (o listener não corre) e pelo `instanceof ShouldDispatchAfterCommit`.
 
-## Próximos domínios (fases seguintes)
+## Fase 1 — Notificações event-driven (concluída)
 
-Replicar o mesmo padrão (eventos → listeners → subscriber, refatorar o service
-para emitir): Utilizadores, Comunidade, Moderação, Acesso, Gamificação, Reports,
-Configurações. Ver a lista completa de eventos na spec da Sprint 18.9.
+Além dos Documentos, as **notificações** dos seguintes domínios já são criadas
+por listeners (os services/controllers deixaram de as criar diretamente). Base
+comum: [`AbstractNotificationListener`](../../backend/app/Listeners/AbstractNotificationListener.php).
 
-## Sprint 19.0 — Reverb
+| Domínio | Eventos | Listener / Subscriber |
+|---|---|---|
+| Comunidade | `TopicReplied`, `ReplyAccepted`, `TopicMemberInvited`, `TopicMemberRemoved` | `CommunityNotificationListener` / `CommunitySubscriber` |
+| Acesso | `SubscriptionApproved`, `SubscriptionRejected`, `SubscriptionCancelled` | `AccessNotificationListener` / `AccessSubscriber` |
+| Moderação | `ReportResolved`, `ModerationActionTaken` | `ModerationNotificationListener` / `ModerationSubscriber` |
+| Gamificação | `LevelUp`, `BadgeEarned` | `GamificationNotificationListener` / `GamificationSubscriber` |
 
-Bastará: alguns eventos passarem a implementar `ShouldBroadcast` (ou criar
-listeners de broadcast), ligar o Reverb e definir canais. **Sem reescrever
-domínios** — a arquitetura já está pronta.
+Testes: um `<Dominio>ListenersTest` por domínio (invocação direta do listener) +
+assert de dispatch nos testes de endpoint. Ver
+[plano de rollout](./eda-notifications-rollout-plan.md).
+
+## Próximos domínios (Fase 2 — cache/auditoria/estatísticas/gamificação)
+
+Replicar o resto do padrão (eventos de ciclo de vida → listeners de cache,
+estatísticas e gamificação; refatorar o service para emitir): Utilizadores,
+Comunidade (TopicCreated/Deleted…), Quizzes, Categorias/Config. Depois, Fase 3
+(Reverb / tempo real). Ver [eda-notifications-rollout-plan.md](./eda-notifications-rollout-plan.md).
+
+## Sprint 19.0 — Reverb (tempo real) — CONCLUÍDA
+
+As notificações são entregues em **tempo real** via [Laravel Reverb](https://reverb.laravel.com), sem reescrever domínios.
+
+**Backend**
+- `laravel/reverb` instalado; `BROADCAST_CONNECTION=reverb` (vars `REVERB_*` no `.env`).
+- Canal privado por utilizador `App.Models.User.{id}` — [routes/channels.php](../../backend/routes/channels.php). IDs são **UUID**: a autorização compara como string (nunca `(int)`).
+- Auth dos canais pela **auth de token** da plataforma: `POST /api/broadcasting/auth` protegido por `AuthenticateApiSession` (não usa o guard `web`).
+- [`App\Events\NotificationCreated`](../../backend/app/Events/NotificationCreated.php) (`ShouldBroadcast`) emitido pelo `NotificationService::send()` — o **funil único** por onde todas as notificações passam. Evento no canal: `notification.created`.
+
+**Frontend** (web e mobile)
+- `laravel-echo` + `pusher-js` (protocolo Reverb). Web: `RealtimeService`; mobile: `services/realtime/echo.ts`.
+- Ligam ao canal privado do utilizador (Bearer token no `authEndpoint`) e atualizam o **contador/sino** e a lista de notificações sem recarregar.
+- Tolerante a falhas: se o Reverb estiver em baixo, a app funciona na mesma (notificações aparecem ao recarregar).
+
+**Como correr (local)**
+1. Backend: `php artisan reverb:start` (servidor WebSocket em `127.0.0.1:8080`) + `php artisan serve`.
+2. `.env` do backend com `BROADCAST_CONNECTION=reverb` e `REVERB_*`; frontend com as mesmas `key/host/port/scheme` (ver `environment.ts` / `EXPO_PUBLIC_REVERB_*`).
+
+**Produção:** o Reverb é um processo WebSocket persistente — **não** corre em serverless (ex.: Vercel). Precisa de um host próprio (VPS/container) a correr `reverb:start` (idealmente sob supervisor). Até isso estar definido, as notificações continuam a funcionar por carregamento normal.

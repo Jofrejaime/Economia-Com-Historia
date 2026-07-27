@@ -24,7 +24,7 @@ use App\Listeners\Documents\InvalidateDocumentCacheListener;
  *
  * A auditoria só cobre os eventos de ciclo de vida (escrita); eventos de
  * interação de alta frequência (viewed/liked/…) não são auditados para não
- * inundar os logs. Downloaded/Favorited/Liked/… são emitidos na mesma
+ * inundar os logs. Favorited/Liked/… são emitidos na mesma
  * (contrato pronto para a Sprint 19.0 — Reverb), ainda que sem listener agora.
  *
  * @return array<class-string, list<string>>

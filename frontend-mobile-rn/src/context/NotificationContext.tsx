@@ -1,5 +1,7 @@
 import React, { createContext, useState, useCallback, useEffect, ReactNode, useContext } from 'react';
 import { notificationService } from '../services/api/notificationService';
+import { connectRealtime, disconnectRealtime } from '../services/realtime/echo';
+import { useAuth } from '../hooks/useAuth';
 import type { Notification } from '../types/api';
 
 export interface NotificationContextType {
@@ -17,6 +19,7 @@ export const NotificationContext = createContext<NotificationContextType | undef
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
+  const { token, user } = useAuth();
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
@@ -66,6 +69,23 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  // Tempo real (Reverb): liga ao canal privado do utilizador e acrescenta as
+  // notificações novas ao topo, sem recarregar. Tolerante a falhas.
+  useEffect(() => {
+    if (!token || !user?.id) {
+      disconnectRealtime();
+      return;
+    }
+
+    connectRealtime(user.id, token, (incoming) => {
+      setNotifications((prev) =>
+        prev.some((n) => n.id === incoming.id) ? prev : [incoming, ...prev]
+      );
+    });
+
+    return () => disconnectRealtime();
+  }, [token, user?.id]);
 
   return (
     <NotificationContext.Provider

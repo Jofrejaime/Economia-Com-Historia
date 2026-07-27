@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\NotificationCreated;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -42,32 +43,10 @@ class NotificationService
 
         DB::table('notifications')->insert($notification);
 
+        // Tempo real (Sprint 19.0 / Reverb) — emite para o canal privado do
+        // destinatário. Ponto único: todas as notificações passam por aqui.
+        NotificationCreated::dispatch($notification);
+
         return $notification;
-    }
-
-    public function sendTopicInvitation(User $user, string $topicTitle, string $inviterName, ?string $referenceId = null): array
-    {
-        return $this->send(
-            $user,
-            'topic_invitation',
-            'Convite para fórum privado',
-            "{$inviterName} convidou-te para participar do fórum \"{$topicTitle}\"",
-            $referenceId,
-            'discussion_topic',
-            ['topic_invitation']
-        );
-    }
-
-    public function sendTopicRemoved(User $user, string $topicTitle, ?string $referenceId = null): array
-    {
-        return $this->send(
-            $user,
-            'topic_removed',
-            'Removido de um fórum privado',
-            "Perdeste o acesso ao fórum \"{$topicTitle}\".",
-            $referenceId,
-            'discussion_topic',
-            ['topic_removed']
-        );
     }
 }

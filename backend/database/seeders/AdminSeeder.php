@@ -51,5 +51,6 @@ class AdminSeeder extends Seeder
             'replies_posted' => 25,
             'updated_at' => now(),
         ]);
+
     }
 }

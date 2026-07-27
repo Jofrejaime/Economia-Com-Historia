@@ -1,9 +1,11 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ProfileService } from '../../services/profile.service';
 import { NotificationService } from '../../services/notification.service';
+import { RealtimeService } from '../../services/realtime.service';
 
 interface HeaderUser {
   display_name?: string;
@@ -40,7 +42,9 @@ export class HeaderComponent implements OnInit {
     public router: Router,
     private auth: AuthService,
     private profileService: ProfileService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private realtime: RealtimeService,
+    private destroyRef: DestroyRef
   ) {}
 
   ngOnInit(): void {
@@ -50,7 +54,22 @@ export class HeaderComponent implements OnInit {
       this.applyCacheIfAvailable();
       this.loadUserAvatar();
       this.loadUnreadCount();
+      this.listenRealtime();
     }
+  }
+
+  /**
+   * Tempo real (Reverb): ao chegar uma notificação nova, incrementa o contador
+   * sem recarregar. A ligação é idempotente (serviço singleton).
+   */
+  private listenRealtime(): void {
+    this.realtime.connect();
+    this.realtime.notifications$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.unreadCount += 1;
+        HeaderComponent.cachedUnreadCount = this.unreadCount;
+      });
   }
 
   private syncSessionState(): void {
@@ -61,6 +80,7 @@ export class HeaderComponent implements OnInit {
       this.unreadCount = 0;
       this.displayName = 'Conta';
       this.userRole = '';
+      this.realtime.disconnect();
       HeaderComponent.cachedAvatarUrl = null;
       HeaderComponent.cachedDisplayName = null;
       HeaderComponent.cachedUserRole = null;

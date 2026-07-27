@@ -1,9 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from '../../components/header/header';
 import { FooterComponent } from '../../components/footer/footer';
 import { NotificationService, AppNotification } from '../../services/notification.service';
+import { RealtimeService } from '../../services/realtime.service';
 
 interface NotificationGroup {
   label: string;
@@ -34,6 +36,8 @@ export class UserNotificationsComponent implements OnInit {
   constructor(
     private notificationService: NotificationService,
     private router: Router,
+    private realtime: RealtimeService,
+    private destroyRef: DestroyRef,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -73,6 +77,17 @@ export class UserNotificationsComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.loadNotifications();
+
+    // Tempo real (Reverb): novas notificações aparecem no topo sem recarregar.
+    this.realtime.connect();
+    this.realtime.notifications$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((notif) => {
+        if (!this.notifications.some(n => n.id === notif.id)) {
+          this.notifications = [notif, ...this.notifications];
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   async loadNotifications(): Promise<void> {

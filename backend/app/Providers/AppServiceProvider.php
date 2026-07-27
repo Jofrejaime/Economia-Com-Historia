@@ -7,7 +7,11 @@ use App\Services\Media\NullPreviewGenerator;
 use App\Services\Media\PreviewGenerator;
 use App\Services\MediaService;
 use App\Services\NotificationService;
+use App\Subscribers\AccessSubscriber;
+use App\Subscribers\CommunitySubscriber;
 use App\Subscribers\DocumentSubscriber;
+use App\Subscribers\GamificationSubscriber;
+use App\Subscribers\ModerationSubscriber;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Event;
@@ -44,5 +48,9 @@ class AppServiceProvider extends ServiceProvider
         // Event-Driven Architecture (Sprint 18.9) — subscribers por domínio.
         // A Sprint 19.0 (Reverb) adiciona apenas listeners de broadcast aqui.
         Event::subscribe(DocumentSubscriber::class);
+        Event::subscribe(CommunitySubscriber::class);
+        Event::subscribe(AccessSubscriber::class);
+        Event::subscribe(ModerationSubscriber::class);
+        Event::subscribe(GamificationSubscriber::class);
     }
 }

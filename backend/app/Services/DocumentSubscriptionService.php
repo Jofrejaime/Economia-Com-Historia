@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Enums\SubscriptionReason;
 use App\Enums\SubscriptionStatus;
+use App\Events\Domain\Access\SubscriptionApproved;
+use App\Events\Domain\Access\SubscriptionCancelled;
+use App\Events\Domain\Access\SubscriptionRejected;
 use App\Exceptions\InvalidSubscriptionTransitionException;
 use App\Exceptions\SubscriptionNotFoundException;
-use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,9 +24,8 @@ use Illuminate\Support\Str;
  */
 class DocumentSubscriptionService
 {
-    public function __construct(
-        private readonly NotificationService $notifications,
-    ) {}
+    // Sprint 18.9 (EDA) — este service atualiza a BD e emite eventos de domínio.
+    // Não cria notificações diretamente; o AccessNotificationListener trata disso.
 
     // ─── Read helpers ─────────────────────────────────────────────────────────
 
@@ -164,7 +165,10 @@ class DocumentSubscriptionService
                 'updated_at'  => now(),
             ]);
 
-        $this->notifyDecision($sub, true);
+        SubscriptionApproved::dispatch($subscriptionId, $adminId, [
+            'user_id'     => $sub->user_id,
+            'document_id' => $sub->document_id,
+        ]);
     }
 
     /**
@@ -195,48 +199,10 @@ class DocumentSubscriptionService
                 'updated_at'  => now(),
             ]);
 
-        $this->notifyDecision($sub, false);
-    }
-
-    /**
-     * Notifica o subscritor da decisão (aprovação/rejeição) do seu pedido de
-     * acesso a um documento. Antes desta correção, o utilizador ficava a
-     * aguardar sem nunca ser avisado do desfecho.
-     */
-    private function notifyDecision(object $sub, bool $approved): void
-    {
-        $user = User::find($sub->user_id);
-        if ($user === null) {
-            return;
-        }
-
-        $doc = DB::table('documents')->where('id', $sub->document_id)->first(['title', 'media_type']);
-        $docTitle = $doc->title ?? 'documento';
-        $notifData = $doc !== null ? ['document_id' => $sub->document_id, 'media_type' => $doc->media_type] : [];
-
-        if ($approved) {
-            $this->notifications->send(
-                $user,
-                'subscription_approved',
-                'Subscrição aprovada',
-                "O seu acesso ao documento \"{$docTitle}\" foi aprovado.",
-                $sub->document_id,
-                'document',
-                [],
-                $notifData
-            );
-        } else {
-            $this->notifications->send(
-                $user,
-                'subscription_rejected',
-                'Subscrição rejeitada',
-                "O seu pedido de acesso ao documento \"{$docTitle}\" foi rejeitado.",
-                $sub->document_id,
-                'document',
-                [],
-                $notifData
-            );
-        }
+        SubscriptionRejected::dispatch($subscriptionId, $adminId, [
+            'user_id'     => $sub->user_id,
+            'document_id' => $sub->document_id,
+        ]);
     }
 
     /**
@@ -268,35 +234,10 @@ class DocumentSubscriptionService
                 'updated_at'   => now(),
             ]);
 
-        $this->notifyCancelled($sub);
-    }
-
-    /**
-     * Notifica o utilizador de que o seu acesso a um documento foi revogado
-     * por um administrador. Sem isto, o utilizador só descobre a revogação
-     * ao levar um 403 na próxima vez que abrir o documento.
-     */
-    private function notifyCancelled(object $sub): void
-    {
-        $user = User::find($sub->user_id);
-        if ($user === null) {
-            return;
-        }
-
-        $doc = DB::table('documents')->where('id', $sub->document_id)->first(['title', 'media_type']);
-        $docTitle = $doc->title ?? 'documento';
-        $notifData = $doc !== null ? ['document_id' => $sub->document_id, 'media_type' => $doc->media_type] : [];
-
-        $this->notifications->send(
-            $user,
-            'subscription_cancelled',
-            'Subscrição cancelada',
-            "O seu acesso ao documento \"{$docTitle}\" foi cancelado por um administrador.",
-            $sub->document_id,
-            'document',
-            [],
-            $notifData
-        );
+        SubscriptionCancelled::dispatch($subscriptionId, $adminId, [
+            'user_id'     => $sub->user_id,
+            'document_id' => $sub->document_id,
+        ]);
     }
 
     // ─── Status ───────────────────────────────────────────────────────────────

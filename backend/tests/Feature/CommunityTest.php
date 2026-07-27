@@ -489,8 +489,12 @@ class CommunityTest extends TestCase
         $this->assertEquals('closed', $topic->fresh()->status);
     }
 
-    public function test_create_private_topic_sends_correct_notification_with_reference_id(): void
+    public function test_create_private_topic_dispatches_member_invited_event(): void
     {
+        // A notificação de convite passou a ser event-driven (EDA): o endpoint
+        // emite TopicMemberInvited; o CommunityNotificationListener notifica.
+        // O conteúdo da notificação é validado em CommunityListenersTest.
+        \Illuminate\Support\Facades\Event::fake([\App\Events\Domain\Community\TopicMemberInvited::class]);
         $invitedUser = User::factory()->create();
 
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->token}"])
@@ -510,19 +514,13 @@ class CommunityTest extends TestCase
             'user_id' => $invitedUser->id,
         ]);
 
-        $this->assertDatabaseHas('notifications', [
-            'user_id' => $invitedUser->id,
-            'type' => 'topic_invitation',
-            'reference_id' => $topicId,
-            'reference_type' => 'discussion_topic',
-        ]);
-
-        $notification = \Illuminate\Support\Facades\DB::table('notifications')
-            ->where('user_id', $invitedUser->id)
-            ->where('type', 'topic_invitation')
-            ->first();
-
-        $this->assertStringContainsString($this->user->display_name, $notification->message);
-        $this->assertStringNotContainsString($topicId, $notification->message);
+        \Illuminate\Support\Facades\Event::assertDispatched(
+            \App\Events\Domain\Community\TopicMemberInvited::class,
+            function ($event) use ($invitedUser, $topicId) {
+                return $event->aggregateId === $topicId
+                    && ($event->payload['invited_user_id'] ?? null) === $invitedUser->id
+                    && ($event->payload['inviter_name'] ?? null) === $this->user->display_name;
+            }
+        );
     }
 }

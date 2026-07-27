@@ -2,18 +2,19 @@
 
 namespace App\Services;
 
+use App\Events\Domain\Moderation\ModerationActionTaken;
+use App\Events\Domain\Moderation\ReportResolved;
 use App\Models\Report;
 use App\Models\User;
-use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ReportService
 {
-    public function __construct(
-        private readonly NotificationService $notificationService,
-    ) {}
+    // Sprint 18.9 (EDA) — este service atualiza a BD e emite eventos de domínio.
+    // Não cria notificações diretamente; o ModerationNotificationListener trata
+    // de avisar o autor da denúncia e o dono do conteúdo.
 
     public function list(array $filters = [], ?User $currentUser = null)
     {
@@ -119,34 +120,27 @@ class ReportService
      */
     private function notifyReporter(Report $report, bool $actionTaken, User $moderator): void
     {
-        if ($report->reporter_id === null || $report->reporter_id === $moderator->id) {
+        // Notificação via evento (EDA) — as guardas (self, inexistente) ficam
+        // no ModerationNotificationListener.
+        ReportResolved::dispatch($report->id, $moderator->id, [
+            'reporter_id'  => $report->reporter_id,
+            'action_taken' => $actionTaken,
+        ]);
+    }
+
+    /** Emite a notificação (via evento) ao dono do conteúdo alvo de uma ação. */
+    private function notifyContentOwner(Report $report, string $action, ?string $ownerId, User $moderator, ?string $reason): void
+    {
+        if ($ownerId === null) {
             return;
         }
 
-        $reporter = User::find($report->reporter_id);
-        if ($reporter === null) {
-            return;
-        }
-
-        if ($actionTaken) {
-            $this->notificationService->send(
-                $reporter,
-                'report_reviewed',
-                'Denúncia analisada',
-                'A sua denúncia foi analisada e foi tomada uma ação sobre o conteúdo.',
-                $report->id,
-                'report'
-            );
-        } else {
-            $this->notificationService->send(
-                $reporter,
-                'report_dismissed',
-                'Denúncia analisada',
-                'A sua denúncia foi analisada. Não foi necessária qualquer ação.',
-                $report->id,
-                'report'
-            );
-        }
+        ModerationActionTaken::dispatch($report->id, $moderator->id, [
+            'owner_id'     => $ownerId,
+            'action'       => $action,
+            'content_type' => $report->content_type,
+            'reason'       => $reason,
+        ]);
     }
 
     public function dismiss(string $id, ?string $reason, User $moderator): Report
@@ -192,19 +186,7 @@ class ReportService
             ]);
 
             $ownerId = $this->getContentOwnerId($report->content_type, $report->content_id);
-            if ($ownerId) {
-                $owner = User::find($ownerId);
-                if ($owner) {
-                    $this->notificationService->send(
-                        $owner,
-                        'user_warning',
-                        'Aviso de Moderação',
-                        "Você recebeu um aviso de moderação relativo ao seu conteúdo de tipo {$report->content_type}." . ($reason ? " Motivo: {$reason}" : ""),
-                        $report->id,
-                        'report'
-                    );
-                }
-            }
+            $this->notifyContentOwner($report, 'warn', $ownerId, $moderator, $reason);
 
             $this->notifyReporter($report, true, $moderator);
 
@@ -229,20 +211,9 @@ class ReportService
         return DB::transaction(function () use ($report, $reason, $moderator) {
             $ownerId = $this->getContentOwnerId($report->content_type, $report->content_id);
 
-            // Notify owner BEFORE deleting the actual db record
-            if ($ownerId) {
-                $owner = User::find($ownerId);
-                if ($owner) {
-                    $this->notificationService->send(
-                        $owner,
-                        'content_deleted',
-                        'Conteúdo Removido',
-                        "O seu conteúdo de tipo {$report->content_type} foi removido por violação das regras." . ($reason ? " Motivo: {$reason}" : ""),
-                        $report->id,
-                        'report'
-                    );
-                }
-            }
+            // O owner_id é capturado no evento antes da eliminação; a notificação
+            // (afterCommit) usa esse id mesmo que o conteúdo já não exista.
+            $this->notifyContentOwner($report, 'delete', $ownerId, $moderator, $reason);
 
             // Perform deletion
             $this->performDelete($report->content_type, $report->content_id);
@@ -287,20 +258,7 @@ class ReportService
                 'action_taken' => 'Content hidden: ' . ($reason ?? 'Hidden by admin.'),
             ]);
 
-            // Notify owner
-            if ($ownerId) {
-                $owner = User::find($ownerId);
-                if ($owner) {
-                    $this->notificationService->send(
-                        $owner,
-                        'content_hidden',
-                        'Conteúdo Ocultado',
-                        "O seu conteúdo de tipo {$report->content_type} foi ocultado temporariamente." . ($reason ? " Motivo: {$reason}" : ""),
-                        $report->id,
-                        'report'
-                    );
-                }
-            }
+            $this->notifyContentOwner($report, 'hide', $ownerId, $moderator, $reason);
 
             $this->notifyReporter($report, true, $moderator);
 
@@ -335,20 +293,7 @@ class ReportService
                 'action_taken' => 'Content restored: ' . ($reason ?? 'Restored by admin.'),
             ]);
 
-            // Notify owner
-            if ($ownerId) {
-                $owner = User::find($ownerId);
-                if ($owner) {
-                    $this->notificationService->send(
-                        $owner,
-                        'content_restored',
-                        'Conteúdo Restaurado',
-                        "O seu conteúdo de tipo {$report->content_type} foi restaurado com sucesso.",
-                        $report->id,
-                        'report'
-                    );
-                }
-            }
+            $this->notifyContentOwner($report, 'restore', $ownerId, $moderator, $reason);
 
             Log::info('Restauração de conteúdo', [
                 'admin_id'    => $moderator->id,

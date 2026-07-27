@@ -284,12 +284,18 @@ class NotificationTest extends TestCase
             ->assertJson(['message' => 'Invite email sent.']);
     }
 
-    // ─── INTEGRATION: COMMUNITY ────────────────────────────────────────────
+    // ─── INTEGRATION: COMMUNITY (event-driven) ─────────────────────────────
+    // As notificações da Comunidade passaram a ser criadas por listeners
+    // (EDA). Sob RefreshDatabase os eventos ShouldDispatchAfterCommit não são
+    // entregues, por isso aqui verificamos que o endpoint EMITE o evento certo;
+    // o conteúdo da notificação é validado por invocação direta do listener em
+    // CommunityListenersTest.
 
-    public function test_topic_reply_creates_notification_for_topic_author(): void
+    public function test_topic_reply_dispatches_event_targeting_topic_author(): void
     {
-        $category = \App\Models\CommunityCategory::factory()->create();
+        \Illuminate\Support\Facades\Event::fake([\App\Events\Domain\Community\TopicReplied::class]);
 
+        $category = \App\Models\CommunityCategory::factory()->create();
         $topic = DiscussionTopic::factory()->create([
             'category_id' => $category->id,
             'author_id' => $this->admin->id,
@@ -297,52 +303,52 @@ class NotificationTest extends TestCase
         ]);
 
         $response = $this->withHeaders(['Authorization' => "Bearer {$this->userToken}"])
-            ->postJson("/api/topics/{$topic->id}/replies", [
-                'content' => 'This is a reply.',
-            ]);
+            ->postJson("/api/topics/{$topic->id}/replies", ['content' => 'This is a reply.']);
 
         $response->assertStatus(201);
 
-        $this->assertDatabaseHas('notifications', [
-            'user_id' => $this->admin->id,
-            'type' => 'topic_reply',
-            'title' => 'Nova resposta no seu tópico',
-        ]);
+        \Illuminate\Support\Facades\Event::assertDispatched(
+            \App\Events\Domain\Community\TopicReplied::class,
+            fn ($event) => $event->aggregateId === $topic->id
+                && ($event->payload['topic_author_id'] ?? null) === $this->admin->id
+                && $event->actorId === $this->user->id
+        );
     }
 
-    public function test_topic_reply_does_not_notify_own_topic(): void
+    // ─── REALTIME (Reverb / Sprint 19.0) ──────────────────────────────────
+
+    public function test_send_broadcasts_notification_created_on_recipient_private_channel(): void
     {
-        $category = \App\Models\CommunityCategory::factory()->create();
+        \Illuminate\Support\Facades\Event::fake([\App\Events\NotificationCreated::class]);
 
-        $topic = DiscussionTopic::factory()->create([
-            'category_id' => $category->id,
-            'author_id' => $this->user->id,
-            'visibility' => 'PUBLIC',
-        ]);
+        app(\App\Services\NotificationService::class)->send(
+            $this->user,
+            'system_announcement',
+            'Título',
+            'Mensagem',
+        );
 
-        $response = $this->withHeaders(['Authorization' => "Bearer {$this->userToken}"])
-            ->postJson("/api/topics/{$topic->id}/replies", [
-                'content' => 'Replying to own topic.',
-            ]);
-
-        $response->assertStatus(201);
-
-        $this->assertDatabaseMissing('notifications', [
-            'user_id' => $this->user->id,
-            'type' => 'topic_reply',
-        ]);
+        \Illuminate\Support\Facades\Event::assertDispatched(
+            \App\Events\NotificationCreated::class,
+            function ($event) {
+                $channel = $event->broadcastOn()[0];
+                return ($event->notification['user_id'] ?? null) === $this->user->id
+                    && $channel->name === 'private-App.Models.User.' . $this->user->id
+                    && $event->broadcastAs() === 'notification.created';
+            }
+        );
     }
 
-    public function test_reply_accepted_creates_notification_for_reply_author(): void
+    public function test_reply_accepted_dispatches_event_targeting_reply_author(): void
     {
-        $category = \App\Models\CommunityCategory::factory()->create();
+        \Illuminate\Support\Facades\Event::fake([\App\Events\Domain\Community\ReplyAccepted::class]);
 
+        $category = \App\Models\CommunityCategory::factory()->create();
         $topic = DiscussionTopic::factory()->create([
             'category_id' => $category->id,
             'author_id' => $this->admin->id,
             'visibility' => 'PUBLIC',
         ]);
-
         $reply = TopicReply::factory()->create([
             'topic_id' => $topic->id,
             'author_id' => $this->user->id,
@@ -353,11 +359,11 @@ class NotificationTest extends TestCase
 
         $response->assertStatus(200);
 
-        $this->assertDatabaseHas('notifications', [
-            'user_id' => $this->user->id,
-            'type' => 'reply_accepted',
-            'title' => 'A sua resposta foi aceite',
-        ]);
+        \Illuminate\Support\Facades\Event::assertDispatched(
+            \App\Events\Domain\Community\ReplyAccepted::class,
+            fn ($event) => ($event->payload['reply_author_id'] ?? null) === $this->user->id
+                && ($event->payload['reply_id'] ?? null) === $reply->id
+        );
     }
 
 }
