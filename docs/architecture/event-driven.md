@@ -144,12 +144,32 @@ Testes: um `<Dominio>ListenersTest` por domínio (invocação direta do listener
 assert de dispatch nos testes de endpoint. Ver
 [plano de rollout](./eda-notifications-rollout-plan.md).
 
-## Próximos domínios (Fase 2 — cache/auditoria/estatísticas/gamificação)
+## Fase 2 — Gamificação de ciclo de vida em listeners (parcial)
 
-Replicar o resto do padrão (eventos de ciclo de vida → listeners de cache,
-estatísticas e gamificação; refatorar o service para emitir): Utilizadores,
-Comunidade (TopicCreated/Deleted…), Quizzes, Categorias/Config. Depois, Fase 3
-(Reverb / tempo real). Ver [eda-notifications-rollout-plan.md](./eda-notifications-rollout-plan.md).
+A gamificação da **Comunidade** deixou de viver no controller:
+- Eventos: `TopicCreated`, `TopicReplied`, `ReplyAccepted` (os dois últimos
+  reutilizados da Fase 1).
+- [`CommunityGamificationListener`](../../backend/app/Listeners/Community/CommunityGamificationListener.php):
+  criar tópico (20 pts), responder (10 pts), resposta aceite (50 pts).
+- O `CommunityController` já **não injeta** `GamificationService`.
+
+### Decisões de âmbito (deliberadas)
+
+- **Gamificação de Quizzes mantém-se síncrona.** A resposta HTTP da submissão
+  devolve `gamification.points_delta` de imediato — não pode ser diferida para
+  afterCommit. É a exceção já documentada nesta arquitetura.
+- **Contadores intrínsecos** (`topics_count`, `replies_count`, `last_reply_at`)
+  **mantêm-se síncronos** na transação — são estado do próprio agregado,
+  esperado imediatamente consistente (há testes que o assertam). A EDA extrai
+  efeitos *transversais* (notificações, gamificação, cache, auditoria), não os
+  contadores intrínsecos.
+- **Invalidação de cache nos services** (categorias, tags, províncias, settings…)
+  fica onde está: invalidar o próprio cache logo após a escrita é uma
+  responsabilidade aceitável do service e de baixo valor a extrair. Pode ser
+  movida para listeners no futuro se necessário, mas não é uma violação EDA
+  relevante como eram as notificações/gamificação.
+
+## Sprint 19.0 — Reverb (tempo real) — CONCLUÍDA
 
 ## Sprint 19.0 — Reverb (tempo real) — CONCLUÍDA
 

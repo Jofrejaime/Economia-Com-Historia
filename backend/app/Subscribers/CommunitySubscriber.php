@@ -3,10 +3,12 @@
 namespace App\Subscribers;
 
 use App\Events\Domain\Community\ReplyAccepted;
+use App\Events\Domain\Community\TopicCreated;
 use App\Events\Domain\Community\TopicMemberInvited;
 use App\Events\Domain\Community\TopicMemberRemoved;
 use App\Events\Domain\Community\TopicReplied;
 use App\Listeners\AuditLogListener;
+use App\Listeners\Community\CommunityGamificationListener;
 use App\Listeners\Community\CommunityNotificationListener;
 
 /**
@@ -25,10 +27,12 @@ class CommunitySubscriber
     {
         $audit = AuditLogListener::class . '@handle';
         $notify = CommunityNotificationListener::class;
+        $gamify = CommunityGamificationListener::class;
 
         return [
-            TopicReplied::class => [$notify . '@handleReplied', $audit],
-            ReplyAccepted::class => [$notify . '@handleReplyAccepted', $audit],
+            TopicCreated::class => [$gamify . '@handleTopicCreated', $audit],
+            TopicReplied::class => [$notify . '@handleReplied', $gamify . '@handleReplied', $audit],
+            ReplyAccepted::class => [$notify . '@handleReplyAccepted', $gamify . '@handleReplyAccepted', $audit],
             TopicMemberInvited::class => [$notify . '@handleMemberInvited', $audit],
             TopicMemberRemoved::class => [$notify . '@handleMemberRemoved', $audit],
         ];

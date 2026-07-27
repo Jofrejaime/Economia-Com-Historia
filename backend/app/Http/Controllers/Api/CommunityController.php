@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\Domain\Community\ReplyAccepted;
+use App\Events\Domain\Community\TopicCreated;
 use App\Events\Domain\Community\TopicMemberInvited;
 use App\Events\Domain\Community\TopicMemberRemoved;
 use App\Events\Domain\Community\TopicReplied;
@@ -16,7 +17,6 @@ use App\Models\ReplyLike;
 use App\Models\TopicFollower;
 use App\Models\Document;
 use App\Services\CommunityAuthorizationService;
-use App\Services\GamificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,6 @@ class CommunityController extends Controller
 {
     public function __construct(
         private readonly CommunityAuthorizationService $communityAuthorization,
-        private readonly GamificationService $gamification,
     ) {}
 
     // ─── CATEGORIES ────────────────────────────────────────────────────────
@@ -384,21 +383,14 @@ class CommunityController extends Controller
                 }
             }
 
-            // Increment category topics_count
+            // Contador intrínseco do agregado — mantém-se síncrono.
             $category->increment('topics_count');
 
-            // Award gamification points
-            $this->gamification->awardPoints(
-                $request->user(),
-                20,
-                'topic_created',
-                $topic->id,
-                'discussion_topic',
-                "Created topic: {$topic->title}"
-            );
-
-            // Increment counter
-            $this->gamification->incrementCounters($request->user(), ['topics_created' => 1]);
+            // Gamificação via evento (EDA) — pontos e contadores de gamificação
+            // são atribuídos pelo CommunityGamificationListener.
+            TopicCreated::dispatch($topic->id, $request->user()->id, [
+                'topic_title' => $topic->title,
+            ]);
 
             return $topic->load(['author.profile', 'category', 'members.user.profile']);
         });
@@ -1169,22 +1161,12 @@ class CommunityController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // Increment topic replies_count
+            // Contadores intrínsecos do agregado — mantêm-se síncronos.
             $topic->increment('replies_count');
             $topic->update(['last_reply_at' => now()]);
 
-            // Award gamification points
-            $this->gamification->awardPoints(
-                $request->user(),
-                10,
-                'reply_posted',
-                $reply->id,
-                'topic_reply',
-                "Reply on topic: {$topic->title}"
-            );
-
-            // Increment counter
-            $this->gamification->incrementCounters($request->user(), ['replies_posted' => 1]);
+            // Gamificação: tratada pelo CommunityGamificationListener a partir do
+            // evento TopicReplied (emitido abaixo, após o commit).
 
             return $reply->load(['author.profile']);
         });
@@ -1546,15 +1528,9 @@ class CommunityController extends Controller
             // Mark this reply as accepted
             $reply->update(['is_accepted' => true, 'best_answer' => true]);
 
-            // Award bonus points to reply author
-            $this->gamification->awardPoints(
-                $reply->author,
-                50,
-                'reply_accepted',
-                $reply->id,
-                'topic_reply',
-                'Reply marked as accepted solution'
-            );
+            // Gamificação (50 pontos ao autor da resposta): tratada pelo
+            // CommunityGamificationListener a partir do evento ReplyAccepted
+            // emitido abaixo, após o commit.
         });
 
         // Notificação via evento (EDA) — o autor da resposta é notificado pelo
